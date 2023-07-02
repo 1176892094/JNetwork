@@ -1,13 +1,13 @@
 namespace Transport
 {
-    public struct Config : IConfig
+    public struct Config
     {
-        public string address { get; set; }
-        public ushort port { get; set; }
+        public string ip;
+        public ushort port;
 
-        public Config(string address, ushort port)
+        public Config(string ip, ushort port)
         {
-            this.address = address;
+            this.ip = ip;
             this.port = port;
         }
     }

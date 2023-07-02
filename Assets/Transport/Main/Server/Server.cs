@@ -23,7 +23,7 @@ namespace Transport
             endPoint = new IPEndPoint(IPAddress.IPv6Any, 0);
         }
 
-        public void Connect(IConfig config)
+        public void Connect(Config config)
         {
             if (socket != null)
             {
@@ -55,11 +55,11 @@ namespace Transport
             }
         }
 
-        public void Send(int clientId, ArraySegment<byte> segment)
+        public void Send(int clientId, ArraySegment<byte> segment, Channel channel)
         {
             if (clients.TryGetValue(clientId, out var connection))
             {
-                connection.peer.Send(segment);
+                connection.peer.Send(segment, channel);
             }
         }
 
@@ -78,7 +78,7 @@ namespace Transport
             }
             catch (Exception e)
             {
-                Log.Info($"Server receive failed!\n{e}");
+                Log.Error($"Server receive failed!\n{e}");
             }
 
             return false;

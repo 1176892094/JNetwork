@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 namespace Transport
 {
-    public class Client : IConnection
+    public class Client
     {
         private State state;
         private Peer peer;
@@ -25,7 +25,7 @@ namespace Transport
         /// 连接到指定服务器
         /// </summary>
         /// <param name="config"></param>
-        public void Connect(IConfig config)
+        public void Connect(Config config)
         {
             if (state == State.Connected)
             {
@@ -33,7 +33,7 @@ namespace Transport
                 return;
             }
 
-            if (!Utils.TryGetAddress(config.address, out var address))
+            if (!Utils.TryGetAddress(config.ip, out var address))
             {
                 clientData.onDisconnected?.Invoke();
                 return;
@@ -66,7 +66,8 @@ namespace Transport
         /// 发送消息
         /// </summary>
         /// <param name="segment">字节消息数组</param>
-        public void Send(ArraySegment<byte> segment)
+        /// <param name="channel">传输通道</param>
+        public void Send(ArraySegment<byte> segment, Channel channel)
         {
             if (state == State.Disconnected)
             {
@@ -74,7 +75,7 @@ namespace Transport
                 return;
             }
 
-            peer.Send(segment);
+            peer.Send(segment, channel);
         }
 
         /// <summary>
@@ -92,7 +93,7 @@ namespace Transport
             }
             catch (Exception e)
             {
-                Log.Info($"Client receive failed!\n{e}");
+                Log.Error($"Client receive failed!\n{e}");
                 peer.Disconnect();
                 return false;
             }

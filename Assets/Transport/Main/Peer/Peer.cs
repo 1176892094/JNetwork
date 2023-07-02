@@ -4,6 +4,7 @@ namespace Transport
 {
     public class Peer
     {
+        private Jdp jdp;
         private State state;
         private readonly uint cookie;
         private readonly int timeout;
@@ -46,7 +47,7 @@ namespace Transport
             peerData.onDisconnected?.Invoke();
         }
 
-        public void Send(ArraySegment<byte> segment)
+        public void Send(ArraySegment<byte> segment, Channel channel)
         {
         }
 
@@ -54,7 +55,7 @@ namespace Transport
         {
             if (kcpSendBuffer.Length - 1 < segment.Count)
             {
-                Log.Info($"Failed to send reliable message of size {segment.Count}");
+                Log.Error($"Failed to send reliable message of size {segment.Count}");
                 return;
             }
 
@@ -64,11 +65,11 @@ namespace Transport
                 Buffer.BlockCopy(segment.Array, segment.Offset, kcpSendBuffer, 1, segment.Count);
             }
 
-            // int sent = jdp.Send(kcpSendBuffer, 0, 1 + segment.Count);
-            // if (sent < 0)
-            // {
-            //     Log.Info($"Send failed with error = {sent} for content with length = {segment.Count}");
-            // }
+            int sent = jdp.Send(kcpSendBuffer, 0, segment.Count + 1);
+            if (sent < 0)
+            {
+                Log.Error($"Send failed with error = {sent} for content with length = {segment.Count}");
+            }
         }
 
         public void SendHandshake()
