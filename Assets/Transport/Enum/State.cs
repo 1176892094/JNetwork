@@ -1,8 +1,9 @@
 namespace Transport
 {
-    public enum ConnectionState
+    public enum State: byte
     {
         Connected,
+        Authenticated,
         Disconnected,
     }
 }

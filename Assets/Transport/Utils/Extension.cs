@@ -7,9 +7,9 @@ namespace Transport
     public static class Extension
     {
         /// <summary>
-        /// 用于在非阻塞模式下将数据发送到指定的EndPoint
+        /// 用于在非阻塞模式下将数据发送到指定的Client
         /// </summary>
-        public static bool SendToNonBlocking(this Socket socket, ArraySegment<byte> data, EndPoint endPoint)
+        public static bool SendToClient(this Socket socket, ArraySegment<byte> data, EndPoint endPoint)
         {
             try
             {
@@ -31,11 +31,35 @@ namespace Transport
                 throw;
             }
         }
+        
+        /// <summary>
+        /// 用于在非阻塞模式下从已连接的Client接收数据
+        /// </summary>
+        public static bool ReceiveFormServer(this Socket socket, byte[] receiveBuffer, out ArraySegment<byte> data)
+        {
+            data = default;
+            try
+            {
+                if (!socket.Poll(0, SelectMode.SelectRead))
+                {
+                    return false;
+                }
+
+                int size = socket.Receive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None);
+                data = new ArraySegment<byte>(receiveBuffer, 0, size);
+                return true;
+            }
+            catch (SocketException e)
+            {
+                if (e.SocketErrorCode == SocketError.WouldBlock) return false;
+                throw;
+            }
+        }
 
         /// <summary>
-        /// 用于在非阻塞模式下将数据发送到已连接的EndPoint
+        /// 用于在非阻塞模式下将数据发送到已连接的Server
         /// </summary>
-        public static bool SendNonBlocking(this Socket socket, ArraySegment<byte> data)
+        public static bool SendToServer(this Socket socket, ArraySegment<byte> data)
         {
             try
             {
@@ -59,9 +83,9 @@ namespace Transport
         }
 
         /// <summary>
-        /// 用于在非阻塞模式下从指定的EndPoint接收数据
+        /// 用于在非阻塞模式下从指定的Server接收数据
         /// </summary>
-        public static bool ReceiveFromNonBlocking(this Socket socket, byte[] receiveBuffer, out ArraySegment<byte> data, ref EndPoint endPoint)
+        public static bool ReceiveFormClient(this Socket socket, byte[] receiveBuffer, out ArraySegment<byte> data, ref EndPoint endPoint)
         {
             data = default;
             try
@@ -72,30 +96,6 @@ namespace Transport
                 }
 
                 int size = socket.ReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref endPoint);
-                data = new ArraySegment<byte>(receiveBuffer, 0, size);
-                return true;
-            }
-            catch (SocketException e)
-            {
-                if (e.SocketErrorCode == SocketError.WouldBlock) return false;
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// 用于在非阻塞模式下从已连接的EndPoint接收数据
-        /// </summary>
-        public static bool ReceiveNonBlocking(this Socket socket, byte[] receiveBuffer, out ArraySegment<byte> data)
-        {
-            data = default;
-            try
-            {
-                if (!socket.Poll(0, SelectMode.SelectRead))
-                {
-                    return false;
-                }
-
-                int size = socket.Receive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None);
                 data = new ArraySegment<byte>(receiveBuffer, 0, size);
                 return true;
             }

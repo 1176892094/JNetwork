@@ -1,3 +1,5 @@
+using System;
+
 namespace Transport
 {
     public interface IConnection
@@ -6,8 +8,8 @@ namespace Transport
 
         void Disconnect();
 
-        void Send();
+        void Send(ArraySegment<byte> segment);
 
-        void Receive();
+        bool Receive(out ArraySegment<byte> segment);
     }
 }

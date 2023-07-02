@@ -6,11 +6,11 @@ namespace Transport
 {
     public class Client : IConnection
     {
-        private ConnectionState state;
-
+        private State state;
         private Peer peer;
         private Socket socket;
         private EndPoint endPoint;
+        private readonly byte[] buffer;
         private readonly Setting setting;
         private readonly ClientData clientData;
 
@@ -18,11 +18,16 @@ namespace Transport
         {
             this.setting = setting;
             this.clientData = clientData;
+            buffer = new byte[setting.maxTransferUnit];
         }
 
+        /// <summary>
+        /// 连接到指定服务器
+        /// </summary>
+        /// <param name="config"></param>
         public void Connect(IConfig config)
         {
-            if (state == ConnectionState.Connected)
+            if (state == State.Connected)
             {
                 Log.Info("Client is already connected");
                 return;
@@ -34,28 +39,69 @@ namespace Transport
                 return;
             }
 
-            GeneratePeer();
+            Connection();
             endPoint = new IPEndPoint(address, config.port);
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.Blocking = false;
             socket.SendBufferSize = setting.sendBufferSize;
             socket.ReceiveBufferSize = setting.receiveBufferSize;
             socket.Connect(endPoint);
+            peer.SendHandshake();
         }
 
+        /// <summary>
+        /// 断开连接
+        /// </summary>
         public void Disconnect()
         {
+            if (state == State.Disconnected)
+            {
+                return;
+            }
+
+            peer.Disconnect();
         }
 
-        public void Send()
+        /// <summary>
+        /// 发送消息
+        /// </summary>
+        /// <param name="segment">字节消息数组</param>
+        public void Send(ArraySegment<byte> segment)
         {
+            if (state == State.Disconnected)
+            {
+                Log.Error($"Client send failed!");
+                return;
+            }
+
+            peer.Send(segment);
         }
 
-        public void Receive()
+        /// <summary>
+        /// 接收消息
+        /// </summary>
+        /// <param name="segment">字节消息数组</param>
+        public bool Receive(out ArraySegment<byte> segment)
         {
+            segment = default;
+            if (socket == null) return false;
+            try
+            {
+                socket.ReceiveFormServer(buffer, out segment);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Log.Info($"Client receive failed!\n{e}");
+                peer.Disconnect();
+                return false;
+            }
         }
 
-        private void GeneratePeer()
+        /// <summary>
+        /// 创建Peer
+        /// </summary>
+        private void Connection()
         {
             var peerData = new PeerData(OnAuthority, OnDisconnected, OnSend, clientData.onReceive);
             peer = new Peer(peerData, setting, 0);
@@ -63,7 +109,7 @@ namespace Transport
             void OnAuthority()
             {
                 Log.Info("Client connected.");
-                state = ConnectionState.Connected;
+                state = State.Connected;
                 clientData.onConnected?.Invoke();
             }
 
@@ -74,7 +120,7 @@ namespace Transport
                 peer = null;
                 socket = null;
                 endPoint = null;
-                state = ConnectionState.Disconnected;
+                state = State.Disconnected;
                 clientData.onDisconnected?.Invoke();
             }
 
@@ -82,7 +128,7 @@ namespace Transport
             {
                 try
                 {
-                    socket.SendNonBlocking(segment);
+                    socket.SendToServer(segment);
                 }
                 catch (Exception e)
                 {
