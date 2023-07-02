@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Sockets;
 
@@ -5,9 +6,11 @@ namespace Transport
 {
     public class Client : IConnection
     {
+        private ConnectionState state;
+
+        private Peer peer;
         private Socket socket;
         private EndPoint endPoint;
-        private ConnectionState state;
         private readonly Setting setting;
         private readonly ClientData clientData;
 
@@ -27,10 +30,11 @@ namespace Transport
 
             if (!Utils.TryGetAddress(config.address, out var address))
             {
-                clientData.onDisconnected();
+                clientData.onDisconnected?.Invoke();
                 return;
             }
 
+            GeneratePeer();
             endPoint = new IPEndPoint(address, config.port);
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.Blocking = false;
@@ -49,6 +53,42 @@ namespace Transport
 
         public void Receive()
         {
+        }
+
+        private void GeneratePeer()
+        {
+            var peerData = new PeerData(OnAuthority, OnDisconnected, OnSend, clientData.onReceive);
+            peer = new Peer(peerData, setting, 0);
+
+            void OnAuthority()
+            {
+                Log.Info("Client connected.");
+                state = ConnectionState.Connected;
+                clientData.onConnected?.Invoke();
+            }
+
+            void OnDisconnected()
+            {
+                Log.Info($"Client disconnected");
+                socket.Close();
+                peer = null;
+                socket = null;
+                endPoint = null;
+                state = ConnectionState.Disconnected;
+                clientData.onDisconnected?.Invoke();
+            }
+
+            void OnSend(ArraySegment<byte> segment)
+            {
+                try
+                {
+                    socket.SendNonBlocking(segment);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Client send failed!\n{e}");
+                }
+            }
         }
     }
 }

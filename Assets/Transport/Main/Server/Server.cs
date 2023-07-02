@@ -6,9 +6,9 @@ namespace Transport
 {
     public class Server : IConnection
     {
+        
         private Socket socket;
         private EndPoint endPoint;
-        private ConnectionState state;
         private readonly Setting setting;
         private readonly ServerData serverData;
 
