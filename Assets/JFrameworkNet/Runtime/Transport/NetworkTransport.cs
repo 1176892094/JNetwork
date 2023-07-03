@@ -4,32 +4,21 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public class JdpTransport : MonoBehaviour, Transport
+    internal class NetworkTransport : Transport
     {
-        public static JdpTransport Instance;
-        public Action OnClientConnected;
-        public Action OnClientDisconnected;
-        private Action<ArraySegment<byte>, Channel> OnClientSend;
-        public Action<ArraySegment<byte>, Channel> OnClientReceive;
-        public Action<int> OnServerConnected;
-        public Action<int> OnServerDisconnected;
-        private Action<int, ArraySegment<byte>, Channel> OnServerSend;
-        public Action<int, ArraySegment<byte>, Channel> OnServerReceive;
         [SerializeField] private bool noDelay = true;
         [SerializeField] private bool congestion = true;
         [SerializeField] private int resend = 2;
         [SerializeField] private uint interval = 10;
-        [SerializeField] private int maxTransmitUnit = 1200;
         [SerializeField] private int timeout = 10000;
-        [SerializeField] private int sendBufferSize = 1025 * 1027 * 7;
+        [SerializeField] private int maxTransmitUnit = 1200;
+        [SerializeField] private int sendBufferSize = 1024 * 1027 * 7;
         [SerializeField] private int receiveBufferSize = 1024 * 1027 * 7;
         [SerializeField] private uint sendPacketSize = 1024 * 4;
         [SerializeField] private uint receivePacketSize = 1024 * 4;
-        [SerializeField] private Address address;
         private Setting setting;
         private Client client;
         private Server server;
-        Address Transport.Address => address;
 
         private void Awake()
         {
@@ -71,35 +60,35 @@ namespace JFramework.Net
             }
         }
 
-        public void ClientConnect(Address address) => client.Connect(address);
+        public override void ClientConnect(Address address) => client.Connect(address);
 
-        public void ClientConnect(Uri uri)
+        public override void ClientConnect(Uri uri)
         {
             int port = uri.IsDefaultPort ? address.port : uri.Port;
             client.Connect(new Address(uri.Host, (ushort)port));
         }
 
-        public void ClientSend(ArraySegment<byte> segment, Channel channel)
+        public override void ClientSend(ArraySegment<byte> segment, Channel channel)
         {
             client.Send(segment, channel);
             OnClientSend?.Invoke(segment, channel);
         }
 
-        public void ClientDisconnect() => client.Disconnect();
+        public override void ClientDisconnect() => client.Disconnect();
 
-        public void ServerStart() => server.Connect(address);
+        public override void ServerStart() => server.Connect(address);
 
-        public void ServerSend(int clientId, ArraySegment<byte> segment, Channel channel)
+        public override void ServerSend(int clientId, ArraySegment<byte> segment, Channel channel)
         {
             server.Send(clientId, segment, channel);
             OnServerSend?.Invoke(clientId, segment, channel);
         }
 
-        public void ServerDisconnect(int clientId) => server.Disconnect(clientId);
+        public override void ServerDisconnect(int clientId) => server.Disconnect(clientId);
 
-        public void ServerStop() => server.ShutDown();
+        public override void ServerStop() => server.ShutDown();
 
-        public void ClientEarlyUpdate()
+        public override void ClientEarlyUpdate()
         {
             if (enabled)
             {
@@ -107,9 +96,9 @@ namespace JFramework.Net
             }
         }
 
-        public void ClientAfterUpdate() => client.AfterUpdate();
+        public override void ClientAfterUpdate() => client.AfterUpdate();
 
-        public void ServerEarlyUpdate()
+        public override void ServerEarlyUpdate()
         {
             if (enabled)
             {
@@ -117,6 +106,6 @@ namespace JFramework.Net
             }
         }
 
-        public void ServerAfterUpdate() => server.AfterUpdate();
+        public override void ServerAfterUpdate() => server.AfterUpdate();
     }
 }

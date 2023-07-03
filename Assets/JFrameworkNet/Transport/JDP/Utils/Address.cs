@@ -5,8 +5,8 @@ namespace JFramework.Udp
     [Serializable]
     public struct Address
     {
-        public readonly string ip;
-        public readonly ushort port;
+        public string ip;
+        public ushort port;
 
         public Address(string ip, ushort port)
         {

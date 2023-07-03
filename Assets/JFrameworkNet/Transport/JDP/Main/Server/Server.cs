@@ -5,6 +5,7 @@ using System.Net.Sockets;
 
 namespace JFramework.Udp
 {
+    [Serializable]
     public sealed class Server
     {
         private readonly Dictionary<int, Connection> clients = new Dictionary<int, Connection>();

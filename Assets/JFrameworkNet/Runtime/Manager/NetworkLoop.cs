@@ -41,26 +41,26 @@ namespace JFramework.Net
             return false;
         }
 
-        private static void NetworkEarlyUpdate()
+        private static void EarlyUpdate()
         {
             if (!Application.isPlaying) return;
-            NetworkServer.EarlyUpdate();
-            NetworkClient.EarlyUpdate();
+            NetworkManager.Server.EarlyUpdate();
+            NetworkManager.Client.EarlyUpdate();
         }
 
-        private static void NetworkLateUpdate()
+        private static void AfterUpdate()
         {
             if (!Application.isPlaying) return;
-            NetworkServer.AfterUpdate();
-            NetworkClient.AfterUpdate();
+            NetworkManager.Server.AfterUpdate();
+            NetworkManager.Client.AfterUpdate();
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
             var playerLoop = PlayerLoop.GetCurrentPlayerLoop();
-            AddPlayerLoop(NetworkEarlyUpdate, ref playerLoop, typeof(EarlyUpdate));
-            AddPlayerLoop(NetworkLateUpdate, ref playerLoop, typeof(PreLateUpdate));
+            AddPlayerLoop(EarlyUpdate, ref playerLoop, typeof(EarlyUpdate));
+            AddPlayerLoop(AfterUpdate, ref playerLoop, typeof(PreLateUpdate));
             PlayerLoop.SetPlayerLoop(playerLoop);
         }
     }

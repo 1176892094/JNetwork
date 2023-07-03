@@ -4,6 +4,7 @@ using System.Net.Sockets;
 
 namespace JFramework.Udp
 {
+    [Serializable]
     public sealed class Client
     {
         private State state;
