@@ -1,7 +1,6 @@
 namespace JFramework.Net
 {
-    public class ServerConnection
+    public class ServerConnection : NetworkConnection
     {
-        
     }
 }

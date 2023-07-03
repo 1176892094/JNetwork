@@ -3,8 +3,21 @@ using JFramework.Udp;
 
 namespace JFramework.Net
 {
-    public class NetworkConnection
+    public abstract class NetworkConnection
     {
+        public readonly int connectionId;
+        public bool isAuthority;
+        public bool isReady;
+
+        internal NetworkConnection()
+        {
+        }
+
+        internal NetworkConnection(int connectionId)
+        {
+            this.connectionId = connectionId;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, NetworkMessage
         {

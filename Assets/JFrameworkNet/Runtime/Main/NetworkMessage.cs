@@ -8,4 +8,8 @@ namespace JFramework.Net
     {
         public string sceneName;
     }
+    
+    public struct ReadyMessage : NetworkMessage
+    {
+    }
 }

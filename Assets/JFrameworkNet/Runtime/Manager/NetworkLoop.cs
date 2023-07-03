@@ -44,15 +44,15 @@ namespace JFramework.Net
         private static void EarlyUpdate()
         {
             if (!Application.isPlaying) return;
-            NetworkManager.Server.EarlyUpdate();
-            NetworkManager.Client.EarlyUpdate();
+            NetworkServer.EarlyUpdate();
+            NetworkClient.EarlyUpdate();
         }
 
         private static void AfterUpdate()
         {
             if (!Application.isPlaying) return;
-            NetworkManager.Server.AfterUpdate();
-            NetworkManager.Client.AfterUpdate();
+            NetworkServer.AfterUpdate();
+            NetworkClient.AfterUpdate();
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

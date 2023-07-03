@@ -10,5 +10,10 @@ namespace JFramework.Net
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => Time.unscaledTimeAsDouble;
         }
+        
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        public static void RuntimeInitializeOnLoad()
+        {
+        }
     }
 }
