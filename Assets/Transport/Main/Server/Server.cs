@@ -26,8 +26,8 @@ namespace Transport
         /// <summary>
         /// 服务器启动
         /// </summary>
-        /// <param name="config">配置地址和端口号</param>
-        public void Connect(Config config)
+        /// <param name="address">配置地址和端口号</param>
+        public void Connect(Address address)
         {
             if (socket != null)
             {
@@ -45,7 +45,7 @@ namespace Transport
                 Log.Warn($"Server failed to set Dual Mode.\n{e}");
             }
 
-            socket.Bind(new IPEndPoint(IPAddress.IPv6Any, config.port));
+            socket.Bind(new IPEndPoint(IPAddress.IPv6Any, address.port));
             socket.Blocking = false;
             socket.SendBufferSize = setting.sendBufferSize;
             socket.ReceiveBufferSize = setting.receiveBufferSize;

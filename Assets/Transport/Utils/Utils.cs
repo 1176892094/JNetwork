@@ -6,9 +6,11 @@ using System.Security.Cryptography;
 
 namespace Transport
 {
-    public class Utils
+    public static class Utils
     {
-        private const int METADATA_SIZE = CHANNEL_HEADER_SIZE + COOKIE_HEADER_SIZE;
+        public const int PING_INTERVAL = 1000;
+        public const int QUEUE_DISCONNECTED_THRESHOLD = 10000;
+        public const int METADATA_SIZE = CHANNEL_HEADER_SIZE + COOKIE_HEADER_SIZE;
         private const int CHANNEL_HEADER_SIZE = 1;
         private const int COOKIE_HEADER_SIZE = 4;
 
@@ -111,7 +113,7 @@ namespace Transport
         /// <summary>
         /// 可靠传输大小(255, 148716)
         /// </summary>
-        public static int ReliableSize(int maxTransferUnit, int receivePacketSize)
+        public static int ReliableSize(int maxTransferUnit, uint receivePacketSize)
         {
             return ReliableSizeInternal(maxTransferUnit, Math.Min(receivePacketSize, Jdp.FRG_MAX));
         }
@@ -119,9 +121,9 @@ namespace Transport
         /// <summary>
         /// 可靠传输大小(内部) 148716
         /// </summary>
-        private static int ReliableSizeInternal(int maxTransferUnit, int receivePacketSize)
+        private static int ReliableSizeInternal(int maxTransferUnit, uint receivePacketSize)
         {
-            return (maxTransferUnit - Jdp.OVERHEAD - METADATA_SIZE) * (receivePacketSize - 1) - 1;
+            return (maxTransferUnit - Jdp.OVERHEAD - METADATA_SIZE) * ((int)receivePacketSize - 1) - 1;
         }
 
         /// <summary>
@@ -130,12 +132,6 @@ namespace Transport
         public static int UnreliableSize(int maxTransmissionUnit)
         {
             return maxTransmissionUnit - METADATA_SIZE;
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Sub(uint later, uint earlier)
-        {
-            return (int)(later - earlier);
         }
     }
 }

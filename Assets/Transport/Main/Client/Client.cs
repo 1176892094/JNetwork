@@ -24,8 +24,8 @@ namespace Transport
         /// <summary>
         /// 连接到指定服务器
         /// </summary>
-        /// <param name="config"></param>
-        public void Connect(Config config)
+        /// <param name="address"></param>
+        public void Connect(Address address)
         {
             if (state == State.Connected)
             {
@@ -33,14 +33,14 @@ namespace Transport
                 return;
             }
 
-            if (!Utils.TryGetAddress(config.address, out var address))
+            if (!Utils.TryGetAddress(address.ip, out var ip))
             {
                 clientData.onDisconnected?.Invoke();
                 return;
             }
 
             Connection();
-            endPoint = new IPEndPoint(address, config.port);
+            endPoint = new IPEndPoint(ip, address.port);
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.Blocking = false;
             socket.SendBufferSize = setting.sendBufferSize;

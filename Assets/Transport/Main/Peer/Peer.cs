@@ -5,17 +5,18 @@ namespace Transport
 {
     internal class Peer
     {
-        private uint lastReceiveTime;
         private State state;
+        private uint lastPingTime;
+        private uint lastReceiveTime;
         private readonly Jdp jdp;
         private readonly uint cookie;
         private readonly int timeout;
         private readonly int reliableSize;
         private readonly int unreliableSize;
-        private readonly byte[] receiveCookie;
         private readonly byte[] messageBuffer;
-        private readonly byte[] kcpSendBuffer;
+        private readonly byte[] jdpSendBuffer;
         private readonly byte[] rawSendBuffer;
+        private readonly byte[] receiveCookie = new byte[4];
         private readonly Stopwatch watch = new Stopwatch();
         private readonly PeerData peerData;
 
@@ -25,11 +26,13 @@ namespace Transport
             this.peerData = peerData;
             timeout = setting.timeout;
             jdp = new Jdp(0, SendReliable);
+            jdp.SetNoDelay(setting.noDelay ? 1U : 0U, setting.interval, setting.resend, setting.congestion);
+            jdp.SetWindowSize(setting.sendPacketSize, setting.receivePacketSize);
+            jdp.SetTransferUnit((uint)setting.maxTransferUnit - Utils.METADATA_SIZE);
             reliableSize = Utils.ReliableSize(setting.maxTransferUnit, setting.receivePacketSize);
             unreliableSize = Utils.UnreliableSize(setting.maxTransferUnit);
-            receiveCookie = new byte[4];
             messageBuffer = new byte[reliableSize + 1];
-            kcpSendBuffer = new byte[reliableSize + 1];
+            jdpSendBuffer = new byte[reliableSize + 1];
             rawSendBuffer = new byte[setting.maxTransferUnit];
             watch.Start();
         }
@@ -83,19 +86,19 @@ namespace Transport
         /// <param name="segment"></param>
         private void SendReliable(Header header, ArraySegment<byte> segment)
         {
-            if (segment.Count > kcpSendBuffer.Length - 1)
+            if (segment.Count > jdpSendBuffer.Length - 1)
             {
                 Log.Error($"Failed to send reliable message of size {segment.Count}");
                 return;
             }
 
-            kcpSendBuffer[0] = (byte)header; //设置传输的头部
+            jdpSendBuffer[0] = (byte)header; //设置传输的头部
             if (segment.Count > 0)
             {
-                Buffer.BlockCopy(segment.Array, segment.Offset, kcpSendBuffer, 1, segment.Count);
+                Buffer.BlockCopy(segment.Array, segment.Offset, jdpSendBuffer, 1, segment.Count);
             }
 
-            int sent = jdp.Send(kcpSendBuffer, 0, segment.Count + 1);
+            int sent = jdp.Send(jdpSendBuffer, 0, segment.Count + 1);
             if (sent < 0)
             {
                 Log.Error($"Send failed with error = {sent} for content with length = {segment.Count}");
@@ -143,14 +146,40 @@ namespace Transport
             SendReliable(Header.Handshake, segment);
         }
 
+        public void SendDisconnect(uint time)
+        {
+            if (time >= lastReceiveTime + timeout)
+            {
+                Log.Error($"Connection timeout after not receiving any message for {timeout}ms.");
+                Disconnect();
+            }
+            
+            if (jdp.state == -1)
+            {
+                Log.Error($"Deadlink detected: a message was retransmitted {jdp.deadLink} times without acknowledge.");
+                Disconnect();
+            }
+            
+            if (time >= lastPingTime + Utils.PING_INTERVAL)
+            {
+                SendReliable(Header.Ping, default);
+                lastPingTime = time;
+            }
+            
+            if (jdp.GetBufferQueueCount() >= Utils.QUEUE_DISCONNECTED_THRESHOLD)
+            {
+                Log.Error($"Disconnecting connection because it can't process data fast enough.");
+                jdp.sendQueue.Clear();
+                Disconnect();
+            }
+        }
+
         public void BeforeUpdate()
         {
-            
         }
 
         public void AfterUpdate()
         {
-            
         }
     }
 }
