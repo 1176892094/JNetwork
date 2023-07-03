@@ -4,7 +4,7 @@ namespace DefaultNamespace
     {
         private void Start()
         {
-            JFramework.Net.NetworkManager.
+            //JFramework.Net.NetworkManager.
         }
     }
 }

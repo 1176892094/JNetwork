@@ -6,6 +6,10 @@ namespace JFramework.Net
     {
         public sealed class NetworkClient
         {
+            public bool isActive;
+            public Action OnConnected;
+            public Action OnDisconnected;
+            
             public void EarlyUpdate()
             {
             }

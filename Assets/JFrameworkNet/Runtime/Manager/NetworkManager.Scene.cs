@@ -4,6 +4,7 @@ namespace JFramework.Net
     {
         public sealed class NetworkSceneManager
         {
+            public string localScene;
         }
     }
 }
