@@ -1,2 +1,2 @@
 # JFramework-Net
-用于开发Uniy网络游戏
+内部包含一个可靠的UDP传输协议，用于开发Uniy网络游戏
