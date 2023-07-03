@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
+// ReSharper disable All
 namespace JFramework.Net
 {
- public static class NetworkReaderExtensions
+    public static class NetworkReaderExtensions
     {
         public static byte ReadByte(this NetworkReader reader)
         {
@@ -87,6 +88,12 @@ namespace JFramework.Net
             return reader.encoding.GetString(data.Array, data.Offset, data.Count);
         }
         
+        public static ArraySegment<byte> ReadBytesAndSizeSegment(this NetworkReader reader)
+        {
+            uint count = reader.ReadUInt();
+            return count == 0 ? default : reader.ReadBytesSegment(checked((int)(count - 1u)));
+        }
+        
         public static byte[] ReadBytesAndSize(this NetworkReader reader)
         {
             uint count = reader.ReadUInt();
@@ -98,11 +105,6 @@ namespace JFramework.Net
             byte[] bytes = new byte[count];
             reader.ReadBytes(bytes, count);
             return bytes;
-        }
-        public static ArraySegment<byte> ReadBytesAndSizeSegment(this NetworkReader reader)
-        {
-            uint count = reader.ReadUInt();
-            return count == 0 ? default : reader.ReadBytesSegment(checked((int)(count - 1u)));
         }
 
         public static Vector2 ReadVector2(this NetworkReader reader)

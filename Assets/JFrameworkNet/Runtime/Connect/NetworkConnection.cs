@@ -32,7 +32,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            GetBatch(channel).PopMessage(segment, NetworkTime.localTime);
+            GetBatch(channel).Enqueue(segment, NetworkTime.localTime);
         }
         
         protected Batch GetBatch(Channel channel)

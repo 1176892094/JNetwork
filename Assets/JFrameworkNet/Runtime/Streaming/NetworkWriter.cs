@@ -100,26 +100,21 @@ namespace JFramework.Net
             position += size;
         }
 
+        /// <summary>
+        /// 写入Byte数组
+        /// </summary>
         public void WriteBytes(byte[] array, int offset, int count)
         {
             EnsureCapacity(position + count);
             Array.ConstrainedCopy(array, offset, buffer, position, count);
             position += count;
         }
-        
-        public unsafe bool WriteBytes(byte* ptr, int offset, int size)
-        {
-            EnsureCapacity(position + size);
 
-            fixed (byte* destination = &buffer[position])
-            {
-                UnsafeUtility.MemCpy(destination, ptr + offset, size);
-            }
-
-            position += size;
-            return true;
-        }
-        
+        /// <summary>
+        /// 将泛型类写入委托
+        /// </summary>
+        /// <param name="value"></param>
+        /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T value)
         {

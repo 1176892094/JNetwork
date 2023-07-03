@@ -18,7 +18,7 @@ namespace JFramework.Net
 
         private void Awake()
         {
-            if (!SetSingleton(NetworkMode.None)) return;
+            SetSingleton(NetworkMode.None);
         }
 
         /// <summary>
