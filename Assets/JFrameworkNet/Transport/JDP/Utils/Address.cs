@@ -1,5 +1,8 @@
-namespace JFNet.JDP
+using System;
+
+namespace JFramework.Udp
 {
+    [Serializable]
     public struct Address
     {
         public readonly string ip;

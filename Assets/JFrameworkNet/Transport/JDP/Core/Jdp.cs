@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace JFNet.JDP
+namespace JFramework.Udp
 {
     internal sealed class Jdp
     {

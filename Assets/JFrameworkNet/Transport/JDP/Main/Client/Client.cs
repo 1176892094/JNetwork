@@ -2,7 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 
-namespace JFNet.JDP
+namespace JFramework.Udp
 {
     public sealed class Client
     {

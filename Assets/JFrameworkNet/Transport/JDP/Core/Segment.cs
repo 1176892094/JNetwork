@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace JFNet.JDP
+namespace JFramework.Udp
 {
     internal sealed class Segment
     {

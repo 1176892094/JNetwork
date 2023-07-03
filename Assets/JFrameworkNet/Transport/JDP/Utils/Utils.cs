@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 
-namespace JFNet.JDP
+namespace JFramework.Udp
 {
     internal static class Utils
     {

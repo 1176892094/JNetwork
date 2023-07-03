@@ -2,7 +2,7 @@ using System;
 using System.Net.Sockets;
 // ReSharper disable All
 
-namespace JFNet.JDP
+namespace JFramework.Udp
 {
     internal sealed partial class Peer
     {

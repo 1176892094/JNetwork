@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace JFNet.JDP
+namespace JFramework.Udp
 {
     internal sealed class Pool<T>
     {

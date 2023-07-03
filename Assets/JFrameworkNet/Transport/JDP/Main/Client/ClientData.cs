@@ -1,6 +1,6 @@
 using System;
 
-namespace JFNet.JDP
+namespace JFramework.Udp
 {
     public readonly struct ClientData
     {

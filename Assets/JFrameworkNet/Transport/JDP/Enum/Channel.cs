@@ -1,4 +1,4 @@
-namespace JFNet.JDP
+namespace JFramework.Udp
 {
     public enum Channel : byte
     {

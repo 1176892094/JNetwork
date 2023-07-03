@@ -1,6 +1,6 @@
 using System;
 
-namespace JFNet.JDP
+namespace JFramework.Udp
 {
     internal readonly struct PeerData
     {

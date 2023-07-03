@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 // ReSharper disable All
 
-namespace JFNet.JDP
+namespace JFramework.Udp
 {
     internal static class Extension
     {

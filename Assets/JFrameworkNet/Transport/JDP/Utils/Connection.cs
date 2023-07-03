@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace JFNet.JDP
+namespace JFramework.Udp
 {
     internal sealed class Connection
     {

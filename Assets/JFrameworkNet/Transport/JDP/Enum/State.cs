@@ -1,4 +1,4 @@
-namespace JFNet.JDP
+namespace JFramework.Udp
 {
     internal enum State: byte
     {
