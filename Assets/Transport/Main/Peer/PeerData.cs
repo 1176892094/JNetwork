@@ -2,7 +2,7 @@ using System;
 
 namespace Transport
 {
-    public readonly struct PeerData
+    internal readonly struct PeerData
     {
         public readonly Action onAuthority;
         public readonly Action onDisconnected;

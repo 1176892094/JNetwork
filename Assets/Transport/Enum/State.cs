@@ -1,6 +1,6 @@
 namespace Transport
 {
-    public enum State: byte
+    internal enum State: byte
     {
         Connected,
         Authenticated,

@@ -1,6 +1,6 @@
 namespace Transport
 {
-    public enum Header : byte
+    internal enum Header : byte
     {
         Handshake = 1,
         Ping = 2,

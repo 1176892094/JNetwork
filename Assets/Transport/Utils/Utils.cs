@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace Transport
 {
-    public static class Utils
+    internal static class Utils
     {
         public const int PING_INTERVAL = 1000;
         public const int QUEUE_DISCONNECTED_THRESHOLD = 10000;

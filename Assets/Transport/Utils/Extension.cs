@@ -6,7 +6,7 @@ using System.Net.Sockets;
 
 namespace Transport
 {
-    public static class Extension
+    internal static class Extension
     {
         /// <summary>
         /// 用于在非阻塞模式下将数据发送到指定的Client
