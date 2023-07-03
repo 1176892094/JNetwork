@@ -6,9 +6,9 @@ namespace Transport
     {
         public readonly Action<int> onConnected;
         public readonly Action<int> onDisconnected;
-        public readonly Action<int, ArraySegment<byte>> onReceive;
+        public readonly Action<int, ArraySegment<byte>, Channel> onReceive;
 
-        public ServerData(Action<int> onConnected, Action<int> onDisconnected, Action<int, ArraySegment<byte>> onReceive)
+        public ServerData(Action<int> onConnected, Action<int> onDisconnected, Action<int, ArraySegment<byte>, Channel> onReceive)
         {
             this.onConnected = onConnected;
             this.onDisconnected = onDisconnected;

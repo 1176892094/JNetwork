@@ -1,22 +1,17 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
 namespace Transport
 {
     public class Utils
     {
-        public const int Timeout = 10000;
-        public const int PackageSend = 32;
-        public const int PackageReceive = 128;
-        public const int MaxTransferUnit = 1200;
-        public const int MaxFragment = byte.MaxValue;
-        public const int Overhead = 24;
-        private const int MetaDataSize = ChannelHeaderSize + CookieHeaderSize;
-        private const int ChannelHeaderSize = 1;
-        private const int CookieHeaderSize = 4;
-        
+        private const int METADATA_SIZE = CHANNEL_HEADER_SIZE + COOKIE_HEADER_SIZE;
+        private const int CHANNEL_HEADER_SIZE = 1;
+        private const int COOKIE_HEADER_SIZE = 4;
+
         /// <summary>
         /// 编码8位无符号整型
         /// </summary>
@@ -114,19 +109,19 @@ namespace Transport
         }
 
         /// <summary>
-        /// 可靠传输大小
+        /// 可靠传输大小(255, 148716)
         /// </summary>
-        public static int ReliableSize(int maxTransferUnit, int packageReceive)
+        public static int ReliableSize(int maxTransferUnit, int receivePacketSize)
         {
-            return ReliableSizeInternal(maxTransferUnit, Math.Min(packageReceive, MaxFragment));
+            return ReliableSizeInternal(maxTransferUnit, Math.Min(receivePacketSize, Jdp.FRG_MAX));
         }
 
         /// <summary>
         /// 可靠传输大小(内部) 148716
         /// </summary>
-        private static int ReliableSizeInternal(int maxTransferUnit, int packageReceive)
+        private static int ReliableSizeInternal(int maxTransferUnit, int receivePacketSize)
         {
-            return (maxTransferUnit - Overhead - MetaDataSize) * (packageReceive - 1) - 1;
+            return (maxTransferUnit - Jdp.OVERHEAD - METADATA_SIZE) * (receivePacketSize - 1) - 1;
         }
 
         /// <summary>
@@ -134,7 +129,13 @@ namespace Transport
         /// </summary>
         public static int UnreliableSize(int maxTransmissionUnit)
         {
-            return maxTransmissionUnit - MetaDataSize;
+            return maxTransmissionUnit - METADATA_SIZE;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Sub(uint later, uint earlier)
+        {
+            return (int)(later - earlier);
         }
     }
 }

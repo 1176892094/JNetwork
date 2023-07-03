@@ -2,7 +2,7 @@ using System.Net;
 
 namespace Transport
 {
-    public class Connection
+    internal class Connection
     {
         public Peer peer;
         public readonly EndPoint endPoint;

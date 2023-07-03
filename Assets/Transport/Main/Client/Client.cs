@@ -33,7 +33,7 @@ namespace Transport
                 return;
             }
 
-            if (!Utils.TryGetAddress(config.ip, out var address))
+            if (!Utils.TryGetAddress(config.address, out var address))
             {
                 clientData.onDisconnected?.Invoke();
                 return;
@@ -136,6 +136,31 @@ namespace Transport
                     Log.Error($"Client send failed!\n{e}");
                 }
             }
+        }
+        
+        /// <summary>
+        /// Update之前
+        /// </summary>
+        public void BeforeUpdate()
+        {
+            if (peer != null)
+            {
+                while (Receive(out var segment))
+                {
+                    //TODO:客户端操作相关
+                    peer.Send(segment, Channel.Reliable);
+                }
+            }
+
+            peer?.BeforeUpdate();
+        }
+
+        /// <summary>
+        /// Update之后
+        /// </summary>
+        public void AfterUpdate()
+        {
+            peer?.AfterUpdate();
         }
     }
 }

@@ -2,12 +2,12 @@ namespace Transport
 {
     public struct Config
     {
-        public string ip;
-        public ushort port;
+        public readonly string address;
+        public readonly ushort port;
 
-        public Config(string ip, ushort port)
+        public Config(string address, ushort port)
         {
-            this.ip = ip;
+            this.address = address;
             this.port = port;
         }
     }

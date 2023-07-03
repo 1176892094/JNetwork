@@ -23,6 +23,10 @@ namespace Transport
             endPoint = new IPEndPoint(IPAddress.IPv6Any, 0);
         }
 
+        /// <summary>
+        /// 服务器启动
+        /// </summary>
+        /// <param name="config">配置地址和端口号</param>
         public void Connect(Config config)
         {
             if (socket != null)
@@ -47,6 +51,10 @@ namespace Transport
             socket.ReceiveBufferSize = setting.receiveBufferSize;
         }
 
+        /// <summary>
+        /// 服务器断开客户端连接
+        /// </summary>
+        /// <param name="clientId">断开的客户端Id</param>
         public void Disconnect(int clientId)
         {
             if (clients.TryGetValue(clientId, out var connection))
@@ -55,6 +63,9 @@ namespace Transport
             }
         }
 
+        /// <summary>
+        /// 服务器发送消息给指定客户端
+        /// </summary>
         public void Send(int clientId, ArraySegment<byte> segment, Channel channel)
         {
             if (clients.TryGetValue(clientId, out var connection))
@@ -63,6 +74,9 @@ namespace Transport
             }
         }
 
+        /// <summary>
+        /// 服务器从指定客户端接收消息
+        /// </summary>
         public bool Receive(out int clientId, out ArraySegment<byte> segment)
         {
             clientId = 0;
@@ -84,37 +98,23 @@ namespace Transport
             return false;
         }
 
-        private void SendInternal(int clientId, ArraySegment<byte> data)
+        /// <summary>
+        /// 指定客户端连接到服务器
+        /// </summary>
+        private Connection Connection(int clientId)
         {
-            if (!clients.TryGetValue(clientId, out var connection))
-            {
-                Log.Warn($"The server send invalid clientId = {clientId}");
-                return;
-            }
-
-            try
-            {
-                socket.SendToClient(data, connection.endPoint);
-            }
-            catch (SocketException e)
-            {
-                Log.Error($"The server send failed.\n{e}");
-            }
-        }
-
-        private void Connection(int clientId)
-        {
-            var connection = new Connection(endPoint);
+            var newConnection = new Connection(endPoint);
             var cookie = Utils.GenerateCookie();
             var peerData = new PeerData(OnAuthority, OnDisconnected, OnSend, OnReceive);
             var peer = new Peer(peerData, setting, cookie);
-            connection.peer = peer;
+            newConnection.peer = peer;
+            return newConnection;
 
             void OnAuthority()
             {
-                connection.peer.SendHandshake();
+                newConnection.peer.SendHandshake();
                 Log.Info($"The client {clientId} connect to server.");
-                clients.Add(clientId, connection);
+                clients.Add(clientId, newConnection);
                 serverData.onConnected(clientId);
             }
 
@@ -127,19 +127,64 @@ namespace Transport
 
             void OnSend(ArraySegment<byte> segment)
             {
+                if (!clients.TryGetValue(clientId, out var connection))
+                {
+                    Log.Warn($"The server send invalid clientId = {clientId}");
+                    return;
+                }
+
                 try
                 {
-                    socket.SendToServer(segment);
+                    socket.SendToClient(segment, connection.endPoint);
                 }
-                catch (Exception e)
+                catch (SocketException e)
                 {
-                    Log.Error($"Client send failed!\n{e}");
+                    Log.Error($"The server send failed.\n{e}");
                 }
             }
 
-            void OnReceive(ArraySegment<byte> message)
+            void OnReceive(ArraySegment<byte> message, Channel channel)
             {
-                serverData.onReceive?.Invoke(clientId, message);
+                serverData.onReceive?.Invoke(clientId, message, channel);
+            }
+        }
+
+        /// <summary>
+        /// Update之前
+        /// </summary>
+        public void BeforeUpdate()
+        {
+            while (Receive(out var clientId, out var segment))
+            {
+                if (!clients.TryGetValue(clientId, out var connection))
+                {
+                    connection = Connection(clientId);
+                    connection.peer.Send(segment, Channel.Reliable);
+                    //TODO:客户端操作相关
+                }
+            }
+
+            foreach (var connection in clients.Values)
+            {
+                connection.peer.BeforeUpdate();
+            }
+
+            foreach (var clientId in removes)
+            {
+                clients.Remove(clientId);
+            }
+            
+            removes.Clear();
+        }
+
+        /// <summary>
+        /// Update之后
+        /// </summary>
+        public void AfterUpdate()
+        {
+            foreach (var connection in clients.Values)
+            {
+                connection.peer.AfterUpdate();
             }
         }
     }
