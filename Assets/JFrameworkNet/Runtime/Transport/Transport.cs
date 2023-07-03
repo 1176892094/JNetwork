@@ -92,6 +92,12 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="clientId">传入要断开的客户端Id</param>
         public abstract void ServerDisconnect(int clientId);
+        
+        /// <summary>
+        /// 网络消息合批阈值
+        /// </summary>
+        /// <returns>返回阈值</returns>
+        public abstract int GetBatchThreshold();
 
         /// <summary>
         /// 当服务器停止

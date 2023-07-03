@@ -6,7 +6,7 @@ namespace DefaultNamespace
     {
         private void Start()
         {
-            NetworkManager.
+            //NetworkManager.
         }
     }
 }

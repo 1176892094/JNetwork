@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public static class NetworkTime
+    internal static class NetworkTime
     {
         public static double localTime
         {

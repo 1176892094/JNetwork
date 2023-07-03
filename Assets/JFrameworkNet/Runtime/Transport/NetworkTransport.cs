@@ -85,6 +85,7 @@ namespace JFramework.Net
         }
 
         public override void ServerDisconnect(int clientId) => server.Disconnect(clientId);
+        public override int GetBatchThreshold() => setting.maxTransferUnit - 5;
 
         public override void ServerStop() => server.ShutDown();
 
