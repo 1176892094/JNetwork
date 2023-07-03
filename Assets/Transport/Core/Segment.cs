@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace Transport
+namespace JDP
 {
     internal sealed class Segment
     {

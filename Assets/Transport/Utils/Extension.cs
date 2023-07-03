@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 // ReSharper disable All
 
-namespace Transport
+namespace JDP
 {
     internal static class Extension
     {

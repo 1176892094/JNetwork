@@ -1,4 +1,4 @@
-namespace Transport
+namespace JDP
 {
     internal enum Header : byte
     {

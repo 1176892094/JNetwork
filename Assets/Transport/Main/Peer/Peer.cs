@@ -1,9 +1,10 @@
 using System;
 using System.Diagnostics;
+// ReSharper disable All
 
-namespace Transport
+namespace JDP
 {
-    internal sealed class Peer
+    internal sealed partial class Peer
     {
         private State state;
         private uint lastPingTime;
@@ -35,25 +36,6 @@ namespace Transport
             jdpSendBuffer = new byte[reliableSize + 1];
             rawSendBuffer = new byte[setting.maxTransferUnit];
             watch.Start();
-        }
-
-        /// <summary>
-        /// 断开连接
-        /// </summary>
-        public void Disconnect()
-        {
-            if (state == State.Disconnected) return;
-            try
-            {
-                SendReliable(Header.Disconnect, default);
-            }
-            catch
-            {
-                // ignored
-            }
-
-            state = State.Disconnected;
-            peerData.onDisconnected?.Invoke();
         }
 
         /// <summary>
@@ -135,6 +117,87 @@ namespace Transport
             peerData.onSend(message);
         }
 
+        private bool TryReceive(out Header header, out ArraySegment<byte> segment)
+        {
+            segment = default;
+            header = Header.Disconnect;
+            int messageSize = jdp.PeekSize();
+            if (messageSize <= 0)
+            {
+                return false;
+            }
+
+            if (messageSize > messageBuffer.Length)
+            {
+                Log.Error($"The length of {messageSize} is not allowed to be greater than {messageBuffer.Length}.");
+                Disconnect();
+                return false;
+            }
+
+            int received = jdp.Receive(messageBuffer, messageSize);
+            if (received < 0)
+            {
+                Log.Error($"Receive failed with error = {received}");
+                Disconnect();
+                return false;
+            }
+
+            header = (Header)messageBuffer[0];
+            segment = new ArraySegment<byte>(messageBuffer, 1, messageSize - 1);
+            lastReceiveTime = (uint)watch.ElapsedMilliseconds;
+            return true;
+        }
+
+        public void Input(ArraySegment<byte> segment)
+        {
+            if (segment.Count <= 5) return;
+            var channel = segment.Array[segment.Offset];
+            var newCookie = BitConverter.ToUInt32(segment.Array, segment.Offset + 1);
+
+            if (state == State.Authority && newCookie != cookie)
+            {
+                Log.Warn($"The peer dropped message with invalid cookie: {newCookie} - {cookie}.");
+                return;
+            }
+
+            var message = new ArraySegment<byte>(segment.Array, segment.Offset + 1 + 4, segment.Count - 1 - 4);
+
+            switch (channel)
+            {
+                case (byte)Channel.Reliable:
+                    OnInputReliable(message);
+                    break;
+                case (byte)Channel.Unreliable:
+                    OnInputUnreliable(message);
+                    break;
+                default:
+                    Log.Warn($"The peer invalid channel header: {channel}");
+                    break;
+            }
+        }
+
+        private void OnInputReliable(ArraySegment<byte> message)
+        {
+            int input = jdp.Input(message.Array, message.Offset, message.Count);
+            if (input != 0)
+            {
+                Log.Warn($"Input failed with error = {input} for buffer with length = {message.Count - 1}");
+            }
+        }
+
+        private void OnInputUnreliable(ArraySegment<byte> message)
+        {
+            if (state == State.Authority)
+            {
+                peerData.onReceive?.Invoke(message, Channel.Unreliable);
+                lastReceiveTime = (uint)watch.ElapsedMilliseconds;
+            }
+            else
+            {
+                Log.Warn($"The kcp peer received unreliable message while not authenticated.");
+            }
+        }
+        
         /// <summary>
         /// 握手请求
         /// </summary>
@@ -145,41 +208,24 @@ namespace Transport
             var segment = new ArraySegment<byte>(cookieBytes);
             SendReliable(Header.Handshake, segment);
         }
-
-        public void SendDisconnect(uint time)
+        
+        /// <summary>
+        /// 断开连接
+        /// </summary>
+        public void Disconnect()
         {
-            if (time >= lastReceiveTime + timeout)
+            if (state == State.Disconnected) return;
+            try
             {
-                Log.Error($"Connection timeout after not receiving any message for {timeout}ms.");
-                Disconnect();
+                SendReliable(Header.Disconnect, default);
             }
-            
-            if (jdp.state == -1)
+            catch
             {
-                Log.Error($"Deadlink detected: a message was retransmitted {jdp.deadLink} times without acknowledge.");
-                Disconnect();
+                // ignored
             }
-            
-            if (time >= lastPingTime + Utils.PING_INTERVAL)
-            {
-                SendReliable(Header.Ping, default);
-                lastPingTime = time;
-            }
-            
-            if (jdp.GetBufferQueueCount() >= Utils.QUEUE_DISCONNECTED_THRESHOLD)
-            {
-                Log.Error($"Disconnecting connection because it can't process data fast enough.");
-                jdp.sendQueue.Clear();
-                Disconnect();
-            }
-        }
 
-        public void BeforeUpdate()
-        {
-        }
-
-        public void AfterUpdate()
-        {
+            state = State.Disconnected;
+            peerData.onDisconnected?.Invoke();
         }
     }
 }

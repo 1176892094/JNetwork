@@ -1,4 +1,4 @@
-namespace Transport
+namespace JDP
 {
     public readonly struct Setting
     {

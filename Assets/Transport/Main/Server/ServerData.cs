@@ -1,6 +1,6 @@
 using System;
 
-namespace Transport
+namespace JDP
 {
     public readonly struct ServerData
     {

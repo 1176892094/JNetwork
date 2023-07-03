@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Transport
+namespace JDP
 {
     internal sealed class Pool<T>
     {

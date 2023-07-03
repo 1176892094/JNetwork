@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Transport
+namespace JDP
 {
     internal sealed class Jdp
     {
@@ -150,7 +150,7 @@ namespace Transport
             return length;
         }
 
-        private int PeekSize()
+        public int PeekSize()
         {
             int length = 0;
             if (receiveQueue.Count == 0)
@@ -772,9 +772,9 @@ namespace Transport
             }
         }
 
-        public void Update(uint currentTime)
+        public void Update(long currentTime)
         {
-            this.currentTime = currentTime;
+            this.currentTime = (uint)currentTime;
 
             if (!updated)
             {

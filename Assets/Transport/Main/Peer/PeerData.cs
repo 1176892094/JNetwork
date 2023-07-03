@@ -1,6 +1,6 @@
 using System;
 
-namespace Transport
+namespace JDP
 {
     internal readonly struct PeerData
     {

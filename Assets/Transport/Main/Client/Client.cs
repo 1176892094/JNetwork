@@ -2,7 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Transport
+namespace JDP
 {
     public sealed class Client
     {
@@ -82,7 +82,7 @@ namespace Transport
         /// 接收消息
         /// </summary>
         /// <param name="segment">字节消息数组</param>
-        public bool Receive(out ArraySegment<byte> segment)
+        private bool TryReceive(out ArraySegment<byte> segment)
         {
             segment = default;
             if (socket == null) return false;
@@ -141,18 +141,17 @@ namespace Transport
         /// <summary>
         /// Update之前
         /// </summary>
-        public void BeforeUpdate()
+        public void EarlyUpdate()
         {
             if (peer != null)
             {
-                while (Receive(out var segment))
+                while (TryReceive(out var segment))
                 {
-                    //TODO:客户端操作相关
-                    peer.Send(segment, Channel.Reliable);
+                    peer.Input(segment);
                 }
             }
 
-            peer?.BeforeUpdate();
+            peer?.EarlyUpdate();
         }
 
         /// <summary>

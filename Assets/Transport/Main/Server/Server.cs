@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Transport
+namespace JDP
 {
     public sealed class Server
     {
@@ -77,7 +77,7 @@ namespace Transport
         /// <summary>
         /// 服务器从指定客户端接收消息
         /// </summary>
-        public bool Receive(out int clientId, out ArraySegment<byte> segment)
+        private bool TryReceive(out int clientId, out ArraySegment<byte> segment)
         {
             clientId = 0;
             segment = default;
@@ -152,21 +152,25 @@ namespace Transport
         /// <summary>
         /// Update之前
         /// </summary>
-        public void BeforeUpdate()
+        public void EarlyUpdate()
         {
-            while (Receive(out var clientId, out var segment))
+            while (TryReceive(out var clientId, out var segment))
             {
                 if (!clients.TryGetValue(clientId, out var connection))
                 {
                     connection = Connection(clientId);
-                    connection.peer.Send(segment, Channel.Reliable);
-                    //TODO:客户端操作相关
+                    connection.peer.Input(segment);
+                    connection.peer.EarlyUpdate();
+                }
+                else
+                {
+                    connection.peer.Input(segment);
                 }
             }
 
             foreach (var connection in clients.Values)
             {
-                connection.peer.BeforeUpdate();
+                connection.peer.EarlyUpdate();
             }
 
             foreach (var clientId in removes)
@@ -186,6 +190,15 @@ namespace Transport
             {
                 connection.peer.AfterUpdate();
             }
+        }
+
+        /// <summary>
+        /// 停止服务器
+        /// </summary>
+        public void ShutDown()
+        {
+            socket?.Close();
+            socket = null;
         }
     }
 }

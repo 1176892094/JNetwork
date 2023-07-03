@@ -1,9 +1,9 @@
-namespace Transport
+namespace JDP
 {
     internal enum State: byte
     {
         Connected,
-        Authenticated,
+        Authority,
         Disconnected,
     }
 }

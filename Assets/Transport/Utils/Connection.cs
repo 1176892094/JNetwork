@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace Transport
+namespace JDP
 {
     internal sealed class Connection
     {

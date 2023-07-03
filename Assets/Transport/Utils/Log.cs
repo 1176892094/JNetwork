@@ -1,6 +1,6 @@
 using System;
 
-namespace Transport
+namespace JDP
 {
     public static class Log
     {
