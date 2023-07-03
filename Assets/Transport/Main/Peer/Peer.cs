@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Transport
 {
-    internal class Peer
+    internal sealed class Peer
     {
         private State state;
         private uint lastPingTime;

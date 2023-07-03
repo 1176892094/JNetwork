@@ -2,7 +2,7 @@ using System.IO;
 
 namespace Transport
 {
-    internal class Segment
+    internal sealed class Segment
     {
         public readonly MemoryStream stream = new MemoryStream(Jdp.MTU_DEF);
         public uint conversation;     // 会话Id

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Transport
 {
-    internal class Pool<T>
+    internal sealed class Pool<T>
     {
         private readonly Stack<T> objects = new Stack<T>();
         private readonly Func<T> poolEvent;

@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 namespace Transport
 {
-    public class Client
+    public sealed class Client
     {
         private State state;
         private Peer peer;

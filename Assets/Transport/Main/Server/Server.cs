@@ -5,7 +5,7 @@ using System.Net.Sockets;
 
 namespace Transport
 {
-    public class Server
+    public sealed class Server
     {
         private readonly Dictionary<int, Connection> clients = new Dictionary<int, Connection>();
         private readonly HashSet<int> removes = new HashSet<int>();
