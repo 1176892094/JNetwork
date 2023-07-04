@@ -94,6 +94,13 @@ namespace JFramework.Net
         public abstract void ServerDisconnect(int clientId);
         
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <returns></returns>
+        public abstract int GetMaxPacketSize(Channel channel = Channel.Reliable);
+        
+        /// <summary>
         /// 网络消息合批阈值
         /// </summary>
         /// <returns>返回阈值</returns>
@@ -127,8 +134,7 @@ namespace JFramework.Net
         /// <summary>
         /// 运行初始化
         /// </summary>
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void RuntimeInitializeOnLoad()
+        public static void RuntimeInitializeOnLoad()
         {
             OnClientConnected = null;
             OnClientDisconnected = null;

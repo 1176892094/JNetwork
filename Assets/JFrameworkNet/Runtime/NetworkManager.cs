@@ -10,7 +10,6 @@ namespace JFramework.Net
         public Address address => transport.address;
         [SerializeField] private Transport transport;
         [SerializeField] private bool runInBackground = true;
-        [SerializeField] private bool dontListen;
         public int hearTickRate = 30;
         public int maxConnection = 100;
         private string sceneName;
@@ -73,6 +72,9 @@ namespace JFramework.Net
             NetworkServer.SpawnObjects();
         }
         
+        /// <summary>
+        /// 根据地址启动客户端
+        /// </summary>
         public void StartClient()
         {
             if (NetworkClient.isActive)
@@ -87,6 +89,10 @@ namespace JFramework.Net
             OnStartClient?.Invoke();
         }
 
+        /// <summary>
+        /// 根据Uri启动客户端
+        /// </summary>
+        /// <param name="uri">传入Uri</param>
         public void StartClient(Uri uri)
         {
             if (NetworkClient.isActive)
@@ -98,6 +104,26 @@ namespace JFramework.Net
             SetSingleton(NetworkMode.Client);
             RegisterClientEvent();
             NetworkClient.Connect(uri);
+            OnStartClient?.Invoke();
+        }
+        
+        public void StartHost()
+        {
+            if (NetworkServer.isActive || NetworkClient.isActive)
+            {
+                Debug.LogWarning("Server or Client already started.");
+                return;
+            }
+
+            SetSingleton(NetworkMode.Host);
+            NetworkServer.Connect();
+            RegisterServerEvent();
+            NetworkServer.SpawnObjects();
+            NetworkClient.ConnectHost();
+            OnStartHost?.Invoke();
+            RegisterClientEvent();
+            NetworkServer.OnConnect(NetworkServer.client);
+            NetworkClient.server.connecting = true;
             OnStartClient?.Invoke();
         }
 
@@ -115,7 +141,7 @@ namespace JFramework.Net
             // NetworkServer.RegisterHandler<ReadyMessage>(OnServerReadyInternal);
         }
 
-        private void OnServerConnectInternal(ClientConnection client)
+        private void OnServerConnectInternal(Client client)
         {
             client.isAuthority = true;
             if (sceneName != "")
@@ -130,14 +156,14 @@ namespace JFramework.Net
             OnServerConnect?.Invoke(client);
         }
 
-        private void OnServerDisconnectInternal(ClientConnection client)
+        private void OnServerDisconnectInternal(Client client)
         {
             OnServerDisconnect?.Invoke(client);
         }
         
         private void OnClientConnectInternal()
         {
-            NetworkClient.connection.isAuthority = true;
+            NetworkClient.server.isAuthority = true;
             if (!NetworkClient.isReady)
             {
                 NetworkClient.Ready();

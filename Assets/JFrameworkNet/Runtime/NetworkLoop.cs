@@ -54,9 +54,8 @@ namespace JFramework.Net
             NetworkServer.AfterUpdate();
             NetworkClient.AfterUpdate();
         }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void RuntimeInitializeOnLoad()
+        
+        public static void RuntimeInitializeOnLoad()
         {
             var playerLoop = PlayerLoop.GetCurrentPlayerLoop();
             AddPlayerLoop(EarlyUpdate, ref playerLoop, typeof(EarlyUpdate));

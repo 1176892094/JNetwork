@@ -79,9 +79,9 @@ namespace JFramework.Net
             if (size == 0) return null;
             ushort realSize = (ushort)(size - 1);
 
-            if (realSize > NetworkWriter.MaxStringLength)
+            if (realSize > NetworkConst.MaxStringLength)
             {
-                throw new EndOfStreamException($"Value too long: {realSize} bytes. Limit is: {NetworkWriter.MaxStringLength} bytes");
+                throw new EndOfStreamException($"Value too long: {realSize} bytes. Limit is: {NetworkConst.MaxStringLength} bytes");
             }
 
             ArraySegment<byte> data = reader.ReadBytesSegment(realSize);

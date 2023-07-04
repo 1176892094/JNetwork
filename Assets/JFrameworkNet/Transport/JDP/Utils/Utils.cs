@@ -5,18 +5,18 @@ using System.Security.Cryptography;
 
 namespace JFramework.Udp
 {
-    internal static class Utils
+    public static class Utils
     {
-        public const int PING_INTERVAL = 1000;
-        public const int QUEUE_DISCONNECTED_THRESHOLD = 10000;
-        public const int METADATA_SIZE = CHANNEL_HEADER_SIZE + COOKIE_HEADER_SIZE;
+        internal const int PING_INTERVAL = 1000;
+        internal const int QUEUE_DISCONNECTED_THRESHOLD = 10000;
+        internal const int METADATA_SIZE = CHANNEL_HEADER_SIZE + COOKIE_HEADER_SIZE;
         private const int CHANNEL_HEADER_SIZE = 1;
         private const int COOKIE_HEADER_SIZE = 4;
 
         /// <summary>
         /// 编码8位无符号整型
         /// </summary>
-        public static int Encode8u(byte[] p, int offset, byte value)
+        internal static int Encode8u(byte[] p, int offset, byte value)
         {
             p[0 + offset] = value;
             return 1;
@@ -25,7 +25,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 解码8位无符号整型
         /// </summary>
-        public static int Decode8u(byte[] p, int offset, out byte value)
+        internal static int Decode8u(byte[] p, int offset, out byte value)
         {
             value = p[0 + offset];
             return 1;
@@ -34,7 +34,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 编码16位无符号整型
         /// </summary>
-        public static int Encode16U(byte[] p, int offset, ushort value)
+        internal static int Encode16U(byte[] p, int offset, ushort value)
         {
             p[0 + offset] = (byte)(value >> 0);
             p[1 + offset] = (byte)(value >> 8);
@@ -44,7 +44,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 解码16位无符号整型
         /// </summary>
-        public static int Decode16U(byte[] p, int offset, out ushort value)
+        internal static int Decode16U(byte[] p, int offset, out ushort value)
         {
             ushort result = 0;
             result |= p[0 + offset];
@@ -56,7 +56,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 编码32位无符号整型
         /// </summary>
-        public static int Encode32U(byte[] p, int offset, uint value)
+        internal static int Encode32U(byte[] p, int offset, uint value)
         {
             p[0 + offset] = (byte)(value >> 0);
             p[1 + offset] = (byte)(value >> 8);
@@ -68,7 +68,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 解码32位无符号整型
         /// </summary>
-        public static int Decode32U(byte[] p, int offset, out uint value)
+        internal static int Decode32U(byte[] p, int offset, out uint value)
         {
             uint result = 0;
             result |= p[0 + offset];
@@ -78,11 +78,11 @@ namespace JFramework.Udp
             value = result;
             return 4;
         }
-        
+
         /// <summary>
         /// 解析主机地址
         /// </summary>
-        public static bool TryGetAddress(string host, out IPAddress address)
+        internal static bool TryGetAddress(string host, out IPAddress address)
         {
             try
             {
@@ -101,7 +101,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 生成缓存文件
         /// </summary>
-        public static uint GenerateCookie()
+        internal static uint GenerateCookie()
         {
             using var cryptoRandom = new RNGCryptoServiceProvider();
             var cryptoRandomBuffer = new byte[4];

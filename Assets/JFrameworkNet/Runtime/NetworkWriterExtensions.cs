@@ -85,9 +85,9 @@ namespace JFramework.Net
             
             int written = writer.encoding.GetBytes(value, 0, value.Length, writer.buffer, writer.position + 2);
             
-            if (written > NetworkWriter.MaxStringLength)
+            if (written > NetworkConst.MaxStringLength)
             {
-                throw new IndexOutOfRangeException($"Value too long: {written} bytes. Limit: {NetworkWriter.MaxStringLength} bytes");
+                throw new IndexOutOfRangeException($"Value too long: {written} bytes. Limit: {NetworkConst.MaxStringLength} bytes");
             }
             
             writer.WriteUShort(checked((ushort)(written + 1)));

@@ -4,22 +4,22 @@ using System.Runtime.CompilerServices;
 
 namespace JFramework.Net
 {
-    public class Pool<T>
+    internal sealed class Pool<T>
     {
         private readonly Stack<T> objects = new Stack<T>();
-        private readonly Func<T> poolEvent;
+        private readonly Func<T> onPop;
 
-        public Pool(Func<T> poolEvent, int initialCapacity)
+        public Pool(Func<T> onPop, int capacity)
         {
-            this.poolEvent = poolEvent;
-            for (int i = 0; i < initialCapacity; ++i)
+            this.onPop = onPop;
+            for (int i = 0; i < capacity; ++i)
             {
-                objects.Push(poolEvent());
+                objects.Push(onPop());
             }
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Pop() => objects.Count > 0 ? objects.Pop() : poolEvent();
+        public T Pop() => objects.Count > 0 ? objects.Pop() : onPop();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Push(T item) => objects.Push(item);

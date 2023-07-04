@@ -17,8 +17,8 @@ namespace JFramework.Net
         [SerializeField] private uint sendPacketSize = 1024 * 4;
         [SerializeField] private uint receivePacketSize = 1024 * 4;
         private Setting setting;
-        private Client client;
-        private Server server;
+        private Udp.Client client;
+        private Udp.Server server;
 
         private void Awake()
         {
@@ -26,8 +26,8 @@ namespace JFramework.Net
             Log.Warn = Debug.LogWarning;
             Log.Error = Debug.LogError;
             setting = new Setting(sendBufferSize, receiveBufferSize, maxTransmitUnit, timeout, receivePacketSize, sendPacketSize, interval, resend, noDelay, congestion);
-            client = new Client(setting, new ClientData(ClientConnected, ClientDisconnected, ClientDataReceived));
-            server = new Server(setting, new ServerData(ServerConnected, ServerDisconnected, ServerDataReceived));
+            client = new Udp.Client(setting, new ClientData(ClientConnected, ClientDisconnected, ClientDataReceived));
+            server = new Udp.Server(setting, new ServerData(ServerConnected, ServerDisconnected, ServerDataReceived));
 
             void ClientConnected()
             {
@@ -85,7 +85,13 @@ namespace JFramework.Net
         }
 
         public override void ServerDisconnect(int clientId) => server.Disconnect(clientId);
-        public override int GetBatchThreshold() => setting.maxTransferUnit - 5;
+
+        public override int GetMaxPacketSize(Channel channel = Channel.Reliable)
+        {
+            return channel == Channel.Reliable ? Utils.ReliableSize(setting.maxTransferUnit, receivePacketSize) : Utils.UnreliableSize(setting.maxTransferUnit);
+        }
+
+        public override int GetBatchThreshold() => Utils.UnreliableSize(maxTransmitUnit);
 
         public override void ServerStop() => server.ShutDown();
 
@@ -108,5 +114,6 @@ namespace JFramework.Net
         }
 
         public override void ServerAfterUpdate() => server.AfterUpdate();
+        
     }
 }

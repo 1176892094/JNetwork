@@ -9,25 +9,20 @@ namespace JFramework.Net
     public class NetworkWriter
     {
         /// <summary>
-        /// 字符串最大长度
+        /// 字符串编码
         /// </summary>
-        public const ushort MaxStringLength = ushort.MaxValue - 1;
+        internal readonly UTF8Encoding encoding = new UTF8Encoding(false, true);
         
         /// <summary>
         /// 当前字节数组中的位置
         /// </summary>
-        public int position;
+        internal int position;
 
         /// <summary>
         /// 缓存的字节数组
         /// </summary>
         internal byte[] buffer = new byte[1500];
         
-        /// <summary>
-        /// 字符串编码
-        /// </summary>
-        internal readonly UTF8Encoding encoding = new UTF8Encoding(false, true);
-
         /// <summary>
         /// 重置位置
         /// </summary>
@@ -88,6 +83,7 @@ namespace JFramework.Net
 #endif
             int size = sizeof(T);
             EnsureCapacity(position + size);
+            
             fixed (byte* ptr = &buffer[position])
             {
 #if UNITY_ANDROID

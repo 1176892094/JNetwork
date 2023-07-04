@@ -10,17 +10,40 @@ namespace JFramework.Net
 {
     public class NetworkReader
     {
-        internal ArraySegment<byte> buffer;
-        public int position;
-        public int Remaining => buffer.Count - position;
-        public int Capacity => buffer.Count;
+        /// <summary>
+        /// 字符串编码
+        /// </summary>
         internal readonly UTF8Encoding encoding = new UTF8Encoding(false, true);
-
-        public NetworkReader(ArraySegment<byte> segment)
-        {
-            buffer = segment;
-        }
+        /// <summary>
+        /// 缓存的字节数组
+        /// </summary>
+        internal ArraySegment<byte> buffer;
         
+        /// <summary>
+        /// 当前字节数组中的位置
+        /// </summary>
+        public int position;
+        
+        /// <summary>
+        /// 剩余长度
+        /// </summary>
+        public int Remaining => buffer.Count - position;
+        
+        /// <summary>
+        /// 当前容量
+        /// </summary>
+        public int Capacity => buffer.Count;
+
+        /// <summary>
+        /// 拷贝ArraySegment到缓存中
+        /// </summary>
+        /// <param name="segment"></param>
+        public NetworkReader(ArraySegment<byte> segment) => buffer = segment;
+
+        /// <summary>
+        /// 设置缓存数组
+        /// </summary>
+        /// <param name="segment"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetBuffer(ArraySegment<byte> segment)
         {
@@ -28,6 +51,9 @@ namespace JFramework.Net
             position = 0;
         }
         
+        /// <summary>
+        /// 将Blittable的数据进行内存拷贝
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal unsafe T ReadBlittable<T>() where T : unmanaged
         {
@@ -112,6 +138,11 @@ namespace JFramework.Net
                 return default;
             }
             return readerDelegate(this);
+        }
+
+        public override string ToString()
+        {
+            return buffer.Array != null ? BitConverter.ToString(buffer.Array, buffer.Offset, buffer.Count) : null;
         }
     }
     
