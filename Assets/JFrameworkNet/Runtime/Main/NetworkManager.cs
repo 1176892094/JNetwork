@@ -70,6 +70,7 @@ namespace JFramework.Net
             NetworkServer.Connect();
             RegisterServerEvent();
             NetworkServer.SpawnObjects();
+            OnStartServer?.Invoke();
         }
         
         /// <summary>
@@ -158,7 +159,6 @@ namespace JFramework.Net
             OnStartHost?.Invoke();
             RegisterClientEvent();
             NetworkClient.server.connecting = true;
-            OnStartClient?.Invoke();
         }
         
         /// <summary>
