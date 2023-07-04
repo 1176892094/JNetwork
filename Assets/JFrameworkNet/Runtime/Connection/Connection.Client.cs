@@ -3,11 +3,12 @@ using JFramework.Udp;
 
 namespace JFramework.Net
 {
-    public sealed class Client : Connection
+    public sealed class ClientConnection : Connection
     {
         public bool isLocal;
+        public NetworkReceive receive = new NetworkReceive();
 
-        public Client(int clientId) : base(clientId)
+        public ClientConnection(int clientId) : base(clientId)
         {
         }
 

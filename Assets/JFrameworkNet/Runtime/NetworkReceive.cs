@@ -18,7 +18,7 @@ namespace JFramework.Net
         /// <summary>
         /// 批处理数量
         /// </summary>
-        public int batchCount => batches.Count;
+        public int Count => batches.Count;
 
         /// <summary>
         /// 远端时间戳
@@ -80,7 +80,7 @@ namespace JFramework.Net
                 return false;
             }
 
-            if (reader.Remaining == 0)
+            if (reader.Residue == 0)
             {
                 var writer = batches.Dequeue(); // 从队列中取出
                 NetworkWriterPool.Push(writer);

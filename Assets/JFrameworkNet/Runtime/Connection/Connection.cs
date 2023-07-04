@@ -12,6 +12,7 @@ namespace JFramework.Net
         public readonly int clientId;
         public bool isAuthority;
         public bool isReady;
+        public double timestamp;
 
         internal Connection()
         {

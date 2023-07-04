@@ -169,7 +169,7 @@ namespace JFramework.Net
         
         public static Guid ReadGuid(this NetworkReader reader)
         {
-            if (reader.Remaining >= 16)
+            if (reader.Residue >= 16)
             {
                 ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(reader.buffer.Array, reader.buffer.Offset + reader.position, 16);
                 reader.position += 16;
@@ -240,7 +240,7 @@ namespace JFramework.Net
         {
             int length = reader.ReadInt();
             if (length < 0) return null;
-            if (length > reader.Remaining)
+            if (length > reader.Residue)
             {
                 throw new EndOfStreamException($"Received array that is too large: {length}");
             }

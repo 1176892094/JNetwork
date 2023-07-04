@@ -17,8 +17,8 @@ namespace JFramework.Net
         [SerializeField] private uint sendPacketSize = 1024 * 4;
         [SerializeField] private uint receivePacketSize = 1024 * 4;
         private Setting setting;
-        private Udp.Client client;
-        private Udp.Server server;
+        private Client client;
+        private Server server;
 
         private void Awake()
         {
@@ -26,8 +26,8 @@ namespace JFramework.Net
             Log.Warn = Debug.LogWarning;
             Log.Error = Debug.LogError;
             setting = new Setting(sendBufferSize, receiveBufferSize, maxTransmitUnit, timeout, receivePacketSize, sendPacketSize, interval, resend, noDelay, congestion);
-            client = new Udp.Client(setting, new ClientData(ClientConnected, ClientDisconnected, ClientDataReceived));
-            server = new Udp.Server(setting, new ServerData(ServerConnected, ServerDisconnected, ServerDataReceived));
+            client = new Client(setting, new ClientData(ClientConnected, ClientDisconnected, ClientDataReceived));
+            server = new Server(setting, new ServerData(ServerConnected, ServerDisconnected, ServerDataReceived));
 
             void ClientConnected()
             {

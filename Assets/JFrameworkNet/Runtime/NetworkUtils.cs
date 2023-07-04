@@ -1,6 +1,8 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using JFramework.Udp;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -75,6 +77,50 @@ namespace JFramework.Net
             {
                 messageId = 0;
                 return false;
+            }
+        }
+
+        internal static MessageDelegate Register<T1, T2>(Action<T1, T2, Channel> handle, bool isAuthority) where T1 : Connection where T2 : struct, NetworkMessage
+        {
+            return (connection, reader, channel) =>
+            {
+                try
+                {
+                    if (isAuthority && !connection.isAuthority)
+                    {
+                        Debug.LogWarning($"Send message no authority: {connection}");
+                        connection.Disconnect();
+                        return;
+                    }
+
+                    var message = reader.Read<T2>();
+                    handle?.Invoke((T1)connection, message, channel);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Disconnected clientId {connection.clientId}\n{e}");
+                    connection.Disconnect();
+                }
+            };
+        }
+
+        internal static MessageDelegate Register<T1, T2>(Action<T1, T2> handle, bool isAuthority) where T1 : Connection where T2 : struct, NetworkMessage
+        {
+            return Register((Action<T1, T2, Channel>)Wrapped, isAuthority);
+
+            void Wrapped(T1 connection, T2 reader, Channel channel)
+            {
+                handle?.Invoke(connection, reader);
+            }
+        }
+
+        internal static MessageDelegate Register<T1>(Action<T1> handle, bool isAuthority) where T1 : struct, NetworkMessage
+        {
+            return Register((Action<Connection, T1>)Wrapped, isAuthority);
+
+            void Wrapped(Connection connection, T1 reader)
+            {
+                handle?.Invoke(reader);
             }
         }
 

@@ -4,7 +4,7 @@ using JFramework.Udp;
 
 namespace JFramework.Net
 {
-    public class Server : Connection
+    public class ServerConnection : Connection
     {
         internal readonly Queue<NetworkWriterObject> writeQueue = new Queue<NetworkWriterObject>();
         internal bool connecting;

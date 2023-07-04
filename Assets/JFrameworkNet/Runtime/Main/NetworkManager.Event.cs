@@ -14,9 +14,9 @@ namespace JFramework.Net
         public static event Action OnClientConnect;
         public static event Action OnClientDisconnect;
         public static event Action OnClientNotReady;
-        public static event Action<Client> OnServerConnect;
-        public static event Action<Client> OnServerDisconnect;
-        public static event Action<Client> OnServerReady;
+        public static event Action<ClientConnection> OnServerConnect;
+        public static event Action<ClientConnection> OnServerDisconnect;
+        public static event Action<ClientConnection> OnServerReady;
         public static event Action<string> OnClientLoadScene;
         public static event Action<string> OnServerLoadScene;
         public static event Action<string> OnClientSceneChanged;
@@ -30,6 +30,8 @@ namespace JFramework.Net
         {
             Transport.RuntimeInitializeOnLoad();
             NetworkTime.RuntimeInitializeOnLoad();
+            NetworkClient.RuntimeInitializeOnLoad();
+            NetworkServer.RuntimeInitializeOnLoad();
             Instance = null;
             OnStartHost = null;
             OnStopHost = null;

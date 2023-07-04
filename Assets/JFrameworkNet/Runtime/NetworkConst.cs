@@ -25,6 +25,6 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息大小
         /// </summary>
-        public const int IdSize = sizeof(ushort);
+        public const int MessageSize = sizeof(ushort);
     }
 }

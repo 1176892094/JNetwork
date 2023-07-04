@@ -1,35 +1,36 @@
 using System;
 using JFramework.Udp;
 using UnityEngine;
+// ReSharper disable All
 
 namespace JFramework.Net
 {
     public sealed partial class NetworkManager : MonoBehaviour
     {
         public static NetworkManager Instance;
-        public Address address => transport.address;
-        [SerializeField] private Transport transport;
-        [SerializeField] private bool runInBackground = true;
-        public int hearTickRate = 30;
-        public int maxConnection = 100;
         private string sceneName;
         private NetworkMode networkMode;
+        [SerializeField] private Transport transport;
+        [SerializeField] private bool runInBackground = true;
+        public int heartTickRate = 30;
+        public int maxConnection = 100;
+        public Address address => transport.address;
 
         private void Awake()
         {
             SetSingleton(NetworkMode.None);
         }
-
+        
         /// <summary>
         /// 设置单例
         /// </summary>
-        /// <returns>返回是否设置成功</returns>
-        private bool SetSingleton(NetworkMode networkMode)
+        /// <param name="networkMode">网络模式</param>
+        private void SetSingleton(NetworkMode networkMode)
         {
             this.networkMode = networkMode;
             if (Instance != null && Instance == this)
             {
-                return true;
+                return;
             }
 
             if (transport == null)
@@ -41,7 +42,7 @@ namespace JFramework.Net
                 else
                 {
                     Debug.LogError("The NetworkManager has no Transport component.");
-                    return false;
+                    return;
                 }
             }
 
@@ -49,11 +50,10 @@ namespace JFramework.Net
             DontDestroyOnLoad(gameObject);
             Transport.Instance = transport;
             Application.runInBackground = runInBackground;
-            return true;
         }
-
+        
         /// <summary>
-        /// 启动Server
+        /// 开启服务器
         /// </summary>
         public void StartServer()
         {
@@ -73,7 +73,19 @@ namespace JFramework.Net
         }
         
         /// <summary>
-        /// 根据地址启动客户端
+        /// 停止服务器
+        /// </summary>
+        public void StopServer()
+        {
+            if (!NetworkServer.isActive) return;
+            OnStopServer?.Invoke();
+            NetworkServer.RuntimeInitializeOnLoad();
+            networkMode = NetworkMode.None;
+            sceneName = "";
+        }
+
+        /// <summary>
+        /// 开启客户端
         /// </summary>
         public void StartClient()
         {
@@ -82,17 +94,17 @@ namespace JFramework.Net
                 Debug.LogWarning("Client already started.");
                 return;
             }
-            
+
             SetSingleton(NetworkMode.Client);
             RegisterClientEvent();
             NetworkClient.Connect(address);
             OnStartClient?.Invoke();
         }
-
+        
         /// <summary>
-        /// 根据Uri启动客户端
+        /// 开启客户端
         /// </summary>
-        /// <param name="uri">传入Uri</param>
+        /// <param name="uri"></param>
         public void StartClient(Uri uri)
         {
             if (NetworkClient.isActive)
@@ -100,13 +112,35 @@ namespace JFramework.Net
                 Debug.LogWarning("Client already started.");
                 return;
             }
-            
+
             SetSingleton(NetworkMode.Client);
             RegisterClientEvent();
             NetworkClient.Connect(uri);
             OnStartClient?.Invoke();
         }
         
+        /// <summary>
+        /// 停止客户端
+        /// </summary>
+        public void StopClient()
+        {
+            if (networkMode == NetworkMode.None)
+            {
+                return;
+            }
+
+            if (networkMode == NetworkMode.Host)
+            {
+                OnServerDisconnectInternal(NetworkServer.host);
+            }
+
+            NetworkClient.Disconnect();
+            OnClientDisconnectInternal();
+        }
+        
+        /// <summary>
+        /// 开启主机
+        /// </summary>
         public void StartHost()
         {
             if (NetworkServer.isActive || NetworkClient.isActive)
@@ -120,67 +154,36 @@ namespace JFramework.Net
             RegisterServerEvent();
             NetworkServer.SpawnObjects();
             NetworkClient.ConnectHost();
+            NetworkServer.OnConnect(NetworkServer.host);
             OnStartHost?.Invoke();
             RegisterClientEvent();
-            NetworkServer.OnConnect(NetworkServer.client);
             NetworkClient.server.connecting = true;
             OnStartClient?.Invoke();
         }
-
-        private void RegisterServerEvent()
+        
+        /// <summary>
+        /// 停止主机
+        /// </summary>
+        public void StopHost()
         {
-            NetworkServer.OnConnected = OnServerConnectInternal;
-            NetworkServer.OnDisconnected = OnServerDisconnectInternal;
-            // NetworkServer.RegisterHandler<ReadyMessage>(OnServerReadyInternal);
+            OnStopHost?.Invoke();
+            StopClient();
+            StopServer();
         }
         
-        private void RegisterClientEvent()
+        private void OnApplicationQuit()
         {
-            NetworkClient.OnConnected = OnClientConnectInternal;
-            NetworkClient.OnDisconnected = OnClientDisconnectInternal;
-            // NetworkServer.RegisterHandler<ReadyMessage>(OnServerReadyInternal);
-        }
-
-        private void OnServerConnectInternal(Client client)
-        {
-            client.isAuthority = true;
-            if (sceneName != "")
+            if (NetworkClient.connected)
             {
-                var message = new SceneMessage()
-                {
-                    sceneName = sceneName
-                };
-                client.Send(message);
+                StopClient();
             }
 
-            OnServerConnect?.Invoke(client);
-        }
-
-        private void OnServerDisconnectInternal(Client client)
-        {
-            OnServerDisconnect?.Invoke(client);
-        }
-        
-        private void OnClientConnectInternal()
-        {
-            NetworkClient.server.isAuthority = true;
-            if (!NetworkClient.isReady)
+            if (NetworkServer.isActive)
             {
-                NetworkClient.Ready();
+                StopServer();
             }
 
-            OnClientConnect?.Invoke();
-        }
-
-        private void OnClientDisconnectInternal()
-        {
-            if (networkMode is NetworkMode.Server or NetworkMode.None) return;
-            networkMode = networkMode == NetworkMode.Host ? NetworkMode.Server : NetworkMode.None;
-            OnClientDisconnect?.Invoke();
-            OnStopClient?.Invoke();
-            NetworkClient.Reset();
-            if (networkMode == NetworkMode.Server) return;
-            sceneName = "";
+            RuntimeInitializeOnLoad();
         }
     }
 }

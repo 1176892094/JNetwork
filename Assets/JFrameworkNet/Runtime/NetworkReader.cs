@@ -27,7 +27,7 @@ namespace JFramework.Net
         /// <summary>
         /// 剩余长度
         /// </summary>
-        public int Remaining => buffer.Count - position;
+        public int Residue => buffer.Count - position;
         
         /// <summary>
         /// 当前容量
@@ -66,7 +66,7 @@ namespace JFramework.Net
             
             int size = sizeof(T);
             
-            if (Remaining < size)
+            if (Residue < size)
             {
                 throw new EndOfStreamException($"ReadBlittable<{typeof(T)}> not enough data in buffer to read {size} bytes: {ToString()}");
             }
@@ -101,7 +101,7 @@ namespace JFramework.Net
                 throw new EndOfStreamException($"ReadBytes can't read {count} + bytes because the passed byte[] only has length {bytes.Length}");
             }
           
-            if (Remaining < count)
+            if (Residue < count)
             {
                 throw new EndOfStreamException($"ReadBytesSegment can't read {count} bytes because it would read past the end of the stream. {ToString()}");
             }
@@ -118,7 +118,7 @@ namespace JFramework.Net
                 throw new ArgumentOutOfRangeException("ReadBytesSegment requires count >= 0");
             }
             
-            if (Remaining < count)
+            if (Residue < count)
             {
                 throw new EndOfStreamException($"ReadBytesSegment can't read {count} bytes because it would read past the end of the stream. {ToString()}");
             }
