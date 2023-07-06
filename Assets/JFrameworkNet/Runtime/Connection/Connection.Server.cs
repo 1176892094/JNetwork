@@ -12,7 +12,7 @@ namespace JFramework.Net
         
         protected override void SendToTransport(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            Transport.Instance.ClientSend(segment, channel);
+            Transport.current.ClientSend(segment, channel);
         }
         
         internal override void Update()

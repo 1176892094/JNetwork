@@ -14,7 +14,7 @@ namespace JFramework.Net
 
         protected override void SendToTransport(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            Transport.Instance.ServerSend(clientId, segment, channel);
+            Transport.current.ServerSend(clientId, segment, channel);
         }
 
         public override void Disconnect()

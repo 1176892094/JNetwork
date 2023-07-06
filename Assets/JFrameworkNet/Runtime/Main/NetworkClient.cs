@@ -23,9 +23,20 @@ namespace JFramework.Net
         internal static Action OnConnected;
         internal static Action OnDisconnected;
         private static NetworkReceive receive = new NetworkReceive();
-        private static Address address => NetworkManager.Instance.address;
         public static bool isActive => state is ConnectState.Connected or ConnectState.Connecting;
-        public static bool connected => state == ConnectState.Connected;
+        public static bool isConnect => state == ConnectState.Connected;
+        
+        /// <summary>
+        /// 开启客户端
+        /// </summary>
+        /// <param name="address">传入连接地址</param>
+        internal static void StartClient(Address address)
+        {
+            if (!TryConnect(false)) return;
+            RegisterTransport();
+            state = ConnectState.Connecting;
+            Transport.current.ClientConnect(address);
+        }
         
         /// <summary>
         /// 开启客户端
@@ -36,20 +47,13 @@ namespace JFramework.Net
             if (!TryConnect(false)) return;
             RegisterTransport();
             state = ConnectState.Connecting;
-            if (uri == null)
-            {
-                Transport.Instance.ClientConnect(address);
-            }
-            else
-            {
-                Transport.Instance.ClientConnect(uri);
-            }
+            Transport.current.ClientConnect(uri);
         }
 
         /// <summary>
-        /// 开启主机，无需注册传输(使用服务器)
+        /// 开启主机，使用Server的Transport
         /// </summary>
-        internal static void StartHostClient()
+        internal static void StartClient()
         {
             if (!TryConnect(true)) return;
             state = ConnectState.Connected;
@@ -61,7 +65,7 @@ namespace JFramework.Net
         /// </summary>
         private static bool TryConnect(bool isHost)
         {
-            if (Transport.Instance == null)
+            if (Transport.current == null)
             {
                 Debug.LogError("There was no active Transport!");
                 return false;
@@ -120,17 +124,17 @@ namespace JFramework.Net
 
         public static void EarlyUpdate()
         {
-            if (Transport.Instance != null)
+            if (Transport.current != null)
             {
-                Transport.Instance.ClientEarlyUpdate();
+                Transport.current.ClientEarlyUpdate();
             }
         }
 
         public static void AfterUpdate()
         {
-            if (Transport.Instance != null)
+            if (Transport.current != null)
             {
-                Transport.Instance.ClientAfterUpdate();
+                Transport.current.ClientAfterUpdate();
             }
         }
     }

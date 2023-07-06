@@ -22,7 +22,7 @@ namespace JFramework.Net
 
         internal static void StartServer(bool isListen)
         {
-            if (!Transport.Instance)
+            if (!Transport.current)
             {
                 Debug.LogError("There was no active Transport!");
                 return;
@@ -30,7 +30,7 @@ namespace JFramework.Net
 
             if (isListen)
             {
-                Transport.Instance.ServerConnect();
+                Transport.current.ServerConnect();
             }
 
             if (!initialized)
@@ -88,38 +88,39 @@ namespace JFramework.Net
                     OnServerDisconnected(connection.clientId);
                 }
             }
-
-            host = null;
-            isLoadScene = false;
-            spawns.Clear();
-            clients.Clear();
-            OnConnected = null;
-            OnDisconnected = null;
         }
 
-        public static void RuntimeInitializeOnLoad()
+        public static void StopServer()
         {
             if (initialized)
             {
                 initialized = false;
-                Transport.Instance.ServerStop();
+                Transport.current.ServerStop();
                 UnRegisterTransport();
             }
+            
+            host = null;
+            spawns.Clear();
+            clients.Clear();
+            isActive = false;
+            isLoadScene = false;
+            OnConnected = null;
+            OnDisconnected = null;
         }
 
         internal static void EarlyUpdate()
         {
-            if (Transport.Instance != null)
+            if (Transport.current != null)
             {
-                Transport.Instance.ServerEarlyUpdate();
+                Transport.current.ServerEarlyUpdate();
             }
         }
 
         internal static void AfterUpdate()
         {
-            if (Transport.Instance != null)
+            if (Transport.current != null)
             {
-                Transport.Instance.ServerAfterUpdate();
+                Transport.current.ServerAfterUpdate();
             }
         }
     }

@@ -73,7 +73,7 @@ namespace JFramework.Net
 
         private static void OnClientLoadSceneInternal(SceneMessage message)
         {
-            if (NetworkClient.connected)
+            if (NetworkClient.isConnect)
             {
                 //ClientLoadScene(message.sceneName);
             }

@@ -31,7 +31,7 @@ namespace JFramework.Net
             Transport.RuntimeInitializeOnLoad();
             NetworkTime.RuntimeInitializeOnLoad();
             NetworkClient.RuntimeInitializeOnLoad();
-            NetworkServer.RuntimeInitializeOnLoad();
+            NetworkServer.StopServer();
             OnStartHost = null;
             OnStopHost = null;
             OnStartClient = null;

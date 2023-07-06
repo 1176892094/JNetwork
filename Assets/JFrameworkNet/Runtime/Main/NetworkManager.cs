@@ -14,7 +14,12 @@ namespace JFramework.Net
         [SerializeField] private bool runInBackground = true;
         public int heartTickRate = 30;
         public int maxConnection = 100;
-        public Address address => transport.address;
+
+        public Address address
+        {
+            get => transport.address;
+            set => transport.address = value;
+        }
 
         protected override void Awake()
         {
@@ -35,7 +40,7 @@ namespace JFramework.Net
                 return;
             }
 
-            Transport.Instance = transport;
+            Transport.current = transport;
             Application.runInBackground = runInBackground;
         }
 
@@ -52,7 +57,7 @@ namespace JFramework.Net
             }
 
 #if UNITY_SERVER
-            Application.targetFrameRate = heartRate;
+            Application.targetFrameRate = heartTickRate;
 #endif
             SetMode(NetworkMode.Server);
             NetworkServer.StartServer(isListen);
@@ -67,7 +72,7 @@ namespace JFramework.Net
         {
             if (!NetworkServer.isActive) return;
             OnStopServer?.Invoke();
-            NetworkServer.RuntimeInitializeOnLoad();
+            NetworkServer.StopServer();
             networkMode = NetworkMode.None;
             sceneName = "";
         }
@@ -85,8 +90,16 @@ namespace JFramework.Net
             }
 
             SetMode(NetworkMode.Client);
+            if (uri == null)
+            {
+                NetworkClient.StartClient(address);
+            }
+            else
+            {
+                NetworkClient.StartClient(uri);
+            }
+
             RegisterClientEvent();
-            NetworkClient.StartClient(uri);
             OnStartClient?.Invoke();
         }
 
@@ -124,11 +137,11 @@ namespace JFramework.Net
             SetMode(NetworkMode.Host);
             NetworkServer.StartServer(isListen);
             RegisterServerEvent();
-            NetworkClient.StartHostClient();
-            NetworkServer.OnClientConnect(NetworkServer.host);
-            OnStartHost?.Invoke();
+            NetworkClient.StartClient();
             RegisterClientEvent();
+            NetworkServer.OnClientConnect(NetworkServer.host);
             NetworkClient.server.connecting = true;
+            OnStartHost?.Invoke();
         }
 
         /// <summary>
@@ -143,7 +156,7 @@ namespace JFramework.Net
 
         private void OnApplicationQuit()
         {
-            if (NetworkClient.connected)
+            if (NetworkClient.isConnect)
             {
                 StopClient();
             }

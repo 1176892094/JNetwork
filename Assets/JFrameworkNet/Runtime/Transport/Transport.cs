@@ -4,14 +4,14 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    internal abstract class Transport : MonoBehaviour
+    public abstract class Transport : MonoBehaviour
     {
-        public static Transport Instance;
+        public static Transport current;
 
         /// <summary>
         /// 连接地址
         /// </summary>
-        public Address address = new Address("localhost", 7777);
+        [SerializeField] internal Address address = new Address("localhost", 7777);
 
         /// <summary>
         /// 客户端连接事件

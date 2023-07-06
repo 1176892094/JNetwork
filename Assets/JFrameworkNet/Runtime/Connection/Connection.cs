@@ -42,7 +42,7 @@ namespace JFramework.Net
 
         private static bool PacketValidate(ArraySegment<byte> segment, Channel channel)
         {
-            int maxPacketSize = Transport.Instance.GetMaxPacketSize(channel);
+            int maxPacketSize = Transport.current.GetMaxPacketSize(channel);
             if (segment.Count > maxPacketSize)
             {
                 Debug.LogError($"Cannot send packet larger than {maxPacketSize} bytes, was {segment.Count} bytes");
@@ -79,7 +79,7 @@ namespace JFramework.Net
         {
             if (!batches.TryGetValue(channel, out var batch))
             {
-                int threshold = Transport.Instance.GetBatchThreshold();
+                int threshold = Transport.current.GetBatchThreshold();
                 batch = new NetworkSend(threshold);
                 batches[channel] = batch;
             }

@@ -36,19 +36,19 @@ namespace JFramework.Net
             if (clientId == 0)
             {
                 Debug.LogError($"Invalid clientId: {clientId} .");
-                Transport.Instance.ServerDisconnect(clientId);
+                Transport.current.ServerDisconnect(clientId);
                 return;
             }
 
             if (clients.ContainsKey(clientId))
             {
-                Transport.Instance.ServerDisconnect(clientId);
+                Transport.current.ServerDisconnect(clientId);
                 return;
             }
 
             if (clients.Count >= maxConnection)
             {
-                Transport.Instance.ServerDisconnect(clientId);
+                Transport.current.ServerDisconnect(clientId);
                 return;
             }
 
