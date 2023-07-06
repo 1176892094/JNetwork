@@ -31,6 +31,7 @@ namespace JFramework.Net
             if (transport == null)
             {
                 Debug.LogError("The NetworkManager has no Transport component.");
+                return;
             }
 
             Transport.Instance = transport;
@@ -82,7 +83,7 @@ namespace JFramework.Net
 
             SetMode(NetworkMode.Client);
             RegisterClientEvent();
-            NetworkClient.Connect(address);
+            NetworkClient.StartClient(address);
             OnStartClient?.Invoke();
         }
         
@@ -100,7 +101,7 @@ namespace JFramework.Net
 
             SetMode(NetworkMode.Client);
             RegisterClientEvent();
-            NetworkClient.Connect(uri);
+            NetworkClient.StartClient(uri);
             OnStartClient?.Invoke();
         }
         
@@ -137,7 +138,7 @@ namespace JFramework.Net
             SetMode(NetworkMode.Host);
             NetworkServer.StartServer();
             RegisterServerEvent();
-            NetworkClient.ConnectHost();
+            NetworkClient.StartHostClient();
             NetworkServer.OnClientConnect(NetworkServer.host);
             OnStartHost?.Invoke();
             RegisterClientEvent();

@@ -258,13 +258,13 @@ MonoBehaviour:
   noDelay: 1
   congestion: 1
   resend: 2
-  interval: 10
   timeout: 10000
   maxTransmitUnit: 1200
   sendBufferSize: 7361536
   receiveBufferSize: 7361536
   sendPacketSize: 4096
   receivePacketSize: 4096
+  interval: 10
 --- !u!114 &890354964
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -279,4 +279,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   transport: {fileID: 890354963}
   runInBackground: 1
-  tickRate: 30
+  heartTickRate: 30
+  maxConnection: 100

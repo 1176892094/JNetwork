@@ -26,46 +26,54 @@ namespace JFramework.Net
         public static bool isActive => state is ConnectState.Connected or ConnectState.Connecting;
         public static bool connected => state == ConnectState.Connected;
 
-        public static void Connect(Address address)
+        /// <summary>
+        /// 开启客户端
+        /// </summary>
+        /// <param name="address">传入地址</param>
+        public static void StartClient(Address address)
         {
-            StartClient(false);
-            AddClientEvent();
+            if (!TryConnect(false)) return;
+            RegisterTransport();
             state = ConnectState.Connecting;
             Transport.Instance.ClientConnect(address);
-            server = new ServerConnection();
         }
 
-        public static void Connect(Uri uri)
+        /// <summary>
+        /// 开启客户端
+        /// </summary>
+        /// <param name="uri">传入Uri</param>
+        public static void StartClient(Uri uri)
         {
-            StartClient(false);
-            AddClientEvent();
+            if (!TryConnect(false)) return;
+            RegisterTransport();
             state = ConnectState.Connecting;
             Transport.Instance.ClientConnect(uri);
-            server = new ServerConnection();
         }
 
-        public static void ConnectHost()
+        /// <summary>
+        /// 开启主机，无需注册传输(使用服务器)
+        /// </summary>
+        public static void StartHostClient()
         {
-            StartClient(true);
+            if (!TryConnect(true)) return;
             state = ConnectState.Connected;
-            server = new ServerConnection();
             NetworkServer.host = new ClientConnection(0);
         }
 
-        private static void StartClient(bool hostMode)
+        /// <summary>
+        /// 尝试连接并注册事件
+        /// </summary>
+        private static bool TryConnect(bool isHost)
         {
             if (Transport.Instance == null)
             {
                 Debug.LogError("There was no active Transport!");
-                return;
+                return false;
             }
 
-            //TODO: RegisterMessageHandlers(hostMode);
-            Transport.Instance.enabled = true;
-        }
-
-        private static void AddClientEvent()
-        {
+            server = new ServerConnection();
+            RegisterMessage(isHost);
+            return true;
         }
 
         public static void Ready()

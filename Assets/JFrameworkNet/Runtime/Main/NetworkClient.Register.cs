@@ -4,26 +4,28 @@ namespace JFramework.Net
 {
     public static partial class NetworkClient
     {
-        private static void RegisterHostMessage()
+        private static void RegisterMessage(bool isHost)
         {
-            NetworkEvent.RegisterMessage<SpawnMessage>(SpawnByHost);
-            NetworkEvent.RegisterMessage<ObjectDestroyMessage>(ObjectDestroyByHost);
-            NetworkEvent.RegisterMessage<ObjectHideMessage>(ObjectHideByHost);
-            NetworkEvent.RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByHost);
-            NetworkEvent.RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByHost);
-            NetworkEvent.RegisterMessage<ChangeOwnerMessage>(OnOwnerChanged);
-            NetworkEvent.RegisterMessage<RpcBufferMessage>(RpcBufferMessage);
-        }
-
-        private static void RegisterMessageHandlers()
-        {
-            NetworkEvent.RegisterMessage<SpawnMessage>(SpawnByClient);
-            NetworkEvent.RegisterMessage<ObjectDestroyMessage>(ObjectDestroyByClient);
-            NetworkEvent.RegisterMessage<ObjectHideMessage>(ObjectHideByClient);
-            NetworkEvent.RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByClient);
-            NetworkEvent.RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByClient);
-            NetworkEvent.RegisterMessage<ChangeOwnerMessage>(OnOwnerChanged);
-            NetworkEvent.RegisterMessage<RpcBufferMessage>(RpcBufferMessage);
+            if (isHost)
+            {
+                NetworkEvent.RegisterMessage<SpawnMessage>(SpawnByHost);
+                NetworkEvent.RegisterMessage<ObjectDestroyMessage>(ObjectDestroyByHost);
+                NetworkEvent.RegisterMessage<ObjectHideMessage>(ObjectHideByHost);
+                NetworkEvent.RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByHost);
+                NetworkEvent.RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByHost);
+                NetworkEvent.RegisterMessage<ChangeOwnerMessage>(OnOwnerChanged);
+                NetworkEvent.RegisterMessage<RpcBufferMessage>(RpcBufferMessage);
+            }
+            else
+            {
+                NetworkEvent.RegisterMessage<SpawnMessage>(SpawnByClient);
+                NetworkEvent.RegisterMessage<ObjectDestroyMessage>(ObjectDestroyByClient);
+                NetworkEvent.RegisterMessage<ObjectHideMessage>(ObjectHideByClient);
+                NetworkEvent.RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByClient);
+                NetworkEvent.RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByClient);
+                NetworkEvent.RegisterMessage<ChangeOwnerMessage>(OnOwnerChanged);
+                NetworkEvent.RegisterMessage<RpcBufferMessage>(RpcBufferMessage);
+            }
         }
 
         private static void ObjectHideByHost(ObjectHideMessage message)
