@@ -6,6 +6,8 @@ namespace JFramework.Net
     {
         public uint netId;
         public int sceneId;
+        public int tickFrame;
+        public NetworkWriter writer;
         public ClientConnection client;
         public NetworkBehaviour[] objects;
 
@@ -35,6 +37,16 @@ namespace JFramework.Net
             {
                 Debug.LogError($"Not found received for {rpcType} [{functionHash}] on {gameObject.name} netId = {netId}");
             }
+        }
+        
+        internal NetworkWriter GetServerSerializationAtTick(int tick)
+        {
+            if (tickFrame != tick)
+            {
+                writer.position = 0;
+            }
+            
+            return writer;
         }
 
         public virtual void OnStopClient()

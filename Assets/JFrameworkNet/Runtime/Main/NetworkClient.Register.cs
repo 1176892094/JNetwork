@@ -13,8 +13,6 @@ namespace JFramework.Net
                 NetworkEvent.RegisterMessage<ObjectHideMessage>(ObjectHideByHost);
                 NetworkEvent.RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByHost);
                 NetworkEvent.RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByHost);
-                NetworkEvent.RegisterMessage<ChangeOwnerMessage>(OnOwnerChanged);
-                NetworkEvent.RegisterMessage<RpcBufferMessage>(RpcBufferMessage);
             }
             else
             {
@@ -23,9 +21,11 @@ namespace JFramework.Net
                 NetworkEvent.RegisterMessage<ObjectHideMessage>(ObjectHideByClient);
                 NetworkEvent.RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByClient);
                 NetworkEvent.RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByClient);
-                NetworkEvent.RegisterMessage<ChangeOwnerMessage>(OnOwnerChanged);
-                NetworkEvent.RegisterMessage<RpcBufferMessage>(RpcBufferMessage);
             }
+
+            NetworkEvent.RegisterMessage<SnapshotMessage>(OnSnapshotMessage);
+            NetworkEvent.RegisterMessage<ChangeOwnerMessage>(OnOwnerChanged);
+            NetworkEvent.RegisterMessage<RpcBufferMessage>(RpcBufferMessage);
         }
 
         private static void ObjectHideByHost(ObjectHideMessage message)
@@ -80,6 +80,11 @@ namespace JFramework.Net
 
         private static void OnOwnerChanged(ChangeOwnerMessage message)
         {
+        }
+
+        private static void OnSnapshotMessage(SnapshotMessage message)
+        {
+            NetworkSnapshot.OnTimeSnapshot(new TimeSnapshot(server.timestamp, NetworkTime.localTime));
         }
     }
 }

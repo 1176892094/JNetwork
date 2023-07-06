@@ -20,7 +20,7 @@ namespace JFramework.Net
         private void OnServerConnectInternal(ClientConnection client)
         {
             client.isAuthority = true;
-            if (sceneName != "")
+            if (!string.IsNullOrEmpty(sceneName))
             {
                 var message = new SceneMessage()
                 {

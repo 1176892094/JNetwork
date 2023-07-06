@@ -50,6 +50,7 @@ namespace JFramework.Net
         {
             isReady = false;
             NetworkClient.isReady = false;
+            Transport.current.ClientDisconnect();
         }
     }
 }

@@ -78,4 +78,14 @@ namespace JFramework.Net
         public Vector3 localScale;
         public ArraySegment<byte> payload;
     }
+    
+    public struct SnapshotMessage : NetworkMessage
+    {
+    }
+    
+    public struct EntityMessage : NetworkMessage
+    {
+        public uint netId;
+        public ArraySegment<byte> segment;
+    }
 }

@@ -60,7 +60,7 @@ namespace JFramework.Net
 
             return false;
         }
-
+        
         public static void RuntimeInitializeOnLoad()
         {
             clientEvents.Clear();

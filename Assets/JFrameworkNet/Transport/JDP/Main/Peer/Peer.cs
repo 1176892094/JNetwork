@@ -204,7 +204,7 @@ namespace JFramework.Udp
         public void SendHandshake()
         {
             var cookieBytes = BitConverter.GetBytes(cookie);
-            Log.Info($"Sending handshake to other end with cookie = {cookie}!");
+            Log.Info($"Handshake to other end with cookie = {cookie}");
             var segment = new ArraySegment<byte>(cookieBytes);
             SendReliable(Header.Handshake, segment);
         }

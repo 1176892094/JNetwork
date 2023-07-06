@@ -55,6 +55,7 @@ namespace JFramework.Net
             NetworkClient.AfterUpdate();
         }
         
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void RuntimeInitializeOnLoad()
         {
             var playerLoop = PlayerLoop.GetCurrentPlayerLoop();

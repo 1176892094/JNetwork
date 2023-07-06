@@ -45,6 +45,15 @@ namespace JFramework.Net
 
             return null;
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Elapsed(double current, double interval, ref double lastTime)
+        {
+            if (current < lastTime + interval) return false;
+            var clientTime = (long)(current / interval);
+            lastTime = clientTime * interval;
+            return true;
+        }
 
         /// <summary>
         /// 写入消息Id

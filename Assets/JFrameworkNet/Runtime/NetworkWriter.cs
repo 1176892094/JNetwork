@@ -114,10 +114,11 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T value)
         {
+            Debug.Log(typeof(T));
             Action<NetworkWriter, T> writeDelegate = Writer<T>.write;
             if (writeDelegate == null)
             {
-                Debug.LogError($"No writer found for {typeof(T)}.");
+                Debug.LogError($"No writer found for {typeof(T)}");
             }
             else
             {

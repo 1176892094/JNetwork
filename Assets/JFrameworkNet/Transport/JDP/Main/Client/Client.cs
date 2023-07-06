@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using UnityEngine;
 
 namespace JFramework.Udp
 {
@@ -20,6 +21,7 @@ namespace JFramework.Udp
             this.setting = setting;
             this.clientData = clientData;
             buffer = new byte[setting.maxTransferUnit];
+            state = State.Disconnected;
         }
 
         /// <summary>
@@ -42,6 +44,7 @@ namespace JFramework.Udp
 
             Connection();
             endPoint = new IPEndPoint(ip, address.port);
+            Log.Info($"Client connect to {address.ip} : {address.port}");
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.Blocking = false;
             socket.SendBufferSize = setting.sendBufferSize;
@@ -59,8 +62,8 @@ namespace JFramework.Udp
             {
                 return;
             }
-
-            peer.Disconnect();
+            
+            peer?.Disconnect();
         }
 
         /// <summary>
@@ -89,8 +92,7 @@ namespace JFramework.Udp
             if (socket == null) return false;
             try
             {
-                socket.ReceiveFormServer(buffer, out segment);
-                return true;
+                return socket.ReceiveFormServer(buffer, out segment);
             }
             catch (Exception e)
             {

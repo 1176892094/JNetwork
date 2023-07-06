@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using JFramework.Udp;
 
 namespace JFramework.Net
@@ -7,6 +8,7 @@ namespace JFramework.Net
     {
         public bool isLocal;
         public NetworkReceive receive = new NetworkReceive();
+        public readonly HashSet<NetworkIdentity> observing = new HashSet<NetworkIdentity>();
 
         public ClientConnection(int clientId) : base(clientId)
         {

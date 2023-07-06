@@ -12,8 +12,8 @@ namespace JFramework.Net
         private NetworkMode networkMode;
         [SerializeField] private Transport transport;
         [SerializeField] private bool runInBackground = true;
-        public int heartTickRate = 30;
-        public int maxConnection = 100;
+        public uint tickRate = 30;
+        public uint maxConnection = 100;
 
         public Address address
         {
@@ -57,7 +57,7 @@ namespace JFramework.Net
             }
 
 #if UNITY_SERVER
-            Application.targetFrameRate = heartTickRate;
+            Application.targetFrameRate = tickRate;
 #endif
             SetMode(NetworkMode.Server);
             NetworkServer.StartServer(isListen);

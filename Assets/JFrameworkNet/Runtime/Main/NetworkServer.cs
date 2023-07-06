@@ -11,14 +11,17 @@ namespace JFramework.Net
     {
         private static readonly Dictionary<uint, NetworkIdentity> spawns = new Dictionary<uint, NetworkIdentity>();
         private static readonly Dictionary<int, ClientConnection> clients = new Dictionary<int, ClientConnection>();
+        private static readonly List<ClientConnection> copies = new List<ClientConnection>();
         private static bool initialized;
+        private static double lastSendTime;
         public static bool isActive;
         public static bool isLoadScene;
         public static ClientConnection host;
         internal static Action<ClientConnection> OnConnected;
         internal static Action<ClientConnection> OnDisconnected;
-        private static int heartTickRate => NetworkManager.Instance.heartTickRate;
-        private static int maxConnection => NetworkManager.Instance.maxConnection;
+        private static uint tickRate => NetworkManager.Instance.tickRate;
+        private static uint maxConnection => NetworkManager.Instance.maxConnection;
+        private static float sendRate => tickRate < int.MaxValue ? 1f / tickRate : 0;
 
         internal static void StartServer(bool isListen)
         {
@@ -98,7 +101,7 @@ namespace JFramework.Net
                 Transport.current.ServerStop();
                 UnRegisterTransport();
             }
-            
+
             host = null;
             spawns.Clear();
             clients.Clear();
@@ -118,6 +121,14 @@ namespace JFramework.Net
 
         internal static void AfterUpdate()
         {
+            if (isActive)
+            {
+                if (NetworkUtils.Elapsed(NetworkTime.localTime, tickRate, ref lastSendTime))
+                {
+                    Broadcast();
+                }
+            }
+
             if (Transport.current != null)
             {
                 Transport.current.ServerAfterUpdate();
