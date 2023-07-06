@@ -5,9 +5,8 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public sealed partial class NetworkManager : MonoBehaviour
+    public sealed partial class NetworkManager : GlobalSingleton<NetworkManager>
     {
-        public static NetworkManager Instance;
         private string sceneName;
         private NetworkMode networkMode;
         [SerializeField] private Transport transport;
@@ -16,11 +15,11 @@ namespace JFramework.Net
         public int maxConnection = 100;
         public Address address => transport.address;
 
-        // protected override void Awake()
-        // {
-        //     base.Awake();
-        //     SetMode(NetworkMode.None);
-        // }
+        protected override void Awake()
+        {
+            base.Awake();
+            SetMode(NetworkMode.None);
+        }
 
         /// <summary>
         /// 设置游戏模式
