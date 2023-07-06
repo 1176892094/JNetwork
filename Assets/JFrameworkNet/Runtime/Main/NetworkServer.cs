@@ -13,7 +13,6 @@ namespace JFramework.Net
         private static readonly Dictionary<int, ClientConnection> clients = new Dictionary<int, ClientConnection>();
         private static bool initialized;
         public static bool isActive;
-        public static bool isListen = true;
         public static bool isLoadScene;
         public static ClientConnection host;
         internal static Action<ClientConnection> OnConnected;
@@ -21,7 +20,7 @@ namespace JFramework.Net
         private static int heartTickRate => NetworkManager.Instance.heartTickRate;
         private static int maxConnection => NetworkManager.Instance.maxConnection;
 
-        internal static void StartServer()
+        internal static void StartServer(bool isListen)
         {
             if (!Transport.Instance)
             {
@@ -91,7 +90,6 @@ namespace JFramework.Net
             }
 
             host = null;
-            isListen = true;
             isLoadScene = false;
             spawns.Clear();
             clients.Clear();

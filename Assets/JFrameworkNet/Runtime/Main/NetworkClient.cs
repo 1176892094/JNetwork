@@ -23,37 +23,33 @@ namespace JFramework.Net
         internal static Action OnConnected;
         internal static Action OnDisconnected;
         private static NetworkReceive receive = new NetworkReceive();
+        private static Address address => NetworkManager.Instance.address;
         public static bool isActive => state is ConnectState.Connected or ConnectState.Connecting;
         public static bool connected => state == ConnectState.Connected;
-
-        /// <summary>
-        /// 开启客户端
-        /// </summary>
-        /// <param name="address">传入地址</param>
-        public static void StartClient(Address address)
-        {
-            if (!TryConnect(false)) return;
-            RegisterTransport();
-            state = ConnectState.Connecting;
-            Transport.Instance.ClientConnect(address);
-        }
-
+        
         /// <summary>
         /// 开启客户端
         /// </summary>
         /// <param name="uri">传入Uri</param>
-        public static void StartClient(Uri uri)
+        internal static void StartClient(Uri uri)
         {
             if (!TryConnect(false)) return;
             RegisterTransport();
             state = ConnectState.Connecting;
-            Transport.Instance.ClientConnect(uri);
+            if (uri == null)
+            {
+                Transport.Instance.ClientConnect(address);
+            }
+            else
+            {
+                Transport.Instance.ClientConnect(uri);
+            }
         }
 
         /// <summary>
         /// 开启主机，无需注册传输(使用服务器)
         /// </summary>
-        public static void StartHostClient()
+        internal static void StartHostClient()
         {
             if (!TryConnect(true)) return;
             state = ConnectState.Connected;

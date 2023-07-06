@@ -1,6 +1,7 @@
 using System;
 using JFramework.Udp;
 using UnityEngine;
+
 // ReSharper disable All
 
 namespace JFramework.Net
@@ -41,7 +42,8 @@ namespace JFramework.Net
         /// <summary>
         /// 开启服务器
         /// </summary>
-        public void StartServer()
+        /// <param name="isListen">设置false则为单机模式，不进行网络传输</param>
+        public void StartServer(bool isListen = true)
         {
             if (NetworkServer.isActive)
             {
@@ -53,11 +55,11 @@ namespace JFramework.Net
             Application.targetFrameRate = heartRate;
 #endif
             SetMode(NetworkMode.Server);
-            NetworkServer.StartServer();
+            NetworkServer.StartServer(isListen);
             RegisterServerEvent();
             OnStartServer?.Invoke();
         }
-        
+
         /// <summary>
         /// 停止服务器
         /// </summary>
@@ -73,25 +75,8 @@ namespace JFramework.Net
         /// <summary>
         /// 开启客户端
         /// </summary>
-        public void StartClient()
-        {
-            if (NetworkClient.isActive)
-            {
-                Debug.LogWarning("Client already started.");
-                return;
-            }
-
-            SetMode(NetworkMode.Client);
-            RegisterClientEvent();
-            NetworkClient.StartClient(address);
-            OnStartClient?.Invoke();
-        }
-        
-        /// <summary>
-        /// 开启客户端
-        /// </summary>
-        /// <param name="uri"></param>
-        public void StartClient(Uri uri)
+        /// <param name="uri">不传入Uri则按照默认的address来匹配</param>
+        public void StartClient(Uri uri = null)
         {
             if (NetworkClient.isActive)
             {
@@ -104,7 +89,7 @@ namespace JFramework.Net
             NetworkClient.StartClient(uri);
             OnStartClient?.Invoke();
         }
-        
+
         /// <summary>
         /// 停止客户端
         /// </summary>
@@ -123,11 +108,12 @@ namespace JFramework.Net
             NetworkClient.Disconnect();
             OnClientDisconnectInternal();
         }
-        
+
         /// <summary>
         /// 开启主机
         /// </summary>
-        public void StartHost()
+        /// <param name="isListen">设置false则为单机模式，不进行网络传输</param>
+        public void StartHost(bool isListen = true)
         {
             if (NetworkServer.isActive || NetworkClient.isActive)
             {
@@ -136,7 +122,7 @@ namespace JFramework.Net
             }
 
             SetMode(NetworkMode.Host);
-            NetworkServer.StartServer();
+            NetworkServer.StartServer(isListen);
             RegisterServerEvent();
             NetworkClient.StartHostClient();
             NetworkServer.OnClientConnect(NetworkServer.host);
@@ -144,7 +130,7 @@ namespace JFramework.Net
             RegisterClientEvent();
             NetworkClient.server.connecting = true;
         }
-        
+
         /// <summary>
         /// 停止主机
         /// </summary>
@@ -154,7 +140,7 @@ namespace JFramework.Net
             StopClient();
             StopServer();
         }
-        
+
         private void OnApplicationQuit()
         {
             if (NetworkClient.connected)
