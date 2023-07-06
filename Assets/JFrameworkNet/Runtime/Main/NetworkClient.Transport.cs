@@ -9,9 +9,9 @@ namespace JFramework.Net
         /// <summary>
         /// 添加传输事件
         /// </summary>
-        private static void AddTransportEvent()
+        private static void RegisterTransport()
         {
-            RemoveTransportEvent();
+            UnRegisterTransport();
             Transport.OnClientConnected += OnClientConnected;
             Transport.OnClientDisconnected += OnClientDisconnected;
             Transport.OnClientReceive += OnClientReceive;
@@ -20,7 +20,7 @@ namespace JFramework.Net
         /// <summary>
         /// 移除传输事件
         /// </summary>
-        private static void RemoveTransportEvent()
+        private static void UnRegisterTransport()
         {
             Transport.OnClientConnected -= OnClientConnected;
             Transport.OnClientDisconnected -= OnClientDisconnected;
@@ -56,7 +56,7 @@ namespace JFramework.Net
                 server = null;
                 isReady = false;
                 OnDisconnected?.Invoke();
-                RemoveTransportEvent();
+                UnRegisterTransport();
             }
         }
 
@@ -110,9 +110,8 @@ namespace JFramework.Net
         {
             if (NetworkUtils.ReadMessage(reader, out ushort id))
             {
-                if (messages.TryGetValue(id, out MessageDelegate handler))
+                if (NetworkEvent.ClientMessage(id, server,reader,channel))
                 {
-                    handler.Invoke(server, reader, channel);
                     return true;
                 }
 

@@ -9,9 +9,9 @@ namespace JFramework.Net
         /// <summary>
         /// 添加传输事件
         /// </summary>
-        private static void AddTransportEvent()
+        private static void RegisterTransport()
         {
-            RemoveTransportEvent();
+            UnRegisterTransport();
             Transport.OnServerConnected += OnServerConnected;
             Transport.OnServerDisconnected += OnServerDisconnected;
             Transport.OnServerReceive += OnServerReceive;
@@ -20,7 +20,7 @@ namespace JFramework.Net
         /// <summary>
         /// 移除传输事件
         /// </summary>
-        private static void RemoveTransportEvent()
+        private static void UnRegisterTransport()
         {
             Transport.OnServerConnected -= OnServerConnected;
             Transport.OnServerDisconnected -= OnServerDisconnected;
@@ -52,7 +52,7 @@ namespace JFramework.Net
                 return;
             }
 
-            OnConnect(new ClientConnection(clientId));
+            OnClientConnect(new ClientConnection(clientId));
         }
 
         /// <summary>
@@ -116,13 +116,12 @@ namespace JFramework.Net
         /// 解码并且调用
         /// </summary>
         /// <returns>返回是否调用成功</returns>
-        private static bool TryInvoke(Connection client, NetworkReader reader, Channel channel)
+        private static bool TryInvoke(ClientConnection client, NetworkReader reader, Channel channel)
         {
             if (NetworkUtils.ReadMessage(reader, out ushort id))
             {
-                if (messages.TryGetValue(id, out MessageDelegate handle))
+                if (NetworkEvent.ServerMessage(id, client, reader, channel))
                 {
-                    handle.Invoke(client, reader, channel);
                     return true;
                 }
 

@@ -2,7 +2,8 @@
     "name": "JFramework.Net",
     "rootNamespace": "",
     "references": [
-        "GUID:753330021df6b4bc080c81875189d59f"
+        "GUID:753330021df6b4bc080c81875189d59f",
+        "GUID:70ec4ecc68e8f42d68f8b20a9c62b2a3"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

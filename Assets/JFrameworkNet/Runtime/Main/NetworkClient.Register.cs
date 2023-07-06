@@ -6,24 +6,24 @@ namespace JFramework.Net
     {
         private static void RegisterHostMessage()
         {
-            RegisterMessage<SpawnMessage>(SpawnByHost);
-            RegisterMessage<ObjectDestroyMessage>(ObjectDestroyByHost);
-            RegisterMessage<ObjectHideMessage>(ObjectHideByHost);
-            RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByHost);
-            RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByHost);
-            RegisterMessage<ChangeOwnerMessage>(OnOwnerChanged);
-            RegisterMessage<RpcBufferMessage>(RpcBufferMessage);
+            NetworkEvent.RegisterMessage<SpawnMessage>(SpawnByHost);
+            NetworkEvent.RegisterMessage<ObjectDestroyMessage>(ObjectDestroyByHost);
+            NetworkEvent.RegisterMessage<ObjectHideMessage>(ObjectHideByHost);
+            NetworkEvent.RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByHost);
+            NetworkEvent.RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByHost);
+            NetworkEvent.RegisterMessage<ChangeOwnerMessage>(OnOwnerChanged);
+            NetworkEvent.RegisterMessage<RpcBufferMessage>(RpcBufferMessage);
         }
 
         private static void RegisterMessageHandlers()
         {
-            RegisterMessage<SpawnMessage>(SpawnByClient);
-            RegisterMessage<ObjectDestroyMessage>(ObjectDestroyByClient);
-            RegisterMessage<ObjectHideMessage>(ObjectHideByClient);
-            RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByClient);
-            RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByClient);
-            RegisterMessage<ChangeOwnerMessage>(OnOwnerChanged);
-            RegisterMessage<RpcBufferMessage>(RpcBufferMessage);
+            NetworkEvent.RegisterMessage<SpawnMessage>(SpawnByClient);
+            NetworkEvent.RegisterMessage<ObjectDestroyMessage>(ObjectDestroyByClient);
+            NetworkEvent.RegisterMessage<ObjectHideMessage>(ObjectHideByClient);
+            NetworkEvent.RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByClient);
+            NetworkEvent.RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByClient);
+            NetworkEvent.RegisterMessage<ChangeOwnerMessage>(OnOwnerChanged);
+            NetworkEvent.RegisterMessage<RpcBufferMessage>(RpcBufferMessage);
         }
 
         private static void ObjectHideByHost(ObjectHideMessage message)
@@ -78,11 +78,6 @@ namespace JFramework.Net
 
         private static void OnOwnerChanged(ChangeOwnerMessage message)
         {
-        }
-
-        internal static void RegisterMessage<T>(Action<T> handle, bool isAuthority = true) where T : struct, NetworkMessage
-        {
-            messages[MessageId<T>.Id] = NetworkUtils.Register(handle, isAuthority);
         }
     }
 }

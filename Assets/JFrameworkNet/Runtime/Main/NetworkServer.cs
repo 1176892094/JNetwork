@@ -11,18 +11,17 @@ namespace JFramework.Net
     {
         private static readonly Dictionary<uint, NetworkIdentity> spawns = new Dictionary<uint, NetworkIdentity>();
         private static readonly Dictionary<int, ClientConnection> clients = new Dictionary<int, ClientConnection>();
-        private static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
         private static bool initialized;
-        private static int heartTickRate;
-        private static int maxConnection;
         public static bool isActive;
         public static bool isListen = true;
         public static bool isLoadScene;
         public static ClientConnection host;
         internal static Action<ClientConnection> OnConnected;
         internal static Action<ClientConnection> OnDisconnected;
+        private static int heartTickRate => NetworkManager.Instance.heartTickRate;
+        private static int maxConnection => NetworkManager.Instance.maxConnection;
 
-        internal static void Connect()
+        internal static void StartServer()
         {
             if (!Transport.Instance)
             {
@@ -32,37 +31,30 @@ namespace JFramework.Net
 
             if (isListen)
             {
-                Transport.Instance.ServerStart(); // 创建Socket
+                Transport.Instance.ServerConnect();
             }
 
-            StartServer();
-            isActive = true;
-            heartTickRate = NetworkManager.Instance.heartTickRate;
-            maxConnection = NetworkManager.Instance.maxConnection;
-            RegisterMessage();
+            if (!initialized)
+            {
+                initialized = true;
+                isActive = true;
+                clients.Clear();
+                RegisterMessage();
+                RegisterTransport();
+                NetworkTime.RuntimeInitializeOnLoad();
+            }
+
+            SpawnObjects();
         }
 
-        private static void StartServer()
-        {
-            if (initialized) return;
-            initialized = true;
-            clients.Clear();
-            NetworkTime.RuntimeInitializeOnLoad();
-            AddTransportEvent();
-        }
-
-        internal static void OnConnect(ClientConnection client)
-        {
-            AddConnection(client);
-            OnConnected?.Invoke(client);
-        }
-
-        private static void AddConnection(ClientConnection client)
+        internal static void OnClientConnect(ClientConnection client)
         {
             if (!clients.ContainsKey(client.clientId))
             {
                 clients[client.clientId] = client;
             }
+
+            OnConnected?.Invoke(client);
         }
 
         internal static void SetClientReady(ClientConnection client)
@@ -86,8 +78,8 @@ namespace JFramework.Net
         internal static void SpawnObjects()
         {
         }
-        
-        private static void DisconnectAll()
+
+        private static void DisconnectClients()
         {
             foreach (var connection in clients.Values.ToList())
             {
@@ -97,13 +89,12 @@ namespace JFramework.Net
                     OnServerDisconnected(connection.clientId);
                 }
             }
-            
+
             host = null;
             isListen = true;
             isLoadScene = false;
             spawns.Clear();
             clients.Clear();
-            messages.Clear();
             OnConnected = null;
             OnDisconnected = null;
         }
@@ -114,7 +105,7 @@ namespace JFramework.Net
             {
                 initialized = false;
                 Transport.Instance.ServerStop();
-                RemoveTransportEvent();
+                UnRegisterTransport();
             }
         }
 

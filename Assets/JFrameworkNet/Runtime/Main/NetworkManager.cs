@@ -5,9 +5,8 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public sealed partial class NetworkManager : MonoBehaviour
+    public sealed partial class NetworkManager : GlobalSingleton<NetworkManager>
     {
-        public static NetworkManager Instance;
         private string sceneName;
         private NetworkMode networkMode;
         [SerializeField] private Transport transport;
@@ -16,42 +15,28 @@ namespace JFramework.Net
         public int maxConnection = 100;
         public Address address => transport.address;
 
-        private void Awake()
+        protected override void Awake()
         {
-            SetSingleton(NetworkMode.None);
+            base.Awake();
+            SetMode(NetworkMode.None);
         }
-        
+
         /// <summary>
-        /// 设置单例
+        /// 设置游戏模式
         /// </summary>
         /// <param name="networkMode">网络模式</param>
-        private void SetSingleton(NetworkMode networkMode)
+        private void SetMode(NetworkMode networkMode)
         {
             this.networkMode = networkMode;
-            if (Instance != null && Instance == this)
-            {
-                return;
-            }
-
             if (transport == null)
             {
-                if (TryGetComponent(out Transport newTransport))
-                {
-                    transport = newTransport;
-                }
-                else
-                {
-                    Debug.LogError("The NetworkManager has no Transport component.");
-                    return;
-                }
+                Debug.LogError("The NetworkManager has no Transport component.");
             }
 
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
             Transport.Instance = transport;
             Application.runInBackground = runInBackground;
         }
-        
+
         /// <summary>
         /// 开启服务器
         /// </summary>
@@ -63,13 +48,12 @@ namespace JFramework.Net
                 return;
             }
 
-            SetSingleton(NetworkMode.Server);
 #if UNITY_SERVER
             Application.targetFrameRate = heartRate;
 #endif
-            NetworkServer.Connect();
+            SetMode(NetworkMode.Server);
+            NetworkServer.StartServer();
             RegisterServerEvent();
-            NetworkServer.SpawnObjects();
             OnStartServer?.Invoke();
         }
         
@@ -96,7 +80,7 @@ namespace JFramework.Net
                 return;
             }
 
-            SetSingleton(NetworkMode.Client);
+            SetMode(NetworkMode.Client);
             RegisterClientEvent();
             NetworkClient.Connect(address);
             OnStartClient?.Invoke();
@@ -114,7 +98,7 @@ namespace JFramework.Net
                 return;
             }
 
-            SetSingleton(NetworkMode.Client);
+            SetMode(NetworkMode.Client);
             RegisterClientEvent();
             NetworkClient.Connect(uri);
             OnStartClient?.Invoke();
@@ -150,12 +134,11 @@ namespace JFramework.Net
                 return;
             }
 
-            SetSingleton(NetworkMode.Host);
-            NetworkServer.Connect();
+            SetMode(NetworkMode.Host);
+            NetworkServer.StartServer();
             RegisterServerEvent();
-            NetworkServer.SpawnObjects();
             NetworkClient.ConnectHost();
-            NetworkServer.OnConnect(NetworkServer.host);
+            NetworkServer.OnClientConnect(NetworkServer.host);
             OnStartHost?.Invoke();
             RegisterClientEvent();
             NetworkClient.server.connecting = true;

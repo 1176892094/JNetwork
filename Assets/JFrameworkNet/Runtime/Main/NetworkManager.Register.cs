@@ -6,15 +6,15 @@ namespace JFramework.Net
         {
             NetworkServer.OnConnected = OnServerConnectInternal;
             NetworkServer.OnDisconnected = OnServerDisconnectInternal;
-            NetworkServer.RegisterMessage<ReadyMessage>(OnServerReadyInternal);
+            NetworkEvent.RegisterMessage<ReadyMessage>(OnServerReadyInternal);
         }
 
         private void RegisterClientEvent()
         {
             NetworkClient.OnConnected = OnClientConnectInternal;
             NetworkClient.OnDisconnected = OnClientDisconnectInternal;
-            NetworkClient.RegisterMessage<NotReadyMessage>(OnClientNotReadyInternal);
-            NetworkClient.RegisterMessage<SceneMessage>(OnClientLoadSceneInternal, false);
+            NetworkEvent.RegisterMessage<NotReadyMessage>(OnClientNotReadyInternal);
+            NetworkEvent.RegisterMessage<SceneMessage>(OnClientLoadSceneInternal, false);
         }
 
         private void OnServerConnectInternal(ClientConnection client)

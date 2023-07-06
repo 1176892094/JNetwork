@@ -16,7 +16,6 @@ namespace JFramework.Net
     public static partial class NetworkClient
     {
         private static readonly Dictionary<uint, NetworkIdentity> spawns = new Dictionary<uint, NetworkIdentity>();
-        private static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
         public static ServerConnection server;
         public static bool isReady;
         public static bool isLoadScene;
@@ -108,7 +107,6 @@ namespace JFramework.Net
         {
             state = ConnectState.Disconnected;
             spawns.Clear();
-            messages.Clear();
             server = null;
             isReady = false;
             isLoadScene = false;

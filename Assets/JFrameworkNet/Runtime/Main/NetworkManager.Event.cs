@@ -17,10 +17,10 @@ namespace JFramework.Net
         public static event Action<ClientConnection> OnServerConnect;
         public static event Action<ClientConnection> OnServerDisconnect;
         public static event Action<ClientConnection> OnServerReady;
-        public static event Action<string> OnClientLoadScene;
-        public static event Action<string> OnServerLoadScene;
-        public static event Action<string> OnClientSceneChanged;
-        public static event Action<string> OnServerSceneChanged;
+        // public static event Action<string> OnClientLoadScene;
+        // public static event Action<string> OnServerLoadScene;
+        // public static event Action<string> OnClientSceneChanged;
+        // public static event Action<string> OnServerSceneChanged;
 
         /// <summary>
         /// 运行初始化
@@ -32,7 +32,6 @@ namespace JFramework.Net
             NetworkTime.RuntimeInitializeOnLoad();
             NetworkClient.RuntimeInitializeOnLoad();
             NetworkServer.RuntimeInitializeOnLoad();
-            Instance = null;
             OnStartHost = null;
             OnStopHost = null;
             OnStartClient = null;
@@ -45,10 +44,10 @@ namespace JFramework.Net
             OnServerConnect = null;
             OnServerDisconnect = null;
             OnServerReady = null;
-            OnClientLoadScene = null;
-            OnServerLoadScene = null;
-            OnClientSceneChanged = null;
-            OnServerSceneChanged = null;
+            // OnClientLoadScene = null;
+            // OnServerLoadScene = null;
+            // OnClientSceneChanged = null;
+            // OnServerSceneChanged = null;
         }
     }
 }

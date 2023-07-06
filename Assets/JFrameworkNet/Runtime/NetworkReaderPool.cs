@@ -5,7 +5,7 @@ namespace JFramework.Net
 {
     public static class NetworkReaderPool
     {
-        private static readonly Pool<NetworkReaderObject> Pool = new Pool<NetworkReaderObject>(() => new NetworkReaderObject(new byte[]{}), 1000);
+        private static readonly Pool<NetworkReaderObject> Pool = new Pool<NetworkReaderObject>(1000);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkReaderObject Pop(byte[] bytes)
@@ -29,10 +29,11 @@ namespace JFramework.Net
     
     public class NetworkReaderObject : NetworkReader, IDisposable
     {
-        internal NetworkReaderObject(byte[] bytes) : base(bytes)
+        public NetworkReaderObject()
         {
+            buffer = new ArraySegment<byte>();
         }
-        
+
         public void Dispose() => NetworkReaderPool.Push(this);
     }
 }

@@ -11,7 +11,7 @@ namespace JFramework.Net
         /// <summary>
         /// 连接地址
         /// </summary>
-        public Address address = new Address("localhost", 20974);
+        public Address address = new Address("localhost", 7777);
 
         /// <summary>
         /// 客户端连接事件
@@ -80,7 +80,7 @@ namespace JFramework.Net
         /// <summary>
         /// 当服务器连接
         /// </summary>
-        public abstract void ServerStart();
+        public abstract void ServerConnect();
 
         /// <summary>
         /// 服务器传输信息给客户端
@@ -94,9 +94,14 @@ namespace JFramework.Net
         public abstract void ServerDisconnect(int clientId);
         
         /// <summary>
-        /// 
+        /// 当服务器停止
         /// </summary>
-        /// <param name="channel"></param>
+        public abstract void ServerStop();
+        
+        /// <summary>
+        /// 获取最大网络消息大小
+        /// </summary>
+        /// <param name="channel">传输通道</param>
         /// <returns></returns>
         public abstract int GetMaxPacketSize(Channel channel = Channel.Reliable);
         
@@ -105,12 +110,7 @@ namespace JFramework.Net
         /// </summary>
         /// <returns>返回阈值</returns>
         public abstract int GetBatchThreshold();
-
-        /// <summary>
-        /// 当服务器停止
-        /// </summary>
-        public abstract void ServerStop();
-
+        
         /// <summary>
         /// 客户端Update之前
         /// </summary>

@@ -1,7 +1,10 @@
 {
   "dependencies": {
+    "com.unity.addressables": "1.19.19",
     "com.unity.ide.rider": "3.0.16",
     "com.unity.nuget.mono-cecil": "1.10.2",
+    "com.unity.nuget.newtonsoft-json": "3.0.2",
+    "com.unity.textmeshpro": "3.0.6",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",

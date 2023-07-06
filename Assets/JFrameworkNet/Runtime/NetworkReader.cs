@@ -34,6 +34,9 @@ namespace JFramework.Net
         /// </summary>
         public int Capacity => buffer.Count;
 
+        public NetworkReader()
+        {
+        }
         /// <summary>
         /// 拷贝ArraySegment到缓存中
         /// </summary>

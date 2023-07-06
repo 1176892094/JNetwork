@@ -5,7 +5,7 @@ namespace JFramework.Net
 {
     public static class NetworkWriterPool
     {
-        private static readonly Pool<NetworkWriterObject> Pool = new Pool<NetworkWriterObject>(() => new NetworkWriterObject(), 1000);
+        private static readonly Pool<NetworkWriterObject> Pool = new Pool<NetworkWriterObject>( 1000);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkWriterObject Pop()

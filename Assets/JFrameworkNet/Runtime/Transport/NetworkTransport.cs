@@ -9,13 +9,13 @@ namespace JFramework.Net
         [SerializeField] private bool noDelay = true;
         [SerializeField] private bool congestion = true;
         [SerializeField] private int resend = 2;
-        [SerializeField] private uint interval = 10;
         [SerializeField] private int timeout = 10000;
         [SerializeField] private int maxTransmitUnit = 1200;
         [SerializeField] private int sendBufferSize = 1024 * 1027 * 7;
         [SerializeField] private int receiveBufferSize = 1024 * 1027 * 7;
         [SerializeField] private uint sendPacketSize = 1024 * 4;
         [SerializeField] private uint receivePacketSize = 1024 * 4;
+        [SerializeField] private uint interval = 10;
         private Setting setting;
         private Client client;
         private Server server;
@@ -76,7 +76,7 @@ namespace JFramework.Net
 
         public override void ClientDisconnect() => client.Disconnect();
 
-        public override void ServerStart() => server.Connect(address);
+        public override void ServerConnect() => server.Connect(address);
 
         public override void ServerSend(int clientId, ArraySegment<byte> segment, Channel channel)
         {
@@ -114,6 +114,5 @@ namespace JFramework.Net
         }
 
         public override void ServerAfterUpdate() => server.AfterUpdate();
-        
     }
 }
