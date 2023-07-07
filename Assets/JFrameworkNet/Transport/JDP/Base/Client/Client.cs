@@ -74,7 +74,7 @@ namespace JFramework.Udp
         {
             if (state == State.Disconnected)
             {
-                Log.Error($"Client send failed!");
+                Log.Warn($"Client send failed!");
                 return;
             }
 

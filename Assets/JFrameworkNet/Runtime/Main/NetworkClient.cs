@@ -19,12 +19,15 @@ namespace JFramework.Net
         public static ServerConnection connection;
         public static bool isReady;
         public static bool isLoadScene;
+        private static double lastSendTime;
         private static ConnectState state;
         internal static Action OnConnected;
         internal static Action OnDisconnected;
         private static NetworkReceive receive = new NetworkReceive();
         public static bool isActive => state is ConnectState.Connected or ConnectState.Connecting;
         public static bool isConnect => state == ConnectState.Connected;
+        private static uint tickRate => NetworkManager.Instance.tickRate;
+        private static float sendRate => tickRate < int.MaxValue ? 1f / tickRate : 0;
         
         /// <summary>
         /// 开启客户端
@@ -36,6 +39,7 @@ namespace JFramework.Net
             RegisterTransport();
             state = ConnectState.Connecting;
             Transport.current.ClientConnect(address);
+            connection = new ServerConnection();
         }
         
         /// <summary>
@@ -48,6 +52,7 @@ namespace JFramework.Net
             RegisterTransport();
             state = ConnectState.Connecting;
             Transport.current.ClientConnect(uri);
+            connection = new ServerConnection();
         }
 
         /// <summary>
@@ -57,7 +62,9 @@ namespace JFramework.Net
         {
             if (!TryConnect(true)) return;
             state = ConnectState.Connected;
+            connection = new ServerConnection();
             NetworkServer.connection = new ClientConnection(0);
+            NetworkServer.connection.isLocal = true;
         }
 
         /// <summary>
@@ -70,8 +77,7 @@ namespace JFramework.Net
                 Debug.LogError("There was no active Transport!");
                 return false;
             }
-
-            connection = new ServerConnection();
+            
             RegisterMessage(isHost);
             return true;
         }
@@ -147,6 +153,30 @@ namespace JFramework.Net
 
         public static void AfterUpdate()
         {
+            if (isActive)
+            {
+                if (NetworkUtils.Elapsed(NetworkTime.localTime, sendRate, ref lastSendTime))
+                {
+                    Broadcast();
+                }
+            }
+        
+            if (connection != null)
+            {
+                if (connection.isLocal)
+                {
+                    connection.Update();
+                }
+                else
+                {
+                    if (isActive && isConnect)
+                    {
+                        NetworkTime.UpdateClient();
+                        connection.Update();
+                    }
+                }
+            }
+            
             if (Transport.current != null)
             {
                 Transport.current.ClientAfterUpdate();

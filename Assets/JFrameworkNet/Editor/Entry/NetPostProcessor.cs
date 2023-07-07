@@ -42,15 +42,16 @@ namespace JFramework.Editor
             var weaver = new Process(logger);
             if (!weaver.Execute(definition, resolver, out bool isChange) || !isChange)
             {
-                foreach (ModuleDefinition module in definition.Modules)
-                {
-                    foreach (TypeDefinition type in module.Types)
-                    {
-                        logger.Warn(type.Name,null);
-                    }
-                }
                 return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, logger.logs);
             }
+            
+            // foreach (ModuleDefinition module in definition.Modules)
+            // {
+            //     foreach (TypeDefinition type in module.Types)
+            //     {
+            //         logger.Warn(type.Name,null);
+            //     }
+            // }
 
             var mainModule = definition.MainModule;
             if (mainModule.AssemblyReferences.Any(reference => reference.Name == definition.Name.Name))

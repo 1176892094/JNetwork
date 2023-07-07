@@ -114,6 +114,90 @@ namespace JFramework.Editor
             return false;
         }
         
+        public static TypeReference GetEnumUnderlyingType(this TypeDefinition td)
+        {
+            foreach (var field in td.Fields.Where(field => !field.IsStatic))
+            {
+                return field.FieldType;
+            }
+
+            throw new ArgumentException($"Invalid enum {td.FullName}");
+        }
+        
+        public static bool IsDerivedFrom<T>(this TypeReference tr) => IsDerivedFrom(tr, typeof(T));
+
+        private static bool IsDerivedFrom(this TypeReference tr, Type baseClass)
+        {
+            TypeDefinition td = tr.Resolve();
+            if (!td.IsClass) return false;
+            TypeReference parent = td.BaseType;
+            if (parent == null) return false;
+            if (parent.Is(baseClass)) return true;
+            return parent.CanBeResolved() && IsDerivedFrom(parent.Resolve(), baseClass);
+        }
+        
+        public static bool CanBeResolved(this TypeReference parent)
+        {
+            while (parent != null)
+            {
+                if (parent.Scope.Name == "Windows")
+                {
+                    return false;
+                }
+
+                if (parent.Scope.Name == "mscorlib")
+                {
+                    TypeDefinition resolved = parent.Resolve();
+                    return resolved != null;
+                }
+
+                try
+                {
+                    parent = parent.Resolve().BaseType;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
         public static bool IsMultidimensionalArray(this TypeReference tr) => tr is ArrayType { Rank: > 1 };
+        
+        public static MethodReference MakeGeneric(this MethodReference generic, ModuleDefinition module, TypeReference variableReference)
+        {
+            GenericInstanceMethod instance = new GenericInstanceMethod(generic);
+            instance.GenericArguments.Add(variableReference);
+            MethodReference readFunc = module.ImportReference(instance);
+            return readFunc;
+        }
+        
+        public static IEnumerable<FieldDefinition> FindAllPublicFields(this TypeReference variable)
+        {
+            return FindAllPublicFields(variable.Resolve());
+        }
+        private static IEnumerable<FieldDefinition> FindAllPublicFields(this TypeDefinition typeDefinition)
+        {
+            while (typeDefinition != null)
+            {
+                foreach (FieldDefinition field in typeDefinition.Fields)
+                {
+                    if (field.IsStatic || field.IsPrivate || field.IsFamily) continue;
+                    if (field.IsAssembly) continue;
+                    if (field.IsNotSerialized) continue;
+                    yield return field;
+                }
+
+                try
+                {
+                    typeDefinition = typeDefinition.BaseType?.Resolve();
+                }
+                catch (AssemblyResolutionException)
+                {
+                    break;
+                }
+            }
+        }
     }
 }

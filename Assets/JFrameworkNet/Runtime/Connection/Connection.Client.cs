@@ -6,7 +6,6 @@ namespace JFramework.Net
 {
     public sealed class ClientConnection : Connection
     {
-        public bool isLocal;
         public NetworkReceive receive = new NetworkReceive();
         public readonly HashSet<NetworkObject> observing = new HashSet<NetworkObject>();
 
@@ -21,7 +20,8 @@ namespace JFramework.Net
 
         public override void Disconnect()
         {
-            
+            isReady = false;
+            Transport.current.ServerDisconnect(clientId);
         }
     }
 }

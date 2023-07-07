@@ -9,25 +9,25 @@ namespace JFramework.Net
     public abstract class Connection
     {
         private readonly Dictionary<Channel, NetworkSend> batches = new Dictionary<Channel, NetworkSend>();
+        public readonly HashSet<NetworkObject> objects = new HashSet<NetworkObject>();
         public readonly int clientId;
-        public bool isAuthority;
         public bool isReady;
+        public bool isLocal;
+        public bool isAuthority;
         public double timestamp;
 
         internal Connection()
         {
         }
 
-        internal Connection(int clientId)
-        {
-            this.clientId = clientId;
-        }
+        internal Connection(int clientId) => this.clientId = clientId;
 
         internal virtual void Update()
         {
             foreach (var (channels, batch) in batches)
             {
                 using var writer = NetworkWriterPool.Pop();
+                Debug.Log(batch);
                 while (batch.WriteDequeue(writer))
                 {
                     var segment = writer.ToArraySegment();

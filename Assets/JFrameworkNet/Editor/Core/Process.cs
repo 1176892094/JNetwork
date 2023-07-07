@@ -36,21 +36,21 @@ namespace JFramework.Editor
                 writers = new Writers(currentAssembly, processor, generate, logger);
                 readers = new Readers(currentAssembly, processor, generate, logger);
                 
+                isChange = StreamingProcess.Process(currentAssembly, resolver, logger, writers, readers, ref isFailed);
+
                 ModuleDefinition moduleDefinition = currentAssembly.MainModule;
 
                 if (isFailed)
                 {
                     return false;
                 }
-
+                
                 if (isChange)
                 {
-                   
+                    moduleDefinition.Types.Add(generate);
+                    StreamingProcess.InitializeReaderAndWriters(currentAssembly, processor, writers,readers,generate);
                 }
                 
-                moduleDefinition.Types.Add(generate);
-                StreamingProcess.InitializeReaderAndWriters(currentAssembly, processor, writers,readers,generate,logger);
-                isChange = true;
                 return true;
             }
             catch (Exception e)

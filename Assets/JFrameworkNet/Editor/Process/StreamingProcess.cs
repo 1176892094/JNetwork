@@ -10,34 +10,34 @@ namespace JFramework.Editor
 {
     internal static class StreamingProcess
     {
-        public static bool Process(AssemblyDefinition currentAssembly, IAssemblyResolver resolver, Writers writers, Readers readers, ref bool weavingFailed)
+        public static bool Process(AssemblyDefinition currentAssembly, IAssemblyResolver resolver, Logger logger, Writers writers, Readers readers, ref bool isFailed)
         {
-            ProcessNetworkCode(currentAssembly, resolver, writers, readers, ref weavingFailed);
-            return ProcessCustomCode(currentAssembly, currentAssembly, writers, readers, ref weavingFailed);
+            ProcessNetworkCode(currentAssembly, resolver, logger, writers, readers, ref isFailed);
+            return ProcessCustomCode(currentAssembly, currentAssembly, writers, readers, ref isFailed);
         }
 
-        private static void ProcessNetworkCode(AssemblyDefinition currentAssembly, IAssemblyResolver resolver, Writers writers, Readers readers, ref bool weavingFailed)
+        private static void ProcessNetworkCode(AssemblyDefinition currentAssembly, IAssemblyResolver resolver,Logger logger, Writers writers, Readers readers, ref bool isFailed)
         {
-            AssemblyNameReference networkAssemblyReference = currentAssembly.MainModule.FindReference(Const.ASSEMBLY_NAME);
-            if (networkAssemblyReference != null)
+            AssemblyNameReference assemblyReference = currentAssembly.MainModule.FindReference(Const.ASSEMBLY_NAME);
+            if (assemblyReference != null)
             {
-                AssemblyDefinition networkAssembly = resolver.Resolve(networkAssemblyReference);
+                AssemblyDefinition networkAssembly = resolver.Resolve(assemblyReference);
                 if (networkAssembly != null)
                 {
-                    ProcessCustomCode(currentAssembly, networkAssembly, writers, readers, ref weavingFailed);
+                    ProcessCustomCode(currentAssembly, networkAssembly, writers, readers, ref isFailed);
                 }
                 else
                 {
-                    throw new Exception($"Failed to resolve {networkAssemblyReference}");
+                    logger.Error($"Failed to resolve {assemblyReference}");
                 }
             }
             else
             {
-                throw new Exception("Can't register JFramework.Net.dll readers/writers.");
+                logger.Error("Can't register JFramework.Net.dll readers/writers");
             }
         }
 
-        private static bool ProcessCustomCode(AssemblyDefinition CurrentAssembly, AssemblyDefinition assembly, Writers writers, Readers readers, ref bool weavingFailed)
+        private static bool ProcessCustomCode(AssemblyDefinition CurrentAssembly, AssemblyDefinition assembly,Writers writers, Readers readers, ref bool isFailed)
         {
             bool modified = false;
             foreach (var definition in assembly.MainModule.Types.Where(definition => definition.IsAbstract && definition.IsSealed))
@@ -48,7 +48,7 @@ namespace JFramework.Editor
 
             foreach (TypeDefinition type in assembly.MainModule.Types)
             {
-                modified |= LoadMessageReadWriter(CurrentAssembly.MainModule, writers, readers, type, ref weavingFailed);
+                modified |= LoadMessageReadWriter(CurrentAssembly.MainModule, writers, readers, type, ref isFailed);
             }
             return modified;
         }
@@ -106,19 +106,19 @@ namespace JFramework.Editor
         }
 
 
-        private static bool LoadMessageReadWriter(ModuleDefinition module, Writers writers, Readers readers, TypeDefinition type, ref bool weavingFailed)
+        private static bool LoadMessageReadWriter(ModuleDefinition module, Writers writers, Readers readers, TypeDefinition type, ref bool isFailed)
         {
             bool modified = false;
             if (!type.IsAbstract && !type.IsInterface && type.ImplementsInterface<NetworkMessage>())
             {
-                readers.GetReadFunc(module.ImportReference(type), ref weavingFailed);
-               // writers.GetWriteFunc(module.ImportReference(type), ref weavingFailed);
+                readers.GetReadFunc(module.ImportReference(type), ref isFailed);
+                writers.GetWriteFunc(module.ImportReference(type), ref isFailed);
                 modified = true;
             }
 
             foreach (TypeDefinition nested in type.NestedTypes)
             {
-                modified |= LoadMessageReadWriter(module, writers, readers, nested, ref weavingFailed);
+                modified |= LoadMessageReadWriter(module, writers, readers, nested, ref isFailed);
             }
 
             return modified;
@@ -140,7 +140,7 @@ namespace JFramework.Editor
             method.CustomAttributes.Add(attribute);
         }
         
-        public static void InitializeReaderAndWriters(AssemblyDefinition currentAssembly, Processor process, Writers writers, Readers readers, TypeDefinition generatedClass,Logger logger)
+        public static void InitializeReaderAndWriters(AssemblyDefinition currentAssembly, Processor process, Writers writers, Readers readers, TypeDefinition generatedClass)
         {
             MethodDefinition initReadWriters = new MethodDefinition("RuntimeInitializeOnLoad", MethodAttributes.Public | MethodAttributes.Static, process.Import(typeof(void)));
             
