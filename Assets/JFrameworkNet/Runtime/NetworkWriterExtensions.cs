@@ -194,7 +194,7 @@ namespace JFramework.Net
             writer.position += 16;
         }
 
-        public static void WriteNetworkIdentity(this NetworkWriter writer, NetworkIdentity value)
+        public static void WriteNetworkIdentity(this NetworkWriter writer, NetworkObject value)
         {
             if (value == null)
             {
@@ -236,7 +236,7 @@ namespace JFramework.Net
                 writer.WriteUInt(0);
                 return;
             }
-            if (value.TryGetComponent(out NetworkIdentity identity))
+            if (value.TryGetComponent(out NetworkObject identity))
             {
                 writer.WriteUInt(identity.netId);
             }
@@ -255,7 +255,7 @@ namespace JFramework.Net
                 return;
             }
             
-            if (!value.TryGetComponent(out NetworkIdentity identity))
+            if (!value.TryGetComponent(out NetworkObject identity))
             {
                 Debug.LogWarning($"NetworkWriter {value} has no NetworkIdentity");
             }

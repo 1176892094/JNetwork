@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public class NetworkIdentity : MonoBehaviour
+    public sealed class NetworkObject : MonoBehaviour
     {
         public uint netId;
         public int sceneId;
@@ -49,7 +49,7 @@ namespace JFramework.Net
             return writer;
         }
 
-        public virtual void OnStopClient()
+        public void OnStopClient()
         {
             
         }

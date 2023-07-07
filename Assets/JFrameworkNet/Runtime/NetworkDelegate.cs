@@ -6,7 +6,7 @@ namespace JFramework.Net
     /// <summary>
     /// 客户端权限改变
     /// </summary>
-    public delegate void AuthorityDelegate(ClientConnection client, NetworkIdentity identity, bool authority);
+    public delegate void AuthorityDelegate(ClientConnection client, NetworkObject @object, bool authority);
     
     /// <summary>
     /// 远程呼叫的委托

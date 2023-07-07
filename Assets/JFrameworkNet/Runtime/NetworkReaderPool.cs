@@ -29,10 +29,7 @@ namespace JFramework.Net
     
     public class NetworkReaderObject : NetworkReader, IDisposable
     {
-        public NetworkReaderObject()
-        {
-            buffer = new ArraySegment<byte>();
-        }
+        public NetworkReaderObject() => buffer = new ArraySegment<byte>();
 
         public void Dispose() => NetworkReaderPool.Push(this);
     }

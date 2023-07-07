@@ -178,7 +178,7 @@ namespace JFramework.Net
             throw new EndOfStreamException($"ReadGuid out of range: {reader}");
         }
    
-        public static NetworkIdentity ReadNetworkIdentity(this NetworkReader reader)
+        public static NetworkObject ReadNetworkIdentity(this NetworkReader reader)
         {
             uint netId = reader.ReadUInt();
             if (netId == 0) return null;
@@ -190,8 +190,8 @@ namespace JFramework.Net
             uint netId = reader.ReadUInt();
             if (netId == 0) return null;
             byte componentIndex = reader.ReadByte();
-            NetworkIdentity identity = NetworkUtils.GetNetworkIdentity(netId);
-            return identity != null ? identity.objects[componentIndex] : null;
+            NetworkObject @object = NetworkUtils.GetNetworkIdentity(netId);
+            return @object != null ? @object.objects[componentIndex] : null;
         }
 
         public static T ReadNetworkBehaviour<T>(this NetworkReader reader) where T : NetworkBehaviour
@@ -213,14 +213,14 @@ namespace JFramework.Net
 
         public static Transform ReadTransform(this NetworkReader reader)
         {
-            NetworkIdentity networkIdentity = reader.ReadNetworkIdentity();
-            return networkIdentity != null ? networkIdentity.transform : null;
+            NetworkObject @object = reader.ReadNetworkIdentity();
+            return @object != null ? @object.transform : null;
         }
 
         public static GameObject ReadGameObject(this NetworkReader reader)
         {
-            NetworkIdentity networkIdentity = reader.ReadNetworkIdentity();
-            return networkIdentity != null ? networkIdentity.gameObject : null;
+            NetworkObject @object = reader.ReadNetworkIdentity();
+            return @object != null ? @object.gameObject : null;
         }
         
         public static List<T> ReadList<T>(this NetworkReader reader)

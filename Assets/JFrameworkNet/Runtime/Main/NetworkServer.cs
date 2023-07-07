@@ -9,7 +9,7 @@ namespace JFramework.Net
 {
     public static partial class NetworkServer
     {
-        private static readonly Dictionary<uint, NetworkIdentity> spawns = new Dictionary<uint, NetworkIdentity>();
+        private static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
         private static readonly Dictionary<int, ClientConnection> clients = new Dictionary<int, ClientConnection>();
         private static readonly List<ClientConnection> copies = new List<ClientConnection>();
         private static bool initialized;

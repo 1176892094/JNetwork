@@ -15,7 +15,7 @@ namespace JFramework.Net
 
     public static partial class NetworkClient
     {
-        private static readonly Dictionary<uint, NetworkIdentity> spawns = new Dictionary<uint, NetworkIdentity>();
+        private static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
         public static ServerConnection connection;
         public static bool isReady;
         public static bool isLoadScene;

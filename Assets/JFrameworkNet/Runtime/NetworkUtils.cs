@@ -12,7 +12,7 @@ namespace JFramework.Net
         /// <summary>
         /// 是场景物体
         /// </summary>
-        public static bool IsSceneObject(NetworkIdentity entity)
+        public static bool IsSceneObject(NetworkObject entity)
         {
             var gameObject = entity.gameObject;
             if (entity.sceneId == 0) return false;
@@ -22,14 +22,14 @@ namespace JFramework.Net
         /// <summary>
         /// 拥有有效的父物体
         /// </summary>
-        public static bool IsValidParent(NetworkIdentity entity)
+        public static bool IsValidParent(NetworkObject entity)
         {
             var parent = entity.transform.parent;
             return parent == null || parent.gameObject.activeInHierarchy;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NetworkIdentity GetNetworkIdentity(uint netId)
+        public static NetworkObject GetNetworkIdentity(uint netId)
         {
             // if (NetworkServer.isActive)
             // {
