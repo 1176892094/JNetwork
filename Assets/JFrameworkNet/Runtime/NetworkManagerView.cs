@@ -1,7 +1,7 @@
 using JFramework.Net;
 using UnityEngine;
 
-namespace Mirror
+namespace JFramework.Editor
 {
     [DisallowMultipleComponent]
     public class NetworkManagerView : MonoBehaviour

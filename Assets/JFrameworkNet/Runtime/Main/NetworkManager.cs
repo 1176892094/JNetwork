@@ -6,8 +6,9 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public sealed partial class NetworkManager : GlobalSingleton<NetworkManager>
+    public sealed partial class NetworkManager : MonoBehaviour
     {
+        public static NetworkManager Instance;
         private string sceneName;
         private NetworkMode networkMode;
         [SerializeField] private Transport transport;
@@ -21,9 +22,9 @@ namespace JFramework.Net
             set => transport.address = value;
         }
 
-        protected override void Awake()
+        private void Awake()
         {
-            base.Awake();
+            Instance = this;
             SetMode(NetworkMode.None);
         }
 
@@ -115,7 +116,7 @@ namespace JFramework.Net
 
             if (networkMode == NetworkMode.Host)
             {
-                OnServerDisconnectInternal(NetworkServer.host);
+                OnServerDisconnectInternal(NetworkServer.connection);
             }
 
             NetworkClient.Disconnect();
@@ -139,8 +140,8 @@ namespace JFramework.Net
             RegisterServerEvent();
             NetworkClient.StartClient();
             RegisterClientEvent();
-            NetworkServer.OnClientConnect(NetworkServer.host);
-            NetworkClient.server.connecting = true;
+            NetworkServer.OnClientConnect(NetworkServer.connection);
+            NetworkClient.connection.connecting = true;
             OnStartHost?.Invoke();
         }
 

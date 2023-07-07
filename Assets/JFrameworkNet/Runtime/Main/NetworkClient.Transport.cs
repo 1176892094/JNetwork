@@ -32,7 +32,7 @@ namespace JFramework.Net
         /// </summary>
         private static void OnClientConnected()
         {
-            if (server == null)
+            if (connection == null)
             {
                 Debug.LogError("Skipped connect message handling because server is null.");
                 return;
@@ -53,7 +53,7 @@ namespace JFramework.Net
             if (state != ConnectState.Disconnected)
             {
                 state = ConnectState.Disconnected;
-                server = null;
+                connection = null;
                 isReady = false;
                 OnDisconnected?.Invoke();
                 UnRegisterTransport();
@@ -67,7 +67,7 @@ namespace JFramework.Net
         /// <param name="channel"></param>
         internal static void OnClientReceive(ArraySegment<byte> data, Channel channel)
         {
-            if (server == null)
+            if (connection == null)
             {
                 Debug.LogError("Skipped message handling because server is null.");
                 return;
@@ -76,7 +76,7 @@ namespace JFramework.Net
             if (!receive.ReadEnqueue(data))
             {
                 Debug.LogWarning($"Failed to add batch.");
-                server.Disconnect();
+                connection.Disconnect();
                 return;
             }
 
@@ -84,18 +84,18 @@ namespace JFramework.Net
             {
                 if (reader.Residue >= NetworkConst.MessageSize)
                 {
-                    server.timestamp = timestamp;
+                    connection.timestamp = timestamp;
                     if (!TryInvoke(reader, channel))
                     {
                         Debug.LogWarning($"Failed to unpack and invoke message.");
-                        server.Disconnect();
+                        connection.Disconnect();
                         return;
                     }
                 }
                 else
                 {
                     Debug.LogWarning($"messages should start with message id.");
-                    server.Disconnect();
+                    connection.Disconnect();
                     return;
                 }
             }
@@ -110,7 +110,7 @@ namespace JFramework.Net
         {
             if (NetworkUtils.ReadMessage(reader, out ushort id))
             {
-                if (NetworkEvent.ClientMessage(id, server,reader,channel))
+                if (NetworkEvent.ClientMessage(id, connection,reader,channel))
                 {
                     return true;
                 }

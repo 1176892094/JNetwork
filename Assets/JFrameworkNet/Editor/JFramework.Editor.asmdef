@@ -1,0 +1,20 @@
+{
+    "name": "Unity.JFramework.CodeGen",
+    "rootNamespace": "",
+    "references": [
+        "GUID:97ca39a133712418ca661a4ad6b372ad"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Mono.Cecil.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

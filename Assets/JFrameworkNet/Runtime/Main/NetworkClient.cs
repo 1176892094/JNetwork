@@ -16,7 +16,7 @@ namespace JFramework.Net
     public static partial class NetworkClient
     {
         private static readonly Dictionary<uint, NetworkIdentity> spawns = new Dictionary<uint, NetworkIdentity>();
-        public static ServerConnection server;
+        public static ServerConnection connection;
         public static bool isReady;
         public static bool isLoadScene;
         private static ConnectState state;
@@ -57,7 +57,7 @@ namespace JFramework.Net
         {
             if (!TryConnect(true)) return;
             state = ConnectState.Connected;
-            NetworkServer.host = new ClientConnection(0);
+            NetworkServer.connection = new ClientConnection(0);
         }
 
         /// <summary>
@@ -71,13 +71,28 @@ namespace JFramework.Net
                 return false;
             }
 
-            server = new ServerConnection();
+            connection = new ServerConnection();
             RegisterMessage(isHost);
             return true;
         }
 
         public static void Ready()
         {
+            if (isReady)
+            {
+                Debug.LogError("Client is already ready !");
+                return;
+            }
+
+            if (connection == null)
+            {
+                Debug.LogError("No connection to the Server !");
+                return;
+            }
+
+            isReady = true;
+            connection.isReady = true;
+            connection.Send(new ReadyMessage());
         }
 
         public static void Disconnect()
@@ -89,16 +104,16 @@ namespace JFramework.Net
 
             state = ConnectState.Disconnecting;
             isReady = false;
-            server?.Disconnect();
+            connection?.Disconnect();
         }
 
         public static void Send<T>(T message, Channel channelId = Channel.Reliable) where T : struct, NetworkMessage
         {
-            if (server != null)
+            if (connection != null)
             {
                 if (state == ConnectState.Connected)
                 {
-                    server.Send(message, channelId);
+                    connection.Send(message, channelId);
                 }
                 else
                 {
@@ -115,7 +130,7 @@ namespace JFramework.Net
         {
             state = ConnectState.Disconnected;
             spawns.Clear();
-            server = null;
+            connection = null;
             isReady = false;
             isLoadScene = false;
             OnConnected = null;

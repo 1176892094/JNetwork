@@ -84,7 +84,7 @@ namespace JFramework.Net
 
         private static void OnSnapshotMessage(SnapshotMessage message)
         {
-            NetworkSnapshot.OnTimeSnapshot(new TimeSnapshot(server.timestamp, NetworkTime.localTime));
+            NetworkSnapshot.OnTimeSnapshot(new TimeSnapshot(connection.timestamp, NetworkTime.localTime));
         }
     }
 }

@@ -16,7 +16,7 @@ namespace JFramework.Net
         private static double lastSendTime;
         public static bool isActive;
         public static bool isLoadScene;
-        public static ClientConnection host;
+        public static ClientConnection connection;
         internal static Action<ClientConnection> OnConnected;
         internal static Action<ClientConnection> OnDisconnected;
         private static uint tickRate => NetworkManager.Instance.tickRate;
@@ -102,7 +102,7 @@ namespace JFramework.Net
                 UnRegisterTransport();
             }
 
-            host = null;
+            connection = null;
             spawns.Clear();
             clients.Clear();
             isActive = false;
@@ -123,7 +123,7 @@ namespace JFramework.Net
         {
             if (isActive)
             {
-                if (NetworkUtils.Elapsed(NetworkTime.localTime, tickRate, ref lastSendTime))
+                if (NetworkUtils.Elapsed(NetworkTime.localTime, sendRate, ref lastSendTime))
                 {
                     Broadcast();
                 }

@@ -61,9 +61,9 @@ namespace JFramework.Net
         /// <param name="clientId"></param>
         private static void OnServerDisconnected(int clientId)
         {
-            if (clients.TryGetValue(clientId, out var connection))
+            if (clients.TryGetValue(clientId, out var client))
             {
-                OnDisconnected?.Invoke(connection);
+                OnDisconnected?.Invoke(client);
                 clients.Remove(clientId);
             }
         }

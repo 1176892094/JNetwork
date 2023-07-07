@@ -45,7 +45,7 @@ namespace JFramework.Net
 
         private void OnClientConnectInternal()
         {
-            NetworkClient.server.isAuthority = true;
+            NetworkClient.connection.isAuthority = true;
             if (!NetworkClient.isReady)
             {
                 NetworkClient.Ready();

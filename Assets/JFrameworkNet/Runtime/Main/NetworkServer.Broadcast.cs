@@ -11,6 +11,7 @@ namespace JFramework.Net
             copies.AddRange(clients.Values);
             foreach (var client in copies)
             {
+                Debug.Log(client.clientId);
                 if (client.isReady)
                 {
                     client.Send(new SnapshotMessage(), Channel.Unreliable);
