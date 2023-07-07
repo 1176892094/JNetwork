@@ -10,29 +10,24 @@ namespace JFramework.Editor
 {
     internal sealed class AssemblyResolver : IAssemblyResolver
     {
+        private readonly Logger logger;
         private readonly string[] assemblyReferences;
         private readonly Dictionary<string, AssemblyDefinition> assemblyCache = new Dictionary<string, AssemblyDefinition>();
         private readonly ICompiledAssembly compiledAssembly;
         private AssemblyDefinition selfAssembly;
-        
+     
 
-        public AssemblyResolver(ICompiledAssembly compiledAssembly)
+        public AssemblyResolver(ICompiledAssembly compiledAssembly, Logger logger)
         {
+            this.logger = logger;
             this.compiledAssembly = compiledAssembly;
             assemblyReferences = compiledAssembly.References;
         }
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
-
-        private void Dispose(bool disposing)
-        {
-        }
-
-
+        
         public AssemblyDefinition Resolve(AssemblyNameReference name) => Resolve(name, new ReaderParameters(ReadingMode.Deferred));
 
         public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
@@ -44,6 +39,7 @@ namespace JFramework.Editor
                 string fileName = FindFile(name);
                 if (fileName == null)
                 {
+                    logger.Warn($"AssemblyResolver: Failed to find file for {name}");
                     return null;
                 }
 
@@ -52,7 +48,9 @@ namespace JFramework.Editor
                 string cacheKey = fileName + lastWriteTime;
 
                 if (assemblyCache.TryGetValue(cacheKey, out AssemblyDefinition result))
+                {
                     return result;
+                }
 
                 parameters.AssemblyResolver = this;
 
@@ -77,14 +75,9 @@ namespace JFramework.Editor
             
             fileName = assemblyReferences.FirstOrDefault(r => Path.GetFileName(r) == name.Name + ".exe");
             if (fileName != null) return fileName;
-            
-            foreach (string parentDir in assemblyReferences.Select(Path.GetDirectoryName).Distinct())
-            {
-                string candidate = Path.Combine(parentDir, name.Name + ".dll");
-                if (File.Exists(candidate)) return candidate;
-            }
 
-            return null;
+            var dirs = assemblyReferences.Select(Path.GetDirectoryName).Distinct();
+            return dirs.Select(parentDir => Path.Combine(parentDir, name.Name + ".dll")).FirstOrDefault(File.Exists);
         }
 
         private static MemoryStream MemoryStreamFor(string fileName)

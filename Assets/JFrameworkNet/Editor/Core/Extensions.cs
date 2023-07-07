@@ -7,6 +7,8 @@ namespace JFramework.Editor
 {
     public static class Extensions
     {
+        public static bool Is(this TypeReference td, Type type) => type.IsGenericType ? td.GetElementType().FullName == type.FullName : td.FullName == type.FullName;
+        public static bool Is<T>(this TypeReference td) => Is(td, typeof(T));
         public static MethodReference MakeHostInstanceGeneric(this MethodReference self, ModuleDefinition module, GenericInstanceType instanceType)
         {
             var reference = new MethodReference(self.Name, self.ReturnType, instanceType)
@@ -76,5 +78,42 @@ namespace JFramework.Editor
             
             return !self.HasMethods ? Array.Empty<MethodDefinition>() : self.Methods.Where(method => method.IsConstructor);
         }
+        
+        public static bool Contains(this ModuleDefinition module, string nameSpace, string className)
+        {
+            return module.GetTypes().Any(td => td.Namespace == nameSpace && td.Name == className);
+        }
+        
+        public static AssemblyNameReference FindReference(this ModuleDefinition module, string referenceName)
+        {
+            return module.AssemblyReferences.FirstOrDefault(reference => reference.Name == referenceName);
+        }
+        
+        public static bool HasCustomAttribute<TAttribute>(this ICustomAttributeProvider attributeProvider)
+        {
+            return attributeProvider.CustomAttributes.Any(attr => attr.AttributeType.Is<TAttribute>());
+        }
+        
+        public static bool ImplementsInterface<TInterface>(this TypeDefinition td)
+        {
+            TypeDefinition typedef = td;
+            while (typedef != null)
+            {
+                if (typedef.Interfaces.Any(implementation => implementation.InterfaceType.Is<TInterface>())) return true;
+                try
+                {
+                    TypeReference parent = typedef.BaseType;
+                    typedef = parent?.Resolve();
+                }
+                catch (AssemblyResolutionException)
+                {
+                    break;
+                }
+            }
+
+            return false;
+        }
+        
+        public static bool IsMultidimensionalArray(this TypeReference tr) => tr is ArrayType { Rank: > 1 };
     }
 }

@@ -7,18 +7,26 @@ using Mono.Cecil.Cil;
 
 namespace JFramework.Editor
 {
-    public class Writers
+    internal class Writers
     {
         private readonly Dictionary<TypeReference, MethodReference> writeFuncList = new Dictionary<TypeReference, MethodReference>(new Comparator());
         private readonly AssemblyDefinition assembly;
-        private readonly WeaverTypes weaverTypes;
-        private readonly TypeDefinition GeneratedCodeClass;
+        private readonly Processor process;
+        private readonly TypeDefinition generate;
+        private readonly Logger logger;
 
-        public Writers(AssemblyDefinition assembly, WeaverTypes weaverTypes, TypeDefinition GeneratedCodeClass)
+        public Writers(AssemblyDefinition assembly, Processor process, TypeDefinition generate, Logger logger)
         {
             this.assembly = assembly;
-            this.weaverTypes = weaverTypes;
-            this.GeneratedCodeClass = GeneratedCodeClass;
+            this.process = process;
+            this.generate = generate;
+            this.logger = logger;
+        }
+
+        public void Register(TypeReference dataType, MethodReference methodReference)
+        {
+            TypeReference imported = assembly.MainModule.ImportReference(dataType);
+            writeFuncList[imported] = methodReference;
         }
         
         internal void InitializeWriters(ILProcessor worker)
