@@ -21,6 +21,9 @@ namespace JFramework.Net
             set => transport.address = value;
         }
 
+        /// <summary>
+        /// 初始化配置传输
+        /// </summary>
         protected override void Awake()
         {
             base.Awake();
@@ -39,7 +42,6 @@ namespace JFramework.Net
                 Debug.LogError("The NetworkManager has no Transport component.");
                 return;
             }
-
             Transport.current = transport;
             Application.runInBackground = runInBackground;
         }
@@ -134,14 +136,14 @@ namespace JFramework.Net
                 return;
             }
             
-            Debug.Log("NetworkManager.StartHost");
+            Debug.Log("NetworkManager --> StartHost");
             SetMode(NetworkMode.Host);
             NetworkServer.StartServer(isListen);
             RegisterServerEvent();
             NetworkClient.StartClient();
             RegisterClientEvent();
             NetworkServer.OnClientConnect(NetworkServer.connection);
-            NetworkClient.connection.connecting = true;
+            NetworkClient.OnConnected?.Invoke();
             OnStartHost?.Invoke();
         }
 
@@ -155,6 +157,9 @@ namespace JFramework.Net
             StopServer();
         }
 
+        /// <summary>
+        /// 应用退出Client和Server
+        /// </summary>
         private void OnApplicationQuit()
         {
             if (NetworkClient.isConnect)

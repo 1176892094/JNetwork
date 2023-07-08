@@ -7,7 +7,7 @@ namespace JFramework.Net
     public sealed class ClientEntity : Connection
     {
         internal ServerEntity connection;
-        internal readonly NetworkReceive receive = new NetworkReceive();
+        internal readonly NetworkReaders readers = new NetworkReaders();
         internal readonly HashSet<NetworkObject> observing = new HashSet<NetworkObject>();
         public readonly int clientId;
 
@@ -17,7 +17,7 @@ namespace JFramework.Net
         {
             if (isLocal)
             {
-                NetworkWriter writer = NetworkWriterPool.Pop();
+                NetworkWriter writer = NetworkWriter.Pop();
                 writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
                 connection.writeQueue.Enqueue(writer);
             }

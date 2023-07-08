@@ -1,3 +1,6 @@
+using System;
+using JFramework.Udp;
+
 namespace JFramework.Net
 {
     public static partial class NetworkClient
@@ -6,26 +9,34 @@ namespace JFramework.Net
         {
             if (isHost)
             {
-                NetworkEvent.RegisterMessage<SpawnMessage>(SpawnByHost);
-                NetworkEvent.RegisterMessage<ObjectDestroyMessage>(ObjectDestroyByHost);
-                NetworkEvent.RegisterMessage<ObjectHideMessage>(ObjectHideByHost);
-                NetworkEvent.RegisterMessage<ObjectSpawnStartMessage>(OnEmptyMessageByHost);
-                NetworkEvent.RegisterMessage<ObjectSpawnFinishMessage>(OnEmptyMessageByHost);
-                NetworkEvent.RegisterMessage<PongMessage>(OnEmptyMessageByHost);
+                RegisterMessage<SpawnMessage>(SpawnByHost);
+                RegisterMessage<ObjectDestroyMessage>(ObjectDestroyByHost);
+                RegisterMessage<ObjectHideMessage>(ObjectHideByHost);
+                RegisterMessage<ObjectSpawnStartMessage>(OnEmptyMessageByHost);
+                RegisterMessage<ObjectSpawnFinishMessage>(OnEmptyMessageByHost);
+                RegisterMessage<PongMessage>(OnEmptyMessageByHost);
             }
             else
             {
-                NetworkEvent.RegisterMessage<SpawnMessage>(SpawnByClient);
-                NetworkEvent.RegisterMessage<ObjectDestroyMessage>(ObjectDestroyByClient);
-                NetworkEvent.RegisterMessage<ObjectHideMessage>(ObjectHideByClient);
-                NetworkEvent.RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByClient);
-                NetworkEvent.RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByClient);
-                NetworkEvent.RegisterMessage<PongMessage>(PongByClient);
+                RegisterMessage<SpawnMessage>(SpawnByClient);
+                RegisterMessage<ObjectDestroyMessage>(ObjectDestroyByClient);
+                RegisterMessage<ObjectHideMessage>(ObjectHideByClient);
+                RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByClient);
+                RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByClient);
+                RegisterMessage<PongMessage>(PongByClient);
             }
 
-            NetworkEvent.RegisterMessage<SnapshotMessage>(OnSnapshotMessage);
-            NetworkEvent.RegisterMessage<ChangeOwnerMessage>(OnOwnerChanged);
-            NetworkEvent.RegisterMessage<RpcBufferMessage>(RpcBufferMessage);
+            RegisterMessage<SnapshotMessage>(OnSnapshotMessage);
+            RegisterMessage<ChangeOwnerMessage>(OnOwnerChanged);
+            RegisterMessage<RpcBufferMessage>(RpcBufferMessage);
+        }
+        
+        /// <summary>
+        /// 注册网络消息
+        /// </summary>
+        public static void RegisterMessage<T>(Action<T> handle, bool isAuthority = true) where T : struct, IEvent
+        {
+            messages[MessageId<T>.Id] = NetworkUtils.Register(handle, isAuthority);
         }
 
         private static void ObjectHideByHost(ObjectHideMessage message)

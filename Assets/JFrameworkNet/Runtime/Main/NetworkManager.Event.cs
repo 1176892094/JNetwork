@@ -29,7 +29,6 @@ namespace JFramework.Net
         private static void RuntimeInitializeOnLoad()
         {
             Transport.RuntimeInitializeOnLoad();
-            NetworkEvent.RuntimeInitializeOnLoad();
             NetworkTime.RuntimeInitializeOnLoad();
             NetworkClient.StopClient();
             NetworkServer.StopServer();

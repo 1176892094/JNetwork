@@ -9,6 +9,7 @@ namespace JFramework.Net
 {
     public static partial class NetworkServer
     {
+        private static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
         private static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
         private static readonly Dictionary<int, ClientEntity> clients = new Dictionary<int, ClientEntity>();
         private static readonly List<ClientEntity> copies = new List<ClientEntity>();
@@ -38,7 +39,7 @@ namespace JFramework.Net
                 RegisterMessage();
                 RegisterTransport();
                 NetworkTime.RuntimeInitializeOnLoad();
-                Debug.Log("NetworkServer.StartServer");
+                Debug.Log("NetworkServer --> StartServer");
             }
 
             SpawnObjects();
@@ -51,7 +52,7 @@ namespace JFramework.Net
                 clients[client.clientId] = client;
             }
 
-            Debug.Log($"NetworkServer.OnClientConnect: {client.clientId}");
+            Debug.Log($"NetworkServer --> Connected: {client.clientId}");
             OnConnected?.Invoke(client);
         }
 
@@ -88,6 +89,7 @@ namespace JFramework.Net
             connection = null;
             spawns.Clear();
             clients.Clear();
+            messages.Clear();
             isActive = false;
             isLoadScene = false;
             OnConnected = null;

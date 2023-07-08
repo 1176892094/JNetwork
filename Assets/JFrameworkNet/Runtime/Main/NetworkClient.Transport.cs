@@ -72,14 +72,14 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!receive.ReadEnqueue(data))
+            if (!readers.ReadEnqueue(data))
             {
                 Debug.LogWarning($"Failed to add batch.");
                 connection.Disconnect();
                 return;
             }
 
-            while (!isLoadScene && receive.ReadDequeue(out var reader, out double timestamp))
+            while (!isLoadScene && readers.ReadDequeue(out var reader, out double timestamp))
             {
                 if (reader.Residue >= NetworkConst.MessageSize)
                 {
@@ -99,9 +99,9 @@ namespace JFramework.Net
                 }
             }
 
-            if (!isLoadScene && receive.Count > 0)
+            if (!isLoadScene && readers.Count > 0)
             {
-                Debug.LogError($"Still had {receive.Count} batches remaining after processing.\n");
+                Debug.LogError($"Still had {readers.Count} batches remaining after processing.\n");
             }
         }
 
@@ -109,8 +109,9 @@ namespace JFramework.Net
         {
             if (NetworkUtils.ReadMessage(reader, out ushort id))
             {
-                if (NetworkEvent.ClientMessage(id, connection,reader,channel))
+                if (messages.TryGetValue(id, out MessageDelegate handle))
                 {
+                    handle.Invoke(connection, reader, channel);
                     return true;
                 }
 

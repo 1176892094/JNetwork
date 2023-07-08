@@ -8,7 +8,7 @@ namespace JFramework.Net
 {
     public abstract class Connection
     {
-        private readonly Dictionary<Channel, NetworkSend> sends = new Dictionary<Channel, NetworkSend>();
+        private readonly Dictionary<Channel, NetworkWriters> sends = new Dictionary<Channel, NetworkWriters>();
         public readonly HashSet<NetworkObject> objects = new HashSet<NetworkObject>();
         public bool isReady;
         public bool isLocal;
@@ -22,7 +22,7 @@ namespace JFramework.Net
         {
             foreach (var (channel, send) in sends) // 遍历可靠和不可靠消息
             {
-                using var writer = NetworkWriterPool.Pop();
+                using var writer = NetworkWriter.Pop();
                 while (send.WriteDequeue(writer))
                 {
                     var segment = writer.ToArraySegment();
@@ -68,12 +68,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
         {
-            if (typeof(T) != typeof(SnapshotMessage))
-            {
-                Debug.Log(typeof(T));
-            }
-           
-            using var writer = NetworkWriterPool.Pop();
+            using var writer = NetworkWriter.Pop();
             NetworkUtils.WriteMessage(writer,message);
             AddToQueue(writer.ToArraySegment(), channel);
         }
@@ -86,7 +81,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual void AddToQueue(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            GetSender(channel).WriteEnqueue(segment, NetworkTime.localTime);
+            GetWriters(channel).WriteEnqueue(segment, NetworkTime.localTime);
         }
         
         /// <summary>
@@ -102,12 +97,12 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="channel"></param>
         /// <returns>返回一个发送类</returns>
-        protected NetworkSend GetSender(Channel channel)
+        protected NetworkWriters GetWriters(Channel channel)
         {
             if (sends.TryGetValue(channel, out var send)) return send;
-            Debug.Log($"Connection.GetSender: {GetType()}");
+            Debug.Log($"Connection --> GetWriters : {GetType()}");
             var size = Transport.current.UnreliableSize();
-            return sends[channel] = new NetworkSend(size);
+            return sends[channel] = new NetworkWriters(size);
         }
         
         /// <summary>

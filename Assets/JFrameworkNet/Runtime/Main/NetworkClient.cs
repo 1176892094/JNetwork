@@ -15,6 +15,7 @@ namespace JFramework.Net
 
     public static partial class NetworkClient
     {
+        private static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
         private static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
         public static ServerEntity connection;
         public static bool isReady;
@@ -23,7 +24,7 @@ namespace JFramework.Net
         private static ConnectState state;
         internal static Action OnConnected;
         internal static Action OnDisconnected;
-        private static NetworkReceive receive = new NetworkReceive();
+        private static NetworkReaders readers = new NetworkReaders();
         public static bool isActive => state is ConnectState.Connected or ConnectState.Connecting;
         public static bool isConnect => state == ConnectState.Connected;
         private static uint tickRate => NetworkManager.Instance.tickRate;
@@ -65,12 +66,12 @@ namespace JFramework.Net
             client.isLocal = true;
             connection.isLocal = true;
             NetworkServer.connection = client;
-            Debug.Log("NetworkClient.StartHost");
+            Debug.Log("NetworkClient --> StartClient");
         }
 
         private static void ClientConnect(bool isHost)
         {
-            receive = new NetworkReceive();
+            readers = new NetworkReaders();
             state = isHost ? ConnectState.Connected : ConnectState.Connecting;
             RegisterMessage(isHost);
         }
@@ -89,7 +90,7 @@ namespace JFramework.Net
                 return;
             }
             
-            Debug.Log( $"NetworkClient.Ready: SendReadyMessage: {isReady}");
+            Debug.Log( $"NetworkClient --> SendReadyMessage");
             isReady = true;
             connection.isReady = true;
             connection.Send(new ReadyMessage());
@@ -130,6 +131,7 @@ namespace JFramework.Net
         {
             state = ConnectState.Disconnected;
             spawns.Clear();
+            messages.Clear();
             connection = null;
             isReady = false;
             isLoadScene = false;

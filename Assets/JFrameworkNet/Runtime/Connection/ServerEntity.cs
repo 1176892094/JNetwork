@@ -8,8 +8,7 @@ namespace JFramework.Net
     public class ServerEntity : Connection
     {
         internal readonly Queue<NetworkWriter> writeQueue = new Queue<NetworkWriter>();
-        internal bool connecting;
-        internal bool disconnecting;
+       // internal bool connecting;
 
         protected override void SendToTransport(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
@@ -25,20 +24,20 @@ namespace JFramework.Net
         private void LocalUpdate()
         {
             if (!isLocal) return;
-            if (connecting) //TODO: 使用Event
-            {
-                connecting = false;
-                NetworkClient.OnConnected?.Invoke();
-                Debug.Log("ServerObject.LocalUpdate: Connected");
-            }
+            // if (connecting) //TODO: 使用Event
+            // {
+            //     connecting = false;
+            //     NetworkClient.OnConnected?.Invoke();
+            //     Debug.Log("ServerObject.LocalUpdate: Connected");
+            // }
 
             while (writeQueue.Count > 0)
             {
                 var writer = writeQueue.Dequeue();
                 var segment = writer.ToArraySegment();
-                var send = GetSender(Channel.Reliable);
+                var send = GetWriters(Channel.Reliable);
                 send.WriteEnqueue(segment, NetworkTime.localTime);
-                using (var sendWriter = NetworkWriterPool.Pop())
+                using (var sendWriter = NetworkWriter.Pop())
                 {
                     if (send.WriteDequeue(sendWriter))
                     {
@@ -46,12 +45,8 @@ namespace JFramework.Net
                     }
                 }
 
-                NetworkWriterPool.Push(writer);
+                NetworkWriter.Push(writer);
             }
-
-            if (!disconnecting) return;
-            disconnecting = false;
-            NetworkClient.OnDisconnected?.Invoke();
         }
 
         protected override void AddToQueue(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
@@ -64,10 +59,10 @@ namespace JFramework.Net
                     return;
                 }
 
-                var send = GetSender(channel);
+                var send = GetWriters(channel);
                 send.WriteEnqueue(segment, NetworkTime.localTime); // 添加到队列末尾并写入数据
 
-                using var writer = NetworkWriterPool.Pop();
+                using var writer = NetworkWriter.Pop();
                 if (send.WriteDequeue(writer)) // 尝试从队列中取出元素并写入到目标
                 {
                     NetworkServer.OnServerReceive(NetworkConst.HostId, writer.ToArraySegment(), channel);

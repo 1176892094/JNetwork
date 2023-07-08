@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-
     public struct SceneMessage : IEvent
     {
         public string sceneName;

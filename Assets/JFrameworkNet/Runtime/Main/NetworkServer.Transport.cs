@@ -79,14 +79,14 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!client.receive.ReadEnqueue(segment))
+            if (!client.readers.ReadEnqueue(segment))
             {
                 Debug.LogWarning($"Messages should start with message id");
                 client.Disconnect();
                 return;
             }
 
-            while (!isLoadScene && client.receive.ReadDequeue(out var reader, out double timestamp))
+            while (!isLoadScene && client.readers.ReadDequeue(out var reader, out double timestamp))
             {
                 if (reader.Residue >= NetworkConst.MessageSize)
                 {
@@ -106,9 +106,9 @@ namespace JFramework.Net
                 }
             }
 
-            if (!isLoadScene && client.receive.Count > 0)
+            if (!isLoadScene && client.readers.Count > 0)
             {
-                Debug.LogError($"Still had {client.receive.Count} batches remaining after processing.");
+                Debug.LogError($"Still had {client.readers.Count} batches remaining after processing.");
             }
         }
 
@@ -120,8 +120,9 @@ namespace JFramework.Net
         {
             if (NetworkUtils.ReadMessage(reader, out ushort id))
             {
-                if (NetworkEvent.ServerMessage(id, client, reader, channel))
+                if (messages.TryGetValue(id, out MessageDelegate handle))
                 {
+                    handle.Invoke(client, reader, channel);
                     return true;
                 }
 

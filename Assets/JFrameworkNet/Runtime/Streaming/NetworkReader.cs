@@ -2,12 +2,18 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using JFramework.Core;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
 // ReSharper disable All
 namespace JFramework.Net
 {
+    public static class Reader<T>
+    {
+        public static Func<NetworkReader, T> read;
+    }
+    
     [Serializable]
     public class NetworkReader : IDisposable
     {
@@ -164,6 +170,26 @@ namespace JFramework.Net
         }
 
         /// <summary>
+        /// 对象池取出对象
+        /// </summary>
+        /// <param name="segment">传入byte数组</param>
+        /// <returns>返回一个NetworkReader</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NetworkReader Pop(ArraySegment<byte> segment)
+        {
+            var reader = PoolManager.Pop<NetworkReader>();
+            reader.SetBuffer(segment);
+            return reader;
+        }
+
+        /// <summary>
+        /// 对象池推入对象
+        /// </summary>
+        /// <param name="reader">传入NetworkReader</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Push(NetworkReader reader) => PoolManager.Push(reader);
+
+        /// <summary>
         /// 重写字符串转化方法
         /// </summary>
         /// <returns></returns>
@@ -175,6 +201,6 @@ namespace JFramework.Net
         /// <summary>
         /// 使用using来释放
         /// </summary>
-        public void Dispose() => NetworkReaderPool.Push(this);
+        public void Dispose() => Push(this);
     }
 }

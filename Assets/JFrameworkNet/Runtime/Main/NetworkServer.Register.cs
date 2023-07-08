@@ -1,3 +1,4 @@
+using System;
 using JFramework.Udp;
 using UnityEngine;
 
@@ -7,8 +8,24 @@ namespace JFramework.Net
     {
         private static void RegisterMessage()
         {
-            NetworkEvent.RegisterMessage<CommandMessage>(OnCommandMessage);
-            NetworkEvent.RegisterMessage<PingMessage>(OnPingMessage, false);
+            RegisterMessage<CommandMessage>(OnCommandMessage);
+            RegisterMessage<PingMessage>(OnPingMessage, false);
+        }
+        
+        /// <summary>
+        /// 注册网络消息
+        /// </summary>
+        internal static void RegisterMessage<T>(Action<ClientEntity, T> handle, bool isAuthority = true) where T : struct, IEvent
+        {
+            messages[MessageId<T>.Id] = NetworkUtils.Register(handle, isAuthority);
+        }
+
+        /// <summary>
+        /// 注册网络消息
+        /// </summary>
+        private static void RegisterMessage<T>(Action<ClientEntity, T, Channel> handle, bool isAuthority = true) where T : struct, IEvent
+        {
+            messages[MessageId<T>.Id] = NetworkUtils.Register(handle, isAuthority);
         }
 
         /// <summary>
@@ -34,7 +51,7 @@ namespace JFramework.Net
                 return;
             }
 
-            using var reader = NetworkReaderPool.Pop(message.payload);
+            using var reader = NetworkReader.Pop(message.payload);
             identity.HandleRpcEvent(message.componentIndex, message.functionHash, RpcType.ServerRpc, reader, client);
         }
 

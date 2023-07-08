@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public class NetworkSend
+    public class NetworkWriters
     {
         /// <summary>
         /// 批处理队列
@@ -25,7 +25,7 @@ namespace JFramework.Net
         /// 设置阈值
         /// </summary>
         /// <param name="threshold">传入阈值</param>
-        public NetworkSend(int threshold) => this.threshold = threshold;
+        public NetworkWriters(int threshold) => this.threshold = threshold;
 
         /// <summary>
         /// 添加到队列末尾并写入数据
@@ -42,7 +42,7 @@ namespace JFramework.Net
 
             if (writer == null)
             {
-                writer = NetworkWriterPool.Pop(); // 从对象池中取出
+                writer = NetworkWriter.Pop(); // 从对象池中取出
                 writer.WriteDouble(timeStamp); // 重新写入时间戳
             }
 
@@ -84,7 +84,7 @@ namespace JFramework.Net
 
             var segment = origin.ToArraySegment(); // 转化成数据分段
             target.WriteBytesInternal(segment.Array, segment.Offset, segment.Count); // 赋值到目标
-            NetworkWriterPool.Push(origin); // 推入对象池
+            NetworkWriter.Push(origin); // 推入对象池
         }
     }
 }

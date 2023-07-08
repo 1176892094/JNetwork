@@ -1,11 +1,17 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Text;
+using JFramework.Core;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
 namespace JFramework.Net
 {
+    public static class Writer<T>
+    {
+        public static Action<NetworkWriter, T> write;
+    }
+    
     [Serializable]
     public class NetworkWriter: IDisposable
     {
@@ -127,6 +133,25 @@ namespace JFramework.Net
         }
         
         /// <summary>
+        /// 对象池取出对象
+        /// </summary>
+        /// <returns>返回NetworkWriter类</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NetworkWriter Pop()
+        {
+            var writer = PoolManager.Pop<NetworkWriter>();
+            writer.Reset();
+            return writer;
+        }
+
+        /// <summary>
+        /// 对象池推入对象
+        /// </summary>
+        /// <param name="writer">传入NetworkWriter类</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Push(NetworkWriter writer) => PoolManager.Push(writer);
+        
+        /// <summary>
         /// 重写字符串转化方法
         /// </summary>
         /// <returns></returns>
@@ -135,10 +160,10 @@ namespace JFramework.Net
             var segment = ToArraySegment();
             return segment.Array != null ? BitConverter.ToString(segment.Array, segment.Offset, segment.Count) : null;
         }
-
+        
         /// <summary>
         /// 使用using来释放
         /// </summary>
-        public void Dispose() => NetworkWriterPool.Push(this);
+        public void Dispose() => Push(this);
     }
 }

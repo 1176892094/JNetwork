@@ -8,17 +8,17 @@ namespace JFramework.Net
         {
             NetworkServer.OnConnected = OnServerConnectInternal;
             NetworkServer.OnDisconnected = OnServerDisconnectInternal;
-            NetworkEvent.RegisterMessage<ReadyMessage>(OnServerReadyInternal);
-            Debug.Log("NetworkManager.RegisterServerEvent");
+            NetworkServer.RegisterMessage<ReadyMessage>(OnServerReadyInternal);
+            Debug.Log("NetworkManager --> RegisterServerEvent");
         }
 
         private void RegisterClientEvent()
         {
             NetworkClient.OnConnected = OnClientConnectInternal;
             NetworkClient.OnDisconnected = OnClientDisconnectInternal;
-            NetworkEvent.RegisterMessage<NotReadyMessage>(OnClientNotReadyInternal);
-            NetworkEvent.RegisterMessage<SceneMessage>(OnClientLoadSceneInternal, false);
-            Debug.Log("NetworkManager.RegisterClientEvent");
+            NetworkClient.RegisterMessage<NotReadyMessage>(OnClientNotReadyInternal);
+            NetworkClient.RegisterMessage<SceneMessage>(OnClientLoadSceneInternal, false);
+            Debug.Log("NetworkManager --> RegisterClientEvent");
         }
 
         private void OnServerConnectInternal(ClientEntity client)
@@ -50,7 +50,7 @@ namespace JFramework.Net
         private void OnClientConnectInternal()
         {
             NetworkClient.connection.isAuthority = true;
-            Debug.Log("NetworkManager.OnClientConnectInternal: isAuthority");
+            Debug.Log("NetworkManager --> SetAuthority");
             if (!NetworkClient.isReady)
             {
                 NetworkClient.Ready();
