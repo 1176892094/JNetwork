@@ -41,11 +41,11 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端加载场景
         /// </summary>
-        internal async void ClientLoadScene(string newSceneName)
+        private async void ClientLoadScene(string newSceneName)
         {
             if (string.IsNullOrWhiteSpace(newSceneName))
             {
-                Debug.LogError("Client load scene empty scene name");
+                Debug.LogError("Client load scene is empty");
                 return;
             }
 

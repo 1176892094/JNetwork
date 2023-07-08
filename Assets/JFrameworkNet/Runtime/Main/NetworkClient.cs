@@ -81,19 +81,18 @@ namespace JFramework.Net
             if (isReady)
             {
                 Debug.LogError("Client is already ready !");
-                return;
             }
-
-            if (connection == null)
+            else if (connection == null)
             {
                 Debug.LogError("No connection to the Server !");
-                return;
             }
-            
-            Debug.Log( $"NetworkClient --> SendReadyMessage");
-            isReady = true;
-            connection.isReady = true;
-            connection.Send(new ReadyMessage());
+            else
+            {
+                Debug.Log( $"NetworkClient --> SendReadyMessage");
+                isReady = true;
+                connection.isReady = true;
+                connection.Send(new ReadyMessage());
+            }
         }
 
         public static void Disconnect()

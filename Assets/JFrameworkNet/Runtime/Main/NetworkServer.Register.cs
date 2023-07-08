@@ -36,23 +36,20 @@ namespace JFramework.Net
             if (!client.isReady)
             {
                 Debug.LogWarning("Command received while client is not ready.");
-                return;
             }
-
-            if (!spawns.TryGetValue(message.netId, out var identity))
+            else if (!spawns.TryGetValue(message.netId, out var @object))
             {
-                Debug.LogWarning($"Spawned object not found when handling Command message netId = {message.netId}");
-                return;
+                Debug.LogWarning($"Spawned object not found Command message netId = {message.netId}");
             }
-
-            if (RpcUtils.GetAuthorityByHash(message.functionHash) && identity.client != client)
+            else if (RpcUtils.GetAuthorityByHash(message.functionHash) && @object.client != client)
             {
                 Debug.LogWarning($"Command for object without authority netId = {message.netId}");
-                return;
             }
-
-            using var reader = NetworkReader.Pop(message.payload);
-            identity.HandleRpcEvent(message.componentIndex, message.functionHash, RpcType.ServerRpc, reader, client);
+            else
+            {
+                using var reader = NetworkReader.Pop(message.payload);
+                @object.HandleRpcEvent(message.componentIndex, message.functionHash, RpcType.ServerRpc, reader, client);
+            }
         }
 
         private static void OnPingMessage(ClientEntity client, PingMessage message)

@@ -76,11 +76,11 @@ namespace JFramework.Net
             OnClientNotReady?.Invoke();
         }
 
-        private static void OnClientLoadSceneInternal(SceneMessage message)
+        private void OnClientLoadSceneInternal(SceneMessage message)
         {
             if (NetworkClient.isConnect)
             {
-                //ClientLoadScene(message.sceneName);
+                ClientLoadScene(message.sceneName);
             }
         }
     }
