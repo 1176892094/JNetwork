@@ -13,7 +13,7 @@ namespace JFramework.Net
         /// <summary>
         /// 批处理队列
         /// </summary>
-        private readonly Queue<NetworkWriterObject> batches = new Queue<NetworkWriterObject>();
+        private readonly Queue<NetworkWriter> batches = new Queue<NetworkWriter>();
 
         /// <summary>
         /// 批处理数量
@@ -48,7 +48,7 @@ namespace JFramework.Net
             }
 
             var writer = NetworkWriterPool.Pop();
-            writer.WriteBytes(batch.Array, batch.Offset, batch.Count);
+            writer.WriteBytesInternal(batch.Array, batch.Offset, batch.Count);
 
             if (batches.Count == 0)
             {

@@ -30,7 +30,7 @@ namespace JFramework.Net
 
         public static short ReadShort(this NetworkReader reader)
         {
-            return (short)reader.ReadUShort();
+            return (short)reader.ReadBlittable<short>();
         }
 
         public static ushort ReadUShort(this NetworkReader reader)
@@ -81,20 +81,20 @@ namespace JFramework.Net
 
             if (realSize > NetworkConst.MaxStringLength)
             {
-                throw new EndOfStreamException($"Value too long: {realSize} bytes. Limit is: {NetworkConst.MaxStringLength} bytes");
+                throw new EndOfStreamException($"String value too long: {realSize} > {NetworkConst.MaxStringLength}");
             }
 
-            ArraySegment<byte> data = reader.ReadBytesSegment(realSize);
+            ArraySegment<byte> data = reader.ReadArraySegmentInternal(realSize);
             return reader.encoding.GetString(data.Array, data.Offset, data.Count);
         }
         
-        public static ArraySegment<byte> ReadBytesAndSizeSegment(this NetworkReader reader)
+        public static ArraySegment<byte> ReadArraySegment(this NetworkReader reader)
         {
             uint count = reader.ReadUInt();
-            return count == 0 ? default : reader.ReadBytesSegment(checked((int)(count - 1u)));
+            return count == 0 ? default : reader.ReadArraySegmentInternal(checked((int)(count - 1u)));
         }
         
-        public static byte[] ReadBytesAndSize(this NetworkReader reader)
+        public static byte[] ReadBytes(this NetworkReader reader)
         {
             uint count = reader.ReadUInt();
             return count == 0 ? null : reader.ReadBytes(checked((int)(count - 1u)));
@@ -103,7 +103,7 @@ namespace JFramework.Net
         public static byte[] ReadBytes(this NetworkReader reader, int count)
         {
             byte[] bytes = new byte[count];
-            reader.ReadBytes(bytes, count);
+            reader.ReadBytesInternal(bytes, count);
             return bytes;
         }
 

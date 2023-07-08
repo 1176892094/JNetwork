@@ -8,12 +8,13 @@ using UnityEngine;
 // ReSharper disable All
 namespace JFramework.Net
 {
-    public class NetworkReader
+    public class NetworkReader: IDisposable
     {
         /// <summary>
         /// 字符串编码
         /// </summary>
         internal readonly UTF8Encoding encoding = new UTF8Encoding(false, true);
+        
         /// <summary>
         /// 缓存的字节数组
         /// </summary>
@@ -34,9 +35,8 @@ namespace JFramework.Net
         /// </summary>
         public int Capacity => buffer.Count;
 
-        public NetworkReader()
-        {
-        }
+        public NetworkReader() => buffer = new ArraySegment<byte>();
+        
         /// <summary>
         /// 拷贝ArraySegment到缓存中
         /// </summary>
@@ -92,7 +92,7 @@ namespace JFramework.Net
 
         public byte ReadByte() => ReadBlittable<byte>();
         
-        public byte[] ReadBytes(byte[] bytes, int count)
+        public byte[] ReadBytesInternal(byte[] bytes, int count)
         {
             if (count < 0)
             {
@@ -114,7 +114,7 @@ namespace JFramework.Net
             return bytes;
         }
         
-        public ArraySegment<byte> ReadBytesSegment(int count)
+        public ArraySegment<byte> ReadArraySegmentInternal(int count)
         {
             if (count < 0)
             {
@@ -137,7 +137,7 @@ namespace JFramework.Net
             Func<NetworkReader, T> readerDelegate = Reader<T>.read;
             if (readerDelegate == null)
             {
-                Debug.LogError($"No reader found for {typeof(T)}. Use a type supported by Mirror or define a custom reader extension for {typeof(T)}.");
+                Debug.LogError($"No reader found for {typeof(T)}.");
                 return default;
             }
             return readerDelegate(this);
@@ -147,6 +147,8 @@ namespace JFramework.Net
         {
             return buffer.Array != null ? BitConverter.ToString(buffer.Array, buffer.Offset, buffer.Count) : null;
         }
+
+        public void Dispose() => NetworkReaderPool.Push(this);
     }
     
     public static class Reader<T>

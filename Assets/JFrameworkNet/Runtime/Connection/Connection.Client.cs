@@ -18,8 +18,8 @@ namespace JFramework.Net
         {
             if (isLocal)
             {
-                NetworkWriterObject writer = NetworkWriterPool.Pop();
-                writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
+                NetworkWriter writer = NetworkWriterPool.Pop();
+                writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
                 connection.writeQueue.Enqueue(writer);
             }
             else

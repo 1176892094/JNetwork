@@ -5,10 +5,10 @@ namespace JFramework.Net
 {
     public static class NetworkReaderPool
     {
-        private static readonly Pool<NetworkReaderObject> Pool = new Pool<NetworkReaderObject>(1000);
+        private static readonly Pool<NetworkReader> Pool = new Pool<NetworkReader>(1000);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NetworkReaderObject Pop(byte[] bytes)
+        public static NetworkReader Pop(byte[] bytes)
         {
             var reader = Pool.Pop();
             reader.SetBuffer(bytes);
@@ -16,7 +16,7 @@ namespace JFramework.Net
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NetworkReaderObject Pop(ArraySegment<byte> segment)
+        public static NetworkReader Pop(ArraySegment<byte> segment)
         {
             var reader = Pool.Pop();
             reader.SetBuffer(segment);
@@ -24,13 +24,6 @@ namespace JFramework.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Push(NetworkReaderObject reader) => Pool.Push(reader);
-    }
-    
-    public class NetworkReaderObject : NetworkReader, IDisposable
-    {
-        public NetworkReaderObject() => buffer = new ArraySegment<byte>();
-
-        public void Dispose() => NetworkReaderPool.Push(this);
+        public static void Push(NetworkReader reader) => Pool.Push(reader);
     }
 }

@@ -9,7 +9,7 @@ namespace JFramework.Net
         /// <summary>
         /// 批处理队列
         /// </summary>
-        private readonly Queue<NetworkWriterObject> batches = new Queue<NetworkWriterObject>();
+        private readonly Queue<NetworkWriter> batches = new Queue<NetworkWriter>();
         
         /// <summary>
         /// 阈值
@@ -19,7 +19,7 @@ namespace JFramework.Net
         /// <summary>
         /// 批处理
         /// </summary>
-        private NetworkWriterObject batch;
+        private NetworkWriter batch;
         
         /// <summary>
         /// 设置阈值
@@ -44,7 +44,7 @@ namespace JFramework.Net
                 batch.WriteDouble(timeStamp);
             }
 
-            batch.WriteBytes(message.Array, message.Offset, message.Count);
+            batch.WriteBytesInternal(message.Array, message.Offset, message.Count);
         }
         
         /// <summary>
@@ -75,7 +75,7 @@ namespace JFramework.Net
         /// <summary>
         /// 写入writer并将对象推入对象池
         /// </summary>
-        private static void CopyAndWrite(NetworkWriterObject batch, NetworkWriter writer)
+        private static void CopyAndWrite(NetworkWriter batch, NetworkWriter writer)
         {
             if (writer.position != 0)
             {
@@ -83,7 +83,7 @@ namespace JFramework.Net
             }
 
             var segment = batch.ToArraySegment();
-            writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
+            writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
             NetworkWriterPool.Push(batch); // 推入对象池
         }
     }

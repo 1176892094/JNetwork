@@ -7,7 +7,7 @@ namespace JFramework.Net
 {
     public class ServerConnection : Connection
     {
-        internal readonly Queue<NetworkWriterObject> writeQueue = new Queue<NetworkWriterObject>();
+        internal readonly Queue<NetworkWriter> writeQueue = new Queue<NetworkWriter>();
         
         internal bool connecting;
         internal bool disconnecting;

@@ -1,14 +1,13 @@
-using System;
 using System.Runtime.CompilerServices;
 
 namespace JFramework.Net
 {
     public static class NetworkWriterPool
     {
-        private static readonly Pool<NetworkWriterObject> Pool = new Pool<NetworkWriterObject>( 1000);
+        private static readonly Pool<NetworkWriter> Pool = new Pool<NetworkWriter>( 1000);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NetworkWriterObject Pop()
+        public static NetworkWriter Pop()
         {
             var writer = Pool.Pop();
             writer.Reset();
@@ -16,11 +15,6 @@ namespace JFramework.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Push(NetworkWriterObject writer) => Pool.Push(writer);
-    }
-
-    public class NetworkWriterObject : NetworkWriter, IDisposable
-    {
-        public void Dispose() => NetworkWriterPool.Push(this);
+        public static void Push(NetworkWriter writer) => Pool.Push(writer);
     }
 }

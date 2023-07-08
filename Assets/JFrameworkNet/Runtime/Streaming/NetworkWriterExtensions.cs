@@ -87,24 +87,24 @@ namespace JFramework.Net
             
             if (written > NetworkConst.MaxStringLength)
             {
-                throw new IndexOutOfRangeException($"Value too long: {written} bytes. Limit: {NetworkConst.MaxStringLength} bytes");
+                throw new IndexOutOfRangeException($"String value too long: {written} > {NetworkConst.MaxStringLength}");
             }
             
             writer.WriteUShort(checked((ushort)(written + 1)));
             writer.position += written;
         }
 
-        public static void WriteBytesAndSizeSegment(this NetworkWriter writer, ArraySegment<byte> buffer)
+        public static void WriteArraySegment(this NetworkWriter writer, ArraySegment<byte> buffer)
         {
-            writer.WriteBytesAndSize(buffer.Array, buffer.Offset, buffer.Count);
+            WriteBytes(writer, buffer.Array, buffer.Offset, buffer.Count);
         }
         
-        public static void WriteBytesAndSize(this NetworkWriter writer, byte[] buffer)
+        public static void WriteBytes(this NetworkWriter writer, byte[] buffer)
         {
-            writer.WriteBytesAndSize(buffer, 0, buffer?.Length ?? 0);
+            WriteBytes(writer, buffer, 0, buffer?.Length ?? 0);
         }
         
-        public static void WriteBytesAndSize(this NetworkWriter writer, byte[] buffer, int offset, int count)
+        public static void WriteBytes(this NetworkWriter writer, byte[] buffer, int offset, int count)
         {
             if (buffer == null)
             {
@@ -112,7 +112,7 @@ namespace JFramework.Net
                 return;
             }
             writer.WriteUInt(checked((uint)count) + 1U);
-            writer.WriteBytes(buffer, offset, count);
+            writer.WriteBytesInternal(buffer, offset, count);
         }
 
         public static void WriteArraySegment<T>(this NetworkWriter writer, ArraySegment<T> segment)

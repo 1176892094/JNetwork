@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public class NetworkWriter
+    public class NetworkWriter: IDisposable
     {
         /// <summary>
         /// 字符串编码
@@ -99,7 +99,7 @@ namespace JFramework.Net
         /// <summary>
         /// 写入Byte数组
         /// </summary>
-        public void WriteBytes(byte[] array, int offset, int count)
+        public void WriteBytesInternal(byte[] array, int offset, int count)
         {
             EnsureCapacity(position + count);
             Array.ConstrainedCopy(array, offset, buffer, position, count);
@@ -129,8 +129,10 @@ namespace JFramework.Net
         public override string ToString()
         {
             var segment = ToArraySegment();
-            return BitConverter.ToString(segment.Array, segment.Offset, segment.Count);
+            return segment.Array != null ? BitConverter.ToString(segment.Array, segment.Offset, segment.Count) : null;
         }
+
+        public void Dispose() => NetworkWriterPool.Push(this);
     }
     
     public static class Writer<T>
