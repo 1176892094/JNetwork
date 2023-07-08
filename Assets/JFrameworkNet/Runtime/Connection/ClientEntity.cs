@@ -13,7 +13,7 @@ namespace JFramework.Net
 
         public ClientEntity(int clientId) => this.clientId = clientId;
 
-        protected override void AddToQueue(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
+        internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             if (isLocal)
             {
@@ -23,7 +23,7 @@ namespace JFramework.Net
             }
             else
             {
-                base.AddToQueue(segment, channel);
+                base.Send(segment, channel);
             }
         }
 

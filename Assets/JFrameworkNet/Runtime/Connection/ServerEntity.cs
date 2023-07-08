@@ -8,7 +8,6 @@ namespace JFramework.Net
     public class ServerEntity : Connection
     {
         internal readonly Queue<NetworkWriter> writeQueue = new Queue<NetworkWriter>();
-       // internal bool connecting;
 
         protected override void SendToTransport(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
@@ -24,13 +23,6 @@ namespace JFramework.Net
         private void LocalUpdate()
         {
             if (!isLocal) return;
-            // if (connecting) //TODO: 使用Event
-            // {
-            //     connecting = false;
-            //     NetworkClient.OnConnected?.Invoke();
-            //     Debug.Log("ServerObject.LocalUpdate: Connected");
-            // }
-
             while (writeQueue.Count > 0)
             {
                 var writer = writeQueue.Dequeue();
@@ -49,7 +41,7 @@ namespace JFramework.Net
             }
         }
 
-        protected override void AddToQueue(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
+        internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             if (isLocal)
             {
@@ -74,7 +66,7 @@ namespace JFramework.Net
             }
             else
             {
-                base.AddToQueue(segment, channel);
+                base.Send(segment, channel);
             }
         }
 

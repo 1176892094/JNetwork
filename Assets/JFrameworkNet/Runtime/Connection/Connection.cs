@@ -70,7 +70,7 @@ namespace JFramework.Net
         {
             using var writer = NetworkWriter.Pop();
             NetworkUtils.WriteMessage(writer,message);
-            AddToQueue(writer.ToArraySegment(), channel);
+            Send(writer.ToArraySegment(), channel);
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace JFramework.Net
         /// <param name="segment">数据分段</param>
         /// <param name="channel">传输通道</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual void AddToQueue(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
+        internal virtual void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             GetWriters(channel).WriteEnqueue(segment, NetworkTime.localTime);
         }
