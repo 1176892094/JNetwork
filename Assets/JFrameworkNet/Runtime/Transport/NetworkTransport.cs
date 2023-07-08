@@ -91,7 +91,7 @@ namespace JFramework.Net
             return channel == Channel.Reliable ? Utils.ReliableSize(setting.maxTransferUnit, receivePacketSize) : Utils.UnreliableSize(setting.maxTransferUnit);
         }
 
-        public override int GetBatchThreshold() => Utils.UnreliableSize(maxTransmitUnit);
+        public override int UnreliableSize() => Utils.UnreliableSize(maxTransmitUnit);
 
         public override void ServerStop() => server.ShutDown();
 

@@ -68,22 +68,25 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            GetBatch(channel).WriteEnqueue(segment, NetworkTime.localTime);
+            GetNetworkSend(channel).WriteEnqueue(segment, NetworkTime.localTime);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected abstract void SendToTransport(ArraySegment<byte> segment, Channel channel = Channel.Reliable);
-
-        protected NetworkSend GetBatch(Channel channel)
+        
+        /// <summary>
+        /// 网络消息发送
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <returns></returns>
+        protected NetworkSend GetNetworkSend(Channel channel)
         {
-            if (!batches.TryGetValue(channel, out var batch))
+            if (!batches.TryGetValue(channel, out var send))
             {
-                int threshold = Transport.current.GetBatchThreshold();
-                batch = new NetworkSend(threshold);
-                batches[channel] = batch;
+                batches[channel] = new NetworkSend(Transport.current.UnreliableSize());
             }
 
-            return batch;
+            return send;
         }
         
         public abstract void Disconnect();

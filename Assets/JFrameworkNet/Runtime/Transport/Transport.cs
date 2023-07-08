@@ -109,7 +109,7 @@ namespace JFramework.Net
         /// 网络消息合批阈值
         /// </summary>
         /// <returns>返回阈值</returns>
-        public abstract int GetBatchThreshold();
+        public abstract int UnreliableSize();
         
         /// <summary>
         /// 客户端Update之前

@@ -25,14 +25,13 @@ namespace JFramework.Net
             {
                 connecting = false;
                 NetworkClient.OnConnected?.Invoke();
-                Debug.Log(NetworkClient.OnConnected?.Method);
             }
             
             while (writeQueue.Count > 0)
             {
                 var writer = writeQueue.Dequeue();
                 var segment = writer.ToArraySegment();
-                var batch = GetBatch(Channel.Reliable);
+                var batch = GetNetworkSend(Channel.Reliable);
                 batch.WriteEnqueue(segment, NetworkTime.localTime);
                 using (var batchWriter = NetworkWriterPool.Pop())
                 {
@@ -56,21 +55,21 @@ namespace JFramework.Net
             {
                 if (segment.Count == 0)
                 {
-                    Debug.LogError("LocalConnection.SendBytes cannot send zero bytes");
+                    Debug.LogError("Segment cannot send 0 bytes");
                     return;
                 }
                 
-                NetworkSend send = GetBatch(channel);
-                send.WriteEnqueue(segment, NetworkTime.localTime);
+                var send = GetNetworkSend(channel);
+                send.WriteEnqueue(segment, NetworkTime.localTime); // 添加到队列末尾并写入数据
 
                 using var writer = NetworkWriterPool.Pop();
-                if (send.WriteDequeue(writer))
+                if (send.WriteDequeue(writer)) // 尝试从队列中取出元素并写入到目标
                 {
                     NetworkServer.OnServerReceive(clientId, writer.ToArraySegment(), channel);
                 }
                 else
                 {
-                    Debug.LogError("Local connection failed to make batch. This should never happen.");
+                    Debug.LogError("Connection failed to make writer.");
                 }
             }
             else
