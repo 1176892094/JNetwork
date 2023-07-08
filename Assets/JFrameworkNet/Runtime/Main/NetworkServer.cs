@@ -25,12 +25,6 @@ namespace JFramework.Net
 
         internal static void StartServer(bool isListen)
         {
-            if (!Transport.current)
-            {
-                Debug.LogError("There was no active Transport!");
-                return;
-            }
-
             if (isListen)
             {
                 Transport.current.ServerConnect();
@@ -109,30 +103,6 @@ namespace JFramework.Net
             isLoadScene = false;
             OnConnected = null;
             OnDisconnected = null;
-        }
-
-        internal static void EarlyUpdate()
-        {
-            if (Transport.current != null)
-            {
-                Transport.current.ServerEarlyUpdate();
-            }
-        }
-
-        internal static void AfterUpdate()
-        {
-            if (isActive)
-            {
-                if (NetworkUtils.Elapsed(NetworkTime.localTime, sendRate, ref lastSendTime))
-                {
-                    Broadcast();
-                }
-            }
-
-            if (Transport.current != null)
-            {
-                Transport.current.ServerAfterUpdate();
-            }
         }
     }
 }

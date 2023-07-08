@@ -5,11 +5,46 @@ namespace JFramework.Net
 {
     public static partial class NetworkClient
     {
-        private static void BroadcastTimeSnapshot()
+        public static void EarlyUpdate()
         {
-            Send(new SnapshotMessage(), Channel.Unreliable);
+            if (Transport.current != null)
+            {
+                Transport.current.ClientEarlyUpdate();
+            }
         }
+
+        public static void AfterUpdate()
+        {
+            if (isActive)
+            {
+                if (NetworkUtils.Elapsed(NetworkTime.localTime, sendRate, ref lastSendTime))
+                {
+                    Broadcast();
+                }
+            }
         
+            if (connection != null)
+            {
+                if (connection.isLocal)
+                {
+                    connection.Update();
+                }
+                else
+                {
+                    if (isActive && isConnect)
+                    {
+                        NetworkTime.UpdateClient();
+                        connection.Update();
+                    }
+                }
+            }
+            
+            if (Transport.current != null)
+            {
+                Transport.current.ClientAfterUpdate();
+            }
+        }
+
         private static void Broadcast()
         {
             if (!connection.isReady) return;
@@ -39,6 +74,11 @@ namespace JFramework.Net
                     Debug.LogWarning($"Found 'null' entry in owned list for client. This is unexpected behaviour.");
                 }
             }
+        }
+        
+        private static void BroadcastTimeSnapshot()
+        {
+            Send(new SnapshotMessage(), Channel.Unreliable);
         }
     }
 }

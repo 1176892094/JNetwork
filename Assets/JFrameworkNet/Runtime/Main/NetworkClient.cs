@@ -35,11 +35,9 @@ namespace JFramework.Net
         /// <param name="address">传入连接地址</param>
         internal static void StartClient(Address address)
         {
-            if (!TryConnect(false)) return;
             RegisterTransport();
-            state = ConnectState.Connecting;
             Transport.current.ClientConnect(address);
-            connection = new ServerConnection();
+            ClientConnect(false);
         }
         
         /// <summary>
@@ -48,11 +46,9 @@ namespace JFramework.Net
         /// <param name="uri">传入Uri</param>
         internal static void StartClient(Uri uri)
         {
-            if (!TryConnect(false)) return;
             RegisterTransport();
-            state = ConnectState.Connecting;
             Transport.current.ClientConnect(uri);
-            connection = new ServerConnection();
+            ClientConnect(false);
         }
 
         /// <summary>
@@ -60,27 +56,17 @@ namespace JFramework.Net
         /// </summary>
         internal static void StartClient()
         {
-            if (!TryConnect(true)) return;
-            state = ConnectState.Connected;
-            connection = new ServerConnection();
+            ClientConnect(true);
             NetworkServer.connection = new ClientConnection(0);
             connection.isLocal = true;
         }
 
-        /// <summary>
-        /// 尝试连接并注册事件
-        /// </summary>
-        private static bool TryConnect(bool isHost)
+        private static void ClientConnect(bool isHost)
         {
-            if (Transport.current == null)
-            {
-                Debug.LogError("There was no active Transport!");
-                return false;
-            }
-            
             receive = new NetworkReceive();
+            state = isHost ? ConnectState.Connected : ConnectState.Connecting;
+            connection = new ServerConnection();
             RegisterMessage(isHost);
-            return true;
         }
 
         public static void Ready()
@@ -142,46 +128,6 @@ namespace JFramework.Net
             isLoadScene = false;
             OnConnected = null;
             OnDisconnected = null;
-        }
-
-        public static void EarlyUpdate()
-        {
-            if (Transport.current != null)
-            {
-                Transport.current.ClientEarlyUpdate();
-            }
-        }
-
-        public static void AfterUpdate()
-        {
-            if (isActive)
-            {
-                if (NetworkUtils.Elapsed(NetworkTime.localTime, sendRate, ref lastSendTime))
-                {
-                    Broadcast();
-                }
-            }
-        
-            if (connection != null)
-            {
-                if (connection.isLocal)
-                {
-                    connection.Update();
-                }
-                else
-                {
-                    if (isActive && isConnect)
-                    {
-                        NetworkTime.UpdateClient();
-                        connection.Update();
-                    }
-                }
-            }
-            
-            if (Transport.current != null)
-            {
-                Transport.current.ClientAfterUpdate();
-            }
         }
     }
 }
