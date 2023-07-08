@@ -16,7 +16,7 @@ namespace JFramework.Net
     public static partial class NetworkClient
     {
         private static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
-        public static ServerConnection connection;
+        public static ServerObject connection;
         public static bool isReady;
         public static bool isLoadScene;
         private static double lastSendTime;
@@ -57,7 +57,7 @@ namespace JFramework.Net
         internal static void StartClient()
         {
             ClientConnect(true);
-            NetworkServer.connection = new ClientConnection(0);
+            NetworkServer.client = new ClientObject(NetworkConst.HostId);
             connection.isLocal = true;
         }
 
@@ -65,7 +65,7 @@ namespace JFramework.Net
         {
             receive = new NetworkReceive();
             state = isHost ? ConnectState.Connected : ConnectState.Connecting;
-            connection = new ServerConnection();
+            connection = new ServerObject();
             RegisterMessage(isHost);
         }
 

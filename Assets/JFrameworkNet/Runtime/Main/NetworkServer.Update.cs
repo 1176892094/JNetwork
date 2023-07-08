@@ -45,7 +45,7 @@ namespace JFramework.Net
             }
         }
 
-        private static void BroadcastToClient(ClientConnection client)
+        private static void BroadcastToClient(ClientObject client)
         {
         }
     }

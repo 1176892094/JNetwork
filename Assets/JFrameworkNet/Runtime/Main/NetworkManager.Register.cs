@@ -19,7 +19,7 @@ namespace JFramework.Net
             NetworkEvent.RegisterMessage<SceneMessage>(OnClientLoadSceneInternal, false);
         }
 
-        private void OnServerConnectInternal(ClientConnection client)
+        private void OnServerConnectInternal(ClientObject client)
         {
             client.isAuthority = true;
             if (!string.IsNullOrEmpty(sceneName))
@@ -34,12 +34,12 @@ namespace JFramework.Net
             OnServerConnect?.Invoke(client);
         }
 
-        private void OnServerDisconnectInternal(ClientConnection client)
+        private void OnServerDisconnectInternal(ClientObject client)
         {
             OnServerDisconnect?.Invoke(client);
         }
 
-        private static void OnServerReadyInternal(ClientConnection client, ReadyMessage message)
+        private static void OnServerReadyInternal(ClientObject client, ReadyMessage message)
         {
             NetworkServer.SetClientReady(client);
             OnServerReady?.Invoke(client);

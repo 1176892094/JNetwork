@@ -107,7 +107,7 @@ namespace JFramework.Net
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"Disconnected clientId {connection.clientId}\n{e}");
+                    Debug.LogError($"Disconnected clientId {((ClientObject)connection).clientId}\n{e}");
                     connection.Disconnect();
                 }
             };

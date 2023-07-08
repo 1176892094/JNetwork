@@ -13,7 +13,7 @@ namespace JFramework.Net
         /// <summary>
         /// 当发送一条命令到Transport
         /// </summary>
-        private static void OnCommandMessage(ClientConnection client, CommandMessage message, Channel channel)
+        private static void OnCommandMessage(ClientObject client, CommandMessage message, Channel channel)
         {
             if (!client.isReady)
             {

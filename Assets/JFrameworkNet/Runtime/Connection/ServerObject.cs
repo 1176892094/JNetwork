@@ -5,39 +5,38 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public class ServerConnection : Connection
+    public class ServerObject : Connection
     {
         internal readonly Queue<NetworkWriter> writeQueue = new Queue<NetworkWriter>();
-        
         internal bool connecting;
         internal bool disconnecting;
-        
+
         protected override void SendToTransport(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             Transport.current.ClientSend(segment, channel);
         }
-        
+
         internal override void Update()
         {
             base.Update();
             if (!isLocal) return;
-            if (connecting)
+            if (connecting) //TODO: 使用Event
             {
                 connecting = false;
                 NetworkClient.OnConnected?.Invoke();
             }
-            
+
             while (writeQueue.Count > 0)
             {
                 var writer = writeQueue.Dequeue();
                 var segment = writer.ToArraySegment();
-                var batch = GetNetworkSend(Channel.Reliable);
-                batch.WriteEnqueue(segment, NetworkTime.localTime);
-                using (var batchWriter = NetworkWriterPool.Pop())
+                var send = GetNetworkSend(Channel.Reliable);
+                send.WriteEnqueue(segment, NetworkTime.localTime);
+                using (var sendWriter = NetworkWriterPool.Pop())
                 {
-                    if (batch.WriteDequeue(batchWriter))
+                    if (send.WriteDequeue(sendWriter))
                     {
-                        NetworkClient.OnClientReceive(batchWriter.ToArraySegment(), Channel.Reliable);
+                        NetworkClient.OnClientReceive(sendWriter.ToArraySegment(), Channel.Reliable);
                     }
                 }
 
@@ -49,7 +48,7 @@ namespace JFramework.Net
             NetworkClient.OnDisconnected?.Invoke();
         }
 
-        internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
+        protected override void AddToQueue(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             if (isLocal)
             {
@@ -58,14 +57,14 @@ namespace JFramework.Net
                     Debug.LogError("Segment cannot send 0 bytes");
                     return;
                 }
-                
+
                 var send = GetNetworkSend(channel);
                 send.WriteEnqueue(segment, NetworkTime.localTime); // 添加到队列末尾并写入数据
 
                 using var writer = NetworkWriterPool.Pop();
                 if (send.WriteDequeue(writer)) // 尝试从队列中取出元素并写入到目标
                 {
-                    NetworkServer.OnServerReceive(clientId, writer.ToArraySegment(), channel);
+                    NetworkServer.OnServerReceive(NetworkConst.HostId, writer.ToArraySegment(), channel);
                 }
                 else
                 {
@@ -74,7 +73,7 @@ namespace JFramework.Net
             }
             else
             {
-                base.Send(segment,channel);
+                base.AddToQueue(segment, channel);
             }
         }
 

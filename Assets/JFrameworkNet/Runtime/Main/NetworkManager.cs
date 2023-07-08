@@ -116,7 +116,7 @@ namespace JFramework.Net
 
             if (networkMode == NetworkMode.Host)
             {
-                OnServerDisconnectInternal(NetworkServer.connection);
+                OnServerDisconnectInternal(NetworkServer.client);
             }
 
             NetworkClient.Disconnect();
@@ -140,7 +140,7 @@ namespace JFramework.Net
             RegisterServerEvent();
             NetworkClient.StartClient();
             RegisterClientEvent();
-            NetworkServer.OnClientConnect(NetworkServer.connection);
+            NetworkServer.OnClientConnect(NetworkServer.client);
             NetworkClient.connection.connecting = true;
             OnStartHost?.Invoke();
         }

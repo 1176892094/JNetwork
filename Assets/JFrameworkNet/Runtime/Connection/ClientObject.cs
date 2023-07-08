@@ -4,17 +4,17 @@ using JFramework.Udp;
 
 namespace JFramework.Net
 {
-    public sealed class ClientConnection : Connection
+    public sealed class ClientObject : Connection
     {
-        internal ServerConnection connection;
-        public NetworkReceive receive = new NetworkReceive();
+        internal ServerObject connection;
+        public readonly NetworkReceive receive = new NetworkReceive();
         public readonly HashSet<NetworkObject> observing = new HashSet<NetworkObject>();
+        public int clientId;
 
-        public ClientConnection(int clientId) : base(clientId)
-        {
-        }
+        public ClientObject(int clientId) => this.clientId = clientId;
 
-        internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
+
+        protected override void AddToQueue(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             if (isLocal)
             {
@@ -24,7 +24,7 @@ namespace JFramework.Net
             }
             else
             {
-                base.Send(segment, channel);
+                base.AddToQueue(segment, channel);
             }
         }
 

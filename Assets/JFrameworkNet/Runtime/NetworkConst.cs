@@ -15,7 +15,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端连接Id
         /// </summary>
-        public const int ConnectionId = 0;
+        public const int HostId = 0;
         
         /// <summary>
         /// 头部大小

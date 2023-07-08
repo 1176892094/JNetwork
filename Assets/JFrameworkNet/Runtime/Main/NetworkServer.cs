@@ -10,15 +10,15 @@ namespace JFramework.Net
     public static partial class NetworkServer
     {
         private static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
-        private static readonly Dictionary<int, ClientConnection> clients = new Dictionary<int, ClientConnection>();
-        private static readonly List<ClientConnection> copies = new List<ClientConnection>();
+        private static readonly Dictionary<int, ClientObject> clients = new Dictionary<int, ClientObject>();
+        private static readonly List<ClientObject> copies = new List<ClientObject>();
         private static bool initialized;
         private static double lastSendTime;
         public static bool isActive;
         public static bool isLoadScene;
-        public static ClientConnection connection;
-        internal static Action<ClientConnection> OnConnected;
-        internal static Action<ClientConnection> OnDisconnected;
+        public static ClientObject client;
+        internal static Action<ClientObject> OnConnected;
+        internal static Action<ClientObject> OnDisconnected;
         private static uint tickRate => NetworkManager.Instance.tickRate;
         private static uint maxConnection => NetworkManager.Instance.maxConnection;
         private static float sendRate => tickRate < int.MaxValue ? 1f / tickRate : 0;
@@ -43,7 +43,7 @@ namespace JFramework.Net
             SpawnObjects();
         }
 
-        internal static void OnClientConnect(ClientConnection client)
+        internal static void OnClientConnect(ClientObject client)
         {
             if (!clients.ContainsKey(client.clientId))
             {
@@ -53,22 +53,22 @@ namespace JFramework.Net
             OnConnected?.Invoke(client);
         }
 
-        internal static void SetClientReady(ClientConnection client)
+        internal static void SetClientReady(ClientObject client)
         {
             client.isReady = true;
             AddObserversForClient(client);
         }
 
-        private static void AddObserversForClient(ClientConnection client)
+        private static void AddObserversForClient(ClientObject client)
         {
-            if (!client.isReady) return;
-            client.Send(new ObjectSpawnStartMessage());
-            foreach (var identity in spawns.Values.Where(identity => identity.gameObject.activeSelf))
-            {
-                identity.AddObserver(client);
-            }
-
-            client.Send(new ObjectSpawnFinishMessage());
+            // if (!client.isReady) return;
+            // client.Send(new ObjectSpawnStartMessage());
+            // foreach (var identity in spawns.Values.Where(identity => identity.gameObject.activeSelf))
+            // {
+            //     identity.AddObserver(client);
+            // }
+            //
+            // client.Send(new ObjectSpawnFinishMessage());
         }
 
         internal static void SpawnObjects()
@@ -80,7 +80,7 @@ namespace JFramework.Net
             foreach (var connection in clients.Values.ToList())
             {
                 connection.Disconnect();
-                if (connection.clientId != NetworkConst.ConnectionId)
+                if (connection.clientId != NetworkConst.HostId)
                 {
                     OnServerDisconnected(connection.clientId);
                 }
@@ -96,7 +96,7 @@ namespace JFramework.Net
                 UnRegisterTransport();
             }
 
-            connection = null;
+            client = null;
             spawns.Clear();
             clients.Clear();
             isActive = false;
