@@ -8,6 +8,7 @@ using UnityEngine;
 // ReSharper disable All
 namespace JFramework.Net
 {
+    [Serializable]
     public class NetworkReader : IDisposable
     {
         /// <summary>
@@ -18,7 +19,7 @@ namespace JFramework.Net
         /// <summary>
         /// 缓存的字节数组
         /// </summary>
-        internal ArraySegment<byte> buffer;
+        [SerializeField] internal ArraySegment<byte> buffer;
 
         /// <summary>
         /// 当前字节数组中的位置

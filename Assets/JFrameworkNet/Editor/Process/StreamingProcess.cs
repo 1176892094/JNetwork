@@ -161,7 +161,7 @@ namespace JFramework.Editor
         private static bool LoadStreamingMessage(ModuleDefinition module, Writers writers, Readers readers, TypeDefinition type, ref bool isFailed)
         {
             bool modified = false;
-            if (!type.IsAbstract && !type.IsInterface && type.ImplementsInterface<NetworkMessage>())
+            if (!type.IsAbstract && !type.IsInterface && type.ImplementsInterface<IEvent>())
             {
                 readers.GetReadFunc(module.ImportReference(type), ref isFailed);
                 writers.GetWriteFunc(module.ImportReference(type), ref isFailed);

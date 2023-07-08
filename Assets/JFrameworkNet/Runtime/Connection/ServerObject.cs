@@ -19,6 +19,11 @@ namespace JFramework.Net
         internal override void Update()
         {
             base.Update();
+            LocalUpdate();
+        }
+
+        private void LocalUpdate()
+        {
             if (!isLocal) return;
             if (connecting) //TODO: 使用Event
             {
@@ -30,7 +35,7 @@ namespace JFramework.Net
             {
                 var writer = writeQueue.Dequeue();
                 var segment = writer.ToArraySegment();
-                var send = GetNetworkSend(Channel.Reliable);
+                var send = GetSender(Channel.Reliable);
                 send.WriteEnqueue(segment, NetworkTime.localTime);
                 using (var sendWriter = NetworkWriterPool.Pop())
                 {
@@ -58,7 +63,7 @@ namespace JFramework.Net
                     return;
                 }
 
-                var send = GetNetworkSend(channel);
+                var send = GetSender(channel);
                 send.WriteEnqueue(segment, NetworkTime.localTime); // 添加到队列末尾并写入数据
 
                 using var writer = NetworkWriterPool.Pop();

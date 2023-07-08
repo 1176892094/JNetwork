@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using JFramework.Core;
 
 namespace JFramework.Net
 {
@@ -10,12 +11,10 @@ namespace JFramework.Net
 
     public static class NetworkReaderPool
     {
-        private static readonly Pool<NetworkReader> Pool = new Pool<NetworkReader>(1000);
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkReader Pop(byte[] bytes)
         {
-            var reader = Pool.Pop();
+            var reader = PoolManager.Pop<NetworkReader>();
             reader.SetBuffer(bytes);
             return reader;
         }
@@ -23,12 +22,12 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkReader Pop(ArraySegment<byte> segment)
         {
-            var reader = Pool.Pop();
+            var reader = PoolManager.Pop<NetworkReader>();
             reader.SetBuffer(segment);
             return reader;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Push(NetworkReader reader) => Pool.Push(reader);
+        public static void Push(NetworkReader reader) => PoolManager.Push(reader);
     }
 }

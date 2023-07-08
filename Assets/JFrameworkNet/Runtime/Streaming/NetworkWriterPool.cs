@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using JFramework.Core;
 
 namespace JFramework.Net
 {
@@ -10,17 +11,15 @@ namespace JFramework.Net
 
     public static class NetworkWriterPool
     {
-        private static readonly Pool<NetworkWriter> Pool = new Pool<NetworkWriter>(1000);
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkWriter Pop()
         {
-            var writer = Pool.Pop();
+            var writer = PoolManager.Pop<NetworkWriter>();
             writer.Reset();
             return writer;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Push(NetworkWriter writer) => Pool.Push(writer);
+        public static void Push(NetworkWriter writer) => PoolManager.Push(writer);
     }
 }

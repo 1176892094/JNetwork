@@ -3,53 +3,50 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public interface NetworkMessage
-    {
-    }
 
-    public struct SceneMessage : NetworkMessage
+    public struct SceneMessage : IEvent
     {
         public string sceneName;
     }
 
-    public struct ReadyMessage : NetworkMessage
+    public struct ReadyMessage : IEvent
     {
     }
 
-    public struct NotReadyMessage : NetworkMessage
+    public struct NotReadyMessage : IEvent
     {
     }
 
-    public struct ChangeOwnerMessage : NetworkMessage
+    public struct ChangeOwnerMessage : IEvent
     {
         public uint netId;
         public bool isOwner;
     }
 
-    public struct ObjectDestroyMessage : NetworkMessage
+    public struct ObjectDestroyMessage : IEvent
     {
         public uint netId;
     }
 
-    public struct ObjectHideMessage : NetworkMessage
+    public struct ObjectHideMessage : IEvent
     {
         public uint netId;
     }
 
-    public struct ObjectSpawnStartMessage : NetworkMessage
+    public struct ObjectSpawnStartMessage : IEvent
     {
     }
 
-    public struct ObjectSpawnFinishMessage : NetworkMessage
+    public struct ObjectSpawnFinishMessage : IEvent
     {
     }
 
-    public struct RpcBufferMessage : NetworkMessage
+    public struct RpcBufferMessage : IEvent
     {
         public ArraySegment<byte> payload;
     }
 
-    public struct NetworkPingMessage : NetworkMessage
+    public struct NetworkPingMessage : IEvent
     {
         public readonly double clientTime;
 
@@ -59,7 +56,7 @@ namespace JFramework.Net
         }
     }
 
-    public struct CommandMessage : NetworkMessage
+    public struct CommandMessage : IEvent
     {
         public uint netId;
         public byte componentIndex;
@@ -67,7 +64,7 @@ namespace JFramework.Net
         public ArraySegment<byte> payload;
     }
 
-    public struct SpawnMessage : NetworkMessage
+    public struct SpawnMessage : IEvent
     {
         public uint netId;
         public bool isOwner;
@@ -79,11 +76,11 @@ namespace JFramework.Net
         public ArraySegment<byte> payload;
     }
     
-    public struct SnapshotMessage : NetworkMessage
+    public struct SnapshotMessage : IEvent
     {
     }
     
-    public struct EntityMessage : NetworkMessage
+    public struct EntityMessage : IEvent
     {
         public uint netId;
         public ArraySegment<byte> segment;

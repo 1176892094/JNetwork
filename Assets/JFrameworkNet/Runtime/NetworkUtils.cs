@@ -62,7 +62,7 @@ namespace JFramework.Net
         /// <param name="writer"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteMessage<T>(NetworkWriter writer, T message) where T : struct, NetworkMessage
+        public static void WriteMessage<T>(NetworkWriter writer, T message) where T : struct, IEvent
         {
             writer.WriteUShort(MessageId<T>.Id);
             writer.Write(message);
@@ -89,7 +89,7 @@ namespace JFramework.Net
             }
         }
 
-        internal static MessageDelegate Register<T1, T2>(Action<T1, T2, Channel> handle, bool isAuthority) where T1 : Connection where T2 : struct, NetworkMessage
+        internal static MessageDelegate Register<T1, T2>(Action<T1, T2, Channel> handle, bool isAuthority) where T1 : Connection where T2 : struct, IEvent
         {
             return (connection, reader, channel) =>
             {
@@ -113,7 +113,7 @@ namespace JFramework.Net
             };
         }
 
-        internal static MessageDelegate Register<T1, T2>(Action<T1, T2> handle, bool isAuthority) where T1 : Connection where T2 : struct, NetworkMessage
+        internal static MessageDelegate Register<T1, T2>(Action<T1, T2> handle, bool isAuthority) where T1 : Connection where T2 : struct, IEvent
         {
             return Register((Action<T1, T2, Channel>)Wrapped, isAuthority);
 
@@ -123,7 +123,7 @@ namespace JFramework.Net
             }
         }
 
-        internal static MessageDelegate Register<T1>(Action<T1> handle, bool isAuthority) where T1 : struct, NetworkMessage
+        internal static MessageDelegate Register<T1>(Action<T1> handle, bool isAuthority) where T1 : struct, IEvent
         {
             return Register((Action<Connection, T1>)Wrapped, isAuthority);
 
@@ -147,7 +147,7 @@ namespace JFramework.Net
         }
     }
 
-    public static class MessageId<T> where T : struct, NetworkMessage
+    public static class MessageId<T> where T : struct, IEvent
     {
         public static readonly ushort Id = (ushort)NetworkUtils.GetHashByName(typeof(T).FullName);
     }

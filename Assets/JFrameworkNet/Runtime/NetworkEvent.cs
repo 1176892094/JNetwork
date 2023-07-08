@@ -12,7 +12,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        public static void RegisterMessage<T>(Action<T> handle, bool isAuthority = true) where T : struct, NetworkMessage
+        public static void RegisterMessage<T>(Action<T> handle, bool isAuthority = true) where T : struct, IEvent
         {
             clientEvents[MessageId<T>.Id] = NetworkUtils.Register(handle, isAuthority);
         }
@@ -20,7 +20,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        public static void RegisterMessage<T>(Action<ClientObject, T> handle, bool isAuthority = true) where T : struct, NetworkMessage
+        public static void RegisterMessage<T>(Action<ClientObject, T> handle, bool isAuthority = true) where T : struct, IEvent
         {
             serverEvents[MessageId<T>.Id] = NetworkUtils.Register(handle, isAuthority);
         }
@@ -28,7 +28,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        public static void RegisterMessage<T>(Action<ClientObject, T, Channel> handle, bool isAuthority = true) where T : struct, NetworkMessage
+        public static void RegisterMessage<T>(Action<ClientObject, T, Channel> handle, bool isAuthority = true) where T : struct, IEvent
         {
             serverEvents[MessageId<T>.Id] = NetworkUtils.Register(handle, isAuthority);
         }

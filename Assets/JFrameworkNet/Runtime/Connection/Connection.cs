@@ -8,9 +8,8 @@ namespace JFramework.Net
 {
     public abstract class Connection
     {
-        protected readonly Dictionary<Channel, NetworkSend> sends = new Dictionary<Channel, NetworkSend>();
+        private readonly Dictionary<Channel, NetworkSend> sends = new Dictionary<Channel, NetworkSend>();
         public readonly HashSet<NetworkObject> objects = new HashSet<NetworkObject>();
-      
         public bool isReady;
         public bool isLocal;
         public bool isAuthority;
@@ -21,8 +20,7 @@ namespace JFramework.Net
         /// </summary>
         internal virtual void Update()
         {
-            Debug.Log(GetType()+"----"+sends.Count);
-            foreach (var (channel, send) in sends)
+            foreach (var (channel, send) in sends) // 遍历可靠和不可靠消息
             {
                 using var writer = NetworkWriterPool.Pop();
                 while (send.WriteDequeue(writer))
@@ -68,7 +66,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T">传入NetworkMessage</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, NetworkMessage
+        public void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
         {
             using var writer = NetworkWriterPool.Pop();
             NetworkUtils.WriteMessage(writer,message);
@@ -83,7 +81,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual void AddToQueue(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            GetNetworkSend(channel).WriteEnqueue(segment, NetworkTime.localTime);
+            GetSender(channel).WriteEnqueue(segment, NetworkTime.localTime);
         }
         
         /// <summary>
@@ -99,11 +97,10 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="channel"></param>
         /// <returns>返回一个发送类</returns>
-        protected NetworkSend GetNetworkSend(Channel channel)
+        protected NetworkSend GetSender(Channel channel)
         {
             if (sends.TryGetValue(channel, out var send)) return send;
             var size = Transport.current.UnreliableSize();
-            Debug.Log(GetType()+"---"+sends.Count);
             return sends[channel] = new NetworkSend(size);
         }
         

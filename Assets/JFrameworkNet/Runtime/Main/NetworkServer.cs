@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 // ReSharper disable All
 
@@ -16,7 +15,7 @@ namespace JFramework.Net
         private static double lastSendTime;
         public static bool isActive;
         public static bool isLoadScene;
-        public static ClientObject client;
+        public static ClientObject connection;
         internal static Action<ClientObject> OnConnected;
         internal static Action<ClientObject> OnDisconnected;
         private static uint tickRate => NetworkManager.Instance.tickRate;
@@ -56,21 +55,8 @@ namespace JFramework.Net
         internal static void SetClientReady(ClientObject client)
         {
             client.isReady = true;
-            AddObserversForClient(client);
         }
-
-        private static void AddObserversForClient(ClientObject client)
-        {
-            // if (!client.isReady) return;
-            // client.Send(new ObjectSpawnStartMessage());
-            // foreach (var identity in spawns.Values.Where(identity => identity.gameObject.activeSelf))
-            // {
-            //     identity.AddObserver(client);
-            // }
-            //
-            // client.Send(new ObjectSpawnFinishMessage());
-        }
-
+        
         internal static void SpawnObjects()
         {
         }
@@ -96,7 +82,7 @@ namespace JFramework.Net
                 UnRegisterTransport();
             }
 
-            client = null;
+            connection = null;
             spawns.Clear();
             clients.Clear();
             isActive = false;

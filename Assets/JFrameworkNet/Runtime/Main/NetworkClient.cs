@@ -57,7 +57,7 @@ namespace JFramework.Net
         internal static void StartClient()
         {
             ClientConnect(true);
-            NetworkServer.client = new ClientObject(NetworkConst.HostId);
+            NetworkServer.connection = new ClientObject(NetworkConst.HostId);
             connection.isLocal = true;
         }
 
@@ -100,7 +100,7 @@ namespace JFramework.Net
             connection?.Disconnect();
         }
 
-        public static void Send<T>(T message, Channel channelId = Channel.Reliable) where T : struct, NetworkMessage
+        public static void Send<T>(T message, Channel channelId = Channel.Reliable) where T : struct, IEvent
         {
             if (connection != null)
             {

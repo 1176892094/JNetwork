@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
+    [Serializable]
     public class NetworkWriter: IDisposable
     {
         /// <summary>
@@ -21,7 +22,7 @@ namespace JFramework.Net
         /// <summary>
         /// 缓存的字节数组
         /// </summary>
-        internal byte[] buffer = new byte[1500];
+        [SerializeField] internal byte[] buffer = new byte[1500];
         
         /// <summary>
         /// 重置位置
