@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using JFramework.Net;
@@ -8,14 +7,36 @@ using UnityEngine;
 
 namespace JFramework.Editor
 {
+    /// <summary>
+    /// 流处理
+    /// </summary>
     internal static class StreamingProcess
     {
+        /// <summary>
+        /// 在Process中调用
+        /// </summary>
+        /// <param name="currentAssembly"></param>
+        /// <param name="resolver"></param>
+        /// <param name="logger"></param>
+        /// <param name="writers"></param>
+        /// <param name="readers"></param>
+        /// <param name="isFailed"></param>
+        /// <returns></returns>
         public static bool Process(AssemblyDefinition currentAssembly, IAssemblyResolver resolver, Logger logger, Writers writers, Readers readers, ref bool isFailed)
         {
             ProcessNetworkCode(currentAssembly, resolver, logger, writers, readers, ref isFailed);
             return ProcessCustomCode(currentAssembly, currentAssembly, writers, readers, ref isFailed);
         }
 
+        /// <summary>
+        /// 处理网络代码
+        /// </summary>
+        /// <param name="currentAssembly"></param>
+        /// <param name="resolver"></param>
+        /// <param name="logger"></param>
+        /// <param name="writers"></param>
+        /// <param name="readers"></param>
+        /// <param name="isFailed"></param>
         private static void ProcessNetworkCode(AssemblyDefinition currentAssembly, IAssemblyResolver resolver,Logger logger, Writers writers, Readers readers, ref bool isFailed)
         {
             AssemblyNameReference assemblyReference = currentAssembly.MainModule.FindReference(Const.ASSEMBLY_NAME);
@@ -37,6 +58,15 @@ namespace JFramework.Editor
             }
         }
 
+        /// <summary>
+        /// 处理本地代码
+        /// </summary>
+        /// <param name="CurrentAssembly"></param>
+        /// <param name="assembly"></param>
+        /// <param name="writers"></param>
+        /// <param name="readers"></param>
+        /// <param name="isFailed"></param>
+        /// <returns></returns>
         private static bool ProcessCustomCode(AssemblyDefinition CurrentAssembly, AssemblyDefinition assembly,Writers writers, Readers readers, ref bool isFailed)
         {
             bool modified = false;
@@ -48,11 +78,18 @@ namespace JFramework.Editor
 
             foreach (TypeDefinition type in assembly.MainModule.Types)
             {
-                modified |= LoadMessageReadWriter(CurrentAssembly.MainModule, writers, readers, type, ref isFailed);
+                modified |= LoadStreamingMessage(CurrentAssembly.MainModule, writers, readers, type, ref isFailed);
             }
             return modified;
         }
-
+        
+        /// <summary>
+        /// 加载声明的写入器
+        /// </summary>
+        /// <param name="currentAssembly"></param>
+        /// <param name="type"></param>
+        /// <param name="writers"></param>
+        /// <returns></returns>
         private static bool LoadDeclaredWriters(AssemblyDefinition currentAssembly, TypeDefinition type, Writers writers)
         {
             bool modified = false;
@@ -79,6 +116,13 @@ namespace JFramework.Editor
             return modified;
         }
 
+        /// <summary>
+        /// 加载声明的读取器
+        /// </summary>
+        /// <param name="currentAssembly"></param>
+        /// <param name="type"></param>
+        /// <param name="readers"></param>
+        /// <returns></returns>
         private static bool LoadDeclaredReaders(AssemblyDefinition currentAssembly, TypeDefinition type, Readers readers)
         {
             bool modified = false;
@@ -105,8 +149,16 @@ namespace JFramework.Editor
             return modified;
         }
 
-
-        private static bool LoadMessageReadWriter(ModuleDefinition module, Writers writers, Readers readers, TypeDefinition type, ref bool isFailed)
+        /// <summary>
+        /// 加载读写流的信息
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="writers"></param>
+        /// <param name="readers"></param>
+        /// <param name="type"></param>
+        /// <param name="isFailed"></param>
+        /// <returns></returns>
+        private static bool LoadStreamingMessage(ModuleDefinition module, Writers writers, Readers readers, TypeDefinition type, ref bool isFailed)
         {
             bool modified = false;
             if (!type.IsAbstract && !type.IsInterface && type.ImplementsInterface<NetworkMessage>())
@@ -118,13 +170,18 @@ namespace JFramework.Editor
 
             foreach (TypeDefinition nested in type.NestedTypes)
             {
-                modified |= LoadMessageReadWriter(module, writers, readers, nested, ref isFailed);
+                modified |= LoadStreamingMessage(module, writers, readers, nested, ref isFailed);
             }
 
             return modified;
         }
-
-
+        
+        /// <summary>
+        /// 添加 RuntimeInitializeLoad 属性类型
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="process"></param>
+        /// <param name="method"></param>
         private static void AddRuntimeInitializeOnLoadAttribute(AssemblyDefinition assembly, Processor process, MethodDefinition method)
         {
             MethodDefinition definition = process.runtimeInitializeOnLoadMethodAttribute.GetConstructors().Last();
@@ -133,6 +190,12 @@ namespace JFramework.Editor
             method.CustomAttributes.Add(attribute);
         }
         
+        /// <summary>
+        /// 添加 RuntimeInitializeLoad 属性标记
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="process"></param>
+        /// <param name="method"></param>
         private static void AddInitializeOnLoadAttribute(AssemblyDefinition assembly, Processor process, MethodDefinition method)
         {
             MethodDefinition ctor = process.initializeOnLoadMethodAttribute.GetConstructors().First();
@@ -140,7 +203,15 @@ namespace JFramework.Editor
             method.CustomAttributes.Add(attribute);
         }
         
-        public static void InitializeReaderAndWriters(AssemblyDefinition currentAssembly, Processor process, Writers writers, Readers readers, TypeDefinition generatedClass)
+        /// <summary>
+        /// 初始化读写流
+        /// </summary>
+        /// <param name="currentAssembly"></param>
+        /// <param name="process"></param>
+        /// <param name="writers"></param>
+        /// <param name="readers"></param>
+        /// <param name="generatedClass"></param>
+        public static void StreamingInitialize(AssemblyDefinition currentAssembly, Processor process, Writers writers, Readers readers, TypeDefinition generatedClass)
         {
             MethodDefinition initReadWriters = new MethodDefinition("RuntimeInitializeOnLoad", MethodAttributes.Public | MethodAttributes.Static, process.Import(typeof(void)));
             

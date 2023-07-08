@@ -27,12 +27,12 @@ namespace JFramework.Net
             foreach (var (channels, batch) in batches)
             {
                 using var writer = NetworkWriterPool.Pop();
-                Debug.Log(batch);
                 while (batch.WriteDequeue(writer))
                 {
                     var segment = writer.ToArraySegment();
                     if (PacketValidate(segment, channels))
                     {
+                        Debug.Log(batch);
                         SendToTransport(segment, channels);
                         writer.position = 0;
                     }

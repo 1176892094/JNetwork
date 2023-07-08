@@ -4,11 +4,17 @@ using Mono.Cecil;
 
 namespace JFramework.Editor
 {
+    /// <summary>
+    /// 反射导入器提供程序
+    /// </summary>
     internal class ReflectionProvider : IReflectionImporterProvider
     {
         public IReflectionImporter GetReflectionImporter(ModuleDefinition module) => new ReflectionImporter(module);
     }
     
+    /// <summary>
+    /// 默认的反射导入器
+    /// </summary>
     internal class ReflectionImporter : DefaultReflectionImporter
     {
         private const string SystemPrivateCoreLib = "System.Private.CoreLib";

@@ -64,7 +64,7 @@ namespace JFramework.Net
             state = ConnectState.Connected;
             connection = new ServerConnection();
             NetworkServer.connection = new ClientConnection(0);
-            NetworkServer.connection.isLocal = true;
+            connection.isLocal = true;
         }
 
         /// <summary>

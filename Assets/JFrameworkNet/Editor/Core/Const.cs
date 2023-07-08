@@ -2,7 +2,7 @@ using Mono.Cecil;
 
 namespace JFramework.Editor
 {
-    public struct Const
+    internal struct Const
     {
         public const string ASSEMBLY_NAME = "JFramework.Net";
         public const string GEN_NAMESPACE = "JFramework.Net";

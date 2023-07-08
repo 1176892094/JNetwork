@@ -6,8 +6,16 @@ namespace JFramework.Editor
 {
     internal class LogPostProcessor : Logger
     {
+        /// <summary>
+        /// 日志列表
+        /// </summary>
         public readonly List<DiagnosticMessage> logs = new List<DiagnosticMessage>();
 
+        /// <summary>
+        /// 添加日志信息
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="logType"></param>
         private void Add(string message, DiagnosticType logType)
         {
             logs.Add(new DiagnosticMessage
@@ -20,6 +28,12 @@ namespace JFramework.Editor
             });
         }
 
+        /// <summary>
+        /// 处理日志
+        /// </summary>
+        /// <param name="message">日志信息</param>
+        /// <param name="member">成员参数</param>
+        /// <param name="logType">日志类型</param>
         private void Log(string message, MemberReference member, DiagnosticType logType)
         {
             if (member != null)
@@ -42,11 +56,21 @@ namespace JFramework.Editor
             }
         }
         
+        /// <summary>
+        /// 警告日志
+        /// </summary>
+        /// <param name="message">日志信息</param>
+        /// <param name="member">成员参数</param>
         public void Warn(string message, MemberReference member)
         {
             Log(message, member, DiagnosticType.Warning);
         }
 
+        /// <summary>
+        /// 错误日志
+        /// </summary>
+        /// <param name="message">日志信息</param>
+        /// <param name="member">成员参数</param>
         public void Error(string message, MemberReference member)
         {
             Log(message, member, DiagnosticType.Error);

@@ -5,7 +5,7 @@ using Mono.Cecil;
 
 namespace JFramework.Editor
 {
-    public static class Extensions
+    internal static class Extensions
     {
         public static bool Is(this TypeReference td, Type type) => type.IsGenericType ? td.GetElementType().FullName == type.FullName : td.FullName == type.FullName;
         public static bool Is<T>(this TypeReference td) => Is(td, typeof(T));

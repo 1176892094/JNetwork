@@ -4,7 +4,7 @@ using Mono.Cecil;
 
 namespace JFramework.Editor
 {
-    public abstract class ProcessException : Exception
+    internal abstract class ProcessException : Exception
     {
         public MemberReference MemberReference { get; }
 
@@ -19,7 +19,7 @@ namespace JFramework.Editor
     }
     
     [Serializable]
-    public class WriterException : ProcessException
+    internal class WriterException : ProcessException
     {
         public WriterException(string message, MemberReference member) : base(message, member)
         {

@@ -8,20 +8,42 @@ namespace JFramework.Editor
 {
     internal sealed class NetPostProcessor : ILPostProcessor
     {
+        /// <summary>
+        /// 后处理日志
+        /// </summary>
         private readonly LogPostProcessor logger = new LogPostProcessor();
         
+        /// <summary>
+        /// 返回自身
+        /// </summary>
+        /// <returns></returns>
         public override ILPostProcessor GetInstance() => this;
 
+        /// <summary>
+        /// 在处理之前进行过滤
+        /// </summary>
+        /// <param name="compiledAssembly"></param>
+        /// <returns></returns>
         public override bool WillProcess(ICompiledAssembly compiledAssembly)
         {
             return compiledAssembly.Name == Const.ASSEMBLY_NAME || FindAssembly(compiledAssembly);
         }
 
+        /// <summary>
+        /// 查找目标程序集
+        /// </summary>
+        /// <param name="compiledAssembly"></param>
+        /// <returns></returns>
         private static bool FindAssembly(ICompiledAssembly compiledAssembly)
         {
             return compiledAssembly.References.Any(path => Path.GetFileNameWithoutExtension(path) == Const.ASSEMBLY_NAME);
         }
 
+        /// <summary>
+        /// 处理编译的程序集
+        /// </summary>
+        /// <param name="compiledAssembly"></param>
+        /// <returns></returns>
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)
         {
             byte[] peData = compiledAssembly.InMemoryAssembly.PeData;
@@ -44,14 +66,6 @@ namespace JFramework.Editor
             {
                 return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, logger.logs);
             }
-            
-            // foreach (ModuleDefinition module in definition.Modules)
-            // {
-            //     foreach (TypeDefinition type in module.Types)
-            //     {
-            //         logger.Warn(type.Name,null);
-            //     }
-            // }
 
             var mainModule = definition.MainModule;
             if (mainModule.AssemblyReferences.Any(reference => reference.Name == definition.Name.Name))

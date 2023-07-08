@@ -48,7 +48,7 @@ namespace JFramework.Editor
                 if (isChange)
                 {
                     moduleDefinition.Types.Add(generate);
-                    StreamingProcess.InitializeReaderAndWriters(currentAssembly, processor, writers,readers,generate);
+                    StreamingProcess.StreamingInitialize(currentAssembly, processor, writers,readers,generate);
                 }
                 
                 return true;
