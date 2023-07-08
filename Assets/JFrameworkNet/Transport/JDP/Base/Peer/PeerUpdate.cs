@@ -9,7 +9,6 @@ namespace JFramework.Udp
         public void EarlyUpdate()
         {
             uint time = (uint)watch.ElapsedMilliseconds;
-
             try
             {
                 switch (state)
@@ -43,7 +42,7 @@ namespace JFramework.Udp
         {
             try
             {
-                if (state == State.Authority)
+                if (state == State.Connected || state == State.Authority)
                 {
                     jdp.Update(watch.ElapsedMilliseconds);
                 }
@@ -144,7 +143,7 @@ namespace JFramework.Udp
                 SendReliable(Header.Ping, default);
                 lastPingTime = time;
             }
-
+            
             if (jdp.GetBufferQueueCount() >= Utils.QUEUE_DISCONNECTED_THRESHOLD)
             {
                 Log.Error($"Disconnecting connection because it can't process data fast enough.");

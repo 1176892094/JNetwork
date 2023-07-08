@@ -12,7 +12,7 @@ namespace JFramework.Udp
             public uint timestamp;
         }
         
-        public const int FRG_MAX = byte.MaxValue;  // 分片的最大数量，使用1字节进行编码，最大为255
+        public const int FRG_MAX = 255;            // 分片的最大数量，使用1字节进行编码，最大为255
         public const int TIME_OUT = 10000;         // 超时时间
         public const int WIN_SND = 32;             // 默认的发送窗口大小
         public const int WIN_RCV = 128;            // 默认的接收窗口大小，必须大于等于最大分片大小

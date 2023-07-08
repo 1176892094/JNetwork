@@ -1,5 +1,3 @@
-using System;
-
 namespace JFramework.Net
 {
     public static partial class NetworkClient
@@ -11,8 +9,9 @@ namespace JFramework.Net
                 NetworkEvent.RegisterMessage<SpawnMessage>(SpawnByHost);
                 NetworkEvent.RegisterMessage<ObjectDestroyMessage>(ObjectDestroyByHost);
                 NetworkEvent.RegisterMessage<ObjectHideMessage>(ObjectHideByHost);
-                NetworkEvent.RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByHost);
-                NetworkEvent.RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByHost);
+                NetworkEvent.RegisterMessage<ObjectSpawnStartMessage>(OnEmptyMessageByHost);
+                NetworkEvent.RegisterMessage<ObjectSpawnFinishMessage>(OnEmptyMessageByHost);
+                NetworkEvent.RegisterMessage<PongMessage>(OnEmptyMessageByHost);
             }
             else
             {
@@ -21,6 +20,7 @@ namespace JFramework.Net
                 NetworkEvent.RegisterMessage<ObjectHideMessage>(ObjectHideByClient);
                 NetworkEvent.RegisterMessage<ObjectSpawnStartMessage>(ObjectSpawnStartByClient);
                 NetworkEvent.RegisterMessage<ObjectSpawnFinishMessage>(ObjectSpawnFinishByClient);
+                NetworkEvent.RegisterMessage<PongMessage>(PongByClient);
             }
 
             NetworkEvent.RegisterMessage<SnapshotMessage>(OnSnapshotMessage);
@@ -36,11 +36,7 @@ namespace JFramework.Net
         {
         }
 
-        private static void ObjectSpawnStartByHost(ObjectSpawnStartMessage message)
-        {
-        }
-
-        private static void ObjectSpawnFinishByHost(ObjectSpawnFinishMessage message)
+        private static void OnEmptyMessageByHost<T>(T message) where T : IEvent
         {
         }
 
@@ -64,6 +60,11 @@ namespace JFramework.Net
 
         private static void SpawnByClient(SpawnMessage message)
         {
+        }
+
+        private static void PongByClient(PongMessage message)
+        {
+            NetworkTime.OnClientPong();
         }
 
         private static void ObjectSpawnStartByClient(ObjectSpawnStartMessage message)

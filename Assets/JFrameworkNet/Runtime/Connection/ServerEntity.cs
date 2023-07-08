@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public class ServerObject : Connection
+    public class ServerEntity : Connection
     {
         internal readonly Queue<NetworkWriter> writeQueue = new Queue<NetworkWriter>();
         internal bool connecting;

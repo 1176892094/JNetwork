@@ -1,19 +1,17 @@
 using System;
 using System.Collections.Generic;
 using JFramework.Udp;
-using UnityEngine;
 
 namespace JFramework.Net
 {
-    public sealed class ClientObject : Connection
+    public sealed class ClientEntity : Connection
     {
-        internal ServerObject connection;
-        public readonly NetworkReceive receive = new NetworkReceive();
-        public readonly HashSet<NetworkObject> observing = new HashSet<NetworkObject>();
-        public int clientId;
+        internal ServerEntity connection;
+        internal readonly NetworkReceive receive = new NetworkReceive();
+        internal readonly HashSet<NetworkObject> observing = new HashSet<NetworkObject>();
+        public readonly int clientId;
 
-        public ClientObject(int clientId) => this.clientId = clientId;
-
+        public ClientEntity(int clientId) => this.clientId = clientId;
 
         protected override void AddToQueue(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {

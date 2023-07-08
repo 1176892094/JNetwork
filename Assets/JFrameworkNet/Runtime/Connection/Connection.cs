@@ -105,7 +105,7 @@ namespace JFramework.Net
         protected NetworkSend GetSender(Channel channel)
         {
             if (sends.TryGetValue(channel, out var send)) return send;
-            Debug.Log($"Connection.GetSender{GetType()}");
+            Debug.Log($"Connection.GetSender: {GetType()}");
             var size = Transport.current.UnreliableSize();
             return sends[channel] = new NetworkSend(size);
         }

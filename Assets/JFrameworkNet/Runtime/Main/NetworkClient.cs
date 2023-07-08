@@ -16,7 +16,7 @@ namespace JFramework.Net
     public static partial class NetworkClient
     {
         private static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
-        public static ServerObject connection;
+        public static ServerEntity connection;
         public static bool isReady;
         public static bool isLoadScene;
         private static double lastSendTime;
@@ -38,7 +38,7 @@ namespace JFramework.Net
             RegisterTransport();
             ClientConnect(false);
             Transport.current.ClientConnect(address);
-            connection = new ServerObject();
+            connection = new ServerEntity();
         }
         
         /// <summary>
@@ -50,7 +50,7 @@ namespace JFramework.Net
             RegisterTransport();
             ClientConnect(false);
             Transport.current.ClientConnect(uri);
-            connection = new ServerObject();
+            connection = new ServerEntity();
         }
 
         /// <summary>
@@ -59,8 +59,8 @@ namespace JFramework.Net
         internal static void StartClient()
         {
             ClientConnect(true);
-            var client = new ClientObject(NetworkConst.HostId);
-            connection = new ServerObject();
+            var client = new ClientEntity(NetworkConst.HostId);
+            connection = new ServerEntity();
             client.connection = connection;
             client.isLocal = true;
             connection.isLocal = true;

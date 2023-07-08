@@ -10,15 +10,15 @@ namespace JFramework.Net
     public static partial class NetworkServer
     {
         private static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
-        private static readonly Dictionary<int, ClientObject> clients = new Dictionary<int, ClientObject>();
-        private static readonly List<ClientObject> copies = new List<ClientObject>();
+        private static readonly Dictionary<int, ClientEntity> clients = new Dictionary<int, ClientEntity>();
+        private static readonly List<ClientEntity> copies = new List<ClientEntity>();
         private static bool initialized;
         private static double lastSendTime;
         public static bool isActive;
         public static bool isLoadScene;
-        public static ClientObject connection;
-        internal static Action<ClientObject> OnConnected;
-        internal static Action<ClientObject> OnDisconnected;
+        public static ClientEntity connection;
+        internal static Action<ClientEntity> OnConnected;
+        internal static Action<ClientEntity> OnDisconnected;
         private static uint tickRate => NetworkManager.Instance.tickRate;
         private static uint maxConnection => NetworkManager.Instance.maxConnection;
         private static float sendRate => tickRate < int.MaxValue ? 1f / tickRate : 0;
@@ -44,7 +44,7 @@ namespace JFramework.Net
             SpawnObjects();
         }
 
-        internal static void OnClientConnect(ClientObject client)
+        internal static void OnClientConnect(ClientEntity client)
         {
             if (!clients.ContainsKey(client.clientId))
             {
@@ -55,7 +55,7 @@ namespace JFramework.Net
             OnConnected?.Invoke(client);
         }
 
-        internal static void SetClientReady(ClientObject client)
+        internal static void SetClientReady(ClientEntity client)
         {
             client.isReady = true;
         }

@@ -52,7 +52,7 @@ namespace JFramework.Net
                 return;
             }
 
-            OnClientConnect(new ClientObject(clientId));
+            OnClientConnect(new ClientEntity(clientId));
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace JFramework.Net
         /// 解码并且调用
         /// </summary>
         /// <returns>返回是否调用成功</returns>
-        private static bool TryInvoke(ClientObject client, NetworkReader reader, Channel channel)
+        private static bool TryInvoke(ClientEntity client, NetworkReader reader, Channel channel)
         {
             if (NetworkUtils.ReadMessage(reader, out ushort id))
             {

@@ -35,15 +35,15 @@ namespace JFramework.Udp
                 return;
             }
 
-            if (!Utils.TryGetAddress(address.ip, out var ip))
+            if (!Utils.TryGetAddress(address.ip, out var addresses))
             {
                 clientData.onDisconnected?.Invoke();
                 return;
             }
 
             Connection();
-            endPoint = new IPEndPoint(ip, address.port);
-            Log.Info($"Client connect to {address.ip} : {address.port}");
+            endPoint = new IPEndPoint(addresses[0], address.port);
+            Log.Info($"Client connect to {addresses[0]} : {address.port}");
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.Blocking = false;
             socket.SendBufferSize = setting.sendBufferSize;
@@ -93,9 +93,9 @@ namespace JFramework.Udp
             {
                 return socket.ReceiveFormServer(buffer, out segment);
             }
-            catch (Exception e)
+            catch (SocketException e)
             {
-                Log.Error($"Client receive failed!\n{e}");
+                Log.Info($"Client receive failed!\n{e}");
                 peer.Disconnect();
                 return false;
             }

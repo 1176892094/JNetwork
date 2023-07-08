@@ -8,17 +8,17 @@ namespace JFramework.Net
         public int sceneId;
         public int tickFrame;
         public NetworkWriter writer;
-        public ClientObject client;
+        public ClientEntity client;
         public NetworkBehaviour[] objects;
 
-        public void AddObserver(ClientObject client)
+        public void AddObserver(ClientEntity client)
         {
         }
 
         /// <summary>
         /// 处理Rpc事件
         /// </summary>
-        internal void HandleRpcEvent(byte componentIndex, ushort functionHash, RpcType rpcType, NetworkReader reader, ClientObject client = null)
+        internal void HandleRpcEvent(byte componentIndex, ushort functionHash, RpcType rpcType, NetworkReader reader, ClientEntity client = null)
         {
             if (this == null)
             {

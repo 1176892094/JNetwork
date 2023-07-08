@@ -14,9 +14,9 @@ namespace JFramework.Net
         public static event Action OnClientConnect;
         public static event Action OnClientDisconnect;
         public static event Action OnClientNotReady;
-        public static event Action<ClientObject> OnServerConnect;
-        public static event Action<ClientObject> OnServerDisconnect;
-        public static event Action<ClientObject> OnServerReady;
+        public static event Action<ClientEntity> OnServerConnect;
+        public static event Action<ClientEntity> OnServerDisconnect;
+        public static event Action<ClientEntity> OnServerReady;
         // public static event Action<string> OnClientLoadScene;
         // public static event Action<string> OnServerLoadScene;
         // public static event Action<string> OnClientSceneChanged;

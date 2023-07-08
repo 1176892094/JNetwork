@@ -79,7 +79,7 @@ namespace JFramework.Udp
             {
                 Buffer.BlockCopy(segment.Array, segment.Offset, jdpSendBuffer, 1, segment.Count);
             }
-
+            
             int sent = jdp.Send(jdpSendBuffer, 0, segment.Count + 1);
             if (sent < 0)
             {
@@ -141,7 +141,7 @@ namespace JFramework.Udp
                 Disconnect();
                 return false;
             }
-
+            
             header = (Header)messageBuffer[0];
             segment = new ArraySegment<byte>(messageBuffer, 1, messageSize - 1);
             lastReceiveTime = (uint)watch.ElapsedMilliseconds;

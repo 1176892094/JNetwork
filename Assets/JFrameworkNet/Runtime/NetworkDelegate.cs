@@ -6,12 +6,12 @@ namespace JFramework.Net
     /// <summary>
     /// 客户端权限改变
     /// </summary>
-    public delegate void AuthorityDelegate(ClientObject client, NetworkObject @object, bool authority);
+    public delegate void AuthorityDelegate(ClientEntity client, NetworkObject @object, bool authority);
     
     /// <summary>
     /// 远程呼叫的委托
     /// </summary>
-    public delegate void RpcDelegate(NetworkBehaviour obj, NetworkReader reader, ClientObject sendClient);
+    public delegate void RpcDelegate(NetworkBehaviour obj, NetworkReader reader, ClientEntity sendClient);
     
     /// <summary>
     /// 网络消息的委托

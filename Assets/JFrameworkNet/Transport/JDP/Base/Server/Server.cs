@@ -91,7 +91,7 @@ namespace JFramework.Udp
                     return true;
                 }
             }
-            catch (Exception e)
+            catch (SocketException e)
             {
                 Log.Error($"Server receive failed!\n{e}");
             }

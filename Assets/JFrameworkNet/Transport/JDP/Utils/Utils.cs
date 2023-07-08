@@ -82,18 +82,17 @@ namespace JFramework.Udp
         /// <summary>
         /// 解析主机地址
         /// </summary>
-        internal static bool TryGetAddress(string host, out IPAddress address)
+        internal static bool TryGetAddress(string host, out IPAddress[] addresses)
         {
             try
             {
-                IPAddress[] addresses = Dns.GetHostAddresses(host);
-                address = addresses[0];
+                addresses = Dns.GetHostAddresses(host);
                 return addresses.Length >= 1;
             }
             catch (SocketException exception)
             {
                 Log.Error($"Failed to resolve host: {host}\n{exception}");
-                address = null;
+                addresses = null;
                 return false;
             }
         }

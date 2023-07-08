@@ -20,7 +20,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        public static void RegisterMessage<T>(Action<ClientObject, T> handle, bool isAuthority = true) where T : struct, IEvent
+        public static void RegisterMessage<T>(Action<ClientEntity, T> handle, bool isAuthority = true) where T : struct, IEvent
         {
             serverEvents[MessageId<T>.Id] = NetworkUtils.Register(handle, isAuthority);
         }
@@ -28,7 +28,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        public static void RegisterMessage<T>(Action<ClientObject, T, Channel> handle, bool isAuthority = true) where T : struct, IEvent
+        public static void RegisterMessage<T>(Action<ClientEntity, T, Channel> handle, bool isAuthority = true) where T : struct, IEvent
         {
             serverEvents[MessageId<T>.Id] = NetworkUtils.Register(handle, isAuthority);
         }
@@ -36,7 +36,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端消息事件
         /// </summary>
-        public static bool ClientMessage(ushort key, ServerObject server, NetworkReader reader, Channel channel)
+        public static bool ClientMessage(ushort key, ServerEntity server, NetworkReader reader, Channel channel)
         {
             if (clientEvents.TryGetValue(key, out MessageDelegate handle))
             {
@@ -50,7 +50,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器消息事件
         /// </summary>
-        public static bool ServerMessage(ushort key, ClientObject client, NetworkReader reader, Channel channel)
+        public static bool ServerMessage(ushort key, ClientEntity client, NetworkReader reader, Channel channel)
         {
             if (serverEvents.TryGetValue(key, out MessageDelegate handle))
             {

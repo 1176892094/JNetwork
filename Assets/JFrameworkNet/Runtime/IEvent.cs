@@ -46,14 +46,19 @@ namespace JFramework.Net
         public ArraySegment<byte> payload;
     }
 
-    public struct NetworkPingMessage : IEvent
+    public struct PingMessage : IEvent
     {
         public readonly double clientTime;
 
-        public NetworkPingMessage(double value)
+        public PingMessage(double value)
         {
             clientTime = value;
         }
+    }
+    
+    public struct PongMessage : IEvent
+    {
+        public double clientTime;
     }
 
     public struct CommandMessage : IEvent
