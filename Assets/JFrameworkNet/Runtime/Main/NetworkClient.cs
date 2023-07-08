@@ -36,8 +36,9 @@ namespace JFramework.Net
         internal static void StartClient(Address address)
         {
             RegisterTransport();
-            Transport.current.ClientConnect(address);
             ClientConnect(false);
+            Transport.current.ClientConnect(address);
+            connection = new ServerObject();
         }
         
         /// <summary>
@@ -47,8 +48,9 @@ namespace JFramework.Net
         internal static void StartClient(Uri uri)
         {
             RegisterTransport();
-            Transport.current.ClientConnect(uri);
             ClientConnect(false);
+            Transport.current.ClientConnect(uri);
+            connection = new ServerObject();
         }
 
         /// <summary>
@@ -57,15 +59,19 @@ namespace JFramework.Net
         internal static void StartClient()
         {
             ClientConnect(true);
-            NetworkServer.connection = new ClientObject(NetworkConst.HostId);
+            var client = new ClientObject(NetworkConst.HostId);
+            connection = new ServerObject();
+            client.connection = connection;
+            client.isLocal = true;
             connection.isLocal = true;
+            NetworkServer.connection = client;
+            Debug.Log("NetworkClient.StartHost");
         }
 
         private static void ClientConnect(bool isHost)
         {
             receive = new NetworkReceive();
             state = isHost ? ConnectState.Connected : ConnectState.Connecting;
-            connection = new ServerObject();
             RegisterMessage(isHost);
         }
 
@@ -82,7 +88,8 @@ namespace JFramework.Net
                 Debug.LogError("No connection to the Server !");
                 return;
             }
-
+            
+            Debug.Log( $"NetworkClient.Ready: SendReadyMessage: {isReady}");
             isReady = true;
             connection.isReady = true;
             connection.Send(new ReadyMessage());

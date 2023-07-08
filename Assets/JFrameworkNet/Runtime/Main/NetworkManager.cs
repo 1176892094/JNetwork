@@ -133,7 +133,8 @@ namespace JFramework.Net
                 Debug.LogWarning("Server or Client already started.");
                 return;
             }
-
+            
+            Debug.Log("NetworkManager.StartHost");
             SetMode(NetworkMode.Host);
             NetworkServer.StartServer(isListen);
             RegisterServerEvent();

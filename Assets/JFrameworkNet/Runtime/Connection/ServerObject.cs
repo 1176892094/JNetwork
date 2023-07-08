@@ -29,6 +29,7 @@ namespace JFramework.Net
             {
                 connecting = false;
                 NetworkClient.OnConnected?.Invoke();
+                Debug.Log("ServerObject.LocalUpdate: Connected");
             }
 
             while (writeQueue.Count > 0)

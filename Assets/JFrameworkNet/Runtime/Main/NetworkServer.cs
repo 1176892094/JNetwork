@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 // ReSharper disable All
 
@@ -37,6 +38,7 @@ namespace JFramework.Net
                 RegisterMessage();
                 RegisterTransport();
                 NetworkTime.RuntimeInitializeOnLoad();
+                Debug.Log("NetworkServer.StartServer");
             }
 
             SpawnObjects();
@@ -49,6 +51,7 @@ namespace JFramework.Net
                 clients[client.clientId] = client;
             }
 
+            Debug.Log($"NetworkServer.OnClientConnect: {client.clientId}");
             OnConnected?.Invoke(client);
         }
 

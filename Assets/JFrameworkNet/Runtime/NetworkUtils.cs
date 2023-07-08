@@ -64,6 +64,11 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteMessage<T>(NetworkWriter writer, T message) where T : struct, IEvent
         {
+            if (typeof(T) != typeof(SnapshotMessage))
+            {
+                Debug.Log($"NetworkUtils.Write: {typeof(T)}");
+            }
+          
             writer.WriteUShort(MessageId<T>.Id);
             writer.Write(message);
         }

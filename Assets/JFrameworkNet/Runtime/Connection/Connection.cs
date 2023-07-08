@@ -68,6 +68,11 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
         {
+            if (typeof(T) != typeof(SnapshotMessage))
+            {
+                Debug.Log(typeof(T));
+            }
+           
             using var writer = NetworkWriterPool.Pop();
             NetworkUtils.WriteMessage(writer,message);
             AddToQueue(writer.ToArraySegment(), channel);
@@ -100,6 +105,7 @@ namespace JFramework.Net
         protected NetworkSend GetSender(Channel channel)
         {
             if (sends.TryGetValue(channel, out var send)) return send;
+            Debug.Log($"Connection.GetSender{GetType()}");
             var size = Transport.current.UnreliableSize();
             return sends[channel] = new NetworkSend(size);
         }
