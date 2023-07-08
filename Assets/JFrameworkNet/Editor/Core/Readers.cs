@@ -61,7 +61,7 @@ namespace JFramework.Editor
                     return null;
                 }
 
-                return GenerateReadCollection(variableReference, variableReference.GetElementType(), nameof(NetworkReaderExtensions.ReadArray), ref isFailed);
+                return GenerateReadCollection(variableReference, variableReference.GetElementType(), nameof(StreamExtensions.ReadArray), ref isFailed);
             }
             
             TypeDefinition variableDefinition = variableReference.Resolve();
@@ -94,7 +94,7 @@ namespace JFramework.Editor
                 GenericInstanceType genericInstance = (GenericInstanceType)variableReference;
                 TypeReference elementType = genericInstance.GenericArguments[0];
 
-                return GenerateReadCollection(variableReference, elementType, nameof(NetworkReaderExtensions.ReadList), ref isFailed);
+                return GenerateReadCollection(variableReference, elementType, nameof(StreamExtensions.ReadList), ref isFailed);
             }
             
             if (variableReference.IsDerivedFrom<NetworkBehaviour>() || variableReference.Is<NetworkBehaviour>())
@@ -152,7 +152,7 @@ namespace JFramework.Editor
             MethodDefinition readerFunc = GenerateReaderFunction(variable);
             GetReadFunc(elementType, ref isFailed);
             ModuleDefinition module = assembly.MainModule;
-            TypeReference readerExtensions = module.ImportReference(typeof(NetworkReaderExtensions));
+            TypeReference readerExtensions = module.ImportReference(typeof(StreamExtensions));
             MethodReference listReader = Resolvers.ResolveMethod(readerExtensions, assembly, logger, readerFunction, ref isFailed);
             GenericInstanceMethod methodRef = new GenericInstanceMethod(listReader);
             methodRef.GenericArguments.Add(elementType);

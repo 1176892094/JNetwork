@@ -6,7 +6,7 @@ using UnityEngine;
 // ReSharper disable All
 namespace JFramework.Net
 {
-    public static class NetworkReaderExtensions
+    public static partial class StreamExtensions
     {
         public static byte ReadByte(this NetworkReader reader)
         {

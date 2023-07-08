@@ -125,18 +125,20 @@ namespace JFramework.Net
                 writeDelegate(this, value);
             }
         }
-
+        
+        /// <summary>
+        /// 重写字符串转化方法
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             var segment = ToArraySegment();
             return segment.Array != null ? BitConverter.ToString(segment.Array, segment.Offset, segment.Count) : null;
         }
 
+        /// <summary>
+        /// 使用using来释放
+        /// </summary>
         public void Dispose() => NetworkWriterPool.Push(this);
-    }
-    
-    public static class Writer<T>
-    {
-        public static Action<NetworkWriter, T> write;
     }
 }

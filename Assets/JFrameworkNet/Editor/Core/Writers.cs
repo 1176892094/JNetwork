@@ -69,7 +69,7 @@ namespace JFramework.Editor
                     throw new WriterException($"{variableReference.Name} is an unsupported type. Multidimensional arrays are not supported", variableReference);
                 }
                 TypeReference elementType = variableReference.GetElementType();
-                return GenerateCollectionWriter(variableReference, elementType, nameof(NetworkWriterExtensions.WriteArray), ref isFailed);
+                return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteArray), ref isFailed);
             }
 
             if (variableReference.Resolve()?.IsEnum ?? false)
@@ -82,14 +82,14 @@ namespace JFramework.Editor
                 GenericInstanceType genericInstance = (GenericInstanceType)variableReference;
                 TypeReference elementType = genericInstance.GenericArguments[0];
 
-                return GenerateCollectionWriter(variableReference, elementType, nameof(NetworkWriterExtensions.WriteArraySegment), ref isFailed);
+                return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteArraySegment), ref isFailed);
             }
             if (variableReference.Is(typeof(List<>)))
             {
                 GenericInstanceType genericInstance = (GenericInstanceType)variableReference;
                 TypeReference elementType = genericInstance.GenericArguments[0];
 
-                return GenerateCollectionWriter(variableReference, elementType, nameof(NetworkWriterExtensions.WriteList), ref isFailed);
+                return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteList), ref isFailed);
             }
             
             if (variableReference.IsDerivedFrom<NetworkBehaviour>() || variableReference.Is<NetworkBehaviour>())
@@ -233,7 +233,7 @@ namespace JFramework.Editor
             }
 
             ModuleDefinition module = assembly.MainModule;
-            TypeReference readerExtensions = module.ImportReference(typeof(NetworkWriterExtensions));
+            TypeReference readerExtensions = module.ImportReference(typeof(StreamExtensions));
             MethodReference collectionWriter = Resolvers.ResolveMethod(readerExtensions, assembly, logger, writerFunction, ref isFailed);
 
             GenericInstanceMethod methodRef = new GenericInstanceMethod(collectionWriter);

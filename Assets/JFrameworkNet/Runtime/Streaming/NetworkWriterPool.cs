@@ -1,10 +1,16 @@
+using System;
 using System.Runtime.CompilerServices;
 
 namespace JFramework.Net
 {
+    public static class Writer<T>
+    {
+        public static Action<NetworkWriter, T> write;
+    }
+
     public static class NetworkWriterPool
     {
-        private static readonly Pool<NetworkWriter> Pool = new Pool<NetworkWriter>( 1000);
+        private static readonly Pool<NetworkWriter> Pool = new Pool<NetworkWriter>(1000);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkWriter Pop()

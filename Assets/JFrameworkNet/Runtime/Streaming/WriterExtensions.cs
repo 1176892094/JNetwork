@@ -5,7 +5,7 @@ using UnityEngine;
 // ReSharper disable All
 namespace JFramework.Net
 {
-    public static class NetworkWriterExtensions
+    public static partial class StreamExtensions
     {
         public static void WriteByte(this NetworkWriter writer, byte value)
         {
