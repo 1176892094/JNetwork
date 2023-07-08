@@ -78,6 +78,7 @@ namespace JFramework.Net
                 return false;
             }
             
+            receive = new NetworkReceive();
             RegisterMessage(isHost);
             return true;
         }
@@ -132,7 +133,7 @@ namespace JFramework.Net
             }
         }
 
-        public static void RuntimeInitializeOnLoad()
+        public static void StopClient()
         {
             state = ConnectState.Disconnected;
             spawns.Clear();

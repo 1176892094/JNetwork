@@ -24,16 +24,15 @@ namespace JFramework.Net
 
         internal virtual void Update()
         {
-            foreach (var (channels, batch) in batches)
+            foreach (var (channel, batch) in batches)
             {
                 using var writer = NetworkWriterPool.Pop();
                 while (batch.WriteDequeue(writer))
                 {
                     var segment = writer.ToArraySegment();
-                    if (PacketValidate(segment, channels))
+                    if (PacketValidate(segment, channel))
                     {
-                        Debug.Log(batch);
-                        SendToTransport(segment, channels);
+                        SendToTransport(segment, channel);
                         writer.position = 0;
                     }
                 }

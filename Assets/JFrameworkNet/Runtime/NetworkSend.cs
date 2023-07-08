@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace JFramework.Net
 {
@@ -61,9 +62,11 @@ namespace JFramework.Net
 
             if (batch == null)
             {
+                Debug.Log("false");
                 return false;
             }
 
+            Debug.Log(batch);
             CopyAndWrite(batch, writer);
             batch = null;
             return true;

@@ -125,6 +125,12 @@ namespace JFramework.Net
                 writeDelegate(this, value);
             }
         }
+
+        public override string ToString()
+        {
+            var segment = ToArraySegment();
+            return BitConverter.ToString(segment.Array, segment.Offset, segment.Count);
+        }
     }
     
     public static class Writer<T>

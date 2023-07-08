@@ -39,7 +39,6 @@ namespace JFramework.Net
             }
 
             NetworkTime.RuntimeInitializeOnLoad();
-            receive = new NetworkReceive();
             state = ConnectState.Connected;
             NetworkTime.UpdateClient();
             OnConnected?.Invoke();

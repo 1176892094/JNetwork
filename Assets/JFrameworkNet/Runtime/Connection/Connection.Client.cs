@@ -6,11 +6,26 @@ namespace JFramework.Net
 {
     public sealed class ClientConnection : Connection
     {
+        internal ServerConnection connection;
         public NetworkReceive receive = new NetworkReceive();
         public readonly HashSet<NetworkObject> observing = new HashSet<NetworkObject>();
 
         public ClientConnection(int clientId) : base(clientId)
         {
+        }
+
+        internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
+        {
+            if (isLocal)
+            {
+                NetworkWriterObject writer = NetworkWriterPool.Pop();
+                writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
+                connection.writeQueue.Enqueue(writer);
+            }
+            else
+            {
+                base.Send(segment, channel);
+            }
         }
 
         protected override void SendToTransport(ArraySegment<byte> segment, Channel channel = Channel.Reliable)

@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace JFramework.Net
 {
     public sealed partial class NetworkManager
@@ -60,7 +62,7 @@ namespace JFramework.Net
             networkMode = networkMode == NetworkMode.Host ? NetworkMode.Server : NetworkMode.None;
             OnClientDisconnect?.Invoke();
             OnStopClient?.Invoke();
-            NetworkClient.RuntimeInitializeOnLoad();
+            NetworkClient.StopClient();
             if (networkMode == NetworkMode.Server) return;
             sceneName = "";
         }

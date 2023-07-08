@@ -71,7 +71,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器从传输接收数据
         /// </summary>
-        private static void OnServerReceive(int clientId, ArraySegment<byte> segment, Channel channel)
+        internal static void OnServerReceive(int clientId, ArraySegment<byte> segment, Channel channel)
         {
             if (!clients.TryGetValue(clientId, out var client))
             {

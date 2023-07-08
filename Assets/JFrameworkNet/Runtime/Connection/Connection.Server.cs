@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using JFramework.Udp;
+using UnityEngine;
 
 namespace JFramework.Net
 {
     public class ServerConnection : Connection
     {
         internal readonly Queue<NetworkWriterObject> writeQueue = new Queue<NetworkWriterObject>();
+        
         internal bool connecting;
         internal bool disconnecting;
         
@@ -18,10 +20,12 @@ namespace JFramework.Net
         internal override void Update()
         {
             base.Update();
+            if (!isLocal) return;
             if (connecting)
             {
                 connecting = false;
                 NetworkClient.OnConnected?.Invoke();
+                Debug.Log(NetworkClient.OnConnected?.Method);
             }
             
             while (writeQueue.Count > 0)
@@ -45,7 +49,36 @@ namespace JFramework.Net
             disconnecting = false;
             NetworkClient.OnDisconnected?.Invoke();
         }
-        
+
+        internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
+        {
+            if (isLocal)
+            {
+                if (segment.Count == 0)
+                {
+                    Debug.LogError("LocalConnection.SendBytes cannot send zero bytes");
+                    return;
+                }
+                
+                NetworkSend send = GetBatch(channel);
+                send.WriteEnqueue(segment, NetworkTime.localTime);
+
+                using var writer = NetworkWriterPool.Pop();
+                if (send.WriteDequeue(writer))
+                {
+                    NetworkServer.OnServerReceive(clientId, writer.ToArraySegment(), channel);
+                }
+                else
+                {
+                    Debug.LogError("Local connection failed to make batch. This should never happen.");
+                }
+            }
+            else
+            {
+                base.Send(segment,channel);
+            }
+        }
+
         public override void Disconnect()
         {
             isReady = false;
