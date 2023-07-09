@@ -182,7 +182,7 @@ namespace JFramework.Net
         {
             uint netId = reader.ReadUInt();
             if (netId == 0) return null;
-            return NetworkMessage.GetNetworkIdentity(netId);
+            return NetworkUtils.GetNetworkIdentity(netId);
         }
 
         public static NetworkBehaviour ReadNetworkBehaviour(this NetworkReader reader)
@@ -190,7 +190,7 @@ namespace JFramework.Net
             uint netId = reader.ReadUInt();
             if (netId == 0) return null;
             byte componentIndex = reader.ReadByte();
-            NetworkObject @object = NetworkMessage.GetNetworkIdentity(netId);
+            NetworkObject @object = NetworkUtils.GetNetworkIdentity(netId);
             return @object != null ? @object.objects[componentIndex] : null;
         }
 

@@ -76,7 +76,7 @@ namespace JFramework.Net
 
         public override void ClientDisconnect() => client.Disconnect();
 
-        public override void ServerConnect() => server.Connect(address);
+        public override void StartServer() => server.Connect(address);
 
         public override void ServerSend(int clientId, ArraySegment<byte> segment, Channel channel)
         {
@@ -93,7 +93,7 @@ namespace JFramework.Net
 
         public override int UnreliableSize() => Utils.UnreliableSize(maxTransmitUnit);
 
-        public override void ServerStop() => server.ShutDown();
+        public override void StopServer() => server.StopServer();
 
         public override void ClientEarlyUpdate()
         {

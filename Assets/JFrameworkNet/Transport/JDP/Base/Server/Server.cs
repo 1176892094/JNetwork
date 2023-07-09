@@ -196,7 +196,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 停止服务器
         /// </summary>
-        public void ShutDown()
+        public void StopServer()
         {
             socket?.Close();
             socket = null;

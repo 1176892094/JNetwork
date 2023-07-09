@@ -22,7 +22,7 @@ namespace JFramework.Net
         {
             if (isActive)
             {
-                if (NetworkMessage.Elapsed(NetworkTime.localTime, sendRate, ref lastSendTime))
+                if (NetworkUtils.Elapsed(NetworkTime.localTime, sendRate, ref lastSendTime))
                 {
                     Broadcast();
                 }

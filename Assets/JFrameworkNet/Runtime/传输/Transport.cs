@@ -80,7 +80,7 @@ namespace JFramework.Net
         /// <summary>
         /// 当服务器连接
         /// </summary>
-        public abstract void ServerConnect();
+        public abstract void StartServer();
 
         /// <summary>
         /// 服务器传输信息给客户端
@@ -96,7 +96,7 @@ namespace JFramework.Net
         /// <summary>
         /// 当服务器停止
         /// </summary>
-        public abstract void ServerStop();
+        public abstract void StopServer();
         
         /// <summary>
         /// 获取最大网络消息大小

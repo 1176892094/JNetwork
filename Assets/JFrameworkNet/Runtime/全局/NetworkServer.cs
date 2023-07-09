@@ -83,7 +83,7 @@ namespace JFramework.Net
         {
             if (isListen)
             {
-                Transport.current.ServerConnect();
+                Transport.current.StartServer();
             }
 
             if (!isActive)
@@ -221,7 +221,7 @@ namespace JFramework.Net
             {
                 isActive = false;
                 DisconnectToAll();
-                Transport.current.ServerStop();
+                Transport.current.StopServer();
                 UnRegisterTransport();
             }
 
