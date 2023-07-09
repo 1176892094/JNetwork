@@ -69,7 +69,7 @@ namespace JFramework.Net
         public void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
         {
             using var writer = NetworkWriter.Pop();
-            NetworkUtils.WriteMessage(writer,message);
+            NetworkMessage.WriteMessage(writer,message);
             Send(writer.ToArraySegment(), channel);
         }
 

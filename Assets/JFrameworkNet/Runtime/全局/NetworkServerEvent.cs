@@ -20,7 +20,7 @@ namespace JFramework.Net
         /// </summary>
         internal static void RegisterEvent<T>(Action<ClientEntity, T> handle, bool isAuthority = true) where T : struct, IEvent
         {
-            messages[MessageId<T>.Id] = NetworkUtils.Register(handle, isAuthority);
+            messages[MessageId<T>.Id] = NetworkMessage.Register(handle, isAuthority);
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace JFramework.Net
         /// </summary>
         private static void RegisterEvent<T>(Action<ClientEntity, T, Channel> handle, bool isAuthority = true) where T : struct, IEvent
         {
-            messages[MessageId<T>.Id] = NetworkUtils.Register(handle, isAuthority);
+            messages[MessageId<T>.Id] = NetworkMessage.Register(handle, isAuthority);
         }
 
         /// <summary>

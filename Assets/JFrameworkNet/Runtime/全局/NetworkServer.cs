@@ -159,7 +159,7 @@ namespace JFramework.Net
             }
 
             using var writer = NetworkWriter.Pop();
-            NetworkUtils.WriteMessage(writer, message);
+            NetworkMessage.WriteMessage(writer, message);
             var segment = writer.ToArraySegment();
             foreach (var client in clients.Values)
             {
@@ -182,7 +182,7 @@ namespace JFramework.Net
             }
 
             using var writer = NetworkWriter.Pop();
-            NetworkUtils.WriteMessage(writer, message);
+            NetworkMessage.WriteMessage(writer, message);
             var segment = writer.ToArraySegment();
             foreach (var client in clients.Values.Where(client => client.isReady))
             {

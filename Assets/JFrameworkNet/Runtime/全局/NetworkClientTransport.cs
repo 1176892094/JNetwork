@@ -113,7 +113,7 @@ namespace JFramework.Net
         /// <returns>返回是否读取成功</returns>
         private static bool TryInvoke(NetworkReader reader, Channel channel)
         {
-            if (NetworkUtils.ReadMessage(reader, out ushort id))
+            if (NetworkMessage.ReadMessage(reader, out ushort id))
             {
                 if (messages.TryGetValue(id, out MessageDelegate handle))
                 {

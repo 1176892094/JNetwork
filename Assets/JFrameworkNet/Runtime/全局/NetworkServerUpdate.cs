@@ -4,6 +4,9 @@ namespace JFramework.Net
 {
     public static partial class NetworkServer
     {
+        /// <summary>
+        /// 在Update之前调用
+        /// </summary>
         internal static void EarlyUpdate()
         {
             if (Transport.current != null)
@@ -12,11 +15,14 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 在Update之后调用
+        /// </summary>
         internal static void AfterUpdate()
         {
             if (isActive)
             {
-                if (NetworkUtils.Elapsed(NetworkTime.localTime, sendRate, ref lastSendTime))
+                if (NetworkMessage.Elapsed(NetworkTime.localTime, sendRate, ref lastSendTime))
                 {
                     Broadcast();
                 }
@@ -28,6 +34,9 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 服务器对所有客户端进行广播和更新
+        /// </summary>
         private static void Broadcast()
         {
             copies.Clear();
@@ -44,6 +53,10 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 被广播的指定客户端
+        /// </summary>
+        /// <param name="client">指定的客户端</param>
         private static void BroadcastToClient(ClientEntity client)
         {
         }

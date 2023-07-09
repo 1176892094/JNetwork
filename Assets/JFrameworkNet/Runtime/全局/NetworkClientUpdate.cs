@@ -2,6 +2,9 @@ namespace JFramework.Net
 {
     public static partial class NetworkClient
     {
+        /// <summary>
+        /// 在Update前调用
+        /// </summary>
         public static void EarlyUpdate()
         {
             if (Transport.current != null)
@@ -10,11 +13,14 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 在Update之后调用
+        /// </summary>
         public static void AfterUpdate()
         {
             if (isActive)
             {
-                if (NetworkUtils.Elapsed(NetworkTime.localTime, sendRate, ref lastSendTime))
+                if (NetworkMessage.Elapsed(NetworkTime.localTime, sendRate, ref lastSendTime))
                 {
                     Broadcast();
                 }
@@ -42,6 +48,9 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 客户端进行广播
+        /// </summary>
         private static void Broadcast()
         {
         }

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public static class NetworkUtils
+    public static class NetworkMessage
     {
         /// <summary>
         /// 是场景物体
@@ -149,6 +149,6 @@ namespace JFramework.Net
 
     public static class MessageId<T> where T : struct, IEvent
     {
-        public static readonly ushort Id = (ushort)NetworkUtils.GetHashByName(typeof(T).FullName);
+        public static readonly ushort Id = (ushort)NetworkMessage.GetHashByName(typeof(T).FullName);
     }
 }
