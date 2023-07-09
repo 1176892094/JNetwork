@@ -49,12 +49,12 @@ namespace JFramework.Editor
                 }
                 else
                 {
-                    logger.Error($"Failed to resolve {assemblyReference}");
+                    logger.Error($"自动生成网络代码失败: {assemblyReference}");
                 }
             }
             else
             {
-                logger.Error("Can't register JFramework.Net.dll readers/writers");
+                logger.Error("注册程序集 JFramework.Net.dll 失败");
             }
         }
 

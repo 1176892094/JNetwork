@@ -56,7 +56,7 @@ namespace JFramework.Editor
             {
                 if (variableReference.IsMultidimensionalArray())
                 {
-                    logger.Error($"{variableReference.Name} is an unsupported type. Multidimensional arrays are not supported", variableReference);
+                    logger.Error($"无法为多维数组 {variableReference.Name} 生成 Reader", variableReference);
                     isFailed = true;
                     return null;
                 }
@@ -67,14 +67,14 @@ namespace JFramework.Editor
             TypeDefinition variableDefinition = variableReference.Resolve();
             if (variableDefinition == null)
             {
-                logger.Error($"{variableReference.Name} is not a supported type", variableReference); 
+                logger.Error($"无法为Null {variableReference.Name} 生成 Reader", variableReference); 
                 isFailed = true;
                 return null;
             }
             
             if (variableReference.IsByReference)
             {
-                logger.Error($"Cannot pass type {variableReference.Name} by reference", variableReference);
+                logger.Error($"无法为反射 {variableReference.Name} 生成 Reader", variableReference);
                 isFailed = true;
                 return null;
             }
@@ -104,42 +104,42 @@ namespace JFramework.Editor
             
             if (variableDefinition.IsDerivedFrom<Component>())
             {
-                logger.Error($"Cannot generate reader for component type {variableReference.Name}.", variableReference);
+                logger.Error($"无法为组件 {variableReference.Name} 生成 Reader", variableReference);
                 isFailed = true;
                 return null;
             }
             
             if (variableReference.Is<Object>())
             {
-                logger.Error($"Cannot generate reader for {variableReference.Name}.", variableReference);
+                logger.Error($"无法为对象 {variableReference.Name} 生成 Reader", variableReference);
                 isFailed = true;
                 return null;
             }
             
             if (variableReference.Is<ScriptableObject>())
             {
-                logger.Error($"Cannot generate reader for {variableReference.Name}.", variableReference);
+                logger.Error($"无法为可视化脚本 {variableReference.Name} 生成 Reader", variableReference);
                 isFailed = true;
                 return null;
             }
             
             if (variableDefinition.HasGenericParameters)
             {
-                logger.Error($"Cannot generate reader for generic variable {variableReference.Name}.", variableReference);
+                logger.Error($"无法为通用变量 {variableReference.Name} 生成 Reader", variableReference);
                 isFailed = true;
                 return null;
             }
             
             if (variableDefinition.IsInterface)
             {
-                logger.Error($"Cannot generate reader for interface {variableReference.Name}.", variableReference);
+                logger.Error($"无法为接口 {variableReference.Name} 生成 Reader", variableReference);
                 isFailed = true;
                 return null;
             }
             
             if (variableDefinition.IsAbstract)
             { 
-                logger.Error($"Cannot generate reader for abstract class {variableReference.Name}.", variableReference);
+                logger.Error($"无法为抽象类 {variableReference.Name} 生成 Reader", variableReference);
                 isFailed = true;
                 return null;
             }
@@ -260,7 +260,7 @@ namespace JFramework.Editor
                 MethodDefinition ctor = Resolvers.ResolveDefaultPublicCtor(variable);
                 if (ctor == null)
                 {
-                    logger.Error($"{variable.Name} can't be deserialized because it has no default constructor.", variable);
+                    logger.Error($"{variable.Name} 不能被反序列化，因为它没有默认的构造函数", variable);
                     isFailed = true;
                     return;
                 }
@@ -286,7 +286,7 @@ namespace JFramework.Editor
                 }
                 else
                 {
-                    logger.Error($"{field.Name} has an unsupported type", field);
+                    logger.Error($"{field.Name} 有不受支持的类型", field);
                     isFailed = true;
                 }
                 FieldReference fieldRef = assembly.MainModule.ImportReference(field);

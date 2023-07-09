@@ -9,7 +9,7 @@ namespace JFramework.Editor
         {
             if (type == null)
             {
-                logger.Error($"Cannot resolve method {name} without a class");
+                logger.Error($"没有类无法解析方法: {name}");
                 isFailed = true;
                 return null;
             }
@@ -17,7 +17,7 @@ namespace JFramework.Editor
             MethodReference method = ResolveMethod(type, assembly, logger, m => m.Name == name, ref isFailed);
             if (method == null)
             {
-                logger.Error($"Method not found with name {name} in type {type.Name}", type);
+                logger.Error($"在类型 {type.Name} 中没有找到名称 {name} 的方法", type);
                 isFailed = true;
             }
 
@@ -31,7 +31,7 @@ namespace JFramework.Editor
                 return assembly.MainModule.ImportReference(method);
             }
 
-            logger.Error($"Method not found in type {type.Name}", type);
+            logger.Error($"在类型 {type.Name} 中没有找到方法", type);
             isFailed = true;
             return null;
         }

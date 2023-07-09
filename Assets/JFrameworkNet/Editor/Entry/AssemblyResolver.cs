@@ -39,7 +39,7 @@ namespace JFramework.Editor
                 string fileName = FindFile(name);
                 if (fileName == null)
                 {
-                    logger.Warn($"AssemblyResolver: Failed to find file for {name}");
+                    logger.Warn($"无法找到文件: {name}");
                     return null;
                 }
 

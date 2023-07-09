@@ -40,36 +40,30 @@ namespace JFramework.Editor
         
         public MethodReference GetWriteFunc(TypeReference variable, ref bool isFailed)
         {
-            if (writeFuncList.TryGetValue(variable, out MethodReference foundFunc)) return foundFunc;
+            if (writeFuncList.TryGetValue(variable, out MethodReference foundFunc))
+            {
+                return foundFunc;
+            }
             
-            try
-            {
-                TypeReference importedVariable = assembly.MainModule.ImportReference(variable);
-                return GenerateWriter(importedVariable, ref isFailed);
-            }
-            catch (WriterException e)
-            {
-                logger.Error(e.Message, e.MemberReference);
-                isFailed = true;
-                return null;
-            }
+            TypeReference importedVariable = assembly.MainModule.ImportReference(variable);
+            return GenerateWriter(importedVariable, ref isFailed);
         }
 
         private MethodReference GenerateWriter(TypeReference variableReference, ref bool isFailed)
         {
-            if (variableReference.IsByReference)
-            {
-                throw new WriterException($"Cannot pass {variableReference.Name} by reference", variableReference);
-            }
-            
             if (variableReference.IsArray)
             {
                 if (variableReference.IsMultidimensionalArray())
                 {
-                    throw new WriterException($"{variableReference.Name} is an unsupported type. Multidimensional arrays are not supported", variableReference);
+                    logger.Error($"无法为多维数组 {variableReference.Name} 生成 Writer", variableReference);
                 }
                 TypeReference elementType = variableReference.GetElementType();
                 return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteArray), ref isFailed);
+            }
+            
+            if (variableReference.IsByReference)
+            {
+                logger.Error($"无法为反射 {variableReference.Name} 生成 Writer", variableReference);
             }
 
             if (variableReference.Resolve()?.IsEnum ?? false)
@@ -100,31 +94,38 @@ namespace JFramework.Editor
             TypeDefinition variableDefinition = variableReference.Resolve();
             if (variableDefinition == null)
             {
-                throw new WriterException($"{variableReference.Name} is not a supported type.", variableReference);
+                logger.Error($"无法为Null {variableReference.Name} 生成 Writer", variableReference);
+                return null;
             }
             if (variableDefinition.IsDerivedFrom<Component>())
             {
-                throw new WriterException($"Cannot generate writer for component type {variableReference.Name}.", variableReference);
+                logger.Error($"无法为组件 {variableReference.Name} 生成 Writer", variableReference);
+                return null;
             }
             if (variableReference.Is<Object>())
             {
-                throw new WriterException($"Cannot generate writer for {variableReference.Name}.", variableReference);
+                logger.Error($"无法为对象 {variableReference.Name} 生成 Writer", variableReference);
+                return null;
             }
             if (variableReference.Is<ScriptableObject>())
             {
-                throw new WriterException($"Cannot generate writer for {variableReference.Name}.", variableReference);
+                logger.Error($"无法为可视化脚本 {variableReference.Name} 生成 Writer", variableReference);
+                return null;
             }
             if (variableDefinition.HasGenericParameters)
             {
-                throw new WriterException($"Cannot generate writer for generic type {variableReference.Name}.", variableReference);
+                logger.Error($"无法为通用变量 {variableReference.Name} 生成 Writer", variableReference);
+                return null;
             }
             if (variableDefinition.IsInterface)
             {
-                throw new WriterException($"Cannot generate writer for interface {variableReference.Name}.", variableReference);
+                logger.Error($"无法为接口 {variableReference.Name} 生成 Writer", variableReference);
+                return null;
             }
             if (variableDefinition.IsAbstract)
             {
-                throw new WriterException($"Cannot generate writer for abstract class {variableReference.Name}.", variableReference);
+                logger.Error($"无法为抽象类 {variableReference.Name} 生成 Writer", variableReference);
+                return null;
             }
             
             return GenerateClassOrStructWriterFunction(variableReference, ref isFailed);
@@ -137,8 +138,7 @@ namespace JFramework.Editor
                 Register(variableReference, func);
                 return func;
             }
-            
-            throw new MissingMethodException($"Could not find writer for NetworkBehaviour");
+            throw new MissingMethodException($"无法从 NetworkEntity 获取 Writer");
         }
 
         private MethodDefinition GenerateEnumWriteFunc(TypeReference variable, ref bool isFailed)
@@ -176,10 +176,14 @@ namespace JFramework.Editor
             ILProcessor worker = writerFunc.Body.GetILProcessor();
 
             if (!variable.Resolve().IsValueType)
+            {
                 WriteNullCheck(worker, ref isFailed);
+            }
 
             if (!WriteAllFields(variable, worker, ref isFailed))
+            {
                 return null;
+            }
 
             worker.Emit(OpCodes.Ret);
             return writerFunc;
@@ -206,10 +210,12 @@ namespace JFramework.Editor
             foreach (FieldDefinition field in variable.FindAllPublicFields())
             {
                 MethodReference writeFunc = GetWriteFunc(field.FieldType, ref isFailed);
-                if (writeFunc == null) { return false; }
+                if (writeFunc == null)
+                {
+                    return false;
+                }
 
                 FieldReference fieldRef = assembly.MainModule.ImportReference(field);
-
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldfld, fieldRef);
@@ -221,13 +227,12 @@ namespace JFramework.Editor
 
         private MethodDefinition GenerateCollectionWriter(TypeReference variable, TypeReference elementType, string writerFunction, ref bool isFailed)
         {
-
             MethodDefinition writerFunc = GenerateWriterFunc(variable);
             MethodReference elementWriteFunc = GetWriteFunc(elementType, ref isFailed);
 
             if (elementWriteFunc == null)
             {
-                logger.Error($"Cannot generate writer for {variable}.", variable);
+                logger.Error($"无法为 {variable} 生成 Writer", variable);
                 isFailed = true;
                 return writerFunc;
             }
@@ -244,7 +249,6 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Call, methodRef);
             worker.Emit(OpCodes.Ret);
-
             return writerFunc;
         }
         
