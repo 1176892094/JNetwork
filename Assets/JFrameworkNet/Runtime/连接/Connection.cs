@@ -6,13 +6,39 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
+    /// <summary>
+    /// 网络连接 (Server or Client)
+    /// </summary>
     public abstract class Connection
     {
-        private readonly Dictionary<Channel, NetworkWriters> sends = new Dictionary<Channel, NetworkWriters>();
+        /// <summary>
+        /// 存储不同传输通道写入的网络信息
+        /// </summary>
+        private readonly Dictionary<Channel, NetworkWriters> writerDict = new Dictionary<Channel, NetworkWriters>();
+        
+        /// <summary>
+        /// 存储自身所有的网络游戏对象
+        /// </summary>
         public readonly HashSet<NetworkObject> objects = new HashSet<NetworkObject>();
+        
+        /// <summary>
+        /// 是否准备好可以接收信息
+        /// </summary>
         public bool isReady;
+        
+        /// <summary>
+        /// 是否为本地连接
+        /// </summary>
         public bool isLocal;
+        
+        /// <summary>
+        /// 是否已经验证权限
+        /// </summary>
         public bool isAuthority;
+        
+        /// <summary>
+        /// 远端时间戳
+        /// </summary>
         public double timestamp;
 
         /// <summary>
@@ -20,10 +46,10 @@ namespace JFramework.Net
         /// </summary>
         internal virtual void Update()
         {
-            foreach (var (channel, send) in sends) // 遍历可靠和不可靠消息
+            foreach (var (channel, writers) in writerDict) // 遍历可靠和不可靠消息
             {
                 using var writer = NetworkWriter.Pop();
-                while (send.WriteDequeue(writer))
+                while (writers.WriteDequeue(writer))
                 {
                     var segment = writer.ToArraySegment();
                     if (IsValid(segment, channel))
@@ -62,14 +88,14 @@ namespace JFramework.Net
         /// <summary>
         /// 发送网络消息
         /// </summary>
-        /// <param name="message">数据分段</param>
+        /// <param name="event">事件类型</param>
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T">传入NetworkMessage</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
+        public void Send<T>(T @event, Channel channel = Channel.Reliable) where T : struct, IEvent
         {
             using var writer = NetworkWriter.Pop();
-            NetworkMessage.WriteMessage(writer,message);
+            NetworkEvent.WriteEvent(writer, @event);
             Send(writer.ToArraySegment(), channel);
         }
 
@@ -99,10 +125,10 @@ namespace JFramework.Net
         /// <returns>返回一个发送类</returns>
         protected NetworkWriters GetWriters(Channel channel)
         {
-            if (sends.TryGetValue(channel, out var send)) return send;
+            if (writerDict.TryGetValue(channel, out var writers)) return writers;
             Debug.Log($"Connection --> GetWriters : {GetType()}");
             var size = Transport.current.UnreliableSize();
-            return sends[channel] = new NetworkWriters(size);
+            return writerDict[channel] = new NetworkWriters(size);
         }
         
         /// <summary>

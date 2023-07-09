@@ -29,7 +29,7 @@ namespace JFramework.Net
             NetworkServer.isLoadScene = true;
             if (NetworkServer.isActive)
             {
-                NetworkServer.SendToAll(new SceneMessage
+                NetworkServer.SendToAll(new SceneEvent
                 {
                     sceneName = newSceneName
                 });

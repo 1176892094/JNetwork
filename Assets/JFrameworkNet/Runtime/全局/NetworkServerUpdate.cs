@@ -45,7 +45,7 @@ namespace JFramework.Net
             {
                 if (client.isReady)
                 {
-                    client.Send(new SnapshotMessage(), Channel.Unreliable);
+                    client.Send(new SnapshotEvent(), Channel.Unreliable);
                     BroadcastToClient(client);
                 }
 

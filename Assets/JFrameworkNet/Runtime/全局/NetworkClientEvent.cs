@@ -12,46 +12,46 @@ namespace JFramework.Net
         {
             if (isHost)
             {
-                RegisterEvent<SpawnMessage>(SpawnByHost);
-                RegisterEvent<ObjectDestroyMessage>(ObjectDestroyByHost);
-                RegisterEvent<ObjectHideMessage>(OnEmptyMessageByHost);
-                RegisterEvent<ObjectSpawnStartMessage>(OnEmptyMessageByHost);
-                RegisterEvent<ObjectSpawnFinishMessage>(OnEmptyMessageByHost);
-                RegisterEvent<PongMessage>(OnEmptyMessageByHost);
+                RegisterEvent<SpawnEvent>(SpawnByHost);
+                RegisterEvent<ObjectDestroyEvent>(ObjectDestroyByHost);
+                RegisterEvent<ObjectHideEvent>(OnEmptyMessageByHost);
+                RegisterEvent<ObjectSpawnStartEvent>(OnEmptyMessageByHost);
+                RegisterEvent<ObjectSpawnFinishEvent>(OnEmptyMessageByHost);
+                RegisterEvent<PongEvent>(OnEmptyMessageByHost);
             }
             else
             {
-                RegisterEvent<SpawnMessage>(SpawnByClient);
-                RegisterEvent<ObjectDestroyMessage>(ObjectDestroyByClient);
-                RegisterEvent<ObjectHideMessage>(ObjectHideByClient);
-                RegisterEvent<ObjectSpawnStartMessage>(ObjectSpawnStartByClient);
-                RegisterEvent<ObjectSpawnFinishMessage>(ObjectSpawnFinishByClient);
-                RegisterEvent<PongMessage>(PongByClient);
+                RegisterEvent<SpawnEvent>(SpawnByClient);
+                RegisterEvent<ObjectDestroyEvent>(ObjectDestroyByClient);
+                RegisterEvent<ObjectHideEvent>(ObjectHideByClient);
+                RegisterEvent<ObjectSpawnStartEvent>(ObjectSpawnStartByClient);
+                RegisterEvent<ObjectSpawnFinishEvent>(ObjectSpawnFinishByClient);
+                RegisterEvent<PongEvent>(PongByClient);
             }
 
-            RegisterEvent<SnapshotMessage>(OnSnapshotMessage);
-            RegisterEvent<ChangeOwnerMessage>(OnOwnerChanged);
-            RegisterEvent<RpcBufferMessage>(RpcBufferMessage);
+            RegisterEvent<SnapshotEvent>(OnSnapshotMessage);
+            RegisterEvent<ChangeOwnerEvent>(OnOwnerChanged);
+            RegisterEvent<RpcBufferEvent>(RpcBufferMessage);
         }
 
         /// <summary>
-        /// 注册网络消息
+        /// 注册网络事件
         /// </summary>
-        public static void RegisterEvent<T>(Action<T> handle, bool isAuthority = true) where T : struct, IEvent
+        public static void RegisterEvent<T>(Action<T> handle, bool authority = true) where T : struct, IEvent
         {
-            messages[MessageId<T>.Id] = NetworkMessage.Register(handle, isAuthority);
+            events[EventId<T>.Id] = NetworkEvent.Register(handle, authority);
         }
 
         /// <summary>
         /// 主机模式下销毁游戏对象
         /// </summary>
-        /// <param name="message"></param>
-        private static void ObjectDestroyByHost(ObjectDestroyMessage message)
+        /// <param name="event"></param>
+        private static void ObjectDestroyByHost(ObjectDestroyEvent @event)
         {
         }
 
         /// <summary>
-        /// 主机模式下空的消息事件
+        /// 主机模式下空的网络事件
         /// </summary>
         /// <param name="message"></param>
         /// <typeparam name="T"></typeparam>
@@ -62,27 +62,27 @@ namespace JFramework.Net
         /// <summary>
         /// 主机模式下生成物体的事件
         /// </summary>
-        /// <param name="message"></param>
-        private static void SpawnByHost(SpawnMessage message)
+        /// <param name="event"></param>
+        private static void SpawnByHost(SpawnEvent @event)
         {
         }
 
         /// <summary>
         /// 客户端下隐藏物体的事件
         /// </summary>
-        /// <param name="message"></param>
-        private static void ObjectHideByClient(ObjectHideMessage message)
+        /// <param name="event"></param>
+        private static void ObjectHideByClient(ObjectHideEvent @event)
         {
-            Destroy(message.netId);
+            Destroy(@event.netId);
         }
 
         /// <summary>
         /// 客户端下销毁物体的事件
         /// </summary>
-        /// <param name="message"></param>
-        private static void ObjectDestroyByClient(ObjectDestroyMessage message)
+        /// <param name="event"></param>
+        private static void ObjectDestroyByClient(ObjectDestroyEvent @event)
         {
-            Destroy(message.netId);
+            Destroy(@event.netId);
         }
 
         /// <summary>
@@ -96,16 +96,16 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端下生成物体的事件
         /// </summary>
-        /// <param name="message"></param>
-        private static void SpawnByClient(SpawnMessage message)
+        /// <param name="event"></param>
+        private static void SpawnByClient(SpawnEvent @event)
         {
         }
 
         /// <summary>
         /// 客户端从服务器接收的Ping
         /// </summary>
-        /// <param name="message"></param>
-        private static void PongByClient(PongMessage message)
+        /// <param name="event"></param>
+        private static void PongByClient(PongEvent @event)
         {
             NetworkTime.OnClientPong();
         }
@@ -113,40 +113,40 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端下游戏对象开始生成的事件
         /// </summary>
-        /// <param name="message"></param>
-        private static void ObjectSpawnStartByClient(ObjectSpawnStartMessage message)
+        /// <param name="event"></param>
+        private static void ObjectSpawnStartByClient(ObjectSpawnStartEvent @event)
         {
         }
 
         /// <summary>
         /// 客户端下游戏对象生成完成的事件
         /// </summary>
-        /// <param name="message"></param>
-        private static void ObjectSpawnFinishByClient(ObjectSpawnFinishMessage message)
+        /// <param name="event"></param>
+        private static void ObjectSpawnFinishByClient(ObjectSpawnFinishEvent @event)
         {
         }
 
         /// <summary>
         /// 接收 远程过程调用(RPC) 缓存的事件
         /// </summary>
-        /// <param name="message"></param>
-        private static void RpcBufferMessage(RpcBufferMessage message)
+        /// <param name="event"></param>
+        private static void RpcBufferMessage(RpcBufferEvent @event)
         {
         }
 
         /// <summary>
         /// 客户端下当游戏对象权限改变的事件
         /// </summary>
-        /// <param name="message"></param>
-        private static void OnOwnerChanged(ChangeOwnerMessage message)
+        /// <param name="event"></param>
+        private static void OnOwnerChanged(ChangeOwnerEvent @event)
         {
         }
 
         /// <summary>
         /// 客户端下网络消息快照的事件
         /// </summary>
-        /// <param name="message"></param>
-        private static void OnSnapshotMessage(SnapshotMessage message)
+        /// <param name="event"></param>
+        private static void OnSnapshotMessage(SnapshotEvent @event)
         {
             NetworkSnapshot.OnTimeSnapshot(new TimeSnapshot(connection.timestamp, NetworkTime.localTime));
         }

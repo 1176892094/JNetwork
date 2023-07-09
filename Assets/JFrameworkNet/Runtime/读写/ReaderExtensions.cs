@@ -185,7 +185,7 @@ namespace JFramework.Net
             return NetworkUtils.GetNetworkIdentity(netId);
         }
 
-        public static NetworkBehaviour ReadNetworkBehaviour(this NetworkReader reader)
+        public static NetworkEntity ReadNetworkBehaviour(this NetworkReader reader)
         {
             uint netId = reader.ReadUInt();
             if (netId == 0) return null;
@@ -194,7 +194,7 @@ namespace JFramework.Net
             return @object != null ? @object.objects[componentIndex] : null;
         }
 
-        public static T ReadNetworkBehaviour<T>(this NetworkReader reader) where T : NetworkBehaviour
+        public static T ReadNetworkBehaviour<T>(this NetworkReader reader) where T : NetworkEntity
         {
             return reader.ReadNetworkBehaviour() as T;
         }

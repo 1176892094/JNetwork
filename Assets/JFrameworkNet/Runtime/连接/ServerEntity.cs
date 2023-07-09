@@ -7,19 +7,33 @@ namespace JFramework.Net
 {
     public class ServerEntity : Connection
     {
+        /// <summary>
+        /// 存储写入队列的字典
+        /// </summary>
         internal readonly Queue<NetworkWriter> writeQueue = new Queue<NetworkWriter>();
 
+        /// <summary>
+        /// 客户端发送到传输
+        /// </summary>
+        /// <param name="segment">消息分段</param>
+        /// <param name="channel">传输通道</param>
         protected override void SendToTransport(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             Transport.current.ClientSend(segment, channel);
         }
 
+        /// <summary>
+        /// 重写Update方法
+        /// </summary>
         internal override void Update()
         {
             base.Update();
             LocalUpdate();
         }
 
+        /// <summary>
+        /// 本地更新
+        /// </summary>
         private void LocalUpdate()
         {
             if (!isLocal) return;
@@ -41,6 +55,11 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 发送消息
+        /// </summary>
+        /// <param name="segment">消息分段</param>
+        /// <param name="channel">传输通道</param>
         internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             if (isLocal)
@@ -70,6 +89,9 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 服务器断开连接
+        /// </summary>
         public override void Disconnect()
         {
             isReady = false;

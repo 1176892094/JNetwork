@@ -6,27 +6,27 @@ namespace JFramework.Net
     {
         private void RegisterServerEvent()
         {
-            NetworkServer.OnConnected = OnServerConnectInternal;
-            NetworkServer.OnDisconnected = OnServerDisconnectInternal;
-            NetworkServer.RegisterEvent<ReadyMessage>(OnServerReadyInternal);
+            NetworkServer.OnConnected = OnServerConnectEvent;
+            NetworkServer.OnDisconnected = OnServerDisconnectEvent;
+            NetworkServer.RegisterEvent<ReadyEvent>(OnServerReadyEvent);
             Debug.Log("NetworkManager --> RegisterServerEvent");
         }
 
         private void RegisterClientEvent()
         {
-            NetworkClient.OnConnected = OnClientConnectInternal;
-            NetworkClient.OnDisconnected = OnClientDisconnectInternal;
-            NetworkClient.RegisterEvent<NotReadyMessage>(OnClientNotReadyInternal);
-            NetworkClient.RegisterEvent<SceneMessage>(OnClientLoadSceneInternal, false);
+            NetworkClient.OnConnected = OnClientConnectEvent;
+            NetworkClient.OnDisconnected = OnClientDisconnectEvent;
+            NetworkClient.RegisterEvent<NotReadyEvent>(OnClientNotReadyEvent);
+            NetworkClient.RegisterEvent<SceneEvent>(OnClientLoadSceneEvent, false);
             Debug.Log("NetworkManager --> RegisterClientEvent");
         }
 
-        private void OnServerConnectInternal(ClientEntity client)
+        private void OnServerConnectEvent(ClientEntity client)
         {
             client.isAuthority = true;
             if (!string.IsNullOrEmpty(sceneName))
             {
-                var message = new SceneMessage()
+                var message = new SceneEvent()
                 {
                     sceneName = sceneName
                 };
@@ -36,18 +36,18 @@ namespace JFramework.Net
             OnServerConnect?.Invoke(client);
         }
 
-        private void OnServerDisconnectInternal(ClientEntity client)
+        private void OnServerDisconnectEvent(ClientEntity client)
         {
             OnServerDisconnect?.Invoke(client);
         }
 
-        private static void OnServerReadyInternal(ClientEntity client, ReadyMessage message)
+        private static void OnServerReadyEvent(ClientEntity client, ReadyEvent @event)
         {
             NetworkServer.SetClientReady(client);
             OnServerReady?.Invoke(client);
         }
 
-        private void OnClientConnectInternal()
+        private void OnClientConnectEvent()
         {
             NetworkClient.connection.isAuthority = true;
             Debug.Log("NetworkManager --> SetAuthority");
@@ -59,7 +59,7 @@ namespace JFramework.Net
             OnClientConnect?.Invoke();
         }
 
-        private void OnClientDisconnectInternal()
+        private void OnClientDisconnectEvent()
         {
             if (networkMode is NetworkMode.Server or NetworkMode.None) return;
             networkMode = networkMode == NetworkMode.Host ? NetworkMode.Server : NetworkMode.None;
@@ -70,17 +70,17 @@ namespace JFramework.Net
             sceneName = "";
         }
 
-        private static void OnClientNotReadyInternal(NotReadyMessage message)
+        private static void OnClientNotReadyEvent(NotReadyEvent @event)
         {
             NetworkClient.isReady = false;
             OnClientNotReady?.Invoke();
         }
 
-        private void OnClientLoadSceneInternal(SceneMessage message)
+        private void OnClientLoadSceneEvent(SceneEvent @event)
         {
             if (NetworkClient.isConnect)
             {
-                ClientLoadScene(message.sceneName);
+                ClientLoadScene(@event.sceneName);
             }
         }
     }

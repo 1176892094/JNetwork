@@ -18,7 +18,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息委托字典
         /// </summary>
-        private static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
+        private static readonly Dictionary<ushort, EventDelegate> events = new Dictionary<ushort, EventDelegate>();
         
         /// <summary>
         /// 客户端生成的物体数量
@@ -150,10 +150,10 @@ namespace JFramework.Net
             }
             else
             {
-                Debug.Log( $"NetworkClient --> SendReadyMessage");
+                Debug.Log( $"NetworkClient --> SendReadyEvent");
                 isReady = true;
                 connection.isReady = true;
-                connection.Send(new ReadyMessage());
+                connection.Send(new ReadyEvent());
             }
         }
 
@@ -175,16 +175,16 @@ namespace JFramework.Net
         /// <summary>
         /// 可毒案发送消息到服务器
         /// </summary>
-        /// <param name="message">网络消息</param>
+        /// <param name="event">网络事件</param>
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T"></typeparam>
-        public static void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
+        public static void Send<T>(T @event, Channel channel = Channel.Reliable) where T : struct, IEvent
         {
             if (connection != null)
             {
                 if (state == ConnectState.Connected)
                 {
-                    connection.Send(message, channel);
+                    connection.Send(@event, channel);
                 }
                 else
                 {
@@ -204,7 +204,7 @@ namespace JFramework.Net
         {
             state = ConnectState.Disconnected;
             spawns.Clear();
-            messages.Clear();
+            events.Clear();
             connection = null;
             isReady = false;
             isLoadScene = false;

@@ -3,64 +3,59 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public struct SceneMessage : IEvent
+    public struct SceneEvent : IEvent
     {
         public string sceneName;
     }
 
-    public struct ReadyMessage : IEvent
+    public struct ReadyEvent : IEvent
     {
     }
 
-    public struct NotReadyMessage : IEvent
+    public struct NotReadyEvent : IEvent
     {
     }
 
-    public struct ChangeOwnerMessage : IEvent
+    public struct ChangeOwnerEvent : IEvent
     {
         public uint netId;
         public bool isOwner;
     }
 
-    public struct ObjectDestroyMessage : IEvent
+    public struct ObjectDestroyEvent : IEvent
     {
         public uint netId;
     }
 
-    public struct ObjectHideMessage : IEvent
+    public struct ObjectHideEvent : IEvent
     {
         public uint netId;
     }
 
-    public struct ObjectSpawnStartMessage : IEvent
+    public struct ObjectSpawnStartEvent : IEvent
     {
     }
 
-    public struct ObjectSpawnFinishMessage : IEvent
+    public struct ObjectSpawnFinishEvent : IEvent
     {
     }
 
-    public struct RpcBufferMessage : IEvent
+    public struct RpcBufferEvent : IEvent
     {
         public ArraySegment<byte> payload;
     }
 
-    public struct PingMessage : IEvent
+    public struct PingEvent : IEvent
     {
-        public readonly double clientTime;
-
-        public PingMessage(double value)
-        {
-            clientTime = value;
-        }
+        public double clientTime;
     }
     
-    public struct PongMessage : IEvent
+    public struct PongEvent : IEvent
     {
         public double clientTime;
     }
 
-    public struct CommandMessage : IEvent
+    public struct CommandEvent : IEvent
     {
         public uint netId;
         public byte componentIndex;
@@ -68,7 +63,7 @@ namespace JFramework.Net
         public ArraySegment<byte> payload;
     }
 
-    public struct SpawnMessage : IEvent
+    public struct SpawnEvent : IEvent
     {
         public uint netId;
         public bool isOwner;
@@ -80,11 +75,11 @@ namespace JFramework.Net
         public ArraySegment<byte> payload;
     }
     
-    public struct SnapshotMessage : IEvent
+    public struct SnapshotEvent : IEvent
     {
     }
     
-    public struct EntityMessage : IEvent
+    public struct EntityEvent : IEvent
     {
         public uint netId;
         public ArraySegment<byte> segment;

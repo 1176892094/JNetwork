@@ -5,7 +5,7 @@ namespace JFramework.Net
 {
     public static class RpcUtils
     {
-        private static readonly Dictionary<ushort, Invoker> delegates = new Dictionary<ushort, Invoker>();
+        private static readonly Dictionary<ushort, Invoker> events = new Dictionary<ushort, Invoker>();
 
         /// <summary>
         /// 判断调用是否需要权限
@@ -21,7 +21,7 @@ namespace JFramework.Net
         /// 调用远程函数
         /// </summary>
         /// <returns>返回是否调用成功</returns>
-        internal static bool Invoke(ushort hash, RpcType rpcType, NetworkReader reader, NetworkBehaviour component, ClientEntity client = null)
+        internal static bool Invoke(ushort hash, RpcType rpcType, NetworkReader reader, NetworkEntity component, ClientEntity client = null)
         {
             if (!TryGetInvoker(hash, rpcType, out var invoker)) return false;
             if (!invoker.component.IsInstanceOfType(component)) return false; // 判断是否是NetworkBehaviour的实例或派生类型的实例
@@ -35,7 +35,7 @@ namespace JFramework.Net
         /// <returns>返回得到方法并且是相同的Rpc类型</returns>
         private static bool TryGetInvoker(ushort hash, RpcType rpc, out Invoker invoker)
         {
-            return delegates.TryGetValue(hash, out invoker) && invoker != null && invoker.rpcType == rpc;
+            return events.TryGetValue(hash, out invoker) && invoker != null && invoker.rpcType == rpc;
         }
 
         private sealed class Invoker

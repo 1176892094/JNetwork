@@ -9,7 +9,7 @@ namespace JFramework.Net
         public int tickFrame;
         public NetworkWriter writer;
         public ClientEntity client;
-        public NetworkBehaviour[] objects;
+        public NetworkEntity[] objects;
 
         public void AddObserver(ClientEntity client)
         {
@@ -32,7 +32,7 @@ namespace JFramework.Net
                 return;
             }
 
-            NetworkBehaviour invokeComponent = objects[componentIndex];
+            NetworkEntity invokeComponent = objects[componentIndex];
             if (!RpcUtils.Invoke(functionHash, rpcType, reader, invokeComponent, client))
             {
                 Debug.LogError($"Not found received for {rpcType} [{functionHash}] on {gameObject.name} netId = {netId}");

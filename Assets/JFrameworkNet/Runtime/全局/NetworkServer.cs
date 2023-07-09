@@ -13,7 +13,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息委托字典
         /// </summary>
-        private static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
+        private static readonly Dictionary<ushort, EventDelegate> messages = new Dictionary<ushort, EventDelegate>();
         
         /// <summary>
         /// 服务器生成的游戏对象字典
@@ -130,7 +130,7 @@ namespace JFramework.Net
         private static void SetClientNotReady(ClientEntity client)
         {
             client.isReady = false;
-            client.Send(new NotReadyMessage());
+            client.Send(new NotReadyEvent());
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace JFramework.Net
             }
 
             using var writer = NetworkWriter.Pop();
-            NetworkMessage.WriteMessage(writer, message);
+            NetworkEvent.WriteEvent(writer, message);
             var segment = writer.ToArraySegment();
             foreach (var client in clients.Values)
             {
@@ -182,7 +182,7 @@ namespace JFramework.Net
             }
 
             using var writer = NetworkWriter.Pop();
-            NetworkMessage.WriteMessage(writer, message);
+            NetworkEvent.WriteEvent(writer, message);
             var segment = writer.ToArraySegment();
             foreach (var client in clients.Values.Where(client => client.isReady))
             {

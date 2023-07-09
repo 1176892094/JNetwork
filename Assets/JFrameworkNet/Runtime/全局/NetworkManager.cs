@@ -117,11 +117,11 @@ namespace JFramework.Net
 
             if (networkMode == NetworkMode.Host)
             {
-                OnServerDisconnectInternal(NetworkServer.connection);
+                OnServerDisconnectEvent(NetworkServer.connection);
             }
 
             NetworkClient.Disconnect();
-            OnClientDisconnectInternal();
+            OnClientDisconnectEvent();
         }
 
         /// <summary>

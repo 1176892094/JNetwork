@@ -113,9 +113,9 @@ namespace JFramework.Net
         /// <returns>返回是否读取成功</returns>
         private static bool TryInvoke(NetworkReader reader, Channel channel)
         {
-            if (NetworkMessage.ReadMessage(reader, out ushort id))
+            if (NetworkEvent.ReadEvent(reader, out ushort id))
             {
-                if (messages.TryGetValue(id, out MessageDelegate handle))
+                if (events.TryGetValue(id, out EventDelegate handle))
                 {
                     handle.Invoke(connection, reader, channel);
                     return true;

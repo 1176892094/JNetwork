@@ -97,7 +97,7 @@ namespace JFramework.Editor
                 return GenerateReadCollection(variableReference, elementType, nameof(StreamExtensions.ReadList), ref isFailed);
             }
             
-            if (variableReference.IsDerivedFrom<NetworkBehaviour>() || variableReference.Is<NetworkBehaviour>())
+            if (variableReference.IsDerivedFrom<NetworkEntity>() || variableReference.Is<NetworkEntity>())
             {
                 return GetNetworkBehaviourReader(variableReference);
             }

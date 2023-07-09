@@ -19,12 +19,15 @@ namespace JFramework.Net
         {
             if (localTime - lastPingTime >= PingFrequency)
             {
-                PingMessage pingMessage = new PingMessage(localTime);
-                NetworkClient.Send(pingMessage, Channel.Unreliable);
+                PingEvent pingEvent = new PingEvent()
+                {
+                    clientTime = localTime,
+                };
+                NetworkClient.Send(pingEvent, Channel.Unreliable);
                 lastPingTime = localTime;
             }
         }
-        
+
         internal static void OnClientPong()
         {
         }
