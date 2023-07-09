@@ -119,7 +119,7 @@ namespace JFramework.Udp
                 newConnection.peer.SendHandshake();
                 Log.Info($"The client {clientId} connect to server.");
                 clients.Add(clientId, newConnection);
-                onConnected(clientId);
+                onConnected?.Invoke(clientId);
             }
 
             void OnDisconnected()

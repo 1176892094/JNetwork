@@ -544,7 +544,7 @@ namespace JFramework.Udp
             return 0;
         }
 
-        private void Flush()
+        public void Flush()
         {
             // 在刷新之前需要调用Update
             if (!updated) return;

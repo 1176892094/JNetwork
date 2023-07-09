@@ -100,7 +100,7 @@ namespace JFramework.Udp
             catch (SocketException e)
             {
                 Log.Info($"Client receive failed!\n{e}");
-                peer.Disconnect();
+                peer?.Disconnect();
                 return false;
             }
         }

@@ -81,13 +81,14 @@ namespace JFramework.Udp
             }
 
             jdpSendBuffer[0] = (byte)header; //设置传输的头部
-            Log.Info(header.ToString());
+           
             if (segment.Count > 0)
             {
                 Buffer.BlockCopy(segment.Array, segment.Offset, jdpSendBuffer, 1, segment.Count);
             }
             
             int sent = jdp.Send(jdpSendBuffer, 0, segment.Count + 1);
+            Log.Info("Send: " + header);
             if (sent < 0)
             {
                 Log.Error($"Send failed with error = {sent} for content with length = {segment.Count}");
@@ -158,6 +159,7 @@ namespace JFramework.Udp
             header = (Header)messageBuffer[0];
             segment = new ArraySegment<byte>(messageBuffer, 1, messageSize - 1);
             lastReceiveTime = (uint)watch.ElapsedMilliseconds;
+            Log.Info("Receive: " + header);
             return true;
         }
 
@@ -243,6 +245,7 @@ namespace JFramework.Udp
             try
             {
                 SendReliable(Header.Disconnect, default);
+                jdp.Flush();
             }
             catch
             {
