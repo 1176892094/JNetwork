@@ -17,7 +17,8 @@ namespace JFramework.Udp
         private readonly Action onDisconnected;
         private readonly Action<ArraySegment<byte>, Channel> onReceive;
 
-        public Client(Setting setting, Action onConnected, Action onDisconnected, Action<ArraySegment<byte>, Channel> onReceive)
+        public Client(Setting setting, Action onConnected, Action onDisconnected,
+            Action<ArraySegment<byte>, Channel> onReceive)
         {
             this.setting = setting;
             this.onConnected = onConnected;
@@ -53,7 +54,7 @@ namespace JFramework.Udp
             socket.SendBufferSize = setting.sendBufferSize;
             socket.ReceiveBufferSize = setting.receiveBufferSize;
             socket.Connect(endPoint);
-            peer.SendHandshake();
+            peer.Handshake();
         }
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace JFramework.Udp
             {
                 return;
             }
-            
+
             peer?.Disconnect();
         }
 
@@ -142,21 +143,23 @@ namespace JFramework.Udp
                 }
             }
         }
-        
+
         /// <summary>
         /// Update之前
         /// </summary>
         public void EarlyUpdate()
         {
-            if (peer != null)
+            if (peer == null)
             {
-                while (TryReceive(out var segment))
-                {
-                    peer.Input(segment);
-                }
+                return;
             }
 
-            peer?.EarlyUpdate();
+            while (TryReceive(out var segment))
+            {
+                peer.Input(segment);
+            }
+
+            peer.EarlyUpdate();
         }
 
         /// <summary>

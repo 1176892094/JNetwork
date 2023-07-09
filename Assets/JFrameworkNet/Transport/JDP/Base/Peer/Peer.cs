@@ -104,7 +104,7 @@ namespace JFramework.Udp
             Buffer.BlockCopy(receiveCookie, 0, rawSendBuffer, 1, 4);
             Buffer.BlockCopy(message, 0, rawSendBuffer, 1 + 4, length);
             var segment = new ArraySegment<byte>(rawSendBuffer, 0, length + 1 + 4);
-            onSend(segment);
+            onSend.Invoke(segment);
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace JFramework.Udp
             Buffer.BlockCopy(receiveCookie, 0, rawSendBuffer, 1, 4);
             Buffer.BlockCopy(segment.Array, segment.Offset, rawSendBuffer, 1 + 4, segment.Count);
             var message = new ArraySegment<byte>(rawSendBuffer, 0, segment.Count + 1 + 4);
-            onSend(message);
+            onSend.Invoke(message);
         }
 
         /// <summary>
@@ -164,6 +164,38 @@ namespace JFramework.Udp
         }
 
         /// <summary>
+        /// 握手请求
+        /// </summary>
+        public void Handshake()
+        {
+            var cookieBytes = BitConverter.GetBytes(cookie);
+            Log.Info($"Handshake to other end with cookie = {cookie}");
+            var segment = new ArraySegment<byte>(cookieBytes);
+            SendReliable(Header.Handshake, segment);
+        }
+        
+        /// <summary>
+        /// 断开连接
+        /// </summary>
+        public void Disconnect()
+        {
+            if (state == State.Disconnected) return;
+            try
+            {
+                SendReliable(Header.Disconnect, default);
+                jdp.Flush();
+            }
+            catch
+            {
+                // ignored
+            }
+
+            Log.Info($"Peer disconnected");
+            state = State.Disconnected;
+            onDisconnected?.Invoke();
+        }
+        
+         /// <summary>
         /// 当有消息被输入
         /// </summary>
         /// <param name="segment"></param>
@@ -223,38 +255,6 @@ namespace JFramework.Udp
             {
                 Log.Warn($"The kcp peer received unreliable message while not authenticated.");
             }
-        }
-        
-        /// <summary>
-        /// 握手请求
-        /// </summary>
-        public void SendHandshake()
-        {
-            var cookieBytes = BitConverter.GetBytes(cookie);
-            Log.Info($"Handshake to other end with cookie = {cookie}");
-            var segment = new ArraySegment<byte>(cookieBytes);
-            SendReliable(Header.Handshake, segment);
-        }
-        
-        /// <summary>
-        /// 断开连接
-        /// </summary>
-        public void Disconnect()
-        {
-            if (state == State.Disconnected) return;
-            try
-            {
-                SendReliable(Header.Disconnect, default);
-                jdp.Flush();
-            }
-            catch
-            {
-                // ignored
-            }
-
-            Log.Info($"Peer disconnected");
-            state = State.Disconnected;
-            onDisconnected?.Invoke();
         }
     }
 }

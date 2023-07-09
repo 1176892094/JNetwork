@@ -74,7 +74,7 @@ namespace JFramework.Udp
                     case Header.Handshake:
                         if (segment.Count != 4)
                         {
-                            Log.Error($"Received invalid handshake message with size {segment.Count} != 4.");
+                            Log.Error($"Received invalid handshake message with size {segment.Count}");
                             Disconnect();
                             return;
                         }
@@ -86,7 +86,7 @@ namespace JFramework.Udp
                         onAuthority?.Invoke();
                         break;
                     case Header.Disconnect:
-                        Log.Error($"Received invalid header {header} while Connected. Disconnecting the connection.");
+                        Log.Error($"Received invalid header {header} while Connected.");
                         Disconnect();
                         break;
                 }
@@ -134,7 +134,7 @@ namespace JFramework.Udp
 
             if (jdp.state == -1)
             {
-                Log.Error($"Deadlink detected: a message was retransmitted {jdp.deadLink} times without acknowledge.");
+                Log.Error($"A message was retransmitted {jdp.deadLink} times without acknowledge.");
                 Disconnect();
             }
 

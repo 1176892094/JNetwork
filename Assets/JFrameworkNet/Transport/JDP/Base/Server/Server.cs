@@ -116,7 +116,7 @@ namespace JFramework.Udp
 
             void OnAuthority()
             {
-                newConnection.peer.SendHandshake();
+                newConnection.peer.Handshake();
                 Log.Info($"The client {clientId} connect to server.");
                 clients.Add(clientId, newConnection);
                 onConnected?.Invoke(clientId);
