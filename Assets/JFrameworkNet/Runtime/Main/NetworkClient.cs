@@ -73,7 +73,7 @@ namespace JFramework.Net
         {
             readers = new NetworkReaders();
             state = isHost ? ConnectState.Connected : ConnectState.Connecting;
-            RegisterMessage(isHost);
+            RegisterEvent(isHost);
         }
 
         public static void Ready()

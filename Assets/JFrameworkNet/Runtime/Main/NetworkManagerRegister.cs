@@ -8,7 +8,7 @@ namespace JFramework.Net
         {
             NetworkServer.OnConnected = OnServerConnectInternal;
             NetworkServer.OnDisconnected = OnServerDisconnectInternal;
-            NetworkServer.RegisterMessage<ReadyMessage>(OnServerReadyInternal);
+            NetworkServer.RegisterEvent<ReadyMessage>(OnServerReadyInternal);
             Debug.Log("NetworkManager --> RegisterServerEvent");
         }
 
@@ -16,8 +16,8 @@ namespace JFramework.Net
         {
             NetworkClient.OnConnected = OnClientConnectInternal;
             NetworkClient.OnDisconnected = OnClientDisconnectInternal;
-            NetworkClient.RegisterMessage<NotReadyMessage>(OnClientNotReadyInternal);
-            NetworkClient.RegisterMessage<SceneMessage>(OnClientLoadSceneInternal, false);
+            NetworkClient.RegisterEvent<NotReadyMessage>(OnClientNotReadyInternal);
+            NetworkClient.RegisterEvent<SceneMessage>(OnClientLoadSceneInternal, false);
             Debug.Log("NetworkManager --> RegisterClientEvent");
         }
 

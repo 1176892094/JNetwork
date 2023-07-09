@@ -37,7 +37,7 @@ namespace JFramework.Net
                 initialized = true;
                 isActive = true;
                 clients.Clear();
-                RegisterMessage();
+                RegisterEvent();
                 RegisterTransport();
                 NetworkTime.RuntimeInitializeOnLoad();
                 Debug.Log("NetworkServer --> StartServer");

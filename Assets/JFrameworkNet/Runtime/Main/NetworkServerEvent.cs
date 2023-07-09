@@ -6,16 +6,16 @@ namespace JFramework.Net
 {
     public static partial class NetworkServer
     {
-        private static void RegisterMessage()
+        private static void RegisterEvent()
         {
-            RegisterMessage<CommandMessage>(OnCommandMessage);
-            RegisterMessage<PingMessage>(OnPingMessage, false);
+            RegisterEvent<CommandMessage>(OnCommandMessage);
+            RegisterEvent<PingMessage>(OnPingMessage, false);
         }
         
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        internal static void RegisterMessage<T>(Action<ClientEntity, T> handle, bool isAuthority = true) where T : struct, IEvent
+        internal static void RegisterEvent<T>(Action<ClientEntity, T> handle, bool isAuthority = true) where T : struct, IEvent
         {
             messages[MessageId<T>.Id] = NetworkUtils.Register(handle, isAuthority);
         }
@@ -23,7 +23,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        private static void RegisterMessage<T>(Action<ClientEntity, T, Channel> handle, bool isAuthority = true) where T : struct, IEvent
+        private static void RegisterEvent<T>(Action<ClientEntity, T, Channel> handle, bool isAuthority = true) where T : struct, IEvent
         {
             messages[MessageId<T>.Id] = NetworkUtils.Register(handle, isAuthority);
         }
