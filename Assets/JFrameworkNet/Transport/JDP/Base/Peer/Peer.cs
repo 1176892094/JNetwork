@@ -10,7 +10,7 @@ namespace JFramework.Udp
         private uint lastPingTime;
         private uint lastReceiveTime;
         private readonly Jdp jdp;
-        private readonly uint cookie;
+        private readonly int cookie;
         private readonly int timeout;
         private readonly int reliableSize;
         private readonly int unreliableSize;
@@ -19,12 +19,18 @@ namespace JFramework.Udp
         private readonly byte[] rawSendBuffer;
         private readonly byte[] receiveCookie = new byte[4];
         private readonly Stopwatch watch = new Stopwatch();
-        private readonly PeerData peerData;
+        private readonly Action onAuthority;
+        private readonly Action onDisconnected;
+        private readonly Action<ArraySegment<byte>> onSend;
+        private readonly Action<ArraySegment<byte>, Channel> onReceive;
 
-        public Peer(PeerData peerData, Setting setting, uint cookie)
+        public Peer(Action onAuthority, Action onDisconnected, Action<ArraySegment<byte>> onSend, Action<ArraySegment<byte>, Channel> onReceive, Setting setting, int cookie)
         {
             this.cookie = cookie;
-            this.peerData = peerData;
+            this.onAuthority = onAuthority;
+            this.onDisconnected = onDisconnected;
+            this.onSend = onSend;
+            this.onReceive = onReceive;
             timeout = setting.timeout;
             jdp = new Jdp(0, SendReliable);
             jdp.SetNoDelay(setting.noDelay ? 1U : 0U, setting.interval, setting.resend, setting.congestion);
@@ -75,6 +81,7 @@ namespace JFramework.Udp
             }
 
             jdpSendBuffer[0] = (byte)header; //设置传输的头部
+            Log.Info(header.ToString());
             if (segment.Count > 0)
             {
                 Buffer.BlockCopy(segment.Array, segment.Offset, jdpSendBuffer, 1, segment.Count);
@@ -96,7 +103,7 @@ namespace JFramework.Udp
             Buffer.BlockCopy(receiveCookie, 0, rawSendBuffer, 1, 4);
             Buffer.BlockCopy(message, 0, rawSendBuffer, 1 + 4, length);
             var segment = new ArraySegment<byte>(rawSendBuffer, 0, length + 1 + 4);
-            peerData.onSend(segment);
+            onSend(segment);
         }
 
         /// <summary>
@@ -114,9 +121,15 @@ namespace JFramework.Udp
             Buffer.BlockCopy(receiveCookie, 0, rawSendBuffer, 1, 4);
             Buffer.BlockCopy(segment.Array, segment.Offset, rawSendBuffer, 1 + 4, segment.Count);
             var message = new ArraySegment<byte>(rawSendBuffer, 0, segment.Count + 1 + 4);
-            peerData.onSend(message);
+            onSend(message);
         }
 
+        /// <summary>
+        /// 尝试接收消息
+        /// </summary>
+        /// <param name="header">消息的头部</param>
+        /// <param name="segment">数据分段</param>
+        /// <returns>返回是否能接收</returns>
         private bool TryReceive(out Header header, out ArraySegment<byte> segment)
         {
             segment = default;
@@ -148,6 +161,10 @@ namespace JFramework.Udp
             return true;
         }
 
+        /// <summary>
+        /// 当有消息被输入
+        /// </summary>
+        /// <param name="segment"></param>
         public void Input(ArraySegment<byte> segment)
         {
             if (segment.Count <= 5) return;
@@ -176,6 +193,10 @@ namespace JFramework.Udp
             }
         }
 
+        /// <summary>
+        /// 当有可靠消息输入的方法
+        /// </summary>
+        /// <param name="message"></param>
         private void OnInputReliable(ArraySegment<byte> message)
         {
             int input = jdp.Input(message.Array, message.Offset, message.Count);
@@ -184,12 +205,16 @@ namespace JFramework.Udp
                 Log.Warn($"Input failed with error = {input} for buffer with length = {message.Count - 1}");
             }
         }
-
+        
+        /// <summary>
+        /// 当有不可靠消息输入的方法
+        /// </summary>
+        /// <param name="message"></param>
         private void OnInputUnreliable(ArraySegment<byte> message)
         {
             if (state == State.Authority)
             {
-                peerData.onReceive?.Invoke(message, Channel.Unreliable);
+                onReceive?.Invoke(message, Channel.Unreliable);
                 lastReceiveTime = (uint)watch.ElapsedMilliseconds;
             }
             else
@@ -224,8 +249,9 @@ namespace JFramework.Udp
                 // ignored
             }
 
+            Log.Info($"Peer disconnected");
             state = State.Disconnected;
-            peerData.onDisconnected?.Invoke();
+            onDisconnected?.Invoke();
         }
     }
 }

@@ -13,12 +13,16 @@ namespace JFramework.Udp
         private EndPoint endPoint;
         private readonly byte[] buffer;
         private readonly Setting setting;
-        private readonly ClientData clientData;
+        private readonly Action onConnected;
+        private readonly Action onDisconnected;
+        private readonly Action<ArraySegment<byte>, Channel> onReceive;
 
-        public Client(Setting setting, ClientData clientData)
+        public Client(Setting setting, Action onConnected, Action onDisconnected, Action<ArraySegment<byte>, Channel> onReceive)
         {
             this.setting = setting;
-            this.clientData = clientData;
+            this.onConnected = onConnected;
+            this.onDisconnected = onDisconnected;
+            this.onReceive = onReceive;
             buffer = new byte[setting.maxTransferUnit];
             state = State.Disconnected;
         }
@@ -37,7 +41,7 @@ namespace JFramework.Udp
 
             if (!Utils.TryGetAddress(address.ip, out var addresses))
             {
-                clientData.onDisconnected?.Invoke();
+                onDisconnected?.Invoke();
                 return;
             }
 
@@ -106,14 +110,13 @@ namespace JFramework.Udp
         /// </summary>
         private void Connection()
         {
-            var peerData = new PeerData(OnAuthority, OnDisconnected, OnSend, clientData.onReceive);
-            peer = new Peer(peerData, setting, 0);
+            peer = new Peer(OnAuthority, OnDisconnected, OnSend, onReceive, setting, 0);
 
             void OnAuthority()
             {
                 Log.Info("Client connected.");
                 state = State.Connected;
-                clientData.onConnected?.Invoke();
+                onConnected?.Invoke();
             }
 
             void OnDisconnected()
@@ -124,7 +127,7 @@ namespace JFramework.Udp
                 socket = null;
                 endPoint = null;
                 state = State.Disconnected;
-                clientData.onDisconnected?.Invoke();
+                onDisconnected?.Invoke();
             }
 
             void OnSend(ArraySegment<byte> segment)

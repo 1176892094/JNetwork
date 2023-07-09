@@ -203,6 +203,10 @@ namespace JFramework.Net
         public static void StopClient()
         {
             state = ConnectState.Disconnected;
+            if (Transport.current != null)
+            {
+                Transport.current.ClientDisconnect();
+            }
             spawns.Clear();
             events.Clear();
             connection = null;

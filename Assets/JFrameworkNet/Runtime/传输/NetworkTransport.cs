@@ -26,38 +26,8 @@ namespace JFramework.Net
             Log.Warn = Debug.LogWarning;
             Log.Error = Debug.LogError;
             setting = new Setting(sendBufferSize, receiveBufferSize, maxTransmitUnit, timeout, receivePacketSize, sendPacketSize, interval, resend, noDelay, congestion);
-            client = new Client(setting, new ClientData(ClientConnected, ClientDisconnected, ClientDataReceived));
-            server = new Server(setting, new ServerData(ServerConnected, ServerDisconnected, ServerDataReceived));
-
-            void ClientConnected()
-            {
-                OnClientConnected.Invoke();
-            }
-
-            void ClientDataReceived(ArraySegment<byte> message, Channel channel)
-            {
-                OnClientReceive.Invoke(message, channel);
-            }
-
-            void ClientDisconnected()
-            {
-                OnClientDisconnected.Invoke();
-            }
-
-            void ServerConnected(int connectionId)
-            {
-                OnServerConnected.Invoke(connectionId);
-            }
-
-            void ServerDataReceived(int connectionId, ArraySegment<byte> message, Channel channel)
-            {
-                OnServerReceive.Invoke(connectionId, message, channel);
-            }
-
-            void ServerDisconnected(int connectionId)
-            {
-                OnServerDisconnected.Invoke(connectionId);
-            }
+            client = new Client(setting, OnClientConnected, OnClientDisconnected, OnClientReceive);
+            server = new Server(setting, OnServerConnected, OnServerDisconnected, OnServerReceive);
         }
 
         public override void ClientConnect(Address address) => client.Connect(address);

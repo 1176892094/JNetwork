@@ -100,12 +100,12 @@ namespace JFramework.Udp
         /// <summary>
         /// 生成缓存文件
         /// </summary>
-        internal static uint GenerateCookie()
+        internal static int GenerateCookie()
         {
             using var cryptoRandom = new RNGCryptoServiceProvider();
             var cryptoRandomBuffer = new byte[4];
             cryptoRandom.GetBytes(cryptoRandomBuffer);
-            return BitConverter.ToUInt32(cryptoRandomBuffer, 0);
+            return Math.Abs(BitConverter.ToInt32(cryptoRandomBuffer, 0));
         }
 
         /// <summary>

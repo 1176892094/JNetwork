@@ -14,12 +14,16 @@ namespace JFramework.Udp
         private EndPoint endPoint;
         private readonly byte[] buffer;
         private readonly Setting setting;
-        private readonly ServerData serverData;
+        private readonly Action<int> onConnected;
+        private readonly Action<int> onDisconnected;
+        private readonly Action<int, ArraySegment<byte>, Channel> onReceive;
 
-        public Server(Setting setting, ServerData serverData)
+        public Server(Setting setting, Action<int> onConnected, Action<int> onDisconnected, Action<int, ArraySegment<byte>, Channel> onReceive)
         {
             this.setting = setting;
-            this.serverData = serverData;
+            this.onConnected = onConnected;
+            this.onDisconnected = onDisconnected;
+            this.onReceive = onReceive;
             buffer = new byte[setting.maxTransferUnit];
             endPoint = new IPEndPoint(IPAddress.IPv6Any, 0);
         }
@@ -106,8 +110,7 @@ namespace JFramework.Udp
         {
             var newConnection = new Connection(endPoint);
             var cookie = Utils.GenerateCookie();
-            var peerData = new PeerData(OnAuthority, OnDisconnected, OnSend, OnReceive);
-            var peer = new Peer(peerData, setting, cookie);
+            var peer = new Peer(OnAuthority, OnDisconnected, OnSend, OnReceive, setting, cookie);
             newConnection.peer = peer;
             return newConnection;
 
@@ -116,14 +119,14 @@ namespace JFramework.Udp
                 newConnection.peer.SendHandshake();
                 Log.Info($"The client {clientId} connect to server.");
                 clients.Add(clientId, newConnection);
-                serverData.onConnected(clientId);
+                onConnected(clientId);
             }
 
             void OnDisconnected()
             {
                 removes.Add(clientId);
                 Log.Info($"The client {clientId} disconnect to server.");
-                serverData.onDisconnected?.Invoke(clientId);
+                onDisconnected?.Invoke(clientId);
             }
 
             void OnSend(ArraySegment<byte> segment)
@@ -146,7 +149,7 @@ namespace JFramework.Udp
 
             void OnReceive(ArraySegment<byte> message, Channel channel)
             {
-                serverData.onReceive?.Invoke(clientId, message, channel);
+                onReceive?.Invoke(clientId, message, channel);
             }
         }
 

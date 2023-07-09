@@ -141,7 +141,7 @@ namespace JFramework.Editor
             throw new MissingMethodException($"Could not find writer for NetworkBehaviour");
         }
 
-        MethodDefinition GenerateEnumWriteFunc(TypeReference variable, ref bool isFailed)
+        private MethodDefinition GenerateEnumWriteFunc(TypeReference variable, ref bool isFailed)
         {
             MethodDefinition writerFunc = GenerateWriterFunc(variable);
 

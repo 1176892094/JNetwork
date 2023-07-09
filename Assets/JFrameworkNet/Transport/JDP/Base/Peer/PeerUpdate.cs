@@ -83,7 +83,7 @@ namespace JFramework.Udp
                         var prettyCookie = BitConverter.ToUInt32(segment.Array, segment.Offset);
                         Log.Info($"Received handshake with cookie = {prettyCookie}");
                         state = State.Authority;
-                        peerData.onAuthority?.Invoke();
+                        onAuthority?.Invoke();
                         break;
                     case Header.Disconnect:
                         Log.Error($"Received invalid header {header} while Connected. Disconnecting the connection.");
@@ -107,7 +107,7 @@ namespace JFramework.Udp
                     case Header.Message:
                         if (segment.Count > 0)
                         {
-                            peerData.onReceive?.Invoke(segment, Channel.Reliable);
+                            onReceive?.Invoke(segment, Channel.Reliable);
                         }
                         else
                         {
