@@ -242,7 +242,7 @@ namespace JFramework.Net
             }
             else
             {
-                Debug.LogWarning($"NetworkWriter {value} has no NetworkIdentity");
+                Debug.LogWarning($"Transform {value} has no NetworkIdentity");
                 writer.WriteUInt(0);
             }
         }
@@ -257,7 +257,7 @@ namespace JFramework.Net
             
             if (!value.TryGetComponent(out NetworkObject identity))
             {
-                Debug.LogWarning($"NetworkWriter {value} has no NetworkIdentity");
+                Debug.LogWarning($"GameObject {value} has no NetworkIdentity");
             }
             
             writer.WriteNetworkIdentity(identity);

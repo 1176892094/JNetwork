@@ -105,6 +105,12 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 尝试读取并调用从服务器接收的委托
+        /// </summary>
+        /// <param name="reader">网络读取器</param>
+        /// <param name="channel">传输通道</param>
+        /// <returns>返回是否读取成功</returns>
         private static bool TryInvoke(NetworkReader reader, Channel channel)
         {
             if (NetworkUtils.ReadMessage(reader, out ushort id))

@@ -81,8 +81,7 @@ namespace JFramework.Net
 
             if (Residue < size)
             {
-                throw new EndOfStreamException(
-                    $"ReadBlittable<{typeof(T)}> not enough data in buffer to read {size} bytes: {ToString()}");
+                throw new EndOfStreamException($"ReadBlittable<{typeof(T)}> not enough data in buffer to read {size} bytes: {ToString()}");
             }
 
             T value;

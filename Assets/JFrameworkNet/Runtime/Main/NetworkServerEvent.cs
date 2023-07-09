@@ -6,10 +6,13 @@ namespace JFramework.Net
 {
     public static partial class NetworkServer
     {
+        /// <summary>
+        /// 注册服务器消息事件
+        /// </summary>
         private static void RegisterEvent()
         {
-            RegisterEvent<CommandMessage>(OnCommandMessage);
-            RegisterEvent<PingMessage>(OnPingMessage, false);
+            RegisterEvent<CommandMessage>(OnCommandEvent);
+            RegisterEvent<PingMessage>(OnPingEvent, false);
         }
         
         /// <summary>
@@ -31,7 +34,7 @@ namespace JFramework.Net
         /// <summary>
         /// 当发送一条命令到Transport
         /// </summary>
-        private static void OnCommandMessage(ClientEntity client, CommandMessage message, Channel channel)
+        private static void OnCommandEvent(ClientEntity client, CommandMessage message, Channel channel)
         {
             if (!client.isReady)
             {
@@ -52,7 +55,10 @@ namespace JFramework.Net
             }
         }
 
-        private static void OnPingMessage(ClientEntity client, PingMessage message)
+        /// <summary>
+        /// Ping的事件
+        /// </summary>
+        private static void OnPingEvent(ClientEntity client, PingMessage message)
         {
             PongMessage pongMessage = new PongMessage
             {

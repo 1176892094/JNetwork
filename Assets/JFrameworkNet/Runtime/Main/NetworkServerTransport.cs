@@ -37,22 +37,19 @@ namespace JFramework.Net
             {
                 Debug.LogError($"Invalid clientId: {clientId} .");
                 Transport.current.ServerDisconnect(clientId);
-                return;
             }
-
-            if (clients.ContainsKey(clientId))
+            else if (clients.ContainsKey(clientId))
             {
                 Transport.current.ServerDisconnect(clientId);
-                return;
             }
-
-            if (clients.Count >= maxConnection)
+            else if (clients.Count >= maxConnection)
             {
                 Transport.current.ServerDisconnect(clientId);
-                return;
             }
-
-            OnClientConnect(new ClientEntity(clientId));
+            else
+            {
+                OnClientConnect(new ClientEntity(clientId));
+            }
         }
 
         /// <summary>
@@ -113,9 +110,12 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 解码并且调用
+        /// 尝试读取并调用从客户端接收的委托
         /// </summary>
-        /// <returns>返回是否调用成功</returns>
+        /// <param name="client">客户端的Id</param>
+        /// <param name="reader">网络读取器</param>
+        /// <param name="channel">传输通道</param>
+        /// <returns>返回是否读取成功</returns>
         private static bool TryInvoke(ClientEntity client, NetworkReader reader, Channel channel)
         {
             if (NetworkUtils.ReadMessage(reader, out ushort id))
