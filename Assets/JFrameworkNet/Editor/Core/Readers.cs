@@ -13,7 +13,7 @@ namespace JFramework.Editor
 {
     internal class Readers
     {
-        private readonly Dictionary<TypeReference, MethodReference> readFuncList = new Dictionary<TypeReference, MethodReference>(new Comparator());
+        private readonly Dictionary<TypeReference, MethodReference> readFuncList = new Dictionary<TypeReference, MethodReference>(new Comparer());
         private readonly AssemblyDefinition assembly;
         private readonly Logger logger;
         private readonly Processor processor;

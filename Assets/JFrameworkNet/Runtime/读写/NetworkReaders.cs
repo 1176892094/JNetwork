@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace JFramework.Net
 {
-    public class NetworkReaders
+    internal class NetworkReaders
     {
         /// <summary>
         /// 批处理队列

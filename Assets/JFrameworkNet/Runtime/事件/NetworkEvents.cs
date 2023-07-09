@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using JFramework.Interface;
 using JFramework.Udp;
 using UnityEngine;
 

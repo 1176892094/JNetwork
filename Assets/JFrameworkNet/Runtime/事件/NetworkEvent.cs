@@ -1,61 +1,62 @@
 using System;
+using JFramework.Interface;
 using UnityEngine;
 
 namespace JFramework.Net
 {
-    public struct SceneEvent : IEvent
+    internal struct SceneEvent : IEvent
     {
         public string sceneName;
     }
 
-    public struct ReadyEvent : IEvent
+    internal struct ReadyEvent : IEvent
     {
     }
 
-    public struct NotReadyEvent : IEvent
+    internal struct NotReadyEvent : IEvent
     {
     }
 
-    public struct ChangeOwnerEvent : IEvent
+    internal struct ChangeOwnerEvent : IEvent
     {
         public uint netId;
         public bool isOwner;
     }
 
-    public struct ObjectDestroyEvent : IEvent
+    internal struct ObjectDestroyEvent : IEvent
     {
         public uint netId;
     }
 
-    public struct ObjectHideEvent : IEvent
+    internal struct ObjectHideEvent : IEvent
     {
         public uint netId;
     }
 
-    public struct ObjectSpawnStartEvent : IEvent
+    internal struct ObjectSpawnStartEvent : IEvent
     {
     }
 
-    public struct ObjectSpawnFinishEvent : IEvent
+    internal struct ObjectSpawnFinishEvent : IEvent
     {
     }
 
-    public struct RpcBufferEvent : IEvent
+    internal struct RpcBufferEvent : IEvent
     {
         public ArraySegment<byte> payload;
     }
 
-    public struct PingEvent : IEvent
-    {
-        public double clientTime;
-    }
-    
-    public struct PongEvent : IEvent
+    internal struct PingEvent : IEvent
     {
         public double clientTime;
     }
 
-    public struct CommandEvent : IEvent
+    internal struct PongEvent : IEvent
+    {
+        public double clientTime;
+    }
+
+    internal struct CommandEvent : IEvent
     {
         public uint netId;
         public byte componentIndex;
@@ -63,7 +64,7 @@ namespace JFramework.Net
         public ArraySegment<byte> payload;
     }
 
-    public struct SpawnEvent : IEvent
+    internal struct SpawnEvent : IEvent
     {
         public uint netId;
         public bool isOwner;
@@ -74,12 +75,12 @@ namespace JFramework.Net
         public Vector3 localScale;
         public ArraySegment<byte> payload;
     }
-    
-    public struct SnapshotEvent : IEvent
+
+    internal struct SnapshotEvent : IEvent
     {
     }
-    
-    public struct EntityEvent : IEvent
+
+    internal struct EntityEvent : IEvent
     {
         public uint netId;
         public ArraySegment<byte> segment;

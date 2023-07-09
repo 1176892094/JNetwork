@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using JFramework.Interface;
 using JFramework.Udp;
 using UnityEngine;
 
 namespace JFramework.Net
 {
-    public enum ConnectState : byte
+    internal enum ConnectState : byte
     {
         Disconnected = 0,
         Connecting = 1,

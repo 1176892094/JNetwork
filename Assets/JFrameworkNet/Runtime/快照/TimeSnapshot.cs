@@ -1,6 +1,6 @@
 namespace JFramework.Net
 {
-    public struct TimeSnapshot
+    internal struct TimeSnapshot
     {
         /// <summary>
         /// 本地时间

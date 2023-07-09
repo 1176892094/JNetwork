@@ -3,7 +3,7 @@ using Mono.Cecil;
 
 namespace JFramework.Editor
 {
-    internal class Comparator : IEqualityComparer<TypeReference>
+    internal class Comparer : IEqualityComparer<TypeReference>
     {
         public bool Equals(TypeReference x, TypeReference y) => x?.FullName == y?.FullName;
 

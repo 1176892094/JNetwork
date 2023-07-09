@@ -1,6 +1,6 @@
 namespace JFramework.Net
 {
-    public struct NetworkConst
+    internal struct NetworkConst
     {
         /// <summary>
         /// 网络消息的字符串最大长度

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JFramework.Interface;
 using JFramework.Udp;
 using UnityEngine;
 
