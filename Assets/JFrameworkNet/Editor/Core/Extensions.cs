@@ -135,8 +135,8 @@ namespace JFramework.Editor
             if (parent.Is(baseClass)) return true;
             return parent.CanBeResolved() && IsDerivedFrom(parent.Resolve(), baseClass);
         }
-        
-        public static bool CanBeResolved(this TypeReference parent)
+
+        private static bool CanBeResolved(this TypeReference parent)
         {
             while (parent != null)
             {
