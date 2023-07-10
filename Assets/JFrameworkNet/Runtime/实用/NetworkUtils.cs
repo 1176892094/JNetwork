@@ -1,10 +1,9 @@
-using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace JFramework.Net
 {
-    public class NetworkUtils
+    public static class NetworkUtils
     {
         /// <summary>
         /// 是场景物体

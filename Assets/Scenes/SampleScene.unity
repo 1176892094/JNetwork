@@ -273,8 +273,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 890354962}
-  - component: {fileID: 890354964}
-  - component: {fileID: 890354963}
+  - component: {fileID: 890354967}
+  - component: {fileID: 890354966}
   - component: {fileID: 890354965}
   m_Layer: 0
   m_Name: NetworkManager
@@ -298,47 +298,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &890354963
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 890354959}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5315d6ba604c9401083f35941ed0ce48, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  address:
-    ip: localhost
-    port: 20974
-  noDelay: 1
-  congestion: 1
-  resend: 2
-  timeout: 10000
-  maxTransmitUnit: 1200
-  sendBufferSize: 7361536
-  receiveBufferSize: 7361536
-  sendPacketSize: 4096
-  receivePacketSize: 4096
-  interval: 10
---- !u!114 &890354964
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 890354959}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 56edecc205034234aa78c9f2b56f9b7f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  transport: {fileID: 890354963}
-  runInBackground: 1
-  tickRate: 30
-  maxConnection: 100
 --- !u!114 &890354965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -353,34 +312,40 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   offsetX: 300
   offsetY: 0
---- !u!1 &1832315478
-GameObject:
+--- !u!114 &890354966
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1832315479}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1832315479
-Transform:
+  m_GameObject: {fileID: 890354959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5315d6ba604c9401083f35941ed0ce48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  noDelay: 1
+  congestion: 1
+  resend: 2
+  timeout: 10000
+  maxTransmitUnit: 1200
+  sendBufferSize: 7361536
+  receiveBufferSize: 7361536
+  sendPacketSize: 4096
+  receivePacketSize: 4096
+  interval: 10
+--- !u!114 &890354967
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1832315478}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_GameObject: {fileID: 890354959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56edecc205034234aa78c9f2b56f9b7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  transport: {fileID: 890354966}
+  tickRate: 30
+  maxConnection: 100

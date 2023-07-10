@@ -30,12 +30,12 @@ namespace JFramework.Net
             server = new Server(setting, OnServerConnected, OnServerDisconnected, OnServerReceive);
         }
 
-        public override void ClientConnect(Address address) => client.Connect(address.ip, address.port);
+        public override void ClientConnect(string address, ushort port) => client.Connect(address, port);
 
         public override void ClientConnect(Uri uri)
         {
-            int port = uri.IsDefaultPort ? address.port : uri.Port;
-            client.Connect(uri.Host, (ushort)port);
+            int newPort = uri.IsDefaultPort ? port : uri.Port;
+            client.Connect(uri.Host, (ushort)newPort);
         }
 
         public override void ClientSend(ArraySegment<byte> segment, Channel channel)
@@ -46,7 +46,7 @@ namespace JFramework.Net
 
         public override void ClientDisconnect() => client.Disconnect();
 
-        public override void StartServer() => server.Connect(address.port);
+        public override void StartServer() => server.Connect(port);
 
         public override void ServerSend(int clientId, ArraySegment<byte> segment, Channel channel)
         {

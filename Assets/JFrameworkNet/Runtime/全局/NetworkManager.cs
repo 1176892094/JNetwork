@@ -1,5 +1,5 @@
 using System;
-using JFramework.Udp;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 // ReSharper disable All
@@ -11,14 +11,47 @@ namespace JFramework.Net
         private string sceneName;
         private NetworkMode networkMode;
         [SerializeField] private Transport transport;
-        [SerializeField] private bool runInBackground = true;
         public uint tickRate = 30;
         public uint maxConnection = 100;
 
-        public Address address
+        /// <summary>
+        /// 设置地址
+        /// </summary>
+        [ShowInInspector]
+        public string Address
         {
-            get => transport.address;
-            set => transport.address = value;
+            get => transport ? transport.address : "localhost";
+            set
+            {
+                if (transport)
+                {
+                    transport.address = value;
+                }
+                else
+                {
+                    Debug.LogWarning("The NetworkManager has no Transport component");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 设置端口
+        /// </summary>
+        [ShowInInspector]
+        public ushort Port
+        {
+            get => transport ? transport.port : (ushort)20974;
+            set
+            {
+                if (transport)
+                {
+                    transport.port = value;
+                }
+                else
+                {
+                    Debug.LogWarning("The NetworkManager has no Transport component");
+                }
+            }
         }
 
         /// <summary>
@@ -42,8 +75,9 @@ namespace JFramework.Net
                 Debug.LogError("The NetworkManager has no Transport component.");
                 return;
             }
+
             Transport.current = transport;
-            Application.runInBackground = runInBackground;
+            Application.runInBackground = true;
         }
 
         /// <summary>
@@ -94,7 +128,7 @@ namespace JFramework.Net
             SetMode(NetworkMode.Client);
             if (uri == null)
             {
-                NetworkClient.StartClient(address);
+                NetworkClient.StartClient(Address, Port);
             }
             else
             {
@@ -135,7 +169,7 @@ namespace JFramework.Net
                 Debug.LogWarning("Server or Client already started.");
                 return;
             }
-            
+
             Debug.Log("NetworkManager --> StartHost");
             SetMode(NetworkMode.Host);
             NetworkServer.StartServer(isListen);

@@ -2,7 +2,7 @@ using System.Linq;
 
 namespace JFramework.Net
 {
-    internal static class Extensions
+    public static partial class StreamExtensions
     {
     }
 }

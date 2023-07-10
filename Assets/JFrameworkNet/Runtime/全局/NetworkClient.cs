@@ -6,98 +6,91 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    internal enum ConnectState : byte
-    {
-        Disconnected = 0,
-        Connecting = 1,
-        Connected = 2,
-        Disconnecting = 3,
-    }
-
     public static partial class NetworkClient
     {
         /// <summary>
         /// 网络消息委托字典
         /// </summary>
         private static readonly Dictionary<ushort, EventDelegate> events = new Dictionary<ushort, EventDelegate>();
-        
+
         /// <summary>
         /// 客户端生成的物体数量
         /// </summary>
         private static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
-        
+
         /// <summary>
         /// 连接到的服务器
         /// </summary>
         public static ServerEntity connection;
-        
+
         /// <summary>
         /// 是否已经准备完成(能进行和Server的信息传输)
         /// </summary>
         public static bool isReady;
-        
+
         /// <summary>
         /// 是否正在加载场景
         /// </summary>
         public static bool isLoadScene;
-        
+
         /// <summary>
         /// 上一次发送信息的时间
         /// </summary>
         private static double lastSendTime;
-        
+
         /// <summary>
         /// 连接的状态
         /// </summary>
         private static ConnectState state;
-        
+
         /// <summary>
         /// 当连接到服务器触发的事件
         /// </summary>
         internal static Action OnConnected;
-        
+
         /// <summary>
         /// 当从服务器断开的事件
         /// </summary>
         internal static Action OnDisconnected;
-        
+
         /// <summary>
         /// 网络消息读取并分包
         /// </summary>
         private static NetworkReaders readers = new NetworkReaders();
-        
+
         /// <summary>
         /// 是否活跃
         /// </summary>
         public static bool isActive => state is ConnectState.Connected or ConnectState.Connecting;
-        
+
         /// <summary>
         /// 是否已经连接成功
         /// </summary>
         public static bool isConnect => state == ConnectState.Connected;
-        
+
         /// <summary>
         /// 心跳包
         /// </summary>
         private static uint tickRate => NetworkManager.Instance.tickRate;
-        
+
         /// <summary>
         /// 消息发送率
         /// </summary>
         private static float sendRate => tickRate < int.MaxValue ? 1f / tickRate : 0;
-        
+
         /// <summary>
         /// 开启客户端
         /// </summary>
         /// <param name="address">传入连接地址</param>
-        internal static void StartClient(Address address)
+        /// <param name="port">传入连接端口</param>
+        internal static void StartClient(string address, ushort port)
         {
             RegisterTransport();
             ClientConnect(false);
-            Transport.current.ClientConnect(address);
+            Transport.current.ClientConnect(address, port);
             connection = new ServerEntity();
         }
-        
+
         /// <summary>
         /// 开启客户端
         /// </summary>
@@ -151,7 +144,7 @@ namespace JFramework.Net
             }
             else
             {
-                Debug.Log( $"NetworkClient --> SendReadyEvent");
+                Debug.Log($"NetworkClient --> SendReadyEvent");
                 isReady = true;
                 connection.isReady = true;
                 connection.Send(new ReadyEvent());
@@ -208,6 +201,7 @@ namespace JFramework.Net
             {
                 Transport.current.ClientDisconnect();
             }
+
             spawns.Clear();
             events.Clear();
             connection = null;

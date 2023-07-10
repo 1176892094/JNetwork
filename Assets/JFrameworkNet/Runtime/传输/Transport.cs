@@ -9,9 +9,14 @@ namespace JFramework.Net
         public static Transport current;
 
         /// <summary>
-        /// 连接地址
+        /// 网络传输地址
         /// </summary>
-        [SerializeField] internal Address address = new Address("localhost", 7979);
+        internal string address = "localhost";
+
+        /// <summary>
+        /// 网络传输端口
+        /// </summary>
+        internal ushort port = 20974;
 
         /// <summary>
         /// 客户端连接事件
@@ -56,8 +61,9 @@ namespace JFramework.Net
         /// <summary>
         /// 根据地址连接
         /// </summary>
-        /// <param name="address">传入地址(IP + 端口号)</param>
-        public abstract void ClientConnect(Address address);
+        /// <param name="address">传入地址</param>
+        /// <param name="port">传入端口</param>
+        public abstract void ClientConnect(string address, ushort port);
 
         /// <summary>
         /// 根据Uri连接
