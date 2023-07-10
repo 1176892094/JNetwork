@@ -44,19 +44,19 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 主机模式下销毁游戏对象
-        /// </summary>
-        /// <param name="event"></param>
-        private static void ObjectDestroyByHost(ObjectDestroyEvent @event)
-        {
-        }
-
-        /// <summary>
         /// 主机模式下空的网络事件
         /// </summary>
         /// <param name="message"></param>
         /// <typeparam name="T"></typeparam>
         private static void OnEmptyMessageByHost<T>(T message) where T : IEvent
+        {
+        }
+        
+        /// <summary>
+        /// 主机模式下销毁游戏对象
+        /// </summary>
+        /// <param name="event"></param>
+        private static void ObjectDestroyByHost(ObjectDestroyEvent @event)
         {
         }
 
