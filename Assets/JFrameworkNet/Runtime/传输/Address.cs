@@ -1,6 +1,6 @@
 using System;
 
-namespace JFramework.Udp
+namespace JFramework.Net
 {
     [Serializable]
     public struct Address

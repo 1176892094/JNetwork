@@ -11,7 +11,7 @@ namespace JFramework.Net
         /// <summary>
         /// 连接地址
         /// </summary>
-        [SerializeField] internal Address address = new Address("localhost", 7777);
+        [SerializeField] internal Address address = new Address("localhost", 7979);
 
         /// <summary>
         /// 客户端连接事件

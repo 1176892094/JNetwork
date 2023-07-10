@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using JFramework.Interface;
 using JFramework.Udp;
@@ -16,11 +17,24 @@ namespace JFramework.Net
         /// <summary>
         /// 根据泛型类型的名称来获取Hash的Id
         /// </summary>
-        public static readonly ushort Id = (ushort)NetworkUtils.GetHashByName(typeof(T).FullName);
+        public static readonly ushort Id = (ushort)NetworkEvent.GetIdByName(typeof(T).FullName);
     }
     
     public static class NetworkEvent
     {
+        /// <summary>
+        /// 根据名称获取Hash码
+        /// </summary>
+        /// <param name="name">传入名称</param>
+        /// <returns>返回Hash码</returns>
+        public static int GetIdByName(string name)
+        {
+            unchecked
+            {
+                return name.Aggregate(23, (hash, c) => hash * 31 + c);
+            }
+        }
+        
         /// <summary>
         /// 写入事件Id
         /// </summary>

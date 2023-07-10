@@ -51,18 +51,5 @@ namespace JFramework.Net
             lastTime = clientTime * interval;
             return true;
         }
-
-        /// <summary>
-        /// 根据名称获取Hash码
-        /// </summary>
-        /// <param name="name">传入名称</param>
-        /// <returns>返回Hash码</returns>
-        public static int GetHashByName(string name)
-        {
-            unchecked
-            {
-                return name.Aggregate(23, (hash, c) => hash * 31 + c);
-            }
-        }
     }
 }

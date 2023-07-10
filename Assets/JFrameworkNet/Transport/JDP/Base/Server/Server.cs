@@ -31,8 +31,8 @@ namespace JFramework.Udp
         /// <summary>
         /// 服务器启动
         /// </summary>
-        /// <param name="address">配置地址和端口号</param>
-        public void Connect(Address address)
+        /// <param name="port">配置端口号</param>
+        public void Connect(ushort port)
         {
             if (socket != null)
             {
@@ -50,7 +50,7 @@ namespace JFramework.Udp
                 Log.Warn($"Server failed to set Dual Mode.\n{e}");
             }
 
-            socket.Bind(new IPEndPoint(IPAddress.IPv6Any, address.port));
+            socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
             socket.Blocking = false;
             socket.SendBufferSize = setting.sendBufferSize;
             socket.ReceiveBufferSize = setting.receiveBufferSize;

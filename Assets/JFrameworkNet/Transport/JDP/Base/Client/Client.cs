@@ -32,7 +32,8 @@ namespace JFramework.Udp
         /// 连接到指定服务器
         /// </summary>
         /// <param name="address"></param>
-        public void Connect(Address address)
+        /// <param name="port"></param>
+        public void Connect(string address, ushort port)
         {
             if (state == State.Connected)
             {
@@ -40,15 +41,15 @@ namespace JFramework.Udp
                 return;
             }
 
-            if (!Utils.TryGetAddress(address.ip, out var addresses))
+            if (!Utils.TryGetAddress(address, out var addresses))
             {
                 onDisconnected?.Invoke();
                 return;
             }
 
             Connection();
-            endPoint = new IPEndPoint(addresses[0], address.port);
-            Log.Info($"Client connect to {addresses[0]} : {address.port}");
+            endPoint = new IPEndPoint(addresses[0], port);
+            Log.Info($"Client connect to {addresses[0]} : {port}");
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.Blocking = false;
             socket.SendBufferSize = setting.sendBufferSize;
