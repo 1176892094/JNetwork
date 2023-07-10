@@ -8,5 +8,10 @@ namespace JFramework.Net
         public uint netId => @object.netId;
 
         public byte componentId;
+
+        protected void SendRPCInternal(string methodName, int methodHash, NetworkWriter writer, int channel)
+        {
+            
+        }
     }
 }

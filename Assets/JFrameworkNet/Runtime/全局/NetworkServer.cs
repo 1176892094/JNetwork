@@ -35,11 +35,16 @@ namespace JFramework.Net
         /// 上一次发送消息的时间
         /// </summary>
         private static double lastSendTime;
-        
+
+        /// <summary>
+        /// 是否初始化
+        /// </summary>
+        private static bool isInit;
+
         /// <summary>
         /// 是否是启动的
         /// </summary>
-        public static bool isActive;
+        public static bool isActive => isInit;
         
         /// <summary>
         /// 是否在加载场景
@@ -87,9 +92,9 @@ namespace JFramework.Net
                 Transport.current.StartServer();
             }
 
-            if (!isActive)
+            if (!isInit)
             {
-                isActive = true;
+                isInit = true;
                 clients.Clear();
                 RegisterEvent();
                 RegisterTransport();
@@ -218,9 +223,9 @@ namespace JFramework.Net
         /// </summary>
         public static void StopServer()
         {
-            if (isActive)
+            if (isInit)
             {
-                isActive = false;
+                isInit = false;
                 DisconnectToAll();
                 Transport.current.StopServer();
                 UnRegisterTransport();

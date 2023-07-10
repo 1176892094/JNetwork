@@ -10,13 +10,13 @@ namespace JFramework.Editor
     {
         private readonly AssemblyDefinition assembly;
 
-        public MethodReference logErrorReference;
-        public FieldReference NetworkClientGetActive;
+        public readonly MethodReference logErrorReference;
+        public readonly MethodReference NetworkClientGetActive;
         
         public readonly MethodReference ArraySegmentConstructorReference;
         public readonly MethodReference ScriptableObjectCreateInstanceMethod;
         public readonly MethodReference readNetworkBehaviourGeneric;
-  
+        public MethodReference sendRpcInternal;
         
         
         public readonly TypeDefinition initializeOnLoadMethodAttribute;
@@ -33,13 +33,17 @@ namespace JFramework.Editor
             ArraySegmentConstructorReference = Resolvers.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CONSTRUCTOR, ref isFailed);
             
             TypeReference NetworkClientType = Import(typeof(NetworkClient)); // 处理ClientRpc
-            NetworkClientGetActive = Resolvers.ResolveField(NetworkClientType, assembly, logger, "isActive", ref isFailed);
+            NetworkClientGetActive = Resolvers.ResolveMethod(NetworkClientType, assembly, logger, "get_isActive", ref isFailed);
             
             TypeReference readerExtensions = Import(typeof(StreamExtensions));
             readNetworkBehaviourGeneric = Resolvers.ResolveMethod(readerExtensions, assembly, logger, method => method.Name == nameof(StreamExtensions.ReadNetworkBehaviour) && method.HasGenericParameters, ref isFailed);
             
             TypeReference ScriptableObjectType = Import<ScriptableObject>();
             ScriptableObjectCreateInstanceMethod = Resolvers.ResolveMethod(ScriptableObjectType, assembly, logger, method => method.Name == "CreateInstance" && method.HasGenericParameters, ref isFailed);
+            
+          //  TypeReference NetworkEntityType = Import<NetworkEntity>();
+
+          //  sendRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendRPCInternal", ref isFailed);
             
             TypeReference unityDebugType = Import(typeof(Debug));
             logErrorReference = Resolvers.ResolveMethod(unityDebugType, assembly, logger, method => method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName,ref isFailed);

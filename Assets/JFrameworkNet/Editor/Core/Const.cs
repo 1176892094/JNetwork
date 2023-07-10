@@ -10,6 +10,7 @@ namespace JFramework.Editor
         public const string PROCESS_FUNCTION = "JFrameworkProcessor";
         public const string VALUE_CHANGED = "onValueChanged";
         public const string INVOKE_RPC = "InvokeUserCode_";
+        public const string USER_RPC = "UserCode_";
         public const string CONSTRUCTOR = ".ctor";
        
 

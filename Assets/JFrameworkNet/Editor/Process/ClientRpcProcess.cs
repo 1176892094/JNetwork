@@ -1,3 +1,4 @@
+using JFramework.Net;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -26,5 +27,29 @@ namespace JFramework.Editor
             type.Methods.Add(rpc);
             return rpc;
         }
+        
+        // public static MethodDefinition ProcessRpcCall(Processor processor, Writers writers, Logger logger, TypeDefinition type, MethodDefinition method, CustomAttribute attribute, ref bool isFailed)
+        // {
+        //     MethodDefinition rpc = MethodProcessor.SubstituteMethod(logger, type, method, ref isFailed);
+        //     ILProcessor worker = method.Body.GetILProcessor();
+        //     NetworkEntityProcess.WriteSetupLocals(worker, processor);
+        //     NetworkEntityProcess.WriteGetWriter(worker, processor);
+        //     
+        //     if (!NetworkEntityProcess.WriteArguments(worker, writers, logger, method, RemoteType.ClientRpc, ref isFailed))
+        //     {
+        //         return null;
+        //     }
+        //
+        //     int channel = attribute.GetField("channel", 0);
+        //     worker.Emit(OpCodes.Ldarg_0);
+        //     worker.Emit(OpCodes.Ldstr, method.FullName);
+        //     worker.Emit(OpCodes.Ldc_I4, NetworkEvent.GetHashByName(method.FullName));
+        //     worker.Emit(OpCodes.Ldloc_0);
+        //     worker.Emit(OpCodes.Ldc_I4, channel);
+        //     worker.Emit(OpCodes.Callvirt, processor.sendRpcInternal);
+        //     NetworkEntityProcess.WriteReturnWriter(worker, processor);
+        //     worker.Emit(OpCodes.Ret);
+        //     return rpc;
+        // }
     }
 }
