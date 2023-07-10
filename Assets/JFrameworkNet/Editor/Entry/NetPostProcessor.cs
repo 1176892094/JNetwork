@@ -26,7 +26,7 @@ namespace JFramework.Editor
         /// <returns></returns>
         public override bool WillProcess(ICompiledAssembly compiledAssembly)
         {
-            return compiledAssembly.Name == Const.ASSEMBLY_NAME || FindAssembly(compiledAssembly);
+            return compiledAssembly.Name == CONST.ASSEMBLY_NAME || FindAssembly(compiledAssembly);
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace JFramework.Editor
         /// <returns></returns>
         private static bool FindAssembly(ICompiledAssembly compiledAssembly)
         {
-            return compiledAssembly.References.Any(path => Path.GetFileNameWithoutExtension(path) == Const.ASSEMBLY_NAME);
+            return compiledAssembly.References.Any(path => Path.GetFileNameWithoutExtension(path) == CONST.ASSEMBLY_NAME);
         }
 
         /// <summary>

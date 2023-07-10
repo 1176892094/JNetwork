@@ -199,5 +199,29 @@ namespace JFramework.Editor
                 }
             }
         }
+        
+        public static MethodDefinition GetMethod(this TypeDefinition type, string methodName)
+        {
+            return type.Methods.FirstOrDefault(method => method.Name == methodName);
+        }
+        
+        public static List<MethodDefinition> GetMethods(this TypeDefinition td, string methodName)
+        {
+            return td.Methods.Where(method => method.Name == methodName).ToList();
+        }
+        
+        public static CustomAttribute GetCustomAttribute<TAttribute>(this ICustomAttributeProvider method)
+        {
+            return method.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<TAttribute>());
+        }
+        
+        public static T GetField<T>(this CustomAttribute attribute, string field, T defaultValue)
+        {
+            foreach (var custom in attribute.Fields.Where(custom => custom.Name == field))
+            {
+                return (T)custom.Argument.Value;
+            }
+            return defaultValue;
+        }
     }
 }

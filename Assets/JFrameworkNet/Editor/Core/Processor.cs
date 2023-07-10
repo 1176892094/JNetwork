@@ -10,9 +10,14 @@ namespace JFramework.Editor
     {
         private readonly AssemblyDefinition assembly;
 
+        public MethodReference logErrorReference;
+        public FieldReference NetworkClientGetActive;
+        
         public readonly MethodReference ArraySegmentConstructorReference;
         public readonly MethodReference ScriptableObjectCreateInstanceMethod;
         public readonly MethodReference readNetworkBehaviourGeneric;
+  
+        
         
         public readonly TypeDefinition initializeOnLoadMethodAttribute;
         public readonly TypeDefinition runtimeInitializeOnLoadMethodAttribute;
@@ -25,13 +30,21 @@ namespace JFramework.Editor
             this.assembly = assembly;
 
             TypeReference ArraySegmentType = Import(typeof(ArraySegment<>));
-            ArraySegmentConstructorReference = Resolvers.ResolveMethod(ArraySegmentType, assembly, logger, Const.CONSTRUCTOR, ref isFailed);
+            ArraySegmentConstructorReference = Resolvers.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CONSTRUCTOR, ref isFailed);
+            
+            TypeReference NetworkClientType = Import(typeof(NetworkClient)); // 处理ClientRpc
+            NetworkClientGetActive = Resolvers.ResolveField(NetworkClientType, assembly, logger, "isActive", ref isFailed);
             
             TypeReference readerExtensions = Import(typeof(StreamExtensions));
             readNetworkBehaviourGeneric = Resolvers.ResolveMethod(readerExtensions, assembly, logger, method => method.Name == nameof(StreamExtensions.ReadNetworkBehaviour) && method.HasGenericParameters, ref isFailed);
             
             TypeReference ScriptableObjectType = Import<ScriptableObject>();
             ScriptableObjectCreateInstanceMethod = Resolvers.ResolveMethod(ScriptableObjectType, assembly, logger, method => method.Name == "CreateInstance" && method.HasGenericParameters, ref isFailed);
+            
+            TypeReference unityDebugType = Import(typeof(Debug));
+            logErrorReference = Resolvers.ResolveMethod(unityDebugType, assembly, logger, method => method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName,ref isFailed);
+
+         //   logWarningReference = Resolvers.ResolveMethod(unityDebugType, assembly, logger, md => md.Name == "LogWarning" && md.Parameters.Count == 1 && md.Parameters[0].ParameterType.FullName == typeof(object).FullName, ref isFailed);
             
             if (Helpers.IsEditorAssembly(assembly))
             {

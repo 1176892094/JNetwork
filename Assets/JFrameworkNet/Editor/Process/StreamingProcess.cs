@@ -40,7 +40,7 @@ namespace JFramework.Editor
         /// <param name="isFailed"></param>
         private static void ProcessNetworkCode(AssemblyDefinition currentAssembly, IAssemblyResolver resolver,Logger logger, Writers writers, Readers readers, ref bool isFailed)
         {
-            AssemblyNameReference assemblyReference = currentAssembly.MainModule.FindReference(Const.ASSEMBLY_NAME);
+            AssemblyNameReference assemblyReference = currentAssembly.MainModule.FindReference(CONST.ASSEMBLY_NAME);
             if (assemblyReference != null)
             {
                 AssemblyDefinition networkAssembly = resolver.Resolve(assemblyReference);

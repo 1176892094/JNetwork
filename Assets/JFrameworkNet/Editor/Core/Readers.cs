@@ -165,8 +165,8 @@ namespace JFramework.Editor
 
         private MethodDefinition GenerateReaderFunction(TypeReference variable)
         {
-            string functionName = $"Read{Math.Abs(variable.FullName.GetHashCode())}";
-            MethodDefinition readerFunc = new MethodDefinition(functionName, Const.METHOD_ATTRS, variable);
+            string functionName = $"Read{Process.GetHashByName(variable.FullName)}";
+            MethodDefinition readerFunc = new MethodDefinition(functionName, CONST.METHOD_ATTRS, variable);
             readerFunc.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, processor.Import<NetworkReader>()));
             readerFunc.Body.InitLocals = true;
             RegisterReadFunc(variable, readerFunc);

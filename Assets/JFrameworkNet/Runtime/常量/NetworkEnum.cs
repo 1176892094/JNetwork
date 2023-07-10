@@ -1,6 +1,6 @@
 namespace JFramework.Net
 {
-    internal enum RpcType : byte
+    public enum RpcType : byte
     {
         ServerRpc,
         ClientRpc

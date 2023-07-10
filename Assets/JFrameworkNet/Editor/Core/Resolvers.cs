@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Mono.Cecil;
 
@@ -5,16 +6,47 @@ namespace JFramework.Editor
 {
     internal static class Resolvers
     {
-        public static MethodReference ResolveMethod(TypeReference type, AssemblyDefinition assembly, Logger logger, string name, ref bool isFailed)
+        public static FieldReference ResolveField(TypeReference type, AssemblyDefinition assembly, Logger logger, string name, ref bool isFailed)
         {
             if (type == null)
             {
-                logger.Error($"没有类无法解析方法: {name}");
+                logger.Error($"没有无法解析字段: {name}");
                 isFailed = true;
                 return null;
             }
 
-            MethodReference method = ResolveMethod(type, assembly, logger, m => m.Name == name, ref isFailed);
+            FieldReference field = ResolveField(type, assembly, logger, field => field.Name == name, ref isFailed);
+            if (field == null)
+            {
+                logger.Error($"在类型 {type.Name} 中没有找到名称 {name} 的字段", type);
+                isFailed = true;
+            }
+
+            return field;
+        }
+
+        private static FieldReference ResolveField(TypeReference type, AssemblyDefinition assembly, Logger logger,Func<FieldDefinition, bool> predicate, ref bool isFailed)
+        {
+            foreach (var field in type.Resolve().Fields.Where(predicate))
+            {
+                return assembly.MainModule.ImportReference(field);
+            }
+
+            logger.Error($"在类型 {type.Name} 中没有找到字段", type);
+            isFailed = true;
+            return null;
+        }
+        
+        public static MethodReference ResolveMethod(TypeReference type, AssemblyDefinition assembly, Logger logger, string name, ref bool isFailed)
+        {
+            if (type == null)
+            {
+                logger.Error($"没有无法解析方法: {name}");
+                isFailed = true;
+                return null;
+            }
+
+            MethodReference method = ResolveMethod(type, assembly, logger, method => method.Name == name, ref isFailed);
             if (method == null)
             {
                 logger.Error($"在类型 {type.Name} 中没有找到名称 {name} 的方法", type);
@@ -24,7 +56,7 @@ namespace JFramework.Editor
             return method;
         }
 
-        public static MethodReference ResolveMethod(TypeReference type, AssemblyDefinition assembly, Logger logger, System.Func<MethodDefinition, bool> predicate, ref bool isFailed)
+        public static MethodReference ResolveMethod(TypeReference type, AssemblyDefinition assembly, Logger logger, Func<MethodDefinition, bool> predicate, ref bool isFailed)
         {
             foreach (var method in type.Resolve().Methods.Where(predicate))
             {
@@ -40,7 +72,7 @@ namespace JFramework.Editor
         {
             foreach (MethodDefinition methodRef in variable.Resolve().Methods)
             {
-                if (methodRef.Name == Const.CONSTRUCTOR && methodRef.Resolve().IsPublic && methodRef.Parameters.Count == 0)
+                if (methodRef.Name == CONST.CONSTRUCTOR && methodRef.Resolve().IsPublic && methodRef.Parameters.Count == 0)
                 {
                     return methodRef;
                 }
