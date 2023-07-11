@@ -10,6 +10,11 @@ namespace JFramework.Net
         /// 连接到的Server
         /// </summary>
         internal ServerEntity connection;
+        
+        /// <summary>
+        /// 客户端的Id
+        /// </summary>
+        public readonly int clientId;
 
         /// <summary>
         /// 网络消息读取
@@ -19,13 +24,9 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端所观察的网络游戏对象
         /// </summary>
-        internal readonly HashSet<NetworkObject> observing = new HashSet<NetworkObject>();
+        private readonly HashSet<NetworkObject> observing = new HashSet<NetworkObject>();
 
-        /// <summary>
-        /// 客户端的Id
-        /// </summary>
-        public readonly int clientId;
-
+        
         /// <summary>
         /// 初始化设置客户端Id
         /// </summary>
@@ -39,7 +40,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            if (isLocal)
+            if (isHost)
             {
                 NetworkWriter writer = NetworkWriter.Pop();
                 writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);

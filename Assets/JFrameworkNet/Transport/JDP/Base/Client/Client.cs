@@ -17,8 +17,7 @@ namespace JFramework.Udp
         private readonly Action onDisconnected;
         private readonly Action<ArraySegment<byte>, Channel> onReceive;
 
-        public Client(Setting setting, Action onConnected, Action onDisconnected,
-            Action<ArraySegment<byte>, Channel> onReceive)
+        public Client(Setting setting, Action onConnected, Action onDisconnected, Action<ArraySegment<byte>, Channel> onReceive)
         {
             this.setting = setting;
             this.onConnected = onConnected;
@@ -160,7 +159,7 @@ namespace JFramework.Udp
                 peer.Input(segment);
             }
 
-            peer.EarlyUpdate();
+            peer?.EarlyUpdate();
         }
 
         /// <summary>

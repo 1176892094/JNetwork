@@ -61,6 +61,7 @@ namespace JFramework.Net
 
         private void OnClientDisconnectEvent()
         {
+            Debug.Log("NetworkMode"+networkMode);
             if (networkMode is NetworkMode.Server or NetworkMode.None) return;
             networkMode = networkMode == NetworkMode.Host ? NetworkMode.Server : NetworkMode.None;
             OnClientDisconnect?.Invoke();

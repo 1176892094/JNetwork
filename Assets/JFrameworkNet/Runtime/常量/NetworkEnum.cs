@@ -13,12 +13,24 @@ namespace JFramework.Net
         Server = 2,
         Host = 3
     }
-    
+
     internal enum ConnectState : byte
     {
         Disconnected = 0,
         Connecting = 1,
         Connected = 2,
         Disconnecting = 3,
+    }
+
+    internal enum SyncMode : byte
+    {
+        Owner,
+        Observer,
+    }
+
+    internal enum SyncDirection : byte
+    {
+        ServerToClient,
+        ClientToServer
     }
 }

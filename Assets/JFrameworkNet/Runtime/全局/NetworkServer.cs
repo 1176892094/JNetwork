@@ -128,6 +128,7 @@ namespace JFramework.Net
         {
             client.isReady = true;
             SpawnObjectForClient(client);
+            Debug.Log($"NetworkServer --> SetCleintReady: {client.clientId}");
         }
 
         /// <summary>
@@ -137,6 +138,7 @@ namespace JFramework.Net
         private static void SetClientNotReady(ClientEntity client)
         {
             client.isReady = false;
+            //TODO: 移除侦听
             client.Send(new NotReadyEvent());
         }
 
@@ -145,9 +147,9 @@ namespace JFramework.Net
         /// </summary>
         public static void SetClientNotReadyAll()
         {
-            foreach (var connection in clients.Values)
+            foreach (var client in clients.Values)
             {
-                SetClientNotReady(connection);
+                SetClientNotReady(client);
             }
         }
 
@@ -167,8 +169,11 @@ namespace JFramework.Net
                     @object.AddObserver(client);
                 }
             }
+            
+            client.Send(new ObjectSpawnFinishEvent());
         }
         
+   
         /// <summary>
         /// 服务器向指定客户端发送生成对象的消息
         /// </summary>
@@ -176,19 +181,19 @@ namespace JFramework.Net
         /// <param name="object">生成的游戏对象</param>
         internal static void SendSpawnMessage(ClientEntity client, NetworkObject @object)
         {
-            using (NetworkWriter owner = NetworkWriter.Pop(), observers = NetworkWriter.Pop())
+            using (NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop())
             {
                 bool isOwner = @object.connection == client;
-                ArraySegment<byte> segment = CreateSpawnMessagePayload(@object, isOwner, owner, observers);
+                ArraySegment<byte> segment = SerializeNetworkObject(@object, isOwner, owner, observer);
                 SpawnEvent message = new SpawnEvent
                 {
                     netId = @object.netId,
                     sceneId = @object.sceneId,
                     assetId = @object.assetId,
-                    isOwner = @object.connection == client,
                     position = @object.transform.localPosition,
                     rotation = @object.transform.localRotation,
                     localScale = @object.transform.localScale,
+                    isOwner = @object.connection == client,
                     segment = segment
                 };
                 client.Send(message);
@@ -201,13 +206,13 @@ namespace JFramework.Net
         /// <param name="object">网络对象生成</param>
         /// <param name="isOwner">是否包含权限</param>
         /// <param name="owner">有权限的</param>
-        /// <param name="observers"></param>
+        /// <param name="observer"></param>
         /// <returns></returns>
-        private static ArraySegment<byte> CreateSpawnMessagePayload(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observers)
+        private static ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observer)
         {
             if (@object.objects.Length == 0) return default;
-            @object.SerializeServer(true, owner, observers);
-            ArraySegment<byte> segment = isOwner ? owner.ToArraySegment() : observers.ToArraySegment();
+            @object.SerializeServer(true, owner, observer);
+            ArraySegment<byte> segment = isOwner ? owner.ToArraySegment() : observer.ToArraySegment();
             return segment;
         }
 

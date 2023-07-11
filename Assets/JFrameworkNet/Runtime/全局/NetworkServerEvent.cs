@@ -52,7 +52,7 @@ namespace JFramework.Net
             else
             {
                 using var reader = NetworkReader.Pop(@event.payload);
-                @object.HandleRpcEvent(@event.componentIndex, @event.functionHash, RpcType.ServerRpc, reader, client);
+                @object.InvokeRpcEvent(@event.componentIndex, @event.functionHash, RpcType.ServerRpc, reader, client);
             }
         }
 

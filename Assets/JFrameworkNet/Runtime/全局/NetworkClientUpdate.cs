@@ -28,7 +28,7 @@ namespace JFramework.Net
         
             if (connection != null)
             {
-                if (connection.isLocal)
+                if (connection.isHost)
                 {
                     connection.Update();
                 }

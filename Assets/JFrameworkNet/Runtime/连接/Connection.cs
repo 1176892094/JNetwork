@@ -28,9 +28,9 @@ namespace JFramework.Net
         public bool isReady;
         
         /// <summary>
-        /// 是否为本地连接
+        /// 是否为主机连接
         /// </summary>
-        public bool isLocal;
+        public bool isHost;
         
         /// <summary>
         /// 是否已经验证权限

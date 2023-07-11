@@ -10,7 +10,7 @@ namespace JFramework.Net
         /// <summary>
         /// 最大网络行为数量
         /// </summary>
-        public const int MaxNetworkBehaviour = 64;
+        public const int MaxEntityCount = 64;
         
         /// <summary>
         /// 客户端连接Id
