@@ -39,15 +39,15 @@ namespace JFramework.Net
         {
             if (!client.isReady)
             {
-                Debug.LogWarning("Command received while client is not ready.");
+                Debug.LogWarning("接收到 ServerRpc 但客户端没有准备就绪");
             }
             else if (!spawns.TryGetValue(@event.netId, out var @object))
             {
-                Debug.LogWarning($"Spawned object not found Command message netId = {@event.netId}");
+                Debug.LogWarning($"没有找到发送 ServerRpc 的对象。对象网络Id：{@event.netId}");
             }
             else if (RpcUtils.GetAuthorityByHash(@event.functionHash) && @object.connection != client)
             {
-                Debug.LogWarning($"Command for object without authority netId = {@event.netId}");
+                Debug.LogWarning($"接收到 ServerRpc 但对象没有通过验证。对象网络Id：{@event.netId}");
             }
             else
             {

@@ -71,7 +71,7 @@ namespace JFramework.Net
             {
                 if (segment.Count == 0)
                 {
-                    Debug.LogError("Segment cannot send 0 bytes");
+                    Debug.LogError("发送消息大小不能为零！");
                     return;
                 }
 
@@ -85,7 +85,7 @@ namespace JFramework.Net
                 }
                 else
                 {
-                    Debug.LogError("Connection failed to make writer.");
+                    Debug.LogError("客户端不能获取写入器。");
                 }
             }
             else

@@ -12,13 +12,13 @@ namespace JFramework.Net
         {
             if (prefab == null)
             {
-                Debug.LogError("Could not register prefab because it was null");
+                Debug.LogError("不能注册预置体，因为它是空的。");
                 return;
             }
 
             if (!prefab.TryGetComponent(out NetworkObject @object))
             {
-                Debug.LogError($"{prefab.name} is not NetworkIdentity component");
+                Debug.LogError($"预置体 {prefab.name} 没有 NetworkObject 组件");
                 return;
             }
 
@@ -33,25 +33,25 @@ namespace JFramework.Net
         {
             if (@object.assetId == 0)
             {
-                Debug.LogError($"Can not Register '{@object.name}' because it had empty assetId");
+                Debug.LogError($"不能注册预置体 {@object.name} 因为 assetId 为零！");
                 return;
             }
 
             if (@object.sceneId != 0)
             {
-                Debug.LogError($"Can not Register '{@object.name}' because it has a sceneId");
+                Debug.LogError($"不能注册预置体 {@object.name} 因为 sceneId 不为零");
                 return;
             }
 
             NetworkObject[] identities = @object.GetComponentsInChildren<NetworkObject>();
             if (identities.Length > 1)
             {
-                Debug.LogError($"Prefab '{@object.name}' has multiple NetworkIdentity components.");
+                Debug.LogError($"不能注册预置体 {@object.name} 因为它挂在了多个 NetworkObject 组件");
             }
 
             if (prefabs.TryGetValue(@object.assetId, out var gameObject))
             {
-                Debug.LogWarning($"Replacing existing prefab with assetId {gameObject.name} --> {@object.name}");
+                Debug.LogWarning($"旧的预置体 {gameObject.name} 被新的预置体 {@object.name} 所取代。");
             }
 
             prefabs[@object.assetId] = @object.gameObject;
@@ -72,7 +72,7 @@ namespace JFramework.Net
 
             if (@event is { assetId: 0, sceneId: 0 })
             {
-                Debug.LogError($"Spawn message with netId {@event.netId} has no assetId and sceneId");
+                Debug.LogError($"生成游戏对象 {@event.netId} 需要保证 assetId 和 sceneId 其中一个不为零");
                 return false;
             }
 
@@ -80,7 +80,7 @@ namespace JFramework.Net
 
             if (@object == null)
             {
-                Debug.LogError($"Could not spawn NetworkObject assetId = {@event.netId} sceneId = {@event.sceneId}");
+                Debug.LogError($"不能成 {@object}。 assetId：{@event.netId} sceneId：{@event.sceneId}");
                 return false;
             }
 
@@ -100,7 +100,7 @@ namespace JFramework.Net
                 return gameObject.GetComponent<NetworkObject>();
             }
             
-            Debug.LogError($"Spawn prefab not found for assetId = {@event.assetId}");
+            Debug.LogError($"无法生成有效预置体。 assetId：{@event.assetId}  sceneId：{@event.sceneId}");
             return null;
         }
 
@@ -117,7 +117,7 @@ namespace JFramework.Net
                 return @object;
             }
 
-            Debug.LogError($"Spawn scene object not found for {sceneId}");
+            Debug.LogError($"无法生成有效场景对象。 sceneId：{sceneId}");
             return null;
         }
         

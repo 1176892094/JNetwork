@@ -204,7 +204,7 @@ namespace JFramework.Net
             
             if (value.netId == 0)
             {
-                Debug.LogWarning($"The netId of the NetworkIdentity is zero.\n");
+                Debug.LogWarning($"NetworkObject 的Id为零。\n");
             }
 
             writer.WriteUInt(value.netId);
@@ -220,7 +220,7 @@ namespace JFramework.Net
             
             if (value.netId == 0)
             {
-                Debug.LogWarning($"The netId of the NetworkIdentity is zero.\n");
+                Debug.LogWarning($"NetworkObject 的Id为零。\n");
                 writer.WriteUInt(0);
                 return;
             }
@@ -242,7 +242,7 @@ namespace JFramework.Net
             }
             else
             {
-                Debug.LogWarning($"Transform {value} has no NetworkIdentity");
+                Debug.LogWarning($"Transform {value} 没有 NetworkObject 组件");
                 writer.WriteUInt(0);
             }
         }
@@ -257,7 +257,7 @@ namespace JFramework.Net
             
             if (!value.TryGetComponent(out NetworkObject identity))
             {
-                Debug.LogWarning($"GameObject {value} has no NetworkIdentity");
+                Debug.LogWarning($"GameObject {value} 没有 NetworkObject 组件");
             }
             
             writer.WriteNetworkIdentity(identity);

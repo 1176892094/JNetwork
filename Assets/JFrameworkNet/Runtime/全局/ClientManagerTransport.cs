@@ -34,7 +34,7 @@ namespace JFramework.Net
         {
             if (connection == null)
             {
-                Debug.LogError("Skipped connect message handling because server is null.");
+                Debug.LogError("没有有效的服务器连接！");
                 return;
             }
 
@@ -68,13 +68,13 @@ namespace JFramework.Net
         {
             if (connection == null)
             {
-                Debug.LogError("Skipped message handling because server is null.");
+                Debug.LogError("没有有效的服务器连接！");
                 return;
             }
 
             if (!readers.ReadEnqueue(data))
             {
-                Debug.LogWarning($"Failed to add batch.");
+                Debug.LogError($"无法将读取消息合批!");
                 connection.Disconnect();
                 return;
             }
@@ -86,14 +86,14 @@ namespace JFramework.Net
                     connection.timestamp = timestamp;
                     if (!TryInvoke(reader, channel))
                     {
-                        Debug.LogWarning($"Failed to unpack and invoke message.");
+                        Debug.LogWarning($"无法解包调用网络信息。");
                         connection.Disconnect();
                         return;
                     }
                 }
                 else
                 {
-                    Debug.LogWarning($"messages should start with message id.");
+                    Debug.LogWarning($"网络消息应该有个开始的Id");
                     connection.Disconnect();
                     return;
                 }
@@ -101,7 +101,7 @@ namespace JFramework.Net
 
             if (!isLoadScene && readers.Count > 0)
             {
-                Debug.LogError($"Still had {readers.Count} batches remaining after processing.\n");
+                Debug.LogError($"读取器合批之后仍然还有次数残留！残留次数：{readers.Count}\n");
             }
         }
 
@@ -121,11 +121,11 @@ namespace JFramework.Net
                     return true;
                 }
 
-                Debug.LogWarning($"Unknown message id: {id}.");
+                Debug.LogWarning($"未知的网络消息Id：{id}");
                 return false;
             }
 
-            Debug.LogWarning("Invalid message header.");
+            Debug.LogWarning("无效的网络消息类型！");
             return false;
         }
     }

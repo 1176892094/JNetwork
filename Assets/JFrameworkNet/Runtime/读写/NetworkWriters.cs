@@ -79,7 +79,7 @@ namespace JFramework.Net
         {
             if (target.position != 0)
             {
-                Debug.LogError($"Copy needs a empty writer!");
+                Debug.LogError($"拷贝需要一个空的写入器！!");
             }
 
             var segment = origin.ToArraySegment(); // 转化成数据分段

@@ -22,7 +22,7 @@ namespace JFramework.Net
             {
                 if (value == 0)
                 {
-                    Debug.LogError("The assetId of a NetworkObject cannot be zero");
+                    Debug.LogError("assetId不能为零");
                     return;
                 }
                 m_assetId = value;
@@ -51,20 +51,20 @@ namespace JFramework.Net
         {
             if (this == null)
             {
-                Debug.LogWarning($"{rpcType} [{function}] received for deleted object netId: {netId}");
+                Debug.LogWarning($"调用了已经删除的网络对象。{rpcType} [{function}] 网络Id：{netId}");
                 return;
             }
 
             if (index >= objects.Length)
             {
-                Debug.LogWarning($"Component [{index}] not found for netId: {netId}");
+                Debug.LogWarning($"没有找到组件Id：[{index}] 网络Id：{netId}");
                 return;
             }
 
             NetworkEntity invokeComponent = objects[index];
             if (!RpcUtils.Invoke(function, rpcType, reader, invokeComponent, client))
             {
-                Debug.LogError($"No found received for {rpcType} [{function}] on {gameObject.name} netId = {netId}");
+                Debug.LogError($"无法调用{rpcType} [{function}] 网络对象：{gameObject.name} 网络Id：{netId}");
             }
         }
 
@@ -78,13 +78,13 @@ namespace JFramework.Net
         {
             if (objects == null)
             {
-                Debug.LogError($"NetworkEntity component is empty", gameObject);
+                Debug.LogError($"网络对象持有的 NetworkEntity 为空", gameObject);
                 return;
             }
 
             if (objects.Length > NetworkConst.MaxEntityCount)
             {
-                Debug.LogError($"The number of NetworkEntity cannot be greater than {NetworkConst.MaxEntityCount}");
+                Debug.LogError($"网络对象持有的 NetworkEntity 的数量不能超过{NetworkConst.MaxEntityCount}");
                 return;
             }
 

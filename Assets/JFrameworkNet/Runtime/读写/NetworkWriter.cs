@@ -124,7 +124,7 @@ namespace JFramework.Net
             Action<NetworkWriter, T> writeDelegate = Writer<T>.write;
             if (writeDelegate == null)
             {
-                Debug.LogError($"No writer found for {typeof(T)}");
+                Debug.LogError($"无法获取写入器。写入器类型：{typeof(T)}");
             }
             else
             {

@@ -26,7 +26,7 @@ namespace JFramework.Net
                 }
                 else
                 {
-                    Debug.LogWarning("The NetworkManager has no Transport component");
+                    Debug.LogWarning("NetworkManager 没有 Transport 组件。");
                 }
             }
         }
@@ -42,7 +42,7 @@ namespace JFramework.Net
                 }
                 else
                 {
-                    Debug.LogWarning("The NetworkManager has no Transport component");
+                    Debug.LogWarning("NetworkManager 没有 Transport 组件。");
                 }
             }
         }
@@ -67,7 +67,7 @@ namespace JFramework.Net
             this.networkMode = networkMode;
             if (transport == null)
             {
-                Debug.LogError("The NetworkManager has no Transport component.");
+                Debug.LogError("NetworkManager 没有 Transport 组件。");
                 return;
             }
 
@@ -83,7 +83,7 @@ namespace JFramework.Net
         {
             if (ServerManager.isActive)
             {
-                Debug.LogWarning("Server already started.");
+                Debug.LogWarning("服务器已经连接！");
                 return;
             }
 
@@ -116,7 +116,7 @@ namespace JFramework.Net
         {
             if (ClientManager.isActive)
             {
-                Debug.LogWarning("Client already started.");
+                Debug.LogWarning("客户端已经连接！");
                 return;
             }
 
@@ -161,11 +161,11 @@ namespace JFramework.Net
         {
             if (ServerManager.isActive || ClientManager.isActive)
             {
-                Debug.LogWarning("Server or Client already started.");
+                Debug.LogWarning("客户端或服务器已经连接！");
                 return;
             }
 
-            Debug.Log("NetworkManager --> StartHost");
+            Debug.Log("开启主机。");
             SetMode(NetworkMode.Host);
             ServerManager.StartServer(isListen);
             RegisterServerEvent();

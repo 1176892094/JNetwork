@@ -13,7 +13,7 @@ namespace JFramework.Net
             ServerManager.OnConnected = OnServerConnectEvent;
             ServerManager.OnDisconnected = OnServerDisconnectEvent;
             ServerManager.RegisterEvent<ReadyEvent>(OnServerReadyEvent);
-            Debug.Log("NetworkManager 注册服务器事件");
+            Debug.Log("注册服务器事件");
         }
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace JFramework.Net
         /// </summary>
         private void RegisterClientEvent()
         {
-            Debug.Log("NetworkManager 注册客户端事件");
+            Debug.Log("注册客户端事件");
             ClientManager.OnConnected = OnClientConnectEvent;
             ClientManager.OnDisconnected = OnClientDisconnectEvent;
             ClientManager.RegisterEvent<NotReadyEvent>(OnClientNotReadyEvent);
@@ -74,7 +74,7 @@ namespace JFramework.Net
         private void OnClientConnectEvent()
         {
             ClientManager.connection.isAuthority = true;
-            Debug.Log("NetworkManager --> SetAuthority");
+            Debug.Log("设置身份验证成功。");
             if (!ClientManager.isReady)
             {
                 ClientManager.Ready();
@@ -85,7 +85,6 @@ namespace JFramework.Net
 
         private void OnClientDisconnectEvent()
         {
-            Debug.Log("NetworkMode"+networkMode);
             if (networkMode is NetworkMode.Server or NetworkMode.None) return;
             OnClientDisconnect?.Invoke();
             networkMode = networkMode == NetworkMode.Host ? NetworkMode.Server : NetworkMode.None;

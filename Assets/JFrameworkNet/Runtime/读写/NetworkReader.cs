@@ -161,7 +161,7 @@ namespace JFramework.Net
             Func<NetworkReader, T> readerDelegate = Reader<T>.read;
             if (readerDelegate == null)
             {
-                Debug.LogError($"No reader found for {typeof(T)}.");
+                Debug.LogError($"无法获取读取器。读取器类型：{typeof(T)}.");
                 return default;
             }
 

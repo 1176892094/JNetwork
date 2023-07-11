@@ -128,7 +128,7 @@ namespace JFramework.Net
             connection = new ServerEntity();
             client.connection = connection;
             ServerManager.connection = client;
-            Debug.Log("ClientManager --> StartClient");
+            Debug.Log("开启客户端。");
         }
 
         /// <summary>
@@ -149,15 +149,15 @@ namespace JFramework.Net
         {
             if (isReady)
             {
-                Debug.LogError("Client is already ready !");
+                Debug.LogError("客户端已经准备就绪！");
             }
             else if (connection == null)
             {
-                Debug.LogError("No connection to the Server !");
+                Debug.LogError("没有有效的服务器连接！");
             }
             else
             {
-                Debug.Log($"ClientManager --> SendReadyEvent");
+                Debug.Log($"客户端准备。");
                 isReady = true;
                 connection.isReady = true;
                 connection.Send(new ReadyEvent());
@@ -195,12 +195,12 @@ namespace JFramework.Net
                 }
                 else
                 {
-                    Debug.LogError("ClientManager Send when not connected to a server");
+                    Debug.LogError("客户端没有连接成功就向服务器发送消息！");
                 }
             }
             else
             {
-                Debug.LogError("ClientManager Send with no connection");
+                Debug.LogError("没有有效的服务器连接！");
             }
         }
 
@@ -209,7 +209,7 @@ namespace JFramework.Net
         /// </summary>
         public static void StopClient()
         {
-            Debug.Log("ClientManager 停止客户端");
+            Debug.Log("停止客户端。");
             state = ConnectState.Disconnected;
             if (Transport.current != null)
             {

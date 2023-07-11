@@ -13,13 +13,13 @@ namespace JFramework.Net
         {
             if (string.IsNullOrWhiteSpace(newSceneName))
             {
-                Debug.LogError("Server load scene empty scene name");
+                Debug.LogError("服务器不能加载空场景！");
                 return;
             }
 
             if (ServerManager.isLoadScene && newSceneName == sceneName)
             {
-                Debug.LogError($"Scene change is already in progress for {newSceneName}");
+                Debug.LogError($"服务器已经在加载 {newSceneName} 场景");
                 return;
             }
 
@@ -45,7 +45,7 @@ namespace JFramework.Net
         {
             if (string.IsNullOrWhiteSpace(newSceneName))
             {
-                Debug.LogError("Client load scene is empty");
+                Debug.LogError("客户端不能加载空场景！");
                 return;
             }
 

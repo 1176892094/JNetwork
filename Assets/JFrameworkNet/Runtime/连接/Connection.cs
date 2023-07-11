@@ -63,13 +63,13 @@ namespace JFramework.Net
             int maxPacketSize = Transport.current.GetMaxPacketSize(channel);
             if (segment.Count > maxPacketSize)
             {
-                Debug.LogError($"Cannot send packet too large: {maxPacketSize} > {segment.Count}");
+                Debug.LogError($"发送消息大小不能超过{maxPacketSize}。消息大小：{segment.Count}");
                 return false;
             }
 
             if (segment.Count == 0)
             {
-                Debug.LogError("Cannot send 0 bytes");
+                Debug.LogError("发送消息大小不能为零！");
                 return false;
             }
 
@@ -117,7 +117,7 @@ namespace JFramework.Net
         protected NetworkWriters GetWriters(Channel channel)
         {
             if (writerDict.TryGetValue(channel, out var writers)) return writers;
-            Debug.Log($"{GetType().Name} 修改传输写入");
+            Debug.Log($"{GetType().Name} 写入传输 {channel}");
             var size = Transport.current.UnreliableSize();
             return writerDict[channel] = new NetworkWriters(size);
         }

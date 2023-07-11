@@ -109,7 +109,7 @@ namespace JFramework.Net
                 RegisterEvent();
                 RegisterTransport();
                 NetworkTime.RuntimeInitializeOnLoad();
-                Debug.Log("ServerManager 开启服务器");
+                Debug.Log("开启服务器。");
             }
 
             SpawnObjects();
@@ -126,7 +126,7 @@ namespace JFramework.Net
                 clients[client.clientId] = client;
             }
 
-            Debug.Log($"ServerManager --> Connected: {client.clientId}");
+            Debug.Log($"客户端 {client.clientId} 连接到服务器。");
             OnConnected?.Invoke(client);
         }
 
@@ -136,7 +136,7 @@ namespace JFramework.Net
         /// <param name="client"></param>
         internal static void SetClientReady(ClientEntity client)
         {
-            Debug.Log($"ServerManager 设置客户端 {client.clientId} 准备好");
+            Debug.Log($"设置客户端 {client.clientId} 准备就绪。");
             client.isReady = true;
             SpawnForClient(client);
         }
@@ -170,7 +170,7 @@ namespace JFramework.Net
         private static void SpawnForClient(ClientEntity client)
         {
             if (!client.isReady) return;
-            Debug.Log($"ServerManager 为客户端 {client.clientId} 生成物体 ");
+            Debug.Log($"客户端 {client.clientId} 开始生成物体");
             client.Send(new ObjectSpawnStartEvent());
             foreach (var @object in spawns.Values)
             {
@@ -205,7 +205,7 @@ namespace JFramework.Net
         /// <param name="object">生成的游戏对象</param>
         internal static void SendSpawnMessage(ClientEntity client, NetworkObject @object)
         {
-            Debug.Log($"ServerManager --> 生成游戏对象: {@object}");
+            Debug.Log($"服务器为客户端 {client.clientId} 生成 {@object}");
             using (NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop())
             {
                 bool isOwner = @object.connection == client;
@@ -251,7 +251,7 @@ namespace JFramework.Net
         {
             if (!isActive)
             {
-                Debug.LogWarning("ServerManager is not active");
+                Debug.LogWarning("服务器不是活跃的。");
                 return;
             }
 
@@ -274,7 +274,7 @@ namespace JFramework.Net
         {
             if (!isActive)
             {
-                Debug.LogWarning("ServerManager is not active");
+                Debug.LogWarning("服务器不是活跃的。");
                 return;
             }
 
@@ -294,7 +294,7 @@ namespace JFramework.Net
         {
             if (!isActive)
             {
-                Debug.LogError($"ServerManager is not active");
+                Debug.LogError($"服务器不是活跃的。");
                 return;
             }
             
@@ -322,19 +322,19 @@ namespace JFramework.Net
         {
             if (!isActive)
             {
-                Debug.LogError($"ServerManager is not active", obj);
+                Debug.LogError($"服务器不是活跃的。", obj);
                 return;
             }
 
             if (!obj.TryGetComponent(out NetworkObject @object))
             {
-                Debug.LogError($"Spawn {obj} has no NetworkObject", obj);
+                Debug.LogError($"生成对象 {obj} 没有 NetworkObject 组件", obj);
                 return;
             }
 
             if (spawns.ContainsKey(@object.netId))
             {
-                Debug.LogWarning($"{@object} was already spawned", @object.gameObject);
+                Debug.LogWarning($"网络对象 {@object} 已经被生成。", @object.gameObject);
                 return;
             }
             
@@ -395,7 +395,7 @@ namespace JFramework.Net
         /// </summary>
         public static void StopServer()
         {
-            Debug.Log("ServerManager 停止服务器");
+            Debug.Log("停止服务器。");
             if (isInit)
             {
                 isInit = false;

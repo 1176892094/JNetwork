@@ -35,7 +35,7 @@ namespace JFramework.Net
         {
             if (clientId == 0)
             {
-                Debug.LogError($"Invalid clientId: {clientId} .");
+                Debug.LogError($"无效的客户端连接。客户端：{clientId}");
                 Transport.current.ServerDisconnect(clientId);
             }
             else if (clients.ContainsKey(clientId))
@@ -72,13 +72,13 @@ namespace JFramework.Net
         {
             if (!clients.TryGetValue(clientId, out var client))
             {
-                Debug.LogError($"Receive data is unknown clientId: {clientId}");
+                Debug.LogError($"服务器接收到消息。未知的客户端：{clientId}");
                 return;
             }
 
             if (!client.readers.ReadEnqueue(segment))
             {
-                Debug.LogWarning($"Messages should start with message id");
+                Debug.LogWarning($"网络消息应该有个开始的Id。断开客户端：{client}");
                 client.Disconnect();
                 return;
             }
@@ -90,14 +90,14 @@ namespace JFramework.Net
                     client.timestamp = timestamp;
                     if (!TryInvoke(client, reader, channel))
                     {
-                        Debug.LogWarning($"Failed to unpack and invoke message. Disconnecting {clientId}.");
+                        Debug.LogWarning($"无法解包调用网络信息。断开客户端：{client}");
                         client.Disconnect();
                         return;
                     }
                 }
                 else
                 {
-                    Debug.LogWarning($"Messages should start with message id. Disconnecting {clientId}");
+                    Debug.LogWarning($"网络消息应该有个开始的Id。断开客户端：{client}");
                     client.Disconnect();
                     return;
                 }
@@ -105,7 +105,7 @@ namespace JFramework.Net
 
             if (!isLoadScene && client.readers.Count > 0)
             {
-                Debug.LogError($"Still had {client.readers.Count} batches remaining after processing.");
+                Debug.LogError($"读取器合批之后仍然还有次数残留！残留次数：{client.readers.Count}");
             }
         }
 
@@ -126,11 +126,11 @@ namespace JFramework.Net
                     return true;
                 }
 
-                Debug.LogWarning($"Unknown message id: {id}.");
+                Debug.LogWarning($"未知的网络消息Id：{id}");
                 return false;
             }
 
-            Debug.LogWarning($"Invalid message header.");
+            Debug.LogWarning($"无效的网络消息类型！");
             return false;
         }
     }
