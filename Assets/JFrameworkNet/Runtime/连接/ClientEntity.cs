@@ -96,11 +96,6 @@ namespace JFramework.Net
 
         internal void RemoveObserverAll()
         {
-            foreach (var @object in observing)
-            {
-                @object.RemoveObserver(this);
-            }
-
             observing.Clear();
         }
     }

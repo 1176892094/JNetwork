@@ -109,7 +109,7 @@ namespace JFramework.Net
                 RegisterEvent();
                 RegisterTransport();
                 NetworkTime.RuntimeInitializeOnLoad();
-                Debug.Log("NetworkServer 开启服务器");
+                Debug.Log("ServerManager 开启服务器");
             }
 
             SpawnObjects();
@@ -126,7 +126,7 @@ namespace JFramework.Net
                 clients[client.clientId] = client;
             }
 
-            Debug.Log($"NetworkServer --> Connected: {client.clientId}");
+            Debug.Log($"ServerManager --> Connected: {client.clientId}");
             OnConnected?.Invoke(client);
         }
 
@@ -136,7 +136,7 @@ namespace JFramework.Net
         /// <param name="client"></param>
         internal static void SetClientReady(ClientEntity client)
         {
-            Debug.Log($"NetworkServer 设置客户端 {client.clientId} 准备好");
+            Debug.Log($"ServerManager 设置客户端 {client.clientId} 准备好");
             client.isReady = true;
             SpawnForClient(client);
         }
@@ -170,13 +170,13 @@ namespace JFramework.Net
         private static void SpawnForClient(ClientEntity client)
         {
             if (!client.isReady) return;
-            Debug.Log($"NetworkServer 为客户端 {client.clientId} 生成物体 ");
+            Debug.Log($"ServerManager 为客户端 {client.clientId} 生成物体 ");
             client.Send(new ObjectSpawnStartEvent());
             foreach (var @object in spawns.Values)
             {
                 if (@object.gameObject.activeSelf)
                 {
-                    @object.AddObserver(client);
+                    client.AddObserver(@object);
                 }
             }
             
@@ -205,6 +205,7 @@ namespace JFramework.Net
         /// <param name="object">生成的游戏对象</param>
         internal static void SendSpawnMessage(ClientEntity client, NetworkObject @object)
         {
+            Debug.Log($"ServerManager --> 生成游戏对象: {@object}");
             using (NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop())
             {
                 bool isOwner = @object.connection == client;
@@ -250,7 +251,7 @@ namespace JFramework.Net
         {
             if (!isActive)
             {
-                Debug.LogWarning("NetworkServer is not active");
+                Debug.LogWarning("ServerManager is not active");
                 return;
             }
 
@@ -273,7 +274,7 @@ namespace JFramework.Net
         {
             if (!isActive)
             {
-                Debug.LogWarning("NetworkServer is not active");
+                Debug.LogWarning("ServerManager is not active");
                 return;
             }
 
@@ -293,7 +294,7 @@ namespace JFramework.Net
         {
             if (!isActive)
             {
-                Debug.LogError($"NetworkServer is not active");
+                Debug.LogError($"ServerManager is not active");
                 return;
             }
             
@@ -321,7 +322,7 @@ namespace JFramework.Net
         {
             if (!isActive)
             {
-                Debug.LogError($"NetworkServer is not active", obj);
+                Debug.LogError($"ServerManager is not active", obj);
                 return;
             }
 
@@ -337,7 +338,7 @@ namespace JFramework.Net
                 return;
             }
             
-            @object.client = client;
+            @object.m_connection = client;
             
             if (isHost)
             {
@@ -364,12 +365,12 @@ namespace JFramework.Net
         {
             foreach (var client in clients.Values.Where(client => client.isReady))
             {
-                @object.AddObserver(client);
+                client.AddObserver(@object);
             }
           
             if (connection is { isReady: true })
             {
-                @object.AddObserver(connection);
+                connection.AddObserver(@object);
             }
         }
 
@@ -394,7 +395,7 @@ namespace JFramework.Net
         /// </summary>
         public static void StopServer()
         {
-            Debug.Log("NetworkServer 停止服务器");
+            Debug.Log("ServerManager 停止服务器");
             if (isInit)
             {
                 isInit = false;

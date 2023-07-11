@@ -1,52 +1,47 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace JFramework.Net
 {
     public sealed class NetworkObject : MonoBehaviour
     {
-        private readonly Dictionary<int, ClientEntity> observers = new Dictionary<int, ClientEntity>();
         public uint netId;
-        public uint assetId;
         public ulong sceneId;
         public bool isOwner;
         public bool isServer;
         public bool isClient;
         private bool isStartClient;
         private bool hasAuthority;
-        internal ClientEntity client;
+ 
+        private uint m_assetId;
 
-        public ClientEntity connection
+        internal uint assetId
         {
-            get => client;
+            get => m_assetId;
             set
             {
-                client = value;
-                client?.AddObserver(this);
+                if (value == 0)
+                {
+                    Debug.LogError("The assetId of a NetworkObject cannot be zero");
+                    return;
+                }
+                m_assetId = value;
             }
+        }
+
+        internal ClientEntity m_connection;
+        public ClientEntity connection
+        {
+            get => m_connection;
+            private set => m_connection = value;
         }
 
         public NetworkEntity[] objects;
 
-        /// <summary>
-        /// 添加到观察字典
-        /// </summary>
-        /// <param name="client">添加的客户端Id</param>
-        internal void AddObserver(ClientEntity client)
+        private void Awake()
         {
-            if (observers.ContainsKey(client.clientId)) return;
-            observers[client.clientId] = client;
-            client.AddObserver(this);
-        }
-        
-        /// <summary>
-        /// 从观察字典移除
-        /// </summary>
-        /// <param name="client">移除的客户端Id</param>
-        internal void RemoveObserver(ClientEntity client)
-        {
-            observers.Remove(client.clientId);
+            objects = GetComponentsInChildren<NetworkEntity>(true);
+            
         }
 
         /// <summary>
@@ -81,15 +76,16 @@ namespace JFramework.Net
         /// <param name="observer"></param>
         internal void SerializeServer(bool isInit, NetworkWriter owner, NetworkWriter observer)
         {
-            if (observers == null)
+            if (objects == null)
             {
                 Debug.LogError($"NetworkEntity component is empty", gameObject);
                 return;
             }
 
-            if (observers.Count > NetworkConst.MaxEntityCount)
+            if (objects.Length > NetworkConst.MaxEntityCount)
             {
                 Debug.LogError($"The number of NetworkEntity cannot be greater than {NetworkConst.MaxEntityCount}");
+                return;
             }
 
             NetworkEntity[] entities = objects;

@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -20,11 +21,15 @@ namespace JFramework.Net
         /// </summary>
         private void RegisterClientEvent()
         {
+            Debug.Log("NetworkManager 注册客户端事件");
             ClientManager.OnConnected = OnClientConnectEvent;
             ClientManager.OnDisconnected = OnClientDisconnectEvent;
             ClientManager.RegisterEvent<NotReadyEvent>(OnClientNotReadyEvent);
             ClientManager.RegisterEvent<SceneEvent>(OnClientLoadSceneEvent, false);
-            Debug.Log("NetworkManager 注册客户端事件");
+            foreach (var @object in spawnPrefabs.Where(@object => @object != null))
+            {
+                ClientManager.RegisterPrefab(@object);
+            }
         }
 
         /// <summary>
@@ -82,10 +87,10 @@ namespace JFramework.Net
         {
             Debug.Log("NetworkMode"+networkMode);
             if (networkMode is NetworkMode.Server or NetworkMode.None) return;
-            networkMode = networkMode == NetworkMode.Host ? NetworkMode.Server : NetworkMode.None;
             OnClientDisconnect?.Invoke();
-            OnStopClient?.Invoke();
+            networkMode = networkMode == NetworkMode.Host ? NetworkMode.Server : NetworkMode.None;
             ClientManager.StopClient();
+            OnStopClient?.Invoke();
             if (networkMode == NetworkMode.Server) return;
             sceneName = "";
         }

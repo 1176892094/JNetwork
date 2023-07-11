@@ -12,6 +12,16 @@ namespace JFramework.Net
         /// 网络消息委托字典
         /// </summary>
         private static readonly Dictionary<ushort, EventDelegate> events = new Dictionary<ushort, EventDelegate>();
+        
+        /// <summary>
+        /// 注册的预置体
+        /// </summary>
+        private static readonly Dictionary<uint, GameObject> prefabs = new Dictionary<uint, GameObject>();
+
+        /// <summary>
+        /// 场景中包含的网络对象
+        /// </summary>
+        private static readonly Dictionary<ulong, NetworkObject> scenes = new Dictionary<ulong, NetworkObject>();
 
         /// <summary>
         /// 客户端生成的物体数量
@@ -27,6 +37,11 @@ namespace JFramework.Net
         /// 是否已经准备完成(能进行和Server的信息传输)
         /// </summary>
         public static bool isReady;
+
+        /// <summary>
+        /// 是否在生成物体中
+        /// </summary>
+        public static bool isSpawn;
 
         /// <summary>
         /// 是否正在加载场景
@@ -113,7 +128,7 @@ namespace JFramework.Net
             connection = new ServerEntity();
             client.connection = connection;
             ServerManager.connection = client;
-            Debug.Log("NetworkClient --> StartClient");
+            Debug.Log("ClientManager --> StartClient");
         }
 
         /// <summary>
@@ -142,7 +157,7 @@ namespace JFramework.Net
             }
             else
             {
-                Debug.Log($"NetworkClient --> SendReadyEvent");
+                Debug.Log($"ClientManager --> SendReadyEvent");
                 isReady = true;
                 connection.isReady = true;
                 connection.Send(new ReadyEvent());
@@ -180,12 +195,12 @@ namespace JFramework.Net
                 }
                 else
                 {
-                    Debug.LogError("NetworkClient Send when not connected to a server");
+                    Debug.LogError("ClientManager Send when not connected to a server");
                 }
             }
             else
             {
-                Debug.LogError("NetworkClient Send with no connection");
+                Debug.LogError("ClientManager Send with no connection");
             }
         }
 
@@ -194,7 +209,7 @@ namespace JFramework.Net
         /// </summary>
         public static void StopClient()
         {
-            Debug.Log("NetworkClient 停止客户端");
+            Debug.Log("ClientManager 停止客户端");
             state = ConnectState.Disconnected;
             if (Transport.current != null)
             {
@@ -203,6 +218,7 @@ namespace JFramework.Net
 
             spawns.Clear();
             events.Clear();
+            prefabs.Clear();
             connection = null;
             isReady = false;
             isLoadScene = false;

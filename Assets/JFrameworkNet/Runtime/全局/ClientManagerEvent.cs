@@ -1,5 +1,6 @@
 using System;
 using JFramework.Interface;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace JFramework.Net
@@ -125,6 +126,10 @@ namespace JFramework.Net
         /// <param name="event"></param>
         private static void SpawnByClient(SpawnEvent @event)
         {
+            if (TrySpawn(@event, out var @object))
+            {
+                Spawn(@object, @event);
+            }
         }
 
         /// <summary>
