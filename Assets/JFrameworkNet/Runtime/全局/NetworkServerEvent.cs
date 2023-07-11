@@ -45,7 +45,7 @@ namespace JFramework.Net
             {
                 Debug.LogWarning($"Spawned object not found Command message netId = {@event.netId}");
             }
-            else if (RpcUtils.GetAuthorityByHash(@event.functionHash) && @object.client != client)
+            else if (RpcUtils.GetAuthorityByHash(@event.functionHash) && @object.connection != client)
             {
                 Debug.LogWarning($"Command for object without authority netId = {@event.netId}");
             }

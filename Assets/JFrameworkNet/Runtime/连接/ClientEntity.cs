@@ -10,17 +10,17 @@ namespace JFramework.Net
         /// 连接到的Server
         /// </summary>
         internal ServerEntity connection;
-        
+
         /// <summary>
         /// 网络消息读取
         /// </summary>
         internal readonly NetworkReaders readers = new NetworkReaders();
-        
+
         /// <summary>
         /// 客户端所观察的网络游戏对象
         /// </summary>
         internal readonly HashSet<NetworkObject> observing = new HashSet<NetworkObject>();
-        
+
         /// <summary>
         /// 客户端的Id
         /// </summary>
@@ -68,6 +68,12 @@ namespace JFramework.Net
         {
             isReady = false;
             Transport.current.ServerDisconnect(clientId);
+        }
+
+        internal void AddToObserver(NetworkObject @object)
+        {
+            observing.Add(@object);
+            NetworkServer.SendSpawnMessage(this, @object);
         }
     }
 }

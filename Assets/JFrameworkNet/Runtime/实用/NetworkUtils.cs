@@ -24,26 +24,38 @@ namespace JFramework.Net
             return parent == null || parent.gameObject.activeInHierarchy;
         }
 
+        /// <summary>
+        /// 获取网络对象
+        /// </summary>
+        /// <param name="netId">传入网络Id</param>
+        /// <returns>返回网络对象</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NetworkObject GetNetworkIdentity(uint netId)
+        public static NetworkObject GetNetworkObject(uint netId)
         {
-            // if (NetworkServer.isActive)
-            // {
-            //     NetworkServer.TryGetNetId(netId, out var identity);
-            //     return identity;
-            // }
-            //
-            // if (NetworkClient.isActive)
-            // {
-            //     NetworkClient.TryGetNetId(netId, out var identity);
-            //     return identity;
-            // }
+            if (NetworkServer.isActive)
+            {
+                NetworkServer.spawns.TryGetValue(netId, out var @object);
+                return @object;
+            }
+            
+            if (NetworkClient.isActive)
+            {
+                NetworkClient.spawns.TryGetValue(netId, out var @object);
+                return @object;
+            }
 
             return null;
         }
         
+        /// <summary>
+        /// 心跳判断
+        /// </summary>
+        /// <param name="current">当前时间</param>
+        /// <param name="interval">时间间隔</param>
+        /// <param name="lastTime">上次发送的时间</param>
+        /// <returns>返回是否能够进行传输</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Elapsed(double current, double interval, ref double lastTime)
+        public static bool HeartTick(double current, double interval, ref double lastTime)
         {
             if (current < lastTime + interval) return false;
             var clientTime = (long)(current / interval);

@@ -1,6 +1,7 @@
 using System;
 using JFramework.Interface;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace JFramework.Net
 {
@@ -73,7 +74,7 @@ namespace JFramework.Net
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 localScale;
-        public ArraySegment<byte> payload;
+        public ArraySegment<byte> segment;
     }
 
     internal struct SnapshotEvent : IEvent

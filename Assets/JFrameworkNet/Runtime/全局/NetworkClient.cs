@@ -16,7 +16,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端生成的物体数量
         /// </summary>
-        private static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
+        internal static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
 
         /// <summary>
         /// 连接到的服务器

@@ -1,20 +1,27 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace JFramework.Net
 {
     public sealed class NetworkObject : MonoBehaviour
     {
+        public readonly Dictionary<int, ClientEntity> observers = new Dictionary<int, ClientEntity>();
         public uint netId;
-        public int sceneId;
-        public int tickFrame;
-        public NetworkWriter writer;
-        public ClientEntity client;
+        public uint assetId;
+        public ulong sceneId;
+        public ClientEntity connection;
         public NetworkEntity[] objects;
 
-        public void AddObserver(ClientEntity client)
+        internal void AddObserver(ClientEntity client)
         {
-        }
+            if (observers.ContainsKey(client.clientId))
+            {
+                return;
+            }
 
+            observers[client.clientId] = client;
+            client.AddToObserver(this);
+        }
         /// <summary>
         /// 处理Rpc事件
         /// </summary>
@@ -38,20 +45,23 @@ namespace JFramework.Net
                 Debug.LogError($"Not found received for {rpcType} [{functionHash}] on {gameObject.name} netId = {netId}");
             }
         }
-        
-        internal NetworkWriter GetServerSerializationAtTick(int tick)
+
+        /// <summary>
+        /// 在Server端中序列化
+        /// </summary>
+        /// <param name="isInit"></param>
+        /// <param name="owner"></param>
+        /// <param name="observer"></param>
+        internal void SerializeServer(bool isInit, NetworkWriter owner, NetworkWriter observer)
         {
-            if (tickFrame != tick)
-            {
-                writer.position = 0;
-            }
-            
-            return writer;
         }
 
-        public void OnStopClient()
+        internal void IsValidComponent()
         {
-            
+            if (objects == null)
+            {
+                Debug.LogError("");
+            }
         }
     }
 }

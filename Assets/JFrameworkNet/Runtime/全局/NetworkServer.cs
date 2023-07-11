@@ -19,7 +19,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器生成的游戏对象字典
         /// </summary>
-        private static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
+        internal static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
         
         /// <summary>
         /// 连接的的客户端字典
@@ -127,6 +127,7 @@ namespace JFramework.Net
         internal static void SetClientReady(ClientEntity client)
         {
             client.isReady = true;
+            SpawnObjectForClient(client);
         }
 
         /// <summary>
@@ -148,6 +149,66 @@ namespace JFramework.Net
             {
                 SetClientNotReady(connection);
             }
+        }
+
+        /// <summary>
+        /// 服务器给指定客户端生成游戏对象
+        /// </summary>
+        /// <param name="client">传入指定客户端</param>
+        private static void SpawnObjectForClient(ClientEntity client)
+        {
+            if (!client.isReady) return;
+            client.Send(new ObjectSpawnStartEvent());
+
+            foreach (var @object in spawns.Values)
+            {
+                if (@object.gameObject.activeSelf)
+                {
+                    @object.AddObserver(client);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 服务器向指定客户端发送生成对象的消息
+        /// </summary>
+        /// <param name="client">指定的客户端</param>
+        /// <param name="object">生成的游戏对象</param>
+        internal static void SendSpawnMessage(ClientEntity client, NetworkObject @object)
+        {
+            using (NetworkWriter owner = NetworkWriter.Pop(), observers = NetworkWriter.Pop())
+            {
+                bool isOwner = @object.connection == client;
+                ArraySegment<byte> segment = CreateSpawnMessagePayload(@object, isOwner, owner, observers);
+                SpawnEvent message = new SpawnEvent
+                {
+                    netId = @object.netId,
+                    sceneId = @object.sceneId,
+                    assetId = @object.assetId,
+                    isOwner = @object.connection == client,
+                    position = @object.transform.localPosition,
+                    rotation = @object.transform.localRotation,
+                    localScale = @object.transform.localScale,
+                    segment = segment
+                };
+                client.Send(message);
+            }
+        }
+
+        /// <summary>
+        /// 序列化网络对象，并将数据转发给客户端
+        /// </summary>
+        /// <param name="object">网络对象生成</param>
+        /// <param name="isOwner">是否包含权限</param>
+        /// <param name="owner">有权限的</param>
+        /// <param name="observers"></param>
+        /// <returns></returns>
+        private static ArraySegment<byte> CreateSpawnMessagePayload(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observers)
+        {
+            if (@object.objects.Length == 0) return default;
+            @object.SerializeServer(true, owner, observers);
+            ArraySegment<byte> segment = isOwner ? owner.ToArraySegment() : observers.ToArraySegment();
+            return segment;
         }
 
         /// <summary>
