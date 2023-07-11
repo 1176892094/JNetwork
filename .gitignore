@@ -75,3 +75,4 @@ crashlytics-build.properties
 *.meta
 /[Aa]ssets/JFramework/
 /[Aa]ssets/Test/
+/[Aa]ssets/AddressableAssetsData/
