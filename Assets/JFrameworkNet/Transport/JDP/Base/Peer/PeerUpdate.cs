@@ -21,19 +21,19 @@ namespace JFramework.Udp
                         break;
                 }
             }
-            catch (SocketException exception)
+            catch (SocketException e)
             {
-                Log.Error($"Disconnecting because {exception}.");
+                Log.Error($"P2P发生异常，断开连接。\n{e}.");
                 Disconnect();
             }
-            catch (ObjectDisposedException exception)
+            catch (ObjectDisposedException e)
             {
-                Log.Error($"Disconnecting because {exception}.");
+                Log.Error($"P2P发生异常，断开连接。\n{e}.");
                 Disconnect();
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                Log.Error($"Disconnecting because {exception}.");
+                Log.Error($"P2P发生异常，断开连接。\n{e}.");
                 Disconnect();
             }
         }
@@ -47,19 +47,19 @@ namespace JFramework.Udp
                     jdp.Update(watch.ElapsedMilliseconds);
                 }
             }
-            catch (SocketException exception)
+            catch (SocketException e)
             {
-                Log.Error($"Disconnecting because {exception}.");
+                Log.Error($"P2P发生异常，断开连接。\n{e}.");
                 Disconnect();
             }
-            catch (ObjectDisposedException exception)
+            catch (ObjectDisposedException e)
             {
-                Log.Error($"Disconnecting because {exception}.");
+                Log.Error($"P2P发生异常，断开连接。\n{e}.");
                 Disconnect();
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                Log.Error($"Disconnecting because {exception}.");
+                Log.Error($"P2P发生异常，断开连接。\n{e}.");
                 Disconnect();
             }
         }
@@ -74,19 +74,18 @@ namespace JFramework.Udp
                     case Header.Handshake:
                         if (segment.Count != 4)
                         {
-                            Log.Error($"Received invalid handshake message with size {segment.Count}");
+                            Log.Error($"收到无效的握手消息。消息类型：{header}");
                             Disconnect();
                             return;
                         }
 
                         Buffer.BlockCopy(segment.Array, segment.Offset, receiveCookie, 0, 4);
                         var prettyCookie = BitConverter.ToUInt32(segment.Array, segment.Offset);
-                        Log.Info($"Received handshake with cookie = {prettyCookie}");
+                        Log.Info($"接收到握手消息。签名缓存：{prettyCookie}");
                         state = State.Authority;
                         onAuthority?.Invoke();
                         break;
                     case Header.Disconnect:
-                        Log.Error($"Received invalid header {header} while Connected.");
                         Disconnect();
                         break;
                 }
@@ -101,7 +100,7 @@ namespace JFramework.Udp
                 switch (header)
                 {
                     case Header.Handshake:
-                        Log.Warn($"Received invalid header {header} while Authenticated.");
+                        Log.Warn($"身份验证时收到无效的消息。消息类型：{header}");
                         Disconnect();
                         break;
                     case Header.Message:
@@ -111,13 +110,13 @@ namespace JFramework.Udp
                         }
                         else
                         {
-                            Log.Error("Received empty Data message while Authenticated.");
+                            Log.Error("通过身份验证时收到空数据消息。");
                             Disconnect();
                         }
 
                         break;
                     case Header.Disconnect:
-                        Log.Info($"Received disconnect message");
+                        Log.Info($"接收到断开连接的消息。");
                         Disconnect();
                         break;
                 }
@@ -128,13 +127,13 @@ namespace JFramework.Udp
         {
             if (time >= lastReceiveTime + timeout)
             {
-                Log.Error($"Connection timeout after not receiving any message for {timeout}ms.");
+                Log.Error($"在 {timeout}ms 内没有收到任何消息后的连接超时！");
                 Disconnect();
             }
 
             if (jdp.state == -1)
             {
-                Log.Error($"A message was retransmitted {jdp.deadLink} times without acknowledge.");
+                Log.Error($"消息被重传了 {jdp.deadLink} 次而没有得到确认！");
                 Disconnect();
             }
 
@@ -146,7 +145,7 @@ namespace JFramework.Udp
             
             if (jdp.GetBufferQueueCount() >= Utils.QUEUE_DISCONNECTED_THRESHOLD)
             {
-                Log.Error($"Disconnecting connection because it can't process data fast enough.");
+                Log.Error($"断开连接，因为它处理数据的速度不够快！");
                 jdp.sendQueue.Clear();
                 Disconnect();
             }

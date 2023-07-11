@@ -36,7 +36,7 @@ namespace JFramework.Udp
         {
             if (socket != null)
             {
-                Log.Info("Server is already connected");
+                Log.Warn("服务器已经连接！");
                 return;
             }
 
@@ -47,7 +47,7 @@ namespace JFramework.Udp
             }
             catch (Exception e)
             {
-                Log.Warn($"Server failed to set Dual Mode.\n{e}");
+                Log.Warn($"服务器不能设置成双模式！\n{e}");
             }
 
             socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
@@ -97,7 +97,7 @@ namespace JFramework.Udp
             }
             catch (SocketException e)
             {
-                Log.Error($"Server receive failed!\n{e}");
+                Log.Error($"服务器接收信息失败！\n{e}");
             }
 
             return false;
@@ -117,7 +117,7 @@ namespace JFramework.Udp
             void OnAuthority()
             {
                 newConnection.peer.Handshake();
-                Log.Info($"The client {clientId} connect to server.");
+                Log.Info($"客户端 {clientId} 连接到服务器。");
                 clients.Add(clientId, newConnection);
                 onConnected?.Invoke(clientId);
             }
@@ -125,7 +125,7 @@ namespace JFramework.Udp
             void OnDisconnected()
             {
                 removes.Add(clientId);
-                Log.Info($"The client {clientId} disconnect to server.");
+                Log.Info($"客户端 {clientId} 从服务器断开。");
                 onDisconnected?.Invoke(clientId);
             }
 
@@ -133,7 +133,7 @@ namespace JFramework.Udp
             {
                 if (!clients.TryGetValue(clientId, out var connection))
                 {
-                    Log.Warn($"The server send invalid clientId = {clientId}");
+                    Log.Warn($"服务器向无效的客户端发送信息。客户端：{clientId}");
                     return;
                 }
 
@@ -143,7 +143,7 @@ namespace JFramework.Udp
                 }
                 catch (SocketException e)
                 {
-                    Log.Error($"The server send failed.\n{e}");
+                    Log.Error($"服务器发送消息失败！\n{e}");
                 }
             }
 

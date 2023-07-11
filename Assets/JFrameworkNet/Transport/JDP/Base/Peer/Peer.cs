@@ -51,7 +51,7 @@ namespace JFramework.Udp
         {
             if (segment.Count == 0)
             {
-                Log.Error("The peer tried sending empty message.");
+                Log.Error("P2P尝试发送空消息。");
                 Disconnect();
                 return;
             }
@@ -76,7 +76,7 @@ namespace JFramework.Udp
         {
             if (segment.Count > jdpSendBuffer.Length - 1)
             {
-                Log.Error($"Failed to send reliable message of size {segment.Count}");
+                Log.Error($"P2P发送可靠消息失败。消息大小：{segment.Count}");
                 return;
             }
 
@@ -88,10 +88,10 @@ namespace JFramework.Udp
             }
             
             int sent = jdp.Send(jdpSendBuffer, 0, segment.Count + 1);
-            Log.Info("Send: " + header);
+            Log.Info("P2P发送消息类型：" + header);
             if (sent < 0)
             {
-                Log.Error($"Send failed with error = {sent} for content with length = {segment.Count}");
+                Log.Error($"P2P发送可靠消息失败。消息大小：{segment.Count}。消息类型：{sent}");
             }
         }
 
@@ -114,7 +114,7 @@ namespace JFramework.Udp
         {
             if (segment.Count > unreliableSize)
             {
-                Log.Error($"Failed to send unreliable message of size {segment.Count}");
+                Log.Error($"P2P发送不可靠消息失败。消息大小：{segment.Count}");
                 return;
             }
 
@@ -143,7 +143,7 @@ namespace JFramework.Udp
 
             if (messageSize > messageBuffer.Length)
             {
-                Log.Error($"The length of {messageSize} is not allowed to be greater than {messageBuffer.Length}.");
+                Log.Error($"P2P消息长度不能超过{messageBuffer.Length}。消息大小：{messageSize}");
                 Disconnect();
                 return false;
             }
@@ -151,7 +151,7 @@ namespace JFramework.Udp
             int received = jdp.Receive(messageBuffer, messageSize);
             if (received < 0)
             {
-                Log.Error($"Receive failed with error = {received}");
+                Log.Error($"P2P接收消息失败。消息类型：{received}");
                 Disconnect();
                 return false;
             }
@@ -159,7 +159,7 @@ namespace JFramework.Udp
             header = (Header)messageBuffer[0];
             segment = new ArraySegment<byte>(messageBuffer, 1, messageSize - 1);
             lastReceiveTime = (uint)watch.ElapsedMilliseconds;
-            Log.Info("Receive: " + header);
+            Log.Info("P2P接收消息失败: " + header);
             return true;
         }
 
@@ -169,7 +169,7 @@ namespace JFramework.Udp
         public void Handshake()
         {
             var cookieBytes = BitConverter.GetBytes(cookie);
-            Log.Info($"Handshake to other end with cookie = {cookie}");
+            Log.Info($"P2P发送握手请求。签名缓存：{cookie}");
             var segment = new ArraySegment<byte>(cookieBytes);
             SendReliable(Header.Handshake, segment);
         }
@@ -190,7 +190,7 @@ namespace JFramework.Udp
                 // ignored
             }
 
-            Log.Info($"Peer disconnected");
+            Log.Info($"P2P断开连接。");
             state = State.Disconnected;
             onDisconnected?.Invoke();
         }
@@ -207,7 +207,7 @@ namespace JFramework.Udp
 
             if (state == State.Authority && newCookie != cookie)
             {
-                Log.Warn($"The peer dropped message with invalid cookie: {newCookie} - {cookie}.");
+                Log.Warn($"P2P丢弃了无效的签名缓存。旧：{cookie} 新：{newCookie}");
                 return;
             }
 
@@ -222,7 +222,7 @@ namespace JFramework.Udp
                     OnInputUnreliable(message);
                     break;
                 default:
-                    Log.Warn($"The peer invalid channel header: {channel}");
+                    Log.Warn($"P2P不是有效的消息类型：{channel}");
                     break;
             }
         }
@@ -236,7 +236,7 @@ namespace JFramework.Udp
             int input = jdp.Input(message.Array, message.Offset, message.Count);
             if (input != 0)
             {
-                Log.Warn($"Input failed with error = {input} for buffer with length = {message.Count - 1}");
+                Log.Warn($"P2P输入消息失败。错误代码：{input}。消息大小：{message.Count - 1}");
             }
         }
         
@@ -253,7 +253,7 @@ namespace JFramework.Udp
             }
             else
             {
-                Log.Warn($"The kcp peer received unreliable message while not authenticated.");
+                Log.Warn($"P2P收到没有通过验证的不可靠消息。");
             }
         }
     }

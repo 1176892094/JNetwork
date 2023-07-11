@@ -85,7 +85,7 @@ namespace JFramework.Net
                 {
                     if (authority && !connection.isAuthority)
                     {
-                        Debug.LogWarning($"Send message no authority: {connection}");
+                        Debug.LogWarning($"发送消息没有权限。客户端：{((ClientEntity)connection).clientId}");
                         connection.Disconnect();
                         return;
                     }
@@ -95,8 +95,8 @@ namespace JFramework.Net
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"Disconnected clientId {((ClientEntity)connection).clientId}\n{e}");
-                    connection.Disconnect();
+                    Debug.LogError($"断开连接。客户端：{((ClientEntity)connection)?.clientId}\n{e}");
+                    connection?.Disconnect();
                 }
             };
         }

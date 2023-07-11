@@ -36,7 +36,7 @@ namespace JFramework.Udp
         {
             if (state == State.Connected)
             {
-                Log.Info("Client is already connected");
+                Log.Warn("客户端已经连接！");
                 return;
             }
 
@@ -48,7 +48,7 @@ namespace JFramework.Udp
 
             Connection();
             endPoint = new IPEndPoint(addresses[0], port);
-            Log.Info($"Client connect to {addresses[0]} : {port}");
+            Log.Info($"客户端连接到：{addresses[0]} 端口：{port}。");
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.Blocking = false;
             socket.SendBufferSize = setting.sendBufferSize;
@@ -79,7 +79,7 @@ namespace JFramework.Udp
         {
             if (state == State.Disconnected)
             {
-                Log.Warn($"Client send failed!");
+                Log.Warn("客户端没有连接，发送消息失败！");
                 return;
             }
 
@@ -100,7 +100,7 @@ namespace JFramework.Udp
             }
             catch (SocketException e)
             {
-                Log.Info($"Client receive failed!\n{e}");
+                Log.Info($"客户端接收消息失败！\n{e}");
                 peer?.Disconnect();
                 return false;
             }
@@ -115,14 +115,14 @@ namespace JFramework.Udp
 
             void OnAuthority()
             {
-                Log.Info("Client connected.");
+                Log.Info("客户端连接成功。");
                 state = State.Connected;
                 onConnected?.Invoke();
             }
 
             void OnDisconnected()
             {
-                Log.Info($"Client disconnected");
+                Log.Info($"客户端断开连接。");
                 socket.Close();
                 peer = null;
                 socket = null;
@@ -139,7 +139,7 @@ namespace JFramework.Udp
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Client send failed!\n{e}");
+                    Log.Error($"客户端发送消息失败！\n{e}");
                 }
             }
         }

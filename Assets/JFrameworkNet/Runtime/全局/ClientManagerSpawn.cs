@@ -4,6 +4,10 @@ namespace JFramework.Net
 {
     public static partial class ClientManager
     {
+        /// <summary>
+        /// 注册预置体
+        /// </summary>
+        /// <param name="prefab">传入预置体</param>
         internal static void RegisterPrefab(GameObject prefab)
         {
             if (prefab == null)
@@ -21,6 +25,10 @@ namespace JFramework.Net
             RegisterPrefab(@object);
         }
 
+        /// <summary>
+        /// 注册预置体
+        /// </summary>
+        /// <param name="object">传入网络对象</param>
         private static void RegisterPrefab(NetworkObject @object)
         {
             if (@object.assetId == 0)

@@ -91,7 +91,7 @@ namespace JFramework.Udp
             }
             catch (SocketException exception)
             {
-                Log.Error($"Failed to resolve host: {host}\n{exception}");
+                Log.Error($"无法解析主机地址：{host}\n{exception}");
                 addresses = null;
                 return false;
             }
