@@ -2,7 +2,7 @@ using JFramework.Udp;
 
 namespace JFramework.Net
 {
-    public static partial class NetworkServer
+    public static partial class ServerManager
     {
         /// <summary>
         /// 在Update之前调用

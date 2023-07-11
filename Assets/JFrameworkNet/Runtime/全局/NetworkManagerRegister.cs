@@ -4,23 +4,33 @@ namespace JFramework.Net
 {
     public sealed partial class NetworkManager
     {
+        /// <summary>
+        /// 注册服务器事件
+        /// </summary>
         private void RegisterServerEvent()
         {
-            NetworkServer.OnConnected = OnServerConnectEvent;
-            NetworkServer.OnDisconnected = OnServerDisconnectEvent;
-            NetworkServer.RegisterEvent<ReadyEvent>(OnServerReadyEvent);
+            ServerManager.OnConnected = OnServerConnectEvent;
+            ServerManager.OnDisconnected = OnServerDisconnectEvent;
+            ServerManager.RegisterEvent<ReadyEvent>(OnServerReadyEvent);
             Debug.Log("NetworkManager 注册服务器事件");
         }
 
+        /// <summary>
+        /// 注册客户端事件
+        /// </summary>
         private void RegisterClientEvent()
         {
-            NetworkClient.OnConnected = OnClientConnectEvent;
-            NetworkClient.OnDisconnected = OnClientDisconnectEvent;
-            NetworkClient.RegisterEvent<NotReadyEvent>(OnClientNotReadyEvent);
-            NetworkClient.RegisterEvent<SceneEvent>(OnClientLoadSceneEvent, false);
+            ClientManager.OnConnected = OnClientConnectEvent;
+            ClientManager.OnDisconnected = OnClientDisconnectEvent;
+            ClientManager.RegisterEvent<NotReadyEvent>(OnClientNotReadyEvent);
+            ClientManager.RegisterEvent<SceneEvent>(OnClientLoadSceneEvent, false);
             Debug.Log("NetworkManager 注册客户端事件");
         }
 
+        /// <summary>
+        /// 当客户端连接到服务器时触发
+        /// </summary>
+        /// <param name="client">连接的客户端</param>
         private void OnServerConnectEvent(ClientEntity client)
         {
             client.isAuthority = true;
@@ -36,24 +46,33 @@ namespace JFramework.Net
             OnServerConnect?.Invoke(client);
         }
 
+        /// <summary>
+        /// 当客户端从服务器断开时触发
+        /// </summary>
+        /// <param name="client">断开的客户端</param>
         private void OnServerDisconnectEvent(ClientEntity client)
         {
             OnServerDisconnect?.Invoke(client);
         }
 
+        /// <summary>
+        /// 当
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="event"></param>
         private static void OnServerReadyEvent(ClientEntity client, ReadyEvent @event)
         {
-            NetworkServer.SetClientReady(client);
+            ServerManager.SetClientReady(client);
             OnServerReady?.Invoke(client);
         }
 
         private void OnClientConnectEvent()
         {
-            NetworkClient.connection.isAuthority = true;
+            ClientManager.connection.isAuthority = true;
             Debug.Log("NetworkManager --> SetAuthority");
-            if (!NetworkClient.isReady)
+            if (!ClientManager.isReady)
             {
-                NetworkClient.Ready();
+                ClientManager.Ready();
             }
 
             OnClientConnect?.Invoke();
@@ -66,20 +85,20 @@ namespace JFramework.Net
             networkMode = networkMode == NetworkMode.Host ? NetworkMode.Server : NetworkMode.None;
             OnClientDisconnect?.Invoke();
             OnStopClient?.Invoke();
-            NetworkClient.StopClient();
+            ClientManager.StopClient();
             if (networkMode == NetworkMode.Server) return;
             sceneName = "";
         }
 
         private static void OnClientNotReadyEvent(NotReadyEvent @event)
         {
-            NetworkClient.isReady = false;
+            ClientManager.isReady = false;
             OnClientNotReady?.Invoke();
         }
 
         private void OnClientLoadSceneEvent(SceneEvent @event)
         {
-            if (NetworkClient.isConnect)
+            if (ClientManager.isConnect)
             {
                 ClientLoadScene(@event.sceneName);
             }

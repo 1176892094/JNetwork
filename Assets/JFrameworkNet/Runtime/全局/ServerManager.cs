@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public static partial class NetworkServer
+    public static partial class ServerManager
     {
         /// <summary>
         /// 网络消息委托字典
@@ -54,7 +54,7 @@ namespace JFramework.Net
         /// <summary>
         /// 是主机模式
         /// </summary>
-        public static bool isHost => isActive && NetworkClient.isActive;
+        public static bool isHost => isActive && ClientManager.isActive;
 
         /// <summary>
         /// 是否在加载场景
@@ -348,7 +348,7 @@ namespace JFramework.Net
             {
                 @object.netId = ++netId;
                 @object.isServer = true;
-                @object.isClient = NetworkClient.isActive;
+                @object.isClient = ClientManager.isActive;
                 spawns[@object.netId] = @object;
                 @object.OnStartServer();
             }

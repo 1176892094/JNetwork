@@ -41,7 +41,7 @@ namespace JFramework.Net
         /// </summary>
         private void LocalUpdate()
         {
-            if (!NetworkServer.isHost) return;
+            if (!ServerManager.isHost) return;
             while (writeQueue.Count > 0)
             {
                 var writer = writeQueue.Dequeue();
@@ -52,7 +52,7 @@ namespace JFramework.Net
                 {
                     if (send.WriteDequeue(sendWriter))
                     {
-                        NetworkClient.OnClientReceive(sendWriter.ToArraySegment(), Channel.Reliable);
+                        ClientManager.OnClientReceive(sendWriter.ToArraySegment(), Channel.Reliable);
                     }
                 }
 
@@ -67,7 +67,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            if (NetworkServer.isHost)
+            if (ServerManager.isHost)
             {
                 if (segment.Count == 0)
                 {
@@ -81,7 +81,7 @@ namespace JFramework.Net
                 using var writer = NetworkWriter.Pop();
                 if (send.WriteDequeue(writer)) // 尝试从队列中取出元素并写入到目标
                 {
-                    NetworkServer.OnServerReceive(NetworkConst.HostId, writer.ToArraySegment(), channel);
+                    ServerManager.OnServerReceive(NetworkConst.HostId, writer.ToArraySegment(), channel);
                 }
                 else
                 {
@@ -100,7 +100,7 @@ namespace JFramework.Net
         public override void Disconnect()
         {
             isReady = false;
-            NetworkClient.isReady = false;
+            ClientManager.isReady = false;
             Transport.current.ClientDisconnect();
         }
     }

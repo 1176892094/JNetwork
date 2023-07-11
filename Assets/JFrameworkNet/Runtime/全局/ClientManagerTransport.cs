@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public static partial class NetworkClient
+    public static partial class ClientManager
     {
         /// <summary>
         /// 添加传输事件

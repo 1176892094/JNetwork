@@ -32,7 +32,7 @@ namespace JFramework.Editor
             TypeReference ArraySegmentType = Import(typeof(ArraySegment<>));
             ArraySegmentConstructorReference = Resolvers.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CONSTRUCTOR, ref isFailed);
             
-            TypeReference NetworkClientType = Import(typeof(NetworkClient)); // 处理ClientRpc
+            TypeReference NetworkClientType = Import(typeof(ClientManager)); // 处理ClientRpc
             NetworkClientGetActive = Resolvers.ResolveMethod(NetworkClientType, assembly, logger, "get_isActive", ref isFailed);
             
             TypeReference readerExtensions = Import(typeof(StreamExtensions));

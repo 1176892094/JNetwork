@@ -17,19 +17,19 @@ namespace JFramework.Net
                 return;
             }
 
-            if (NetworkServer.isLoadScene && newSceneName == sceneName)
+            if (ServerManager.isLoadScene && newSceneName == sceneName)
             {
                 Debug.LogError($"Scene change is already in progress for {newSceneName}");
                 return;
             }
 
-            NetworkServer.SetClientNotReadyAll();
+            ServerManager.SetClientNotReadyAll();
             OnServerLoadScene?.Invoke(newSceneName);
             sceneName = newSceneName;
-            NetworkServer.isLoadScene = true;
-            if (NetworkServer.isActive)
+            ServerManager.isLoadScene = true;
+            if (ServerManager.isActive)
             {
-                NetworkServer.SendToAll(new SceneEvent
+                ServerManager.SendToAll(new SceneEvent
                 {
                     sceneName = newSceneName
                 });
@@ -50,9 +50,9 @@ namespace JFramework.Net
             }
 
             OnClientLoadScene?.Invoke(newSceneName);
-            if (NetworkServer.isActive) return; //Host不做处理
+            if (ServerManager.isActive) return; //Host不做处理
             sceneName = newSceneName;
-            NetworkClient.isLoadScene = true;
+            ClientManager.isLoadScene = true;
             await LoadSceneAsync(newSceneName);
         }
         
@@ -62,8 +62,8 @@ namespace JFramework.Net
         private async Task LoadSceneAsync(string newSceneName)
         {
             await SceneManager.LoadSceneAsync(newSceneName);
-            NetworkServer.isLoadScene = false;
-            NetworkClient.isLoadScene = false;
+            ServerManager.isLoadScene = false;
+            ClientManager.isLoadScene = false;
             switch (networkMode)
             {
                 case NetworkMode.Host:
@@ -84,7 +84,7 @@ namespace JFramework.Net
         /// </summary>
         private void OnServerSceneLoadCompleted()
         {
-            NetworkServer.SpawnObjects();
+            ServerManager.SpawnObjects();
             OnServerSceneChanged?.Invoke(sceneName);
         }
 
@@ -93,10 +93,10 @@ namespace JFramework.Net
         /// </summary>
         private void OnClientSceneLoadCompleted()
         {
-            if (!NetworkClient.isConnect) return;
-            if (NetworkClient.connection.isAuthority && !NetworkClient.isReady)
+            if (!ClientManager.isConnect) return;
+            if (ClientManager.connection.isAuthority && !ClientManager.isReady)
             {
-                NetworkClient.Ready();
+                ClientManager.Ready();
             }
 
             OnClientSceneChanged?.Invoke(SceneManager.localScene);

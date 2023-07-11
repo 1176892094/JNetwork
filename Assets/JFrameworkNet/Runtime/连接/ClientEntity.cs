@@ -40,7 +40,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            if (NetworkServer.isHost)
+            if (ServerManager.isHost)
             {
                 NetworkWriter writer = NetworkWriter.Pop();
                 writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
@@ -77,7 +77,7 @@ namespace JFramework.Net
         internal void AddObserver(NetworkObject @object)
         {
             observing.Add(@object);
-            NetworkServer.SendSpawnMessage(this, @object);
+            ServerManager.SendSpawnMessage(this, @object);
         }
         
         /// <summary>
@@ -90,7 +90,7 @@ namespace JFramework.Net
             observing.Remove(@object);
             if (!destroy)
             {
-                NetworkServer.DespawnForClient(this, @object);
+                ServerManager.DespawnForClient(this, @object);
             }
         }
 

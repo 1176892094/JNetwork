@@ -29,7 +29,7 @@ namespace JFramework.Net
                 {
                     clientTime = localTime,
                 };
-                NetworkClient.Send(pingEvent, Channel.Unreliable);
+                ClientManager.Send(pingEvent, Channel.Unreliable);
                 lastPingTime = localTime;
             }
         }

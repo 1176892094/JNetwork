@@ -1,6 +1,6 @@
 namespace JFramework.Net
 {
-    public static partial class NetworkClient
+    public static partial class ClientManager
     {
         /// <summary>
         /// 在Update前调用
@@ -28,7 +28,7 @@ namespace JFramework.Net
         
             if (connection != null)
             {
-                if (NetworkServer.isHost)
+                if (ServerManager.isHost)
                 {
                     connection.Update();
                 }

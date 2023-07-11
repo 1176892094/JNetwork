@@ -1,11 +1,10 @@
 using System;
 using JFramework.Interface;
-using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace JFramework.Net
 {
-    public static partial class NetworkClient
+    public static partial class ClientManager
     {
         /// <summary>
         /// 注册网络事件
@@ -74,7 +73,7 @@ namespace JFramework.Net
         /// <param name="event"></param>
         private static void SpawnByHost(SpawnEvent @event)
         {
-            if (NetworkServer.spawns.TryGetValue(@event.netId, out var @object))
+            if (ServerManager.spawns.TryGetValue(@event.netId, out var @object))
             {
                 spawns[@event.netId] = @object;
                 @object.isOwner = @event.isOwner;

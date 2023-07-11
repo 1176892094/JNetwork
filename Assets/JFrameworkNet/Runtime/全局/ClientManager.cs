@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public static partial class NetworkClient
+    public static partial class ClientManager
     {
         /// <summary>
         /// 网络消息委托字典
@@ -112,7 +112,7 @@ namespace JFramework.Net
             var client = new ClientEntity(NetworkConst.HostId);
             connection = new ServerEntity();
             client.connection = connection;
-            NetworkServer.connection = client;
+            ServerManager.connection = client;
             Debug.Log("NetworkClient --> StartClient");
         }
 
