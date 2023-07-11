@@ -45,11 +45,10 @@ namespace JFramework.Net
                 NetworkWriter writer = NetworkWriter.Pop();
                 writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
                 connection.writeQueue.Enqueue(writer);
+                return;
             }
-            else
-            {
-                base.Send(segment, channel);
-            }
+
+            base.Send(segment, channel);
         }
 
         /// <summary>
@@ -71,10 +70,38 @@ namespace JFramework.Net
             Transport.current.ServerDisconnect(clientId);
         }
 
-        internal void AddToObserver(NetworkObject @object)
+        /// <summary>
+        /// 添加到观察列表
+        /// </summary>
+        /// <param name="object">传入网络对象</param>
+        internal void AddObserver(NetworkObject @object)
         {
             observing.Add(@object);
             NetworkServer.SendSpawnMessage(this, @object);
+        }
+        
+        /// <summary>
+        /// 从观察列表移除
+        /// </summary>
+        /// <param name="object">传入网络对象</param>
+        /// <param name="destroy">是否销毁</param>
+        internal void RemoveObserver(NetworkObject @object, bool destroy)
+        {
+            observing.Remove(@object);
+            if (!destroy)
+            {
+                NetworkServer.DespawnForClient(this, @object);
+            }
+        }
+
+        internal void RemoveObserverAll()
+        {
+            foreach (var @object in observing)
+            {
+                @object.RemoveObserver(this);
+            }
+
+            observing.Clear();
         }
     }
 }

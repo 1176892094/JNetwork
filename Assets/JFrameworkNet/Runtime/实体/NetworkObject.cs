@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,6 +13,8 @@ namespace JFramework.Net
         public bool isOwner;
         public bool isServer;
         public bool isClient;
+        private bool isStartClient;
+        private bool hasAuthority;
         private ClientEntity client;
 
         public ClientEntity connection
@@ -20,17 +23,30 @@ namespace JFramework.Net
             set
             {
                 client = value;
-                client?.AddToObserver(this);
+                client?.AddObserver(this);
             }
         }
 
         public NetworkEntity[] objects;
 
+        /// <summary>
+        /// 添加到观察字典
+        /// </summary>
+        /// <param name="client">添加的客户端Id</param>
         internal void AddObserver(ClientEntity client)
         {
             if (observers.ContainsKey(client.clientId)) return;
             observers[client.clientId] = client;
-            client.AddToObserver(this);
+            client.AddObserver(this);
+        }
+        
+        /// <summary>
+        /// 从观察字典移除
+        /// </summary>
+        /// <param name="client">移除的客户端Id</param>
+        internal void RemoveObserver(ClientEntity client)
+        {
+            observers.Remove(client.clientId);
         }
 
         /// <summary>
@@ -106,6 +122,111 @@ namespace JFramework.Net
             }
 
             return (ownerMask, observerMask);
+        }
+        
+        /// <summary>
+        /// 触发Notify则进行权限认证
+        /// </summary>
+        internal void OnNotifyAuthority()
+        {
+            if (!hasAuthority && isOwner)
+            {
+                OnStartAuthority();
+            }
+            else if (hasAuthority && !isOwner)
+            {
+                OnStopAuthority();
+            }
+
+            hasAuthority = isOwner;
+        }
+        
+        /// <summary>
+        /// 当客户端启动时调用
+        /// </summary>
+        internal void OnStartClient()
+        {
+            if (isStartClient) return;
+            isStartClient = true;
+            
+            foreach (var entity in objects)
+            {
+                try
+                {
+                    entity.GetComponent<IStartClient>()?.OnStartClient();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e, entity);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 当客户端停止时调用
+        /// </summary>
+        internal void OnStopClient()
+        {
+            if (!isStartClient) return;
+
+            foreach (var entity in objects)
+            {
+                try
+                {
+                    entity.GetComponent<IStopClient>()?.OnStopClient();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e, entity);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 当通过验证时调用
+        /// </summary>
+        private void OnStartAuthority()
+        {
+            foreach (var entity in objects)
+            {
+                try
+                {
+                    entity.GetComponent<IStartAuthority>()?.OnStartAuthority();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e, entity);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 当停止验证时调用
+        /// </summary>
+        private void OnStopAuthority()
+        {
+            foreach (var entity in objects)
+            {
+                try
+                {
+                    entity.GetComponent<IStopAuthority>()?.OnStopAuthority();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e, entity);
+                }
+            }
+        }
+        
+        internal void Reset()
+        {
+            netId = 0;
+            isOwner = false;
+            isClient = false;
+            isServer = false;
+            isStartClient = false;
+            hasAuthority = false;
+            connection = null;
         }
     }
 }

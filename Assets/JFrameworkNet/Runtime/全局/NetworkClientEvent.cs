@@ -1,5 +1,7 @@
 using System;
 using JFramework.Interface;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace JFramework.Net
 {
@@ -15,7 +17,7 @@ namespace JFramework.Net
             {
                 RegisterEvent<SpawnEvent>(SpawnByHost);
                 RegisterEvent<ObjectDestroyEvent>(ObjectDestroyByHost);
-                RegisterEvent<ObjectHideEvent>(OnEmptyMessageByHost);
+                RegisterEvent<ObjectDespawnEvent>(OnEmptyMessageByHost);
                 RegisterEvent<ObjectSpawnStartEvent>(OnEmptyMessageByHost);
                 RegisterEvent<ObjectSpawnFinishEvent>(OnEmptyMessageByHost);
                 RegisterEvent<PongEvent>(OnEmptyMessageByHost);
@@ -24,7 +26,7 @@ namespace JFramework.Net
             {
                 RegisterEvent<SpawnEvent>(SpawnByClient);
                 RegisterEvent<ObjectDestroyEvent>(ObjectDestroyByClient);
-                RegisterEvent<ObjectHideEvent>(ObjectHideByClient);
+                RegisterEvent<ObjectDespawnEvent>(ObjectDespawnByClient);
                 RegisterEvent<ObjectSpawnStartEvent>(ObjectSpawnStartByClient);
                 RegisterEvent<ObjectSpawnFinishEvent>(ObjectSpawnFinishByClient);
                 RegisterEvent<PongEvent>(PongByClient);
@@ -51,13 +53,19 @@ namespace JFramework.Net
         private static void OnEmptyMessageByHost<T>(T message) where T : IEvent
         {
         }
-        
+
         /// <summary>
         /// 主机模式下销毁游戏对象
         /// </summary>
         /// <param name="event"></param>
         private static void ObjectDestroyByHost(ObjectDestroyEvent @event)
         {
+            if (spawns.TryGetValue(@event.netId, out var @object))
+            {
+                connection.observers.Remove(@object);
+            }
+
+            spawns.Remove(@event.netId);
         }
 
         /// <summary>
@@ -66,15 +74,35 @@ namespace JFramework.Net
         /// <param name="event"></param>
         private static void SpawnByHost(SpawnEvent @event)
         {
+            if (NetworkServer.spawns.TryGetValue(@event.netId, out var @object))
+            {
+                spawns[@event.netId] = @object;
+                @object.isOwner = @event.isOwner;
+                if (@event.isOwner)
+                {
+                    connection.observers.Add(@object);
+                }
+
+                @object.isClient = true;
+                @object.OnNotifyAuthority();
+                @object.OnStartClient();
+            }
         }
 
         /// <summary>
         /// 客户端下隐藏物体的事件
         /// </summary>
         /// <param name="event"></param>
-        private static void ObjectHideByClient(ObjectHideEvent @event)
+        private static void ObjectDespawnByClient(ObjectDespawnEvent @event)
         {
-            Destroy(@event.netId);
+            if (spawns.TryGetValue(@event.netId, out var @object))
+            {
+                @object.OnStopClient();
+                @object.gameObject.SetActive(false);
+                @object.Reset();
+                connection.observers.Remove(@object);
+                spawns.Remove(@event.netId);
+            }
         }
 
         /// <summary>
@@ -83,15 +111,13 @@ namespace JFramework.Net
         /// <param name="event"></param>
         private static void ObjectDestroyByClient(ObjectDestroyEvent @event)
         {
-            Destroy(@event.netId);
-        }
-
-        /// <summary>
-        /// 客户端销毁物体的方法
-        /// </summary>
-        /// <param name="netId"></param>
-        private static void Destroy(uint netId)
-        {
+            if (spawns.TryGetValue(@event.netId, out var @object))
+            {
+                @object.OnStopClient();
+                Object.Destroy(@object.gameObject);
+                connection.observers.Remove(@object);
+                spawns.Remove(@event.netId);
+            }
         }
 
         /// <summary>

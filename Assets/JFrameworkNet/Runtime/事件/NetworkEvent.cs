@@ -29,7 +29,7 @@ namespace JFramework.Net
         public uint netId;
     }
 
-    internal struct ObjectHideEvent : IEvent
+    internal struct ObjectDespawnEvent : IEvent
     {
         public uint netId;
     }

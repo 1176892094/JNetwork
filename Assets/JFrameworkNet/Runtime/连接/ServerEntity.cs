@@ -11,6 +11,11 @@ namespace JFramework.Net
         /// 存储写入队列的字典
         /// </summary>
         internal readonly Queue<NetworkWriter> writeQueue = new Queue<NetworkWriter>();
+                
+        /// <summary>
+        /// 存储自身所有的网络游戏对象
+        /// </summary>
+        internal readonly HashSet<NetworkObject> observers = new HashSet<NetworkObject>();
 
         /// <summary>
         /// 客户端发送到传输

@@ -127,7 +127,7 @@ namespace JFramework.Net
         internal static void SetClientReady(ClientEntity client)
         {
             client.isReady = true;
-            SpawnObjectForClient(client);
+            SpawnForClient(client);
             Debug.Log($"NetworkServer --> SetCleintReady: {client.clientId}");
         }
 
@@ -157,7 +157,7 @@ namespace JFramework.Net
         /// 服务器给指定客户端生成游戏对象
         /// </summary>
         /// <param name="client">传入指定客户端</param>
-        private static void SpawnObjectForClient(ClientEntity client)
+        private static void SpawnForClient(ClientEntity client)
         {
             if (!client.isReady) return;
             client.Send(new ObjectSpawnStartEvent());
@@ -172,8 +172,22 @@ namespace JFramework.Net
             
             client.Send(new ObjectSpawnFinishEvent());
         }
-        
-   
+
+        /// <summary>
+        /// 服务器给指定客户端移除游戏对象
+        /// </summary>
+        /// <param name="client">传入指定客户端</param>
+        /// <param name="object">传入指定对象</param>
+        internal static void DespawnForClient(ClientEntity client, NetworkObject @object)
+        {
+            ObjectDespawnEvent @event = new ObjectDespawnEvent
+            {
+                netId = @object.netId
+            };
+            client.Send(@event);
+        }
+
+
         /// <summary>
         /// 服务器向指定客户端发送生成对象的消息
         /// </summary>

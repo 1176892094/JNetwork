@@ -16,12 +16,7 @@ namespace JFramework.Net
         /// 存储不同传输通道写入的网络信息
         /// </summary>
         private readonly Dictionary<Channel, NetworkWriters> writerDict = new Dictionary<Channel, NetworkWriters>();
-        
-        /// <summary>
-        /// 存储自身所有的网络游戏对象
-        /// </summary>
-        public readonly HashSet<NetworkObject> objects = new HashSet<NetworkObject>();
-        
+
         /// <summary>
         /// 是否准备好可以接收信息
         /// </summary>

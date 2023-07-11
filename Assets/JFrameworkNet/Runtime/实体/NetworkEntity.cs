@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public abstract class NetworkEntity : MonoBehaviour
+    public abstract class NetworkEntity : MonoBehaviour, INetworkEvent
     {
         private NetworkObject @object;
         internal SyncDirection syncDirection;
@@ -12,7 +12,7 @@ namespace JFramework.Net
         public bool isOwner => @object.isOwner;
         public bool isServer => @object.isServer;
         public bool isClient => @object.isClient;
-     
+
 
         public byte componentId;
 
