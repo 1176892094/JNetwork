@@ -15,7 +15,7 @@ namespace JFramework.Net
         public bool isClient;
         private bool isStartClient;
         private bool hasAuthority;
-        private ClientEntity client;
+        internal ClientEntity client;
 
         public ClientEntity connection
         {
@@ -125,7 +125,7 @@ namespace JFramework.Net
         }
         
         /// <summary>
-        /// 触发Notify则进行权限认证
+        /// 仅在客户端调用，触发Notify则进行权限认证
         /// </summary>
         internal void OnNotifyAuthority()
         {
@@ -142,7 +142,7 @@ namespace JFramework.Net
         }
         
         /// <summary>
-        /// 当客户端启动时调用
+        /// 仅在客户端调用，当在客户端生成时调用
         /// </summary>
         internal void OnStartClient()
         {
@@ -163,7 +163,7 @@ namespace JFramework.Net
         }
         
         /// <summary>
-        /// 当客户端停止时调用
+        /// 仅在客户端调用，当在客户端销毁时调用
         /// </summary>
         internal void OnStopClient()
         {
@@ -183,7 +183,25 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 当通过验证时调用
+        /// 仅在服务器上调用，当在服务器生成时调用
+        /// </summary>
+        internal void OnStartServer()
+        {
+            foreach (var entity in objects)
+            {
+                try
+                {
+                    entity.GetComponent<IStartServer>()?.OnStartServer();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e, entity);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 仅在客户端调用，当通过验证时调用
         /// </summary>
         private void OnStartAuthority()
         {
@@ -201,7 +219,7 @@ namespace JFramework.Net
         }
         
         /// <summary>
-        /// 当停止验证时调用
+        /// 仅在客户端调用，当停止验证时调用
         /// </summary>
         private void OnStopAuthority()
         {
@@ -217,7 +235,7 @@ namespace JFramework.Net
                 }
             }
         }
-        
+
         internal void Reset()
         {
             netId = 0;

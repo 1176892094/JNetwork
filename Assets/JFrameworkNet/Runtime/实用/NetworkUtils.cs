@@ -18,6 +18,7 @@ namespace JFramework.Net
         /// <summary>
         /// 拥有有效的父物体
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsValidParent(NetworkObject entity)
         {
             var parent = entity.transform.parent;

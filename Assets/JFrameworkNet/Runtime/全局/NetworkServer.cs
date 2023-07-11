@@ -37,6 +37,11 @@ namespace JFramework.Net
         private static double lastSendTime;
 
         /// <summary>
+        /// 当前网络对象索引
+        /// </summary>
+        private static uint netId;
+
+        /// <summary>
         /// 是否初始化
         /// </summary>
         private static bool isInit;
@@ -138,7 +143,7 @@ namespace JFramework.Net
         private static void SetClientNotReady(ClientEntity client)
         {
             client.isReady = false;
-            //TODO: 移除侦听
+            client.RemoveObserverAll();
             client.Send(new NotReadyEvent());
         }
 
@@ -281,7 +286,88 @@ namespace JFramework.Net
         /// </summary>
         internal static void SpawnObjects()
         {
+            if (!isActive)
+            {
+                Debug.LogError($"NetworkServer is not active");
+                return;
+            }
+            
+            NetworkObject[] objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
+
+            foreach (var @object in objects)
+            {
+                if (NetworkUtils.IsSceneObject(@object) && @object.netId == 0)
+                {
+                    @object.gameObject.SetActive(true);
+                    if (NetworkUtils.IsValidParent(@object))
+                    {
+                        Spawn(@object.gameObject, @object.connection);
+                    }
+                }
+            }
         }
+        
+        /// <summary>
+        /// 仅在Server和Host能使用，生成物体的方法
+        /// </summary>
+        /// <param name="obj">生成的游戏物体</param>
+        /// <param name="client">客户端Id</param>
+        public static void Spawn(GameObject obj, ClientEntity client = null)
+        {
+            if (!isActive)
+            {
+                Debug.LogError($"NetworkServer is not active", obj);
+                return;
+            }
+
+            if (!obj.TryGetComponent(out NetworkObject @object))
+            {
+                Debug.LogError($"Spawn {obj} has no NetworkObject", obj);
+                return;
+            }
+
+            if (spawns.ContainsKey(@object.netId))
+            {
+                Debug.LogWarning($"{@object} was already spawned", @object.gameObject);
+                return;
+            }
+            
+            @object.client = client;
+            
+            if (client.isHost)
+            {
+                @object.isOwner = true;
+            }
+            
+            if (!@object.isServer && @object.netId == 0)
+            {
+                @object.netId = ++netId;
+                @object.isServer = true;
+                @object.isClient = NetworkClient.isActive;
+                spawns[@object.netId] = @object;
+                @object.OnStartServer();
+            }
+            
+            Rebuild(@object);
+        }
+
+        /// <summary>
+        /// 重新构建对象的观察连接
+        /// </summary>
+        /// <param name="object">传入对象</param>
+        private static void Rebuild(NetworkObject @object)
+        {
+            foreach (var client in clients.Values.Where(client => client.isReady))
+            {
+                @object.AddObserver(client);
+            }
+          
+            if (connection is { isReady: true })
+            {
+                @object.AddObserver(connection);
+            }
+        }
+
 
         /// <summary>
         /// 断开所有客户端连接
@@ -303,6 +389,7 @@ namespace JFramework.Net
         /// </summary>
         public static void StopServer()
         {
+            Debug.Log("NetworkServer --> StopServer");
             if (isInit)
             {
                 isInit = false;
@@ -311,6 +398,7 @@ namespace JFramework.Net
                 UnRegisterTransport();
             }
 
+            netId = 0;
             connection = null;
             spawns.Clear();
             clients.Clear();
