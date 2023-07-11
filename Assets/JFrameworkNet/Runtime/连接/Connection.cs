@@ -21,12 +21,7 @@ namespace JFramework.Net
         /// 是否准备好可以接收信息
         /// </summary>
         public bool isReady;
-        
-        /// <summary>
-        /// 是否为主机连接
-        /// </summary>
-        public bool isHost;
-        
+
         /// <summary>
         /// 是否已经验证权限
         /// </summary>
@@ -122,7 +117,7 @@ namespace JFramework.Net
         protected NetworkWriters GetWriters(Channel channel)
         {
             if (writerDict.TryGetValue(channel, out var writers)) return writers;
-            Debug.Log($"Connection --> GetWriters : {GetType()}");
+            Debug.Log($"{GetType().Name} 修改传输写入");
             var size = Transport.current.UnreliableSize();
             return writerDict[channel] = new NetworkWriters(size);
         }

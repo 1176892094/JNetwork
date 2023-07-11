@@ -40,7 +40,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            if (isHost)
+            if (NetworkServer.isHost)
             {
                 NetworkWriter writer = NetworkWriter.Pop();
                 writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);

@@ -9,7 +9,7 @@ namespace JFramework.Net
             NetworkServer.OnConnected = OnServerConnectEvent;
             NetworkServer.OnDisconnected = OnServerDisconnectEvent;
             NetworkServer.RegisterEvent<ReadyEvent>(OnServerReadyEvent);
-            Debug.Log("NetworkManager --> RegisterServerEvent");
+            Debug.Log("NetworkManager 注册服务器事件");
         }
 
         private void RegisterClientEvent()
@@ -18,7 +18,7 @@ namespace JFramework.Net
             NetworkClient.OnDisconnected = OnClientDisconnectEvent;
             NetworkClient.RegisterEvent<NotReadyEvent>(OnClientNotReadyEvent);
             NetworkClient.RegisterEvent<SceneEvent>(OnClientLoadSceneEvent, false);
-            Debug.Log("NetworkManager --> RegisterClientEvent");
+            Debug.Log("NetworkManager 注册客户端事件");
         }
 
         private void OnServerConnectEvent(ClientEntity client)

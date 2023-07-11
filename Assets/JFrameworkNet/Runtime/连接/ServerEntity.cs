@@ -41,7 +41,7 @@ namespace JFramework.Net
         /// </summary>
         private void LocalUpdate()
         {
-            if (!isHost) return;
+            if (!NetworkServer.isHost) return;
             while (writeQueue.Count > 0)
             {
                 var writer = writeQueue.Dequeue();
@@ -67,7 +67,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            if (isHost)
+            if (NetworkServer.isHost)
             {
                 if (segment.Count == 0)
                 {

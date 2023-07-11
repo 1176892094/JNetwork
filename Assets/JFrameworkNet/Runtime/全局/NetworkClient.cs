@@ -112,10 +112,7 @@ namespace JFramework.Net
             var client = new ClientEntity(NetworkConst.HostId);
             connection = new ServerEntity();
             client.connection = connection;
-            client.isHost = true;
-            connection.isHost = true;
             NetworkServer.connection = client;
-            Debug.Log(isActive+"---"+ NetworkServer.isActive);
             Debug.Log("NetworkClient --> StartClient");
         }
 
@@ -197,7 +194,7 @@ namespace JFramework.Net
         /// </summary>
         public static void StopClient()
         {
-            Debug.Log("NetworkClient --> StopClient");
+            Debug.Log("NetworkClient 停止客户端");
             state = ConnectState.Disconnected;
             if (Transport.current != null)
             {

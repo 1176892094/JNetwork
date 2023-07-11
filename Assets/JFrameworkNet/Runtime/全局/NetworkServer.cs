@@ -52,6 +52,11 @@ namespace JFramework.Net
         public static bool isActive => isInit;
         
         /// <summary>
+        /// 是主机模式
+        /// </summary>
+        public static bool isHost => isActive && NetworkClient.isActive;
+
+        /// <summary>
         /// 是否在加载场景
         /// </summary>
         public static bool isLoadScene;
@@ -104,7 +109,7 @@ namespace JFramework.Net
                 RegisterEvent();
                 RegisterTransport();
                 NetworkTime.RuntimeInitializeOnLoad();
-                Debug.Log("NetworkServer --> StartServer");
+                Debug.Log("NetworkServer 开启服务器");
             }
 
             SpawnObjects();
@@ -131,9 +136,9 @@ namespace JFramework.Net
         /// <param name="client"></param>
         internal static void SetClientReady(ClientEntity client)
         {
+            Debug.Log($"NetworkServer 设置客户端 {client.clientId} 准备好");
             client.isReady = true;
             SpawnForClient(client);
-            Debug.Log($"NetworkServer --> SetCleintReady: {client.clientId}");
         }
 
         /// <summary>
@@ -165,8 +170,8 @@ namespace JFramework.Net
         private static void SpawnForClient(ClientEntity client)
         {
             if (!client.isReady) return;
+            Debug.Log($"NetworkServer 为客户端 {client.clientId} 生成物体 ");
             client.Send(new ObjectSpawnStartEvent());
-
             foreach (var @object in spawns.Values)
             {
                 if (@object.gameObject.activeSelf)
@@ -334,7 +339,7 @@ namespace JFramework.Net
             
             @object.client = client;
             
-            if (client.isHost)
+            if (isHost)
             {
                 @object.isOwner = true;
             }
@@ -389,7 +394,7 @@ namespace JFramework.Net
         /// </summary>
         public static void StopServer()
         {
-            Debug.Log("NetworkServer --> StopServer");
+            Debug.Log("NetworkServer 停止服务器");
             if (isInit)
             {
                 isInit = false;
