@@ -34,7 +34,7 @@ namespace JFramework.Net
     }
 
     /// <summary>
-    /// 服务器变量，当变量改变后，向所有客户端广播
+    /// 服务器变量，当变量改变后，向所有客户端同步
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
     public class ServerVarAttribute : PropertyAttribute
