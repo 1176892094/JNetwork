@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -142,6 +143,51 @@ namespace JFramework.Net
             {
                 @object.OnNotifyAuthority();
                 @object.OnStartClient();
+            }
+        }
+        
+        /// <summary>
+        /// 网络对象生成开始
+        /// </summary>
+        private static void SpawnStart()
+        {
+            scenes.Clear();
+            var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
+            foreach (var current in objects)
+            {
+                if (NetworkUtils.IsSceneObject(current) && !current.gameObject.activeSelf)
+                {
+                    if (scenes.TryGetValue(current.sceneId, out var @object))
+                    {
+                        var gameObject = current.gameObject;
+                        var message = $"复制 {gameObject.name} 到 {@object.gameObject.name} 上检测到sceneId";
+                        Debug.LogWarning(message, gameObject);
+                    }
+                    else
+                    {
+                        scenes.Add(current.sceneId, current);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 网络对象生成结束
+        /// </summary>
+        private static void SpawnFinish()
+        {
+            foreach (var @object in spawns.Values.OrderBy(@object => @object.netId))
+            {
+                if (@object != null)
+                {
+                    @object.isClient = true;
+                    @object.OnNotifyAuthority();
+                    @object.OnStartClient();
+                }
+                else
+                {
+                    Debug.LogWarning($"网络对象 {@object} 没有被正确销毁。");
+                }
             }
         }
     }

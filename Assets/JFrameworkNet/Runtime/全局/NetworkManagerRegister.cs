@@ -61,7 +61,7 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 当
+        /// 当客户端在服务器准备就绪 (能够接收和发送消息)
         /// </summary>
         /// <param name="client"></param>
         /// <param name="event"></param>
@@ -71,6 +71,9 @@ namespace JFramework.Net
             OnServerReady?.Invoke(client);
         }
 
+        /// <summary>
+        /// 客户端连接的事件
+        /// </summary>
         private void OnClientConnectEvent()
         {
             ClientManager.connection.isAuthority = true;
@@ -83,23 +86,33 @@ namespace JFramework.Net
             OnClientConnect?.Invoke();
         }
 
+        /// <summary>
+        /// 客户端断开连接的事件
+        /// </summary>
         private void OnClientDisconnectEvent()
         {
             if (networkMode is NetworkMode.Server or NetworkMode.None) return;
-            OnClientDisconnect?.Invoke();
-            networkMode = networkMode == NetworkMode.Host ? NetworkMode.Server : NetworkMode.None;
-            ClientManager.StopClient();
             OnStopClient?.Invoke();
+            ClientManager.StopClient();
+            OnClientDisconnect?.Invoke();
             if (networkMode == NetworkMode.Server) return;
             sceneName = "";
         }
 
+        /// <summary>
+        /// 客户端未准备就绪的事件 (不能接收和发送消息)
+        /// </summary>
+        /// <param name="event"></param>
         private static void OnClientNotReadyEvent(NotReadyEvent @event)
         {
             ClientManager.isReady = false;
             OnClientNotReady?.Invoke();
         }
 
+        /// <summary>
+        /// 当服务器场景发生改变时 (所有客户端也会同步到和服务器一样的场景)
+        /// </summary>
+        /// <param name="event"></param>
         private void OnClientLoadSceneEvent(SceneEvent @event)
         {
             if (ClientManager.isConnect)

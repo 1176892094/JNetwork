@@ -2,47 +2,69 @@ using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-// ReSharper disable All
-
 namespace JFramework.Net
 {
     public sealed partial class NetworkManager : GlobalSingleton<NetworkManager>
     {
+        /// <summary>
+        /// 服务器场景名称
+        /// </summary>
         private string sceneName;
-        private NetworkMode networkMode;
+
+        /// <summary>
+        /// 网络传输组件
+        /// </summary>
         [SerializeField] private Transport transport;
+        
+        /// <summary>
+        /// 网络预置体设置
+        /// </summary>
         [SerializeField] private NetworkSetting setting;
+        
+        /// <summary>
+        /// 心跳传输率
+        /// </summary>
         public uint tickRate = 30;
+        
+        /// <summary>
+        /// 客户端最大连接数量
+        /// </summary>
         public uint maxConnection = 100;
-        [ShowInInspector] public string Address
+
+        /// <summary>
+        /// 传输连接地址
+        /// </summary>
+        [ShowInInspector]
+        public string address
         {
             get => transport ? transport.address : NetworkConst.Address;
-            set
-            {
-                if (transport)
-                {
-                    transport.address = value;
-                }
-                else
-                {
-                    Debug.LogWarning("NetworkManager 没有 Transport 组件。");
-                }
-            }
+            set => transport.address = transport ? value : NetworkConst.Address;
         }
-        
-        [ShowInInspector] public ushort Port
+
+        /// <summary>
+        /// 传输连接端口
+        /// </summary>
+        [ShowInInspector]
+        public ushort port
         {
             get => transport ? transport.port : NetworkConst.Port;
-            set
+            set => transport.port = transport ? value : NetworkConst.Port;
+        }
+
+        /// <summary>
+        /// 网络运行模式
+        /// </summary>
+        [ShowInInspector]
+        private NetworkMode networkMode
+        {
+            get
             {
-                if (transport)
+                if (ServerManager.isActive)
                 {
-                    transport.port = value;
+                    return ClientManager.isActive ? NetworkMode.Host : NetworkMode.Server;
                 }
-                else
-                {
-                    Debug.LogWarning("NetworkManager 没有 Transport 组件。");
-                }
+
+                return ClientManager.isActive ? NetworkMode.Client : NetworkMode.None;
             }
         }
 
@@ -52,22 +74,12 @@ namespace JFramework.Net
         protected override void Awake()
         {
             base.Awake();
-            SetMode(NetworkMode.None);
-        }
-
-        /// <summary>
-        /// 设置游戏模式
-        /// </summary>
-        /// <param name="networkMode">网络模式</param>
-        private void SetMode(NetworkMode networkMode)
-        {
-            this.networkMode = networkMode;
             if (transport == null)
             {
                 Debug.LogError("NetworkManager 没有 Transport 组件。");
                 return;
             }
-
+ 
             Transport.current = transport;
             Application.runInBackground = true;
         }
@@ -87,7 +99,6 @@ namespace JFramework.Net
 #if UNITY_SERVER
             Application.targetFrameRate = tickRate;
 #endif
-            SetMode(NetworkMode.Server);
             ServerManager.StartServer(isListen);
             RegisterServerEvent();
             OnStartServer?.Invoke();
@@ -101,7 +112,6 @@ namespace JFramework.Net
             if (!ServerManager.isActive) return;
             OnStopServer?.Invoke();
             ServerManager.StopServer();
-            networkMode = NetworkMode.None;
             sceneName = "";
         }
 
@@ -116,11 +126,10 @@ namespace JFramework.Net
                 Debug.LogWarning("客户端已经连接！");
                 return;
             }
-
-            SetMode(NetworkMode.Client);
+            
             if (uri == null)
             {
-                ClientManager.StartClient(Address, Port);
+                ClientManager.StartClient(address, port);
             }
             else
             {
@@ -163,7 +172,6 @@ namespace JFramework.Net
             }
 
             Debug.Log("开启主机。");
-            SetMode(NetworkMode.Host);
             ServerManager.StartServer(isListen);
             RegisterServerEvent();
             ClientManager.StartClient();

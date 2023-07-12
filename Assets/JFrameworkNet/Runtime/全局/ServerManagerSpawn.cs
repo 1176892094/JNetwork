@@ -14,12 +14,9 @@ namespace JFramework.Net
         {
             if (!client.isReady) return;
             Debug.Log($"客户端 {client.clientId} 开始生成物体");
-            foreach (var @object in spawns.Values)
+            foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
             {
-                if (@object.gameObject.activeSelf)
-                {
-                    client.AddObserver(@object);
-                }
+                client.AddObserver(@object);
             }
         }
 
