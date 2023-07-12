@@ -99,7 +99,7 @@ namespace JFramework.Net
                 ClientManager.Ready();
             }
 
-            OnClientSceneChanged?.Invoke(SceneManager.localScene);
+            OnClientSceneChanged?.Invoke(SceneManager.scene);
         }
     }
 }
