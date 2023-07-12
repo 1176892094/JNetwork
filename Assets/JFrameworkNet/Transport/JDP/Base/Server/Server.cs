@@ -109,7 +109,7 @@ namespace JFramework.Udp
         private Connection Connection(int clientId)
         {
             var newConnection = new Connection(endPoint);
-            var cookie = Utils.GenerateCookie();
+            var cookie = Utils.GenerateRandom();
             var peer = new Peer(OnAuthority, OnDisconnected, OnSend, OnReceive, setting, cookie);
             newConnection.peer = peer;
             return newConnection;

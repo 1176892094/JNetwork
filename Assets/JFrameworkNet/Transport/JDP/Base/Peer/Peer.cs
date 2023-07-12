@@ -159,7 +159,7 @@ namespace JFramework.Udp
             header = (Header)messageBuffer[0];
             segment = new ArraySegment<byte>(messageBuffer, 1, messageSize - 1);
             lastReceiveTime = (uint)watch.ElapsedMilliseconds;
-            Log.Info("P2P接收消息失败: " + header);
+            Log.Info("P2P接收消息成功: " + header);
             return true;
         }
 

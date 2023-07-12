@@ -1,23 +1,41 @@
 using System;
+using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
+#if  UNITY_EDITOR
+using JFramework.Udp;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+#endif
 
 namespace JFramework.Net
 {
-    public sealed class NetworkObject : MonoBehaviour
+    public sealed partial class NetworkObject : MonoBehaviour
     {
-        public uint netId;
-        public ulong sceneId;
-        public bool isOwner;
-        public bool isServer;
-        public bool isClient;
+        private static readonly Dictionary<ulong, NetworkObject> sceneIds = new Dictionary<ulong, NetworkObject>();
+        
+        [ReadOnly, ShowInInspector] public uint netId;
+        [ReadOnly, SerializeField] private uint guid;
+        [ReadOnly, ShowInInspector] internal ulong sceneId;
+        [ReadOnly, ShowInInspector] internal ClientEntity m_connection;
+        [ReadOnly, ShowInInspector] public bool isOwner;
+        [ReadOnly, ShowInInspector] public bool isServer;
+        [ReadOnly, ShowInInspector] public bool isClient;
         private bool isStartClient;
         private bool hasAuthority;
- 
-        private uint m_assetId;
 
         internal uint assetId
         {
-            get => m_assetId;
+            get
+            {
+#if UNITY_EDITOR
+                if (guid == 0)
+                {
+                    SetupIDs();
+                }
+#endif
+                return guid;
+            }
             set
             {
                 if (value == 0)
@@ -25,23 +43,29 @@ namespace JFramework.Net
                     Debug.LogError("assetId不能为零");
                     return;
                 }
-                m_assetId = value;
+                guid = value;
             }
         }
-
-        internal ClientEntity m_connection;
+        internal NetworkEntity[] objects;
+        
         public ClientEntity connection
         {
             get => m_connection;
             private set => m_connection = value;
         }
 
-        public NetworkEntity[] objects;
+     
 
         private void Awake()
         {
             objects = GetComponentsInChildren<NetworkEntity>(true);
-            
+        }
+        
+        private void OnValidate()
+        {
+#if UNITY_EDITOR
+            SetupIDs();
+#endif
         }
 
         /// <summary>
@@ -119,118 +143,6 @@ namespace JFramework.Net
 
             return (ownerMask, observerMask);
         }
-        
-        /// <summary>
-        /// 仅在客户端调用，触发Notify则进行权限认证
-        /// </summary>
-        internal void OnNotifyAuthority()
-        {
-            if (!hasAuthority && isOwner)
-            {
-                OnStartAuthority();
-            }
-            else if (hasAuthority && !isOwner)
-            {
-                OnStopAuthority();
-            }
-
-            hasAuthority = isOwner;
-        }
-        
-        /// <summary>
-        /// 仅在客户端调用，当在客户端生成时调用
-        /// </summary>
-        internal void OnStartClient()
-        {
-            if (isStartClient) return;
-            isStartClient = true;
-            
-            foreach (var entity in objects)
-            {
-                try
-                {
-                    entity.GetComponent<IStartClient>()?.OnStartClient();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e, entity);
-                }
-            }
-        }
-        
-        /// <summary>
-        /// 仅在客户端调用，当在客户端销毁时调用
-        /// </summary>
-        internal void OnStopClient()
-        {
-            if (!isStartClient) return;
-
-            foreach (var entity in objects)
-            {
-                try
-                {
-                    entity.GetComponent<IStopClient>()?.OnStopClient();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e, entity);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 仅在服务器上调用，当在服务器生成时调用
-        /// </summary>
-        internal void OnStartServer()
-        {
-            foreach (var entity in objects)
-            {
-                try
-                {
-                    entity.GetComponent<IStartServer>()?.OnStartServer();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e, entity);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 仅在客户端调用，当通过验证时调用
-        /// </summary>
-        private void OnStartAuthority()
-        {
-            foreach (var entity in objects)
-            {
-                try
-                {
-                    entity.GetComponent<IStartAuthority>()?.OnStartAuthority();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e, entity);
-                }
-            }
-        }
-        
-        /// <summary>
-        /// 仅在客户端调用，当停止验证时调用
-        /// </summary>
-        private void OnStopAuthority()
-        {
-            foreach (var entity in objects)
-            {
-                try
-                {
-                    entity.GetComponent<IStopAuthority>()?.OnStopAuthority();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e, entity);
-                }
-            }
-        }
 
         internal void Reset()
         {
@@ -242,5 +154,78 @@ namespace JFramework.Net
             hasAuthority = false;
             connection = null;
         }
+        
+#if UNITY_EDITOR
+        private void SetupIDs()
+        {
+            if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
+            {
+                sceneId = 0;
+                AssignAssetID(AssetDatabase.GetAssetPath(gameObject));
+            }
+            else if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                if (PrefabStageUtility.GetPrefabStage(gameObject) != null)
+                {
+                    sceneId = 0;
+                    AssignAssetID(PrefabStageUtility.GetPrefabStage(gameObject).assetPath);
+                }
+            }
+            else if (IsSceneObjectWithPrefabParent(gameObject, out GameObject prefab))
+            {
+                AssignSceneID();
+                AssignAssetID(AssetDatabase.GetAssetPath(prefab));
+            }
+            else
+            {
+                AssignSceneID();
+            }
+        }
+
+        private void AssignAssetID(string path)
+        {
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                Guid id = new Guid(AssetDatabase.AssetPathToGUID(path));
+                assetId = (uint)id.GetHashCode();
+            }
+        }
+
+        private static bool IsSceneObjectWithPrefabParent(GameObject gameObject, out GameObject prefab)
+        {
+            prefab = null;
+            if (!PrefabUtility.IsPartOfPrefabInstance(gameObject)) return false;
+            prefab = PrefabUtility.GetCorrespondingObjectFromSource(gameObject);
+            if (prefab != null) return true;
+            Debug.LogError($"找不到场景对象的预制父物体。对象名称：{gameObject.name}");
+            return false;
+        }
+        
+        private void AssignSceneID()
+        {
+            if (Application.isPlaying) return;
+            bool duplicate = sceneIds.TryGetValue(sceneId, out NetworkObject @object) && @object != null && @object != this;
+            if (sceneId == 0 || duplicate)
+            {
+                sceneId = 0;
+                if (BuildPipeline.isBuildingPlayer)
+                {
+                    throw new InvalidOperationException($"请构建之前保存场景 {gameObject.scene.path}，场景对象 {name} 没有有效的场景Id。");
+                }
+
+                Undo.RecordObject(this, "生成场景Id");
+
+                uint randomId = (uint)Utils.GenerateRandom();
+                
+                duplicate = sceneIds.TryGetValue(randomId, out @object) && @object != null && @object != this;
+                if (!duplicate)
+                {
+                    sceneId = randomId;
+                }
+            }
+            
+            sceneIds[sceneId] = this;
+        }
+#endif
     }
 }
