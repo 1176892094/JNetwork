@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using JFramework.Interface;
-using JFramework.Udp;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -61,12 +60,12 @@ namespace JFramework.Net
         /// <summary>
         /// 当连接到服务器触发的事件
         /// </summary>
-        internal static Action OnConnected;
+        internal static event Action OnConnected;
 
         /// <summary>
         /// 当从服务器断开的事件
         /// </summary>
-        internal static Action OnDisconnected;
+        internal static event Action OnDisconnected;
 
         /// <summary>
         /// 网络消息读取并分包

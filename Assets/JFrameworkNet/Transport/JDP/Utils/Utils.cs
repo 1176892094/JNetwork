@@ -100,7 +100,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 生成缓存文件
         /// </summary>
-        public static int GenerateRandom()
+        internal static int GenerateCookie()
         {
             using var cryptoRandom = new RNGCryptoServiceProvider();
             var cryptoRandomBuffer = new byte[4];

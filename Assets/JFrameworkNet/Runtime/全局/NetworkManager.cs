@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -11,13 +10,13 @@ namespace JFramework.Net
     {
         private string sceneName;
         private NetworkMode networkMode;
+        [SerializeField] private Transport transport;
+        [SerializeField] private NetworkSetting setting;
         public uint tickRate = 30;
         public uint maxConnection = 100;
-        [SerializeField] private Transport transport;
-        [ShowInInspector, SerializeField] private List<GameObject> spawnPrefabs = new List<GameObject>();
         [ShowInInspector] public string Address
         {
-            get => transport ? transport.address : "localhost";
+            get => transport ? transport.address : NetworkConst.Address;
             set
             {
                 if (transport)
@@ -33,7 +32,7 @@ namespace JFramework.Net
         
         [ShowInInspector] public ushort Port
         {
-            get => transport ? transport.port : (ushort)20974;
+            get => transport ? transport.port : NetworkConst.Port;
             set
             {
                 if (transport)
@@ -46,8 +45,6 @@ namespace JFramework.Net
                 }
             }
         }
-        
-     
 
         /// <summary>
         /// 初始化配置传输
@@ -172,7 +169,7 @@ namespace JFramework.Net
             ClientManager.StartClient();
             RegisterClientEvent();
             ServerManager.OnClientConnect(ServerManager.connection);
-            ClientManager.OnConnected?.Invoke();
+            OnClientConnectEvent();
             OnStartHost?.Invoke();
         }
 

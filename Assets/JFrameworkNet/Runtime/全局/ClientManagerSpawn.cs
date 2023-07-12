@@ -7,29 +7,8 @@ namespace JFramework.Net
         /// <summary>
         /// 注册预置体
         /// </summary>
-        /// <param name="prefab">传入预置体</param>
-        internal static void RegisterPrefab(GameObject prefab)
-        {
-            if (prefab == null)
-            {
-                Debug.LogError("不能注册预置体，因为它是空的。");
-                return;
-            }
-
-            if (!prefab.TryGetComponent(out NetworkObject @object))
-            {
-                Debug.LogError($"预置体 {prefab.name} 没有 NetworkObject 组件");
-                return;
-            }
-
-            RegisterPrefab(@object);
-        }
-
-        /// <summary>
-        /// 注册预置体
-        /// </summary>
         /// <param name="object">传入网络对象</param>
-        private static void RegisterPrefab(NetworkObject @object)
+        internal static void RegisterPrefab(NetworkObject @object)
         {
             if (@object.assetId == 0)
             {

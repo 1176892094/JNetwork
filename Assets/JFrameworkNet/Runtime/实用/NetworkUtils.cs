@@ -1,4 +1,6 @@
+using System;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -48,6 +50,18 @@ namespace JFramework.Net
             return null;
         }
         
+        /// <summary>
+        /// 生成随机种子
+        /// </summary>
+        /// <returns></returns>
+        internal static int GenerateRandom()
+        {
+            using var cryptoRandom = new RNGCryptoServiceProvider();
+            var cryptoRandomBuffer = new byte[4];
+            cryptoRandom.GetBytes(cryptoRandomBuffer);
+            return Math.Abs(BitConverter.ToInt32(cryptoRandomBuffer, 0));
+        }
+
         /// <summary>
         /// 心跳判断
         /// </summary>

@@ -1,5 +1,4 @@
 using System;
-using JFramework.Udp;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -11,12 +10,12 @@ namespace JFramework.Net
         /// <summary>
         /// 网络传输地址
         /// </summary>
-        internal string address = "localhost";
+        public string address = "localhost";
 
         /// <summary>
         /// 网络传输端口
         /// </summary>
-        internal ushort port = 20974;
+        public ushort port = 20974;
 
         /// <summary>
         /// 客户端连接事件

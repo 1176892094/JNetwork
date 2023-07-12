@@ -34,9 +34,9 @@ namespace JFramework.Net
                 OnClientConnected.Invoke();
             }
 
-            void ClientDataReceived(ArraySegment<byte> message, Channel channel)
+            void ClientDataReceived(ArraySegment<byte> message, Udp.Channel channel)
             {
-                OnClientReceive.Invoke(message, channel);
+                OnClientReceive.Invoke(message, (Channel)channel);
             }
 
             void ClientDisconnected()
@@ -49,9 +49,9 @@ namespace JFramework.Net
                 OnServerConnected.Invoke(connectionId);
             }
 
-            void ServerDataReceived(int connectionId, ArraySegment<byte> message, Channel channel)
+            void ServerDataReceived(int connectionId, ArraySegment<byte> message, Udp.Channel channel)
             {
-                OnServerReceive.Invoke(connectionId, message, channel);
+                OnServerReceive.Invoke(connectionId, message, (Channel)channel);
             }
 
             void ServerDisconnected(int connectionId)
@@ -70,7 +70,7 @@ namespace JFramework.Net
 
         public override void ClientSend(ArraySegment<byte> segment, Channel channel)
         {
-            client.Send(segment, channel);
+            client.Send(segment, (Udp.Channel)channel);
             OnClientSend?.Invoke(segment, channel);
         }
 
@@ -80,7 +80,7 @@ namespace JFramework.Net
 
         public override void ServerSend(int clientId, ArraySegment<byte> segment, Channel channel)
         {
-            server.Send(clientId, segment, channel);
+            server.Send(clientId, segment, (Udp.Channel)channel);
             OnServerSend?.Invoke(clientId, segment, channel);
         }
 

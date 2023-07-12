@@ -361,8 +361,7 @@ MonoBehaviour:
   tickRate: 30
   maxConnection: 100
   transport: {fileID: 890354966}
-  spawnPrefabs:
-  - {fileID: 5053477900898413441, guid: a3fe0b59c0dbd4a4bb2bbb9f232c5bde, type: 3}
+  setting: {fileID: 11400000, guid: 215a5d5e0c4d04eaba95f0dc4a32fdff, type: 2}
 --- !u!1 &1805832351
 GameObject:
   m_ObjectHideFlags: 0

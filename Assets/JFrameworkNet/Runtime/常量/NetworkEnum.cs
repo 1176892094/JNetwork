@@ -33,4 +33,10 @@ namespace JFramework.Net
         ServerToClient,
         ClientToServer
     }
+
+    public enum Channel : byte
+    {
+        Reliable = 1,
+        Unreliable = 2
+    }
 }

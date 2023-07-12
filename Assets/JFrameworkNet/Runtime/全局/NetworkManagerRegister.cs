@@ -1,4 +1,3 @@
-using System.Linq;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -10,10 +9,12 @@ namespace JFramework.Net
         /// </summary>
         private void RegisterServerEvent()
         {
-            ServerManager.OnConnected = OnServerConnectEvent;
-            ServerManager.OnDisconnected = OnServerDisconnectEvent;
-            ServerManager.RegisterEvent<ReadyEvent>(OnServerReadyEvent);
             Debug.Log("注册服务器事件");
+            ServerManager.OnConnected -= OnServerConnectEvent;
+            ServerManager.OnConnected += OnServerConnectEvent;
+            ServerManager.OnDisconnected -= OnServerDisconnectEvent;
+            ServerManager.OnDisconnected += OnServerDisconnectEvent;
+            ServerManager.RegisterEvent<ReadyEvent>(OnServerReadyEvent);
         }
 
         /// <summary>
@@ -22,14 +23,13 @@ namespace JFramework.Net
         private void RegisterClientEvent()
         {
             Debug.Log("注册客户端事件");
-            ClientManager.OnConnected = OnClientConnectEvent;
-            ClientManager.OnDisconnected = OnClientDisconnectEvent;
+            ClientManager.OnConnected -= OnClientConnectEvent;
+            ClientManager.OnConnected += OnClientConnectEvent;
+            ClientManager.OnDisconnected -= OnClientDisconnectEvent;
+            ClientManager.OnDisconnected += OnClientDisconnectEvent;
             ClientManager.RegisterEvent<NotReadyEvent>(OnClientNotReadyEvent);
             ClientManager.RegisterEvent<SceneEvent>(OnClientLoadSceneEvent, false);
-            foreach (var @object in spawnPrefabs.Where(@object => @object != null))
-            {
-                ClientManager.RegisterPrefab(@object);
-            }
+            setting.RegisterPrefab();
         }
 
         /// <summary>

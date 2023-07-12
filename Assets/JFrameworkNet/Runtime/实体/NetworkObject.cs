@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 #if  UNITY_EDITOR
-using JFramework.Udp;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
@@ -15,7 +14,7 @@ namespace JFramework.Net
         private static readonly Dictionary<ulong, NetworkObject> sceneIds = new Dictionary<ulong, NetworkObject>();
         
         [ReadOnly, ShowInInspector] public uint netId;
-        [ReadOnly, SerializeField] private uint guid;
+        [ReadOnly, SerializeField] private uint m_assetId;
         [ReadOnly, ShowInInspector] internal ulong sceneId;
         [ReadOnly, ShowInInspector] internal ClientEntity m_connection;
         [ReadOnly, ShowInInspector] public bool isOwner;
@@ -29,12 +28,12 @@ namespace JFramework.Net
             get
             {
 #if UNITY_EDITOR
-                if (guid == 0)
+                if (m_assetId == 0)
                 {
                     SetupIDs();
                 }
 #endif
-                return guid;
+                return m_assetId;
             }
             set
             {
@@ -43,7 +42,7 @@ namespace JFramework.Net
                     Debug.LogError("assetId不能为零");
                     return;
                 }
-                guid = value;
+                m_assetId = value;
             }
         }
         internal NetworkEntity[] objects;
@@ -186,8 +185,8 @@ namespace JFramework.Net
         {
             if (!string.IsNullOrWhiteSpace(path))
             {
-                Guid id = new Guid(AssetDatabase.AssetPathToGUID(path));
-                assetId = (uint)id.GetHashCode();
+                Guid guid = new Guid(AssetDatabase.AssetPathToGUID(path));
+                assetId = (uint)guid.GetHashCode();
             }
         }
 
@@ -215,7 +214,7 @@ namespace JFramework.Net
 
                 Undo.RecordObject(this, "生成场景Id");
 
-                uint randomId = (uint)Utils.GenerateRandom();
+                uint randomId = (uint)NetworkUtils.GenerateRandom();
                 
                 duplicate = sceneIds.TryGetValue(randomId, out @object) && @object != null && @object != this;
                 if (!duplicate)

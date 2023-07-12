@@ -1,12 +1,13 @@
 {
-    "name": "JFramework.Net",
+    "name": "JFramework.Transport",
     "rootNamespace": "",
     "references": [
-        "GUID:70ec4ecc68e8f42d68f8b20a9c62b2a3"
+        "GUID:97ca39a133712418ca661a4ad6b372ad",
+        "GUID:753330021df6b4bc080c81875189d59f"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": true,
+    "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,

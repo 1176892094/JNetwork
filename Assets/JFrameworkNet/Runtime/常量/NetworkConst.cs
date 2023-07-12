@@ -3,6 +3,16 @@ namespace JFramework.Net
     internal struct NetworkConst
     {
         /// <summary>
+        /// 默认连接地址
+        /// </summary>
+        public const string Address = "localhost";
+
+        /// <summary>
+        /// 默认端口号
+        /// </summary>
+        public const ushort Port = 20974;
+        
+        /// <summary>
         /// 网络消息的字符串最大长度
         /// </summary>
         public const ushort MaxStringLength = ushort.MaxValue - 1;
