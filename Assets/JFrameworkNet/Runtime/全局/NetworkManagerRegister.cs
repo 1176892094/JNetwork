@@ -33,7 +33,7 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 当客户端连接到服务器时触发
+        /// 当客户端连接到服务器时，向连接的客户端发送改变场景的事件
         /// </summary>
         /// <param name="client">连接的客户端</param>
         private void OnServerConnectEvent(ClientEntity client)
@@ -61,7 +61,7 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 当客户端在服务器准备就绪 (能够接收和发送消息)
+        /// 当客户端在服务器准备就绪，向客户端发送生成物体的消息
         /// </summary>
         /// <param name="client"></param>
         /// <param name="event"></param>

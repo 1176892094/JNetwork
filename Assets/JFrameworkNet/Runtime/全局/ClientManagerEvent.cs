@@ -55,11 +55,6 @@ namespace JFramework.Net
         /// <param name="event"></param>
         private static void OnDestroyByHost(DestroyEvent @event)
         {
-            if (spawns.TryGetValue(@event.netId, out var @object))
-            {
-                connection.observers.Remove(@object);
-            }
-
             spawns.Remove(@event.netId);
         }
 
@@ -73,11 +68,6 @@ namespace JFramework.Net
             {
                 spawns[@event.netId] = @object;
                 @object.isOwner = @event.isOwner;
-                if (@event.isOwner)
-                {
-                    connection.observers.Add(@object);
-                }
-
                 @object.isClient = true;
                 @object.OnNotifyAuthority();
                 @object.OnStartClient();
@@ -95,7 +85,6 @@ namespace JFramework.Net
                 @object.OnStopClient();
                 @object.gameObject.SetActive(false);
                 @object.Reset();
-                connection.observers.Remove(@object);
                 spawns.Remove(@event.netId);
             }
         }
@@ -110,7 +99,6 @@ namespace JFramework.Net
             {
                 @object.OnStopClient();
                 Object.Destroy(@object.gameObject);
-                connection.observers.Remove(@object);
                 spawns.Remove(@event.netId);
             }
         }

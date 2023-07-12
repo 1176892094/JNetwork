@@ -40,7 +40,7 @@ namespace JFramework.Net
         /// <summary>
         /// 是否在生成物体中
         /// </summary>
-        public static bool isSpawn;
+        private static bool isSpawn;
 
         /// <summary>
         /// 是否正在加载场景

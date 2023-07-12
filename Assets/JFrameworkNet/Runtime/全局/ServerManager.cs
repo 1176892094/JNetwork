@@ -131,7 +131,10 @@ namespace JFramework.Net
         {
             Debug.Log($"设置客户端 {client.clientId} 准备就绪。");
             client.isReady = true;
-            SpawnForClient(client);
+            foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
+            {
+                SendSpawnEvent(client, @object);
+            }
         }
 
         /// <summary>
@@ -141,7 +144,6 @@ namespace JFramework.Net
         private static void SetClientNotReady(ClientEntity client)
         {
             client.isReady = false;
-            client.RemoveObserverAll();
             client.Send(new NotReadyEvent());
         }
 
@@ -178,30 +180,6 @@ namespace JFramework.Net
                 client.Send(segment, channel);
             }
         }
-
-        /// <summary>
-        /// 向所有准备好的客户端发送消息
-        /// </summary>
-        /// <param name="message">网络消息</param>
-        /// <param name="channel">传输通道</param>
-        /// <typeparam name="T"></typeparam>
-        public static void SendToReady<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
-        {
-            if (!isActive)
-            {
-                Debug.LogWarning("服务器不是活跃的。");
-                return;
-            }
-
-            using var writer = NetworkWriter.Pop();
-            NetworkEvent.WriteEvent(writer, message);
-            var segment = writer.ToArraySegment();
-            foreach (var client in clients.Values.Where(client => client.isReady))
-            {
-                client.Send(segment, channel);
-            }
-        }
-
 
         /// <summary>
         /// 断开所有客户端连接

@@ -223,6 +223,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 778044560079173824, guid: bd68c24b678b7466d8028bce443de0a6, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2046465299821470984, guid: bd68c24b678b7466d8028bce443de0a6, type: 3}
       propertyPath: m_RootOrder
       value: 1
@@ -336,6 +340,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5315d6ba604c9401083f35941ed0ce48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  address: localhost
+  port: 20974
   noDelay: 1
   congestion: 1
   resend: 2
@@ -358,10 +364,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56edecc205034234aa78c9f2b56f9b7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tickRate: 30
-  maxConnection: 100
   transport: {fileID: 890354966}
   setting: {fileID: 11400000, guid: 215a5d5e0c4d04eaba95f0dc4a32fdff, type: 2}
+  tickRate: 30
+  maxConnection: 100
 --- !u!1 &1805832351
 GameObject:
   m_ObjectHideFlags: 0

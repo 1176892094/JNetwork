@@ -80,6 +80,24 @@ namespace JFramework.Net
                 }
             }
         }
+        
+        /// <summary>
+        /// 仅在服务器上调用，当在服务器生成时调用
+        /// </summary>
+        internal void OnStopServer()
+        {
+            foreach (var entity in objects)
+            {
+                try
+                {
+                    entity.GetComponent<IStopServer>()?.OnStopServer();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e, entity);
+                }
+            }
+        }
 
         /// <summary>
         /// 仅在客户端调用，当通过验证时调用

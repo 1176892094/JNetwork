@@ -7,40 +7,11 @@ namespace JFramework.Net
     public static partial class ServerManager
     {
         /// <summary>
-        /// 服务器给指定客户端生成游戏对象
-        /// </summary>
-        /// <param name="client">传入指定客户端</param>
-        private static void SpawnForClient(ClientEntity client)
-        {
-            if (!client.isReady) return;
-            Debug.Log($"客户端 {client.clientId} 开始生成物体");
-            foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
-            {
-                client.AddObserver(@object);
-            }
-        }
-
-        /// <summary>
-        /// 服务器给指定客户端移除游戏对象
-        /// </summary>
-        /// <param name="client">传入指定客户端</param>
-        /// <param name="object">传入指定对象</param>
-        internal static void DespawnForClient(ClientEntity client, NetworkObject @object)
-        {
-            DespawnEvent @event = new DespawnEvent
-            {
-                netId = @object.netId
-            };
-            client.Send(@event);
-        }
-
-
-        /// <summary>
         /// 服务器向指定客户端发送生成对象的消息
         /// </summary>
         /// <param name="client">指定的客户端</param>
         /// <param name="object">生成的游戏对象</param>
-        internal static void SendSpawnMessage(ClientEntity client, NetworkObject @object)
+        private static void SendSpawnEvent(ClientEntity client, NetworkObject @object)
         {
             Debug.Log($"服务器为客户端 {client.clientId} 生成 {@object}");
             using NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
@@ -76,8 +47,23 @@ namespace JFramework.Net
             ArraySegment<byte> segment = isOwner ? owner.ToArraySegment() : observer.ToArraySegment();
             return segment;
         }
+        
+        /// <summary>
+        /// 服务器给指定客户端移除游戏对象
+        /// </summary>
+        /// <param name="client">传入指定客户端</param>
+        /// <param name="object">传入指定对象</param>
+        private static void SendDespawnEvent(ClientEntity client, NetworkObject @object)
+        {
+            Debug.Log($"服务器为客户端 {client.clientId} 销毁 {@object}");
+            DespawnEvent @event = new DespawnEvent
+            {
+                netId = @object.netId
+            };
+            client.Send(@event);
+        }
 
-           /// <summary>
+        /// <summary>
         /// 生成物体
         /// </summary>
         internal static void SpawnObjects()
@@ -144,23 +130,52 @@ namespace JFramework.Net
                 @object.OnStartServer();
             }
             
-            Rebuild(@object);
+            ReSpawn(@object);
         }
 
         /// <summary>
         /// 重新构建对象的观察连接
         /// </summary>
         /// <param name="object">传入对象</param>
-        private static void Rebuild(NetworkObject @object)
+        private static void ReSpawn(NetworkObject @object)
         {
             foreach (var client in clients.Values.Where(client => client.isReady))
             {
-                client.AddObserver(@object);
+                SendSpawnEvent(client, @object);
             }
           
             if (connection is { isReady: true })
             {
-                connection.AddObserver(@object);
+                SendSpawnEvent(connection, @object);
+            }
+        }
+
+        /// <summary>
+        /// 将网络对象重置并隐藏
+        /// </summary>
+        /// <param name="object"></param>
+        public static void Despawn(NetworkObject @object)
+        {
+            spawns.Remove(@object.netId);
+
+            if (isHost)
+            {
+                @object.isOwner = false;
+                @object.OnStopClient();
+                @object.OnNotifyAuthority();
+                ClientManager.spawns.Remove(@object.netId);
+            }
+            
+            @object.OnStopServer();
+            @object.Reset();
+            ReDespawn(@object);
+        }
+
+        private static void ReDespawn(NetworkObject @object)
+        {
+            foreach (var client in clients.Values)
+            {
+                SendDespawnEvent(client, @object);
             }
         }
     }

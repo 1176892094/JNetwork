@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace JFramework.Net
 {
@@ -20,12 +19,7 @@ namespace JFramework.Net
         /// </summary>
         internal readonly NetworkReaders readers = new NetworkReaders();
 
-        /// <summary>
-        /// 客户端所观察的网络游戏对象
-        /// </summary>
-        private readonly HashSet<NetworkObject> observing = new HashSet<NetworkObject>();
 
-        
         /// <summary>
         /// 初始化设置客户端Id
         /// </summary>
@@ -67,35 +61,6 @@ namespace JFramework.Net
         {
             isReady = false;
             Transport.current.ServerDisconnect(clientId);
-        }
-
-        /// <summary>
-        /// 添加到观察列表
-        /// </summary>
-        /// <param name="object">传入网络对象</param>
-        internal void AddObserver(NetworkObject @object)
-        {
-            observing.Add(@object);
-            ServerManager.SendSpawnMessage(this, @object);
-        }
-        
-        /// <summary>
-        /// 从观察列表移除
-        /// </summary>
-        /// <param name="object">传入网络对象</param>
-        /// <param name="destroy">是否销毁</param>
-        internal void RemoveObserver(NetworkObject @object, bool destroy)
-        {
-            observing.Remove(@object);
-            if (!destroy)
-            {
-                ServerManager.DespawnForClient(this, @object);
-            }
-        }
-
-        internal void RemoveObserverAll()
-        {
-            observing.Clear();
         }
     }
 }

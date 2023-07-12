@@ -102,6 +102,31 @@ namespace JFramework.Net
         }
         
         /// <summary>
+        /// 网络对象生成开始
+        /// </summary>
+        private static void SpawnStart()
+        {
+            scenes.Clear();
+            var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
+            foreach (var current in objects)
+            {
+                if (NetworkUtils.IsSceneObject(current) && !current.gameObject.activeSelf)
+                {
+                    if (scenes.TryGetValue(current.sceneId, out var @object))
+                    {
+                        var gameObject = current.gameObject;
+                        var message = $"复制 {gameObject.name} 到 {@object.gameObject.name} 上检测到sceneId";
+                        Debug.LogWarning(message, gameObject);
+                    }
+                    else
+                    {
+                        scenes.Add(current.sceneId, current);
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
         /// 生成网络对象
         /// </summary>
         /// <param name="object"></param>
@@ -134,40 +159,11 @@ namespace JFramework.Net
             }
 
             spawns[@event.netId] = @object;
-            if (@object.isOwner)
-            {
-                connection?.observers.Add(@object);
-            }
-            
+
             if (isSpawn)
             {
                 @object.OnNotifyAuthority();
                 @object.OnStartClient();
-            }
-        }
-        
-        /// <summary>
-        /// 网络对象生成开始
-        /// </summary>
-        private static void SpawnStart()
-        {
-            scenes.Clear();
-            var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
-            foreach (var current in objects)
-            {
-                if (NetworkUtils.IsSceneObject(current) && !current.gameObject.activeSelf)
-                {
-                    if (scenes.TryGetValue(current.sceneId, out var @object))
-                    {
-                        var gameObject = current.gameObject;
-                        var message = $"复制 {gameObject.name} 到 {@object.gameObject.name} 上检测到sceneId";
-                        Debug.LogWarning(message, gameObject);
-                    }
-                    else
-                    {
-                        scenes.Add(current.sceneId, current);
-                    }
-                }
             }
         }
 
