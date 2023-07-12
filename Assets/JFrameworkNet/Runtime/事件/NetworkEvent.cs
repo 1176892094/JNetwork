@@ -24,24 +24,6 @@ namespace JFramework.Net
         public bool isOwner;
     }
 
-    internal struct ObjectDestroyEvent : IEvent
-    {
-        public uint netId;
-    }
-
-    internal struct ObjectDespawnEvent : IEvent
-    {
-        public uint netId;
-    }
-
-    internal struct ObjectSpawnStartEvent : IEvent
-    {
-    }
-
-    internal struct ObjectSpawnFinishEvent : IEvent
-    {
-    }
-
     internal struct RpcBufferEvent : IEvent
     {
         public ArraySegment<byte> payload;
@@ -75,6 +57,16 @@ namespace JFramework.Net
         public Quaternion rotation;
         public Vector3 localScale;
         public ArraySegment<byte> segment;
+    }
+    
+    internal struct DestroyEvent : IEvent
+    {
+        public uint netId;
+    }
+
+    internal struct DespawnEvent : IEvent
+    {
+        public uint netId;
     }
 
     internal struct SnapshotEvent : IEvent

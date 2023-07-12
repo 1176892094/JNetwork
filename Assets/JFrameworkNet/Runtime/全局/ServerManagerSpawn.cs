@@ -14,7 +14,6 @@ namespace JFramework.Net
         {
             if (!client.isReady) return;
             Debug.Log($"客户端 {client.clientId} 开始生成物体");
-            client.Send(new ObjectSpawnStartEvent());
             foreach (var @object in spawns.Values)
             {
                 if (@object.gameObject.activeSelf)
@@ -22,8 +21,6 @@ namespace JFramework.Net
                     client.AddObserver(@object);
                 }
             }
-            
-            client.Send(new ObjectSpawnFinishEvent());
         }
 
         /// <summary>
@@ -33,7 +30,7 @@ namespace JFramework.Net
         /// <param name="object">传入指定对象</param>
         internal static void DespawnForClient(ClientEntity client, NetworkObject @object)
         {
-            ObjectDespawnEvent @event = new ObjectDespawnEvent
+            DespawnEvent @event = new DespawnEvent
             {
                 netId = @object.netId
             };

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+// ReSharper disable All
 
 namespace JFramework.Net
 {

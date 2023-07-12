@@ -15,26 +15,22 @@ namespace JFramework.Net
         {
             if (isHost)
             {
-                RegisterEvent<SpawnEvent>(SpawnByHost);
-                RegisterEvent<ObjectDestroyEvent>(ObjectDestroyByHost);
-                RegisterEvent<ObjectDespawnEvent>(OnEmptyMessageByHost);
-                RegisterEvent<ObjectSpawnStartEvent>(OnEmptyMessageByHost);
-                RegisterEvent<ObjectSpawnFinishEvent>(OnEmptyMessageByHost);
-                RegisterEvent<PongEvent>(OnEmptyMessageByHost);
+                RegisterEvent<SpawnEvent>(OnSpawnByHost);
+                RegisterEvent<DestroyEvent>(OnDestroyByHost);
+                RegisterEvent<DespawnEvent>(OnEmptyEventByHost);
+                RegisterEvent<PongEvent>(OnEmptyEventByHost);
             }
             else
             {
-                RegisterEvent<SpawnEvent>(SpawnByClient);
-                RegisterEvent<ObjectDestroyEvent>(ObjectDestroyByClient);
-                RegisterEvent<ObjectDespawnEvent>(ObjectDespawnByClient);
-                RegisterEvent<ObjectSpawnStartEvent>(ObjectSpawnStartByClient);
-                RegisterEvent<ObjectSpawnFinishEvent>(ObjectSpawnFinishByClient);
-                RegisterEvent<PongEvent>(PongByClient);
+                RegisterEvent<SpawnEvent>(OnSpawnByClient);
+                RegisterEvent<DestroyEvent>(OnDestroyByClient);
+                RegisterEvent<DespawnEvent>(OnDespawnByClient);
+                RegisterEvent<PongEvent>(OnPongByClient);
             }
 
-            RegisterEvent<SnapshotEvent>(OnSnapshotMessage);
-            RegisterEvent<ChangeOwnerEvent>(OnOwnerChanged);
-            RegisterEvent<RpcBufferEvent>(RpcBufferMessage);
+            RegisterEvent<SnapshotEvent>(OnSnapshotEvent);
+            RegisterEvent<ChangeOwnerEvent>(OnChangeOwnerEvent);
+            RegisterEvent<RpcBufferEvent>(OnRpcBufferEvent);
         }
 
         /// <summary>
@@ -50,7 +46,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="message"></param>
         /// <typeparam name="T"></typeparam>
-        private static void OnEmptyMessageByHost<T>(T message) where T : IEvent
+        private static void OnEmptyEventByHost<T>(T message) where T : IEvent
         {
         }
 
@@ -58,7 +54,7 @@ namespace JFramework.Net
         /// 主机模式下销毁游戏对象
         /// </summary>
         /// <param name="event"></param>
-        private static void ObjectDestroyByHost(ObjectDestroyEvent @event)
+        private static void OnDestroyByHost(DestroyEvent @event)
         {
             if (spawns.TryGetValue(@event.netId, out var @object))
             {
@@ -72,7 +68,7 @@ namespace JFramework.Net
         /// 主机模式下生成物体的事件
         /// </summary>
         /// <param name="event"></param>
-        private static void SpawnByHost(SpawnEvent @event)
+        private static void OnSpawnByHost(SpawnEvent @event)
         {
             if (ServerManager.spawns.TryGetValue(@event.netId, out var @object))
             {
@@ -93,7 +89,7 @@ namespace JFramework.Net
         /// 客户端下隐藏物体的事件
         /// </summary>
         /// <param name="event"></param>
-        private static void ObjectDespawnByClient(ObjectDespawnEvent @event)
+        private static void OnDespawnByClient(DespawnEvent @event)
         {
             if (spawns.TryGetValue(@event.netId, out var @object))
             {
@@ -109,7 +105,7 @@ namespace JFramework.Net
         /// 客户端下销毁物体的事件
         /// </summary>
         /// <param name="event"></param>
-        private static void ObjectDestroyByClient(ObjectDestroyEvent @event)
+        private static void OnDestroyByClient(DestroyEvent @event)
         {
             if (spawns.TryGetValue(@event.netId, out var @object))
             {
@@ -124,7 +120,7 @@ namespace JFramework.Net
         /// 客户端下生成物体的事件
         /// </summary>
         /// <param name="event"></param>
-        private static void SpawnByClient(SpawnEvent @event)
+        private static void OnSpawnByClient(SpawnEvent @event)
         {
             if (TrySpawn(@event, out var @object))
             {
@@ -136,32 +132,16 @@ namespace JFramework.Net
         /// 客户端从服务器接收的Ping
         /// </summary>
         /// <param name="event"></param>
-        private static void PongByClient(PongEvent @event)
+        private static void OnPongByClient(PongEvent @event)
         {
             NetworkTime.OnClientPong();
-        }
-
-        /// <summary>
-        /// 客户端下游戏对象开始生成的事件
-        /// </summary>
-        /// <param name="event"></param>
-        private static void ObjectSpawnStartByClient(ObjectSpawnStartEvent @event)
-        {
-        }
-
-        /// <summary>
-        /// 客户端下游戏对象生成完成的事件
-        /// </summary>
-        /// <param name="event"></param>
-        private static void ObjectSpawnFinishByClient(ObjectSpawnFinishEvent @event)
-        {
         }
 
         /// <summary>
         /// 接收 远程过程调用(RPC) 缓存的事件
         /// </summary>
         /// <param name="event"></param>
-        private static void RpcBufferMessage(RpcBufferEvent @event)
+        private static void OnRpcBufferEvent(RpcBufferEvent @event)
         {
         }
 
@@ -169,7 +149,7 @@ namespace JFramework.Net
         /// 客户端下当游戏对象权限改变的事件
         /// </summary>
         /// <param name="event"></param>
-        private static void OnOwnerChanged(ChangeOwnerEvent @event)
+        private static void OnChangeOwnerEvent(ChangeOwnerEvent @event)
         {
         }
 
@@ -177,7 +157,7 @@ namespace JFramework.Net
         /// 客户端下网络消息快照的事件
         /// </summary>
         /// <param name="event"></param>
-        private static void OnSnapshotMessage(SnapshotEvent @event)
+        private static void OnSnapshotEvent(SnapshotEvent @event)
         {
             NetworkSnapshot.OnTimeSnapshot(new TimeSnapshot(connection.timestamp, NetworkTime.localTime));
         }
