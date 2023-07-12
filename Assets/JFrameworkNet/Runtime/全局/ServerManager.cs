@@ -11,7 +11,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息委托字典
         /// </summary>
-        private static readonly Dictionary<ushort, EventDelegate> messages = new Dictionary<ushort, EventDelegate>();
+        internal static readonly Dictionary<ushort, EventDelegate> events = new Dictionary<ushort, EventDelegate>();
         
         /// <summary>
         /// 服务器生成的游戏对象字典
@@ -21,7 +21,7 @@ namespace JFramework.Net
         /// <summary>
         /// 连接的的客户端字典
         /// </summary>
-        private static readonly Dictionary<int, ClientEntity> clients = new Dictionary<int, ClientEntity>();
+        internal static readonly Dictionary<int, ClientEntity> clients = new Dictionary<int, ClientEntity>();
         
         /// <summary>
         /// 用来拷贝当前连接的所有客户端
@@ -39,19 +39,9 @@ namespace JFramework.Net
         private static uint netId;
 
         /// <summary>
-        /// 是否初始化
-        /// </summary>
-        private static bool isInit;
-
-        /// <summary>
         /// 是否是启动的
         /// </summary>
-        public static bool isActive => isInit;
-        
-        /// <summary>
-        /// 是主机模式
-        /// </summary>
-        public static bool isHost => isActive && ClientManager.isActive;
+        public static bool isActive;
 
         /// <summary>
         /// 是否在加载场景
@@ -62,21 +52,11 @@ namespace JFramework.Net
         /// 连接到的主机客户端
         /// </summary>
         public static ClientEntity connection;
-        
-        /// <summary>
-        /// 当有客户端连接到服务器的事件
-        /// </summary>
-        internal static event Action<ClientEntity> OnConnected;
-        
-        /// <summary>
-        /// 当有客户端从服务器断开的事件
-        /// </summary>
-        internal static event Action<ClientEntity> OnDisconnected;
-        
+
         /// <summary>
         /// 心跳包
         /// </summary>
-        private static uint tickRate => NetworkManager.Instance.tickRate;
+        private static int tickRate => NetworkManager.Instance.tickRate;
         
         /// <summary>
         /// 最大连接数量
@@ -99,9 +79,9 @@ namespace JFramework.Net
                 Transport.current.StartServer();
             }
 
-            if (!isInit)
+            if (!isActive)
             {
-                isInit = true;
+                isActive = true;
                 clients.Clear();
                 RegisterEvent();
                 RegisterTransport();
@@ -120,7 +100,7 @@ namespace JFramework.Net
         {
             clients.TryAdd(client.clientId, client);
             Debug.Log($"客户端 {client.clientId} 连接到服务器。");
-            OnConnected?.Invoke(client);
+            NetworkManager.Instance.OnServerConnectEvent(client);
         }
 
         /// <summary>
@@ -202,9 +182,9 @@ namespace JFramework.Net
         public static void StopServer()
         {
             Debug.Log("停止服务器。");
-            if (isInit)
+            if (isActive)
             {
-                isInit = false;
+                isActive = false;
                 DisconnectToAll();
                 Transport.current.StopServer();
                 UnRegisterTransport();
@@ -214,10 +194,8 @@ namespace JFramework.Net
             connection = null;
             spawns.Clear();
             clients.Clear();
-            messages.Clear();
+            events.Clear();
             isLoadScene = false;
-            OnConnected = null;
-            OnDisconnected = null;
         }
     }
 }

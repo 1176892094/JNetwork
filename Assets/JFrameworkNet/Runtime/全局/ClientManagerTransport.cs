@@ -40,7 +40,7 @@ namespace JFramework.Net
             NetworkTime.RuntimeInitializeOnLoad();
             state = ConnectState.Connected;
             NetworkTime.UpdateClient();
-            OnConnected?.Invoke();
+            NetworkManager.Instance.OnClientConnectEvent();
         }
 
         /// <summary>
@@ -48,14 +48,12 @@ namespace JFramework.Net
         /// </summary>
         private static void OnClientDisconnected()
         {
-            if (state != ConnectState.Disconnected)
-            {
-                state = ConnectState.Disconnected;
-                connection = null;
-                isReady = false;
-                OnDisconnected?.Invoke();
-                UnRegisterTransport();
-            }
+            Debug.Log("客户端传输断开。");
+            isReady = false;
+            connection = null;
+            UnRegisterTransport();
+            state = ConnectState.Disconnected;
+            NetworkManager.Instance.OnClientDisconnectEvent();
         }
 
         /// <summary>

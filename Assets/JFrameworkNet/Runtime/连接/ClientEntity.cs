@@ -5,11 +5,6 @@ namespace JFramework.Net
     public sealed class ClientEntity : Connection
     {
         /// <summary>
-        /// 连接到的Server
-        /// </summary>
-        internal ServerEntity connection;
-        
-        /// <summary>
         /// 客户端的Id
         /// </summary>
         public readonly int clientId;
@@ -33,11 +28,11 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            if (ServerManager.isHost)
+            if (NetworkManager.mode == NetworkMode.Host)
             {
                 NetworkWriter writer = NetworkWriter.Pop();
                 writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
-                connection.writeQueue.Enqueue(writer);
+                ClientManager.connection.writeQueue.Enqueue(writer);
                 return;
             }
 

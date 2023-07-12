@@ -10,17 +10,17 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息委托字典
         /// </summary>
-        private static readonly Dictionary<ushort, EventDelegate> events = new Dictionary<ushort, EventDelegate>();
+        internal static readonly Dictionary<ushort, EventDelegate> events = new Dictionary<ushort, EventDelegate>();
         
         /// <summary>
         /// 注册的预置体
         /// </summary>
-        private static readonly Dictionary<uint, GameObject> prefabs = new Dictionary<uint, GameObject>();
+        internal static readonly Dictionary<uint, GameObject> prefabs = new Dictionary<uint, GameObject>();
 
         /// <summary>
         /// 场景中包含的网络对象
         /// </summary>
-        private static readonly Dictionary<ulong, NetworkObject> scenes = new Dictionary<ulong, NetworkObject>();
+        internal static readonly Dictionary<ulong, NetworkObject> scenes = new Dictionary<ulong, NetworkObject>();
 
         /// <summary>
         /// 客户端生成的物体数量
@@ -58,16 +58,6 @@ namespace JFramework.Net
         private static ConnectState state;
 
         /// <summary>
-        /// 当连接到服务器触发的事件
-        /// </summary>
-        internal static event Action OnConnected;
-
-        /// <summary>
-        /// 当从服务器断开的事件
-        /// </summary>
-        internal static event Action OnDisconnected;
-
-        /// <summary>
         /// 网络消息读取并分包
         /// </summary>
         private static NetworkReaders readers = new NetworkReaders();
@@ -80,12 +70,12 @@ namespace JFramework.Net
         /// <summary>
         /// 是否已经连接成功
         /// </summary>
-        public static bool isConnect => state == ConnectState.Connected;
+        public static bool isAuthority => state == ConnectState.Connected;
 
         /// <summary>
         /// 心跳包
         /// </summary>
-        private static uint tickRate => NetworkManager.Instance.tickRate;
+        private static int tickRate => NetworkManager.Instance.tickRate;
 
         /// <summary>
         /// 消息发送率
@@ -100,7 +90,10 @@ namespace JFramework.Net
         internal static void StartClient(string address, ushort port)
         {
             RegisterTransport();
-            ClientConnect(false);
+            RegisterEvent(false);
+            readers = new NetworkReaders();
+            state = ConnectState.Connecting;
+            RegisterPrefab(NetworkManager.prefabs);
             Transport.current.ClientConnect(address, port);
             connection = new ServerEntity();
         }
@@ -112,7 +105,10 @@ namespace JFramework.Net
         internal static void StartClient(Uri uri)
         {
             RegisterTransport();
-            ClientConnect(false);
+            RegisterEvent(false);
+            readers = new NetworkReaders();
+            state = ConnectState.Connecting;
+            RegisterPrefab(NetworkManager.prefabs);
             Transport.current.ClientConnect(uri);
             connection = new ServerEntity();
         }
@@ -122,23 +118,13 @@ namespace JFramework.Net
         /// </summary>
         internal static void StartClient()
         {
-            ClientConnect(true);
-            var client = new ClientEntity(NetworkConst.HostId);
-            connection = new ServerEntity();
-            client.connection = connection;
-            ServerManager.connection = client;
             Debug.Log("开启客户端。");
-        }
-
-        /// <summary>
-        /// 客户端连接
-        /// </summary>
-        /// <param name="isHost">是否是基于主机的连接</param>
-        private static void ClientConnect(bool isHost)
-        {
+            RegisterEvent(true);
             readers = new NetworkReaders();
-            state = isHost ? ConnectState.Connected : ConnectState.Connecting;
-            RegisterEvent(isHost);
+            state = ConnectState.Connected;
+            RegisterPrefab(NetworkManager.prefabs);
+            connection = new ServerEntity();
+            ServerManager.connection = new ClientEntity(NetworkConst.HostId);
         }
 
         /// <summary>
@@ -172,9 +158,8 @@ namespace JFramework.Net
             {
                 return;
             }
-
+            
             state = ConnectState.Disconnecting;
-            isReady = false;
             connection?.Disconnect();
         }
 
@@ -221,8 +206,6 @@ namespace JFramework.Net
             connection = null;
             isReady = false;
             isLoadScene = false;
-            OnConnected = null;
-            OnDisconnected = null;
         }
     }
 }

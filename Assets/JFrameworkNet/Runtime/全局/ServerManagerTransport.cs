@@ -59,7 +59,7 @@ namespace JFramework.Net
         {
             if (clients.TryGetValue(clientId, out var client))
             {
-                OnDisconnected?.Invoke(client);
+                NetworkManager.Instance.OnServerDisconnectEvent(client);
                 clients.Remove(clientId);
             }
         }
@@ -119,7 +119,7 @@ namespace JFramework.Net
         {
             if (NetworkEvent.ReadEvent(reader, out ushort id))
             {
-                if (messages.TryGetValue(id, out EventDelegate handle))
+                if (events.TryGetValue(id, out EventDelegate handle))
                 {
                     handle.Invoke(client, reader, channel);
                     return true;

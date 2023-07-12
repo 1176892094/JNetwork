@@ -11,16 +11,18 @@ namespace JFramework.Net
         /// </summary>
         private static void RegisterEvent()
         {
+            Debug.Log("注册服务器事件");
             RegisterEvent<CommandEvent>(OnCommandEvent);
+            RegisterEvent<ReadyEvent>(NetworkManager.OnServerReadyEvent);
             RegisterEvent<PingEvent>(OnPingEvent, false);
         }
         
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        internal static void RegisterEvent<T>(Action<ClientEntity, T> handle, bool authority = true) where T : struct, IEvent
+        private static void RegisterEvent<T>(Action<ClientEntity, T> handle, bool authority = true) where T : struct, IEvent
         {
-            messages[EventId<T>.Id] = NetworkEvent.Register(handle, authority);
+            events[EventId<T>.Id] = NetworkEvent.Register(handle, authority);
         }
 
         /// <summary>
@@ -28,7 +30,7 @@ namespace JFramework.Net
         /// </summary>
         private static void RegisterEvent<T>(Action<ClientEntity, T, Channel> handle, bool authority = true) where T : struct, IEvent
         {
-            messages[EventId<T>.Id] = NetworkEvent.Register(handle, authority);
+            events[EventId<T>.Id] = NetworkEvent.Register(handle, authority);
         }
 
         /// <summary>

@@ -116,7 +116,7 @@ namespace JFramework.Net
             
             @object.m_connection = client;
             
-            if (isHost)
+            if (NetworkManager.mode == NetworkMode.Host)
             {
                 @object.isOwner = true;
             }
@@ -158,14 +158,14 @@ namespace JFramework.Net
         {
             spawns.Remove(@object.netId);
 
-            if (isHost)
+            if (NetworkManager.mode == NetworkMode.Host)
             {
                 @object.isOwner = false;
                 @object.OnStopClient();
                 @object.OnNotifyAuthority();
                 ClientManager.spawns.Remove(@object.netId);
             }
-            
+
             @object.OnStopServer();
             @object.Reset();
             ReDespawn(@object);

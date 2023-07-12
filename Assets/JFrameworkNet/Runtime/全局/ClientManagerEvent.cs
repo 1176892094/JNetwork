@@ -1,5 +1,6 @@
 using System;
 using JFramework.Interface;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace JFramework.Net
@@ -12,6 +13,7 @@ namespace JFramework.Net
         /// <param name="isHost">是否是基于主机的连接</param>
         private static void RegisterEvent(bool isHost)
         {
+            Debug.Log("注册客户端事件");
             if (isHost)
             {
                 RegisterEvent<SpawnEvent>(OnSpawnByHost);
@@ -27,6 +29,8 @@ namespace JFramework.Net
                 RegisterEvent<PongEvent>(OnPongByClient);
             }
 
+            RegisterEvent<NotReadyEvent>(NetworkManager.OnClientNotReadyEvent);
+            RegisterEvent<SceneEvent>(NetworkManager.Instance.OnClientLoadSceneEvent, false);
             RegisterEvent<SnapshotEvent>(OnSnapshotEvent);
             RegisterEvent<ChangeOwnerEvent>(OnChangeOwnerEvent);
             RegisterEvent<RpcBufferEvent>(OnRpcBufferEvent);
@@ -35,7 +39,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络事件
         /// </summary>
-        public static void RegisterEvent<T>(Action<T> handle, bool authority = true) where T : struct, IEvent
+        private static void RegisterEvent<T>(Action<T> handle, bool authority = true) where T : struct, IEvent
         {
             events[EventId<T>.Id] = NetworkEvent.Register(handle, authority);
         }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -8,8 +9,32 @@ namespace JFramework.Net
         /// <summary>
         /// 注册预置体
         /// </summary>
+        /// <param name="objects">传入预置体</param>
+        internal static void RegisterPrefab(List<GameObject> objects)
+        {
+            foreach (var gameObject in objects.Where(@object => @object != null))
+            {
+                if (gameObject == null)
+                {
+                    Debug.LogError("不能注册预置体，因为它是空的。");
+                    return;
+                }
+
+                if (!gameObject.TryGetComponent(out NetworkObject @object))
+                {
+                    Debug.LogError($"预置体 {gameObject.name} 没有 NetworkObject 组件");
+                    return;
+                }
+
+                RegisterPrefab(@object);
+            }
+        }
+
+        /// <summary>
+        /// 注册预置体
+        /// </summary>
         /// <param name="object">传入网络对象</param>
-        internal static void RegisterPrefab(NetworkObject @object)
+        private static void RegisterPrefab(NetworkObject @object)
         {
             if (@object.assetId == 0)
             {

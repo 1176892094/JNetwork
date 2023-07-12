@@ -17,7 +17,7 @@ namespace JFramework.Net
                 return;
             }
 
-            if (ServerManager.isLoadScene && newSceneName == sceneName)
+            if (ServerManager.isLoadScene && newSceneName == serverScene)
             {
                 Debug.LogError($"服务器已经在加载 {newSceneName} 场景");
                 return;
@@ -25,7 +25,7 @@ namespace JFramework.Net
 
             ServerManager.SetClientNotReadyAll();
             OnServerLoadScene?.Invoke(newSceneName);
-            sceneName = newSceneName;
+            serverScene = newSceneName;
             ServerManager.isLoadScene = true;
             if (ServerManager.isActive)
             {
@@ -51,7 +51,7 @@ namespace JFramework.Net
 
             OnClientLoadScene?.Invoke(newSceneName);
             if (ServerManager.isActive) return; //Host不做处理
-            sceneName = newSceneName;
+            serverScene = newSceneName;
             ClientManager.isLoadScene = true;
             await LoadSceneAsync(newSceneName);
         }
@@ -64,7 +64,7 @@ namespace JFramework.Net
             await SceneManager.LoadSceneAsync(newSceneName);
             ServerManager.isLoadScene = false;
             ClientManager.isLoadScene = false;
-            switch (networkMode)
+            switch (mode)
             {
                 case NetworkMode.Host:
                     OnServerSceneLoadCompleted();
@@ -85,7 +85,7 @@ namespace JFramework.Net
         private void OnServerSceneLoadCompleted()
         {
             ServerManager.SpawnObjects();
-            OnServerSceneChanged?.Invoke(sceneName);
+            OnServerSceneChanged?.Invoke(serverScene);
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace JFramework.Net
         /// </summary>
         private void OnClientSceneLoadCompleted()
         {
-            if (!ClientManager.isConnect) return;
+            if (!ClientManager.isAuthority) return;
             if (ClientManager.connection.isAuthority && !ClientManager.isReady)
             {
                 ClientManager.Ready();

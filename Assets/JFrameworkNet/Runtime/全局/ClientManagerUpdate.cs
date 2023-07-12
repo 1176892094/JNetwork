@@ -28,13 +28,13 @@ namespace JFramework.Net
         
             if (connection != null)
             {
-                if (ServerManager.isHost)
+                if (NetworkManager.mode == NetworkMode.Host)
                 {
                     connection.Update();
                 }
                 else
                 {
-                    if (isActive && isConnect)
+                    if (isActive && isAuthority)
                     {
                         NetworkTime.UpdateClient();
                         connection.Update();

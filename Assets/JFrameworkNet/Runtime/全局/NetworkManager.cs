@@ -1,40 +1,44 @@
 using System;
+using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace JFramework.Net
 {
     public sealed partial class NetworkManager : GlobalSingleton<NetworkManager>
     {
         /// <summary>
-        /// 服务器场景名称
+        /// 预置体列表
         /// </summary>
-        private string sceneName;
+        internal static readonly List<GameObject> prefabs = new List<GameObject>();
 
+        /// <summary>
+        /// 服务器场景
+        /// </summary>
+        private static string serverScene;
+        
         /// <summary>
         /// 网络传输组件
         /// </summary>
-        [SerializeField] private Transport transport;
-        
-        /// <summary>
-        /// 网络预置体设置
-        /// </summary>
-        [SerializeField] private NetworkSetting setting;
-        
+        [FoldoutGroup("网络管理器"), SerializeField] private Transport transport;
+
         /// <summary>
         /// 心跳传输率
         /// </summary>
-        public uint tickRate = 30;
-        
+        [FoldoutGroup("网络管理器")] public int tickRate = 30;
+
         /// <summary>
         /// 客户端最大连接数量
         /// </summary>
-        public uint maxConnection = 100;
+        [FoldoutGroup("网络管理器")] public uint maxConnection = 100;
 
         /// <summary>
         /// 传输连接地址
         /// </summary>
-        [ShowInInspector]
+        [FoldoutGroup("网络管理器"), ShowInInspector]
         public string address
         {
             get => transport ? transport.address : NetworkConst.Address;
@@ -44,7 +48,7 @@ namespace JFramework.Net
         /// <summary>
         /// 传输连接端口
         /// </summary>
-        [ShowInInspector]
+        [FoldoutGroup("网络管理器"), ShowInInspector]
         public ushort port
         {
             get => transport ? transport.port : NetworkConst.Port;
@@ -54,8 +58,8 @@ namespace JFramework.Net
         /// <summary>
         /// 网络运行模式
         /// </summary>
-        [ShowInInspector]
-        private NetworkMode networkMode
+        [FoldoutGroup("网络管理器"), ShowInInspector]
+        internal static NetworkMode mode
         {
             get
             {
@@ -67,6 +71,18 @@ namespace JFramework.Net
                 return ClientManager.isActive ? NetworkMode.Client : NetworkMode.None;
             }
         }
+        
+#if UNITY_EDITOR
+        [FoldoutGroup("服务器设置")][ShowInInspector] private ClientEntity serverConnection => ServerManager.connection;
+        [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<ushort, EventDelegate> serverEvent => ServerManager.events;
+        [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<uint, NetworkObject> serverSpawns => ServerManager.spawns;
+        [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<int, ClientEntity> connections => ServerManager.clients;
+        [FoldoutGroup("客户端设置")] [ShowInInspector] private ServerEntity clientConnection => ClientManager.connection;
+        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<ushort, EventDelegate> clientEvent => ClientManager.events;
+        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<uint, NetworkObject> clientSpawns => ClientManager.spawns;
+        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<uint, GameObject> assetPrefabs => ClientManager.prefabs;
+        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<ulong, NetworkObject> scenePrefabs => ClientManager.scenes;
+#endif
 
         /// <summary>
         /// 初始化配置传输
@@ -79,9 +95,12 @@ namespace JFramework.Net
                 Debug.LogError("NetworkManager 没有 Transport 组件。");
                 return;
             }
- 
-            Transport.current = transport;
+            
             Application.runInBackground = true;
+#if UNITY_SERVER
+            Application.targetFrameRate = tickRate;
+#endif
+            Transport.current = transport;
         }
 
         /// <summary>
@@ -95,12 +114,8 @@ namespace JFramework.Net
                 Debug.LogWarning("服务器已经连接！");
                 return;
             }
-
-#if UNITY_SERVER
-            Application.targetFrameRate = tickRate;
-#endif
+            
             ServerManager.StartServer(isListen);
-            RegisterServerEvent();
             OnStartServer?.Invoke();
         }
 
@@ -109,17 +124,21 @@ namespace JFramework.Net
         /// </summary>
         public void StopServer()
         {
-            if (!ServerManager.isActive) return;
+            if (!ServerManager.isActive)
+            {
+                Debug.LogWarning("服务器已经停止！");
+                return;
+            }
+            
             OnStopServer?.Invoke();
             ServerManager.StopServer();
-            sceneName = "";
+            serverScene = "";
         }
 
         /// <summary>
         /// 开启客户端
         /// </summary>
-        /// <param name="uri">不传入Uri则按照默认的address来匹配</param>
-        public void StartClient(Uri uri = null)
+        public void StartClient()
         {
             if (ClientManager.isActive)
             {
@@ -127,16 +146,23 @@ namespace JFramework.Net
                 return;
             }
             
-            if (uri == null)
-            {
-                ClientManager.StartClient(address, port);
-            }
-            else
-            {
-                ClientManager.StartClient(uri);
-            }
+            ClientManager.StartClient(address, port);
+            OnStartClient?.Invoke();
+        }
 
-            RegisterClientEvent();
+        /// <summary>
+        /// 开启客户端 (根据Uri来连接)
+        /// </summary>
+        /// <param name="uri">传入Uri</param>
+        public void StartClient(Uri uri)
+        {
+            if (ClientManager.isActive)
+            {
+                Debug.LogWarning("客户端已经连接！");
+                return;
+            }
+            
+            ClientManager.StartClient(uri);
             OnStartClient?.Invoke();
         }
 
@@ -145,18 +171,19 @@ namespace JFramework.Net
         /// </summary>
         public void StopClient()
         {
-            if (networkMode == NetworkMode.None)
+            if (!ClientManager.isActive)
             {
+                Debug.LogWarning("客户端已经停止！");
                 return;
             }
 
-            if (networkMode == NetworkMode.Host)
+            if (mode == NetworkMode.Host)
             {
                 OnServerDisconnectEvent(ServerManager.connection);
             }
 
-            ClientManager.Disconnect();
             OnClientDisconnectEvent();
+            ClientManager.Disconnect();
         }
 
         /// <summary>
@@ -173,9 +200,7 @@ namespace JFramework.Net
 
             Debug.Log("开启主机。");
             ServerManager.StartServer(isListen);
-            RegisterServerEvent();
             ClientManager.StartClient();
-            RegisterClientEvent();
             ServerManager.OnClientConnect(ServerManager.connection);
             OnClientConnectEvent();
             OnStartHost?.Invoke();
@@ -190,13 +215,33 @@ namespace JFramework.Net
             StopClient();
             StopServer();
         }
+        
+        /// <summary>
+        /// 自动查找所有的NetworkObject
+        /// </summary>
+        private void OnValidate()
+        {
+#if UNITY_EDITOR
+            prefabs.Clear();
+            string[] guids = AssetDatabase.FindAssets("t:Prefab");
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (prefab != null && prefab.GetComponent<NetworkObject>() != null)
+                {
+                    prefabs.Add(prefab);
+                }
+            }
+#endif
+        }
 
         /// <summary>
-        /// 应用退出Client和Server
+        /// 当程序退出，停止服务器和客户端
         /// </summary>
         private void OnApplicationQuit()
         {
-            if (ClientManager.isConnect)
+            if (ClientManager.isAuthority)
             {
                 StopClient();
             }
