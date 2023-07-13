@@ -23,6 +23,7 @@ namespace JFramework.Net
                 return;
             }
 
+            Debug.Log("服务器开始加载场景");
             ServerManager.SetClientNotReadyAll();
             OnServerLoadScene?.Invoke(newSceneName);
             serverScene = newSceneName;
@@ -48,7 +49,7 @@ namespace JFramework.Net
                 Debug.LogError("客户端不能加载空场景！");
                 return;
             }
-
+            Debug.Log("客户端器开始加载场景");
             OnClientLoadScene?.Invoke(newSceneName);
             if (ServerManager.isActive) return; //Host不做处理
             serverScene = newSceneName;
@@ -84,6 +85,7 @@ namespace JFramework.Net
         /// </summary>
         private void OnServerSceneLoadCompleted()
         {
+            Debug.Log("服务器加载场景完成");
             ServerManager.SpawnObjects();
             OnServerSceneChanged?.Invoke(serverScene);
         }
@@ -94,6 +96,7 @@ namespace JFramework.Net
         private void OnClientSceneLoadCompleted()
         {
             if (!ClientManager.isAuthority) return;
+            Debug.Log("客户端加载场景完成");
             if (ClientManager.connection.isAuthority && !ClientManager.isReady)
             {
                 ClientManager.Ready();

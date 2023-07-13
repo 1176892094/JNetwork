@@ -10,7 +10,6 @@ namespace JFramework.Net
         /// </summary>
         private static void RegisterTransport()
         {
-            UnRegisterTransport();
             Transport.OnServerConnected += OnServerConnected;
             Transport.OnServerDisconnected += OnServerDisconnected;
             Transport.OnServerReceive += OnServerReceive;

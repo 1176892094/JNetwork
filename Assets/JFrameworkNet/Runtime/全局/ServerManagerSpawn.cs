@@ -143,11 +143,6 @@ namespace JFramework.Net
             {
                 SendSpawnEvent(client, @object);
             }
-          
-            if (connection is { isReady: true })
-            {
-                SendSpawnEvent(connection, @object);
-            }
         }
 
         /// <summary>
