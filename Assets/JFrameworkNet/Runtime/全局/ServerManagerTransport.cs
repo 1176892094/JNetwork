@@ -58,7 +58,7 @@ namespace JFramework.Net
         {
             if (clients.TryGetValue(clientId, out var client))
             {
-                NetworkManager.Instance.OnServerDisconnectEvent(client);
+                NetworkManager.OnServerDisconnectEvent(client);
                 clients.Remove(clientId);
             }
         }

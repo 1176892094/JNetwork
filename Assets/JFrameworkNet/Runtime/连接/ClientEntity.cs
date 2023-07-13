@@ -3,6 +3,9 @@ using Sirenix.OdinInspector;
 
 namespace JFramework.Net
 {
+    /// <summary>
+    /// 仅在服务器上被创建
+    /// </summary>
     public sealed class ClientEntity : Connection
     {
         /// <summary>

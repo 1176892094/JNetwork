@@ -99,7 +99,7 @@ namespace JFramework.Net
         {
             clients.TryAdd(client.clientId, client);
             Debug.Log($"客户端 {client.clientId} 连接到服务器。");
-            NetworkManager.Instance.OnServerConnectEvent(client);
+            NetworkManager.OnServerConnectEvent(client);
         }
 
         /// <summary>

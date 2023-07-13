@@ -27,16 +27,6 @@ namespace JFramework.Net
         private double timestamp;
 
         /// <summary>
-        /// 开始读取批处理数据
-        /// </summary>
-        /// <param name="writer"></param>
-        private void StartReadBatch(NetworkWriter writer)
-        {
-            reader.SetBuffer(writer.ToArraySegment());
-            timestamp = reader.ReadDouble();
-        }
-
-        /// <summary>
         /// 将数据写入到writer并读取
         /// </summary>
         /// <param name="segment">批处理数据</param>
@@ -53,7 +43,7 @@ namespace JFramework.Net
 
             if (writers.Count == 0)
             {
-                StartReadBatch(writer);
+                CopyToReader(writer);
             }
 
             writers.Enqueue(writer); // 将数据放入队列末尾
@@ -89,7 +79,7 @@ namespace JFramework.Net
                 if (writers.Count > 0)
                 {
                     var peek = writers.Peek();
-                    StartReadBatch(peek);
+                    CopyToReader(peek);
                 }
                 else
                 {
@@ -101,6 +91,16 @@ namespace JFramework.Net
             timestamp = this.timestamp;
             reader = this.reader;
             return true;
+        }
+        
+        /// <summary>
+        /// 开始读取批处理数据
+        /// </summary>
+        /// <param name="writer"></param>
+        private void CopyToReader(NetworkWriter writer)
+        {
+            reader.SetBuffer(writer.ToArraySegment());
+            timestamp = reader.ReadDouble();
         }
     }
 }

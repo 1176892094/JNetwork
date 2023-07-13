@@ -225,7 +225,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 778044560079173824, guid: bd68c24b678b7466d8028bce443de0a6, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2046465299821470984, guid: bd68c24b678b7466d8028bce443de0a6, type: 3}
       propertyPath: m_RootOrder
@@ -274,6 +274,10 @@ PrefabInstance:
     - target: {fileID: 2046465299821470986, guid: bd68c24b678b7466d8028bce443de0a6, type: 3}
       propertyPath: m_Name
       value: GlobalManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 3346680263604035365, guid: bd68c24b678b7466d8028bce443de0a6, type: 3}
+      propertyPath: debugOption
+      value: 24
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -365,7 +369,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   transport: {fileID: 890354966}
-  setting: {fileID: 11400000, guid: 215a5d5e0c4d04eaba95f0dc4a32fdff, type: 2}
   tickRate: 30
   maxConnection: 100
 --- !u!1 &1805832351

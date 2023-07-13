@@ -30,7 +30,7 @@ namespace JFramework.Net
             }
 
             RegisterEvent<NotReadyEvent>(NetworkManager.OnClientNotReadyEvent);
-            RegisterEvent<SceneEvent>(NetworkManager.Instance.OnClientLoadSceneEvent, false);
+            RegisterEvent<SceneEvent>(NetworkManager.OnClientLoadSceneEvent, false);
             RegisterEvent<SnapshotEvent>(OnSnapshotEvent);
             RegisterEvent<ChangeOwnerEvent>(OnChangeOwnerEvent);
             RegisterEvent<RpcBufferEvent>(OnRpcBufferEvent);

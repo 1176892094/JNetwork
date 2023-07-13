@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
+    /// <summary>
+    /// 仅在主机或者客户端模式下创建
+    /// </summary>
     public class ServerEntity : Connection
     {
         /// <summary>

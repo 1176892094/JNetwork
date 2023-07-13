@@ -95,9 +95,8 @@ namespace JFramework.Net
         /// 在Server端中序列化
         /// </summary>
         /// <param name="isInit"></param>
-        /// <param name="owner"></param>
         /// <param name="observer"></param>
-        internal void SerializeServer(bool isInit, NetworkWriter owner, NetworkWriter observer)
+        internal void SerializeServer(bool isInit,  NetworkWriter observer)
         {
             if (objects == null)
             {

@@ -41,11 +41,11 @@ namespace JFramework.Net
             copies.AddRange(clients.Values);
             foreach (var client in copies)
             {
-                // if (client.isReady)
-                // {
-                //     client.Send(new SnapshotEvent(), Channel.Unreliable);
-                //     BroadcastToClient(client);
-                // }
+                if (client.isReady)
+                {
+                  //  client.Send(new SnapshotEvent(), Channel.Unreliable);
+                  //  BroadcastToClient(client);
+                }
 
                 client.Update();
             }

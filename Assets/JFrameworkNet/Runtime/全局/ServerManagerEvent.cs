@@ -46,14 +46,14 @@ namespace JFramework.Net
             {
                 Debug.LogWarning($"没有找到发送 ServerRpc 的对象。对象网络Id：{@event.netId}");
             }
-            else if (RpcUtils.GetAuthorityByHash(@event.functionHash) && @object.connection != client)
+            else if (RpcUtils.GetAuthorityByHash(@event.funcHash) && @object.connection != client)
             {
                 Debug.LogWarning($"接收到 ServerRpc 但对象没有通过验证。对象网络Id：{@event.netId}");
             }
             else
             {
                 using var reader = NetworkReader.Pop(@event.segment);
-                @object.InvokeRpcEvent(@event.componentIndex, @event.functionHash, RpcType.ServerRpc, reader, client);
+                @object.InvokeRpcEvent(@event.component, @event.funcHash, RpcType.ServerRpc, reader, client);
             }
         }
     }

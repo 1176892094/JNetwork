@@ -39,7 +39,7 @@ namespace JFramework.Net
             NetworkTime.Resets();
             state = ConnectState.Connected;
             NetworkTime.Update();
-            NetworkManager.Instance.OnClientConnectEvent();
+            NetworkManager.OnClientConnectEvent();
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace JFramework.Net
             if (!isActive) return;
             Debug.Log("客户端断开传输。");
             UnRegisterTransport();
-            NetworkManager.Instance.OnClientDisconnectEvent();
+            NetworkManager.OnClientDisconnectEvent();
             StopClient();
             state = ConnectState.Disconnected;
           

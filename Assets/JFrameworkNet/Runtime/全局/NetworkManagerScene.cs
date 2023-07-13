@@ -42,7 +42,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端加载场景
         /// </summary>
-        private async void ClientLoadScene(string newSceneName)
+        private static async void ClientLoadScene(string newSceneName)
         {
             if (string.IsNullOrWhiteSpace(newSceneName))
             {
@@ -60,7 +60,7 @@ namespace JFramework.Net
         /// <summary>
         /// 异步加载场景
         /// </summary>
-        private async Task LoadSceneAsync(string newSceneName)
+        private static async Task LoadSceneAsync(string newSceneName)
         {
             await SceneManager.LoadSceneAsync(newSceneName);
             ServerManager.isLoadScene = false;
@@ -83,7 +83,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器端场景加载完成
         /// </summary>
-        private void OnServerSceneLoadCompleted()
+        private static void OnServerSceneLoadCompleted()
         {
             Debug.Log("服务器加载场景完成");
             ServerManager.SpawnObjects();
@@ -93,7 +93,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端场景加载完成
         /// </summary>
-        private void OnClientSceneLoadCompleted()
+        private static void OnClientSceneLoadCompleted()
         {
             if (!ClientManager.isAuthority) return;
             Debug.Log("客户端加载场景完成");

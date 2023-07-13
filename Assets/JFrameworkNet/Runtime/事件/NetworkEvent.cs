@@ -4,47 +4,63 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    internal struct ReadyEvent : IEvent
-    {
-    }
+    /// <summary>
+    /// 客户端准备就绪
+    /// </summary>
+    internal struct ReadyEvent : IEvent { }
 
-    internal struct NotReadyEvent : IEvent
-    {
-    }
+    /// <summary>
+    /// 客户端取消准备
+    /// </summary>
+    internal struct NotReadyEvent : IEvent { }
     
+    /// <summary>
+    /// 场景改变
+    /// </summary>
     internal struct SceneEvent : IEvent
     {
         public string sceneName;
     }
 
+    /// <summary>
+    /// 改变权限
+    /// </summary>
     internal struct ChangeOwnerEvent : IEvent
     {
         public uint netId;
         public bool isOwner;
     }
 
+    
     internal struct RpcBufferEvent : IEvent
     {
         public ArraySegment<byte> payload;
     }
 
+    /// <summary>
+    /// 客户端到服务器的Ping
+    /// </summary>
     internal struct PingEvent : IEvent
     {
         public readonly double clientTime;
         public PingEvent(double clientTime) => this.clientTime = clientTime;
     }
 
+    /// <summary>
+    /// 服务器到客户端的Pong
+    /// </summary>
     internal struct PongEvent : IEvent
     {
         public readonly double clientTime;
         public PongEvent(double clientTime) => this.clientTime = clientTime;
     }
 
+    
     internal struct ServerRpcEvent : IEvent
     {
         public uint netId;
-        public byte componentIndex;
-        public ushort functionHash;
+        public byte component;
+        public ushort funcHash;
         public ArraySegment<byte> segment;
     }
 

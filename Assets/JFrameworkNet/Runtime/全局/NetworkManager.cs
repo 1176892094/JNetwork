@@ -42,12 +42,12 @@ namespace JFramework.Net
         /// <summary>
         /// 心跳传输率
         /// </summary>
-        [FoldoutGroup("网络管理器")] public int tickRate = 30;
+        [FoldoutGroup("网络管理器"), SerializeField] internal int tickRate = 30;
 
         /// <summary>
         /// 客户端最大连接数量
         /// </summary>
-        [FoldoutGroup("网络管理器")] public uint maxConnection = 100;
+        [FoldoutGroup("网络管理器"), SerializeField] internal uint maxConnection = 100;
 
         /// <summary>
         /// 传输连接地址

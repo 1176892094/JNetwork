@@ -8,7 +8,7 @@ namespace JFramework.Net
         /// 当客户端连接到服务器时，向连接的客户端发送改变场景的事件
         /// </summary>
         /// <param name="client">连接的客户端</param>
-        internal void OnServerConnectEvent(ClientEntity client)
+        internal static void OnServerConnectEvent(ClientEntity client)
         {
             client.isAuthority = true;
             if (!string.IsNullOrEmpty(serverScene))
@@ -27,7 +27,7 @@ namespace JFramework.Net
         /// 当客户端从服务器断开时触发
         /// </summary>
         /// <param name="client">断开的客户端</param>
-        internal void OnServerDisconnectEvent(ClientEntity client)
+        internal static void OnServerDisconnectEvent(ClientEntity client)
         {
             OnServerDisconnect?.Invoke(client);
         }
@@ -46,7 +46,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端连接的事件
         /// </summary>
-        internal void OnClientConnectEvent()
+        internal static void OnClientConnectEvent()
         {
             ClientManager.connection.isAuthority = true;
             Debug.Log("设置身份验证成功。");
@@ -61,7 +61,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端断开连接的事件
         /// </summary>
-        internal void OnClientDisconnectEvent()
+        internal static void OnClientDisconnectEvent()
         {
             OnClientDisconnect?.Invoke();
         }
@@ -80,7 +80,7 @@ namespace JFramework.Net
         /// 当服务器场景发生改变时 (所有客户端也会同步到和服务器一样的场景)
         /// </summary>
         /// <param name="event"></param>
-        internal void OnClientLoadSceneEvent(SceneEvent @event)
+        internal static void OnClientLoadSceneEvent(SceneEvent @event)
         {
             if (ClientManager.isAuthority)
             {

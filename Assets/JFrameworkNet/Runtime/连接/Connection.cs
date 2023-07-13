@@ -116,9 +116,8 @@ namespace JFramework.Net
         protected NetworkWriters GetWriters(Channel channel)
         {
             if (writerDict.TryGetValue(channel, out var writers)) return writers;
-            Debug.Log($"{GetType().Name} 写入传输 {channel}");
-            var size = Transport.current.UnreliableSize();
-            return writerDict[channel] = new NetworkWriters(size);
+            var threshold = Transport.current.UnreliableSize();
+            return writerDict[channel] = new NetworkWriters(threshold);
         }
         
         /// <summary>

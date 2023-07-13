@@ -77,7 +77,7 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 重新构建对象的观察连接
+        /// 遍历所有客户端，发送生成物体的事件
         /// </summary>
         /// <param name="object">传入对象</param>
         private static void SpawnForClient(NetworkObject @object)
@@ -96,11 +96,9 @@ namespace JFramework.Net
         private static void SendSpawnEvent(ClientEntity client, NetworkObject @object)
         {
             Debug.Log($"服务器为客户端 {client.clientId} 生成 {@object}");
-            using NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
-            var isOwner = @object.connection == client;
-            var segment = SerializeNetworkObject(@object, isOwner, owner, observer);
+            using var writer = NetworkWriter.Pop();
             var transform = @object.transform;
-            SpawnEvent message = new SpawnEvent
+            SpawnEvent @event = new SpawnEvent
             {
                 netId = @object.netId,
                 sceneId = @object.sceneId,
@@ -109,24 +107,22 @@ namespace JFramework.Net
                 rotation = transform.localRotation,
                 localScale = transform.localScale,
                 isOwner = @object.connection == client,
-                segment = segment
+                segment = SerializeNetworkObject(@object, writer)
             };
-            client.Send(message);
+            client.Send(@event);
         }
 
         /// <summary>
         /// 序列化网络对象，并将数据转发给客户端
         /// </summary>
         /// <param name="object">网络对象生成</param>
-        /// <param name="isOwner">是否包含权限</param>
-        /// <param name="owner">有权限的</param>
-        /// <param name="observer"></param>
+        /// <param name="writer"></param>
         /// <returns></returns>
-        private static ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observer)
+        private static ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, NetworkWriter writer)
         {
             if (@object.objects.Length == 0) return default;
-            @object.SerializeServer(true, owner, observer);
-            ArraySegment<byte> segment = isOwner ? owner.ToArraySegment() : observer.ToArraySegment();
+            @object.SerializeServer(true, writer);
+            ArraySegment<byte> segment = writer.ToArraySegment();
             return segment;
         }
 
@@ -151,6 +147,10 @@ namespace JFramework.Net
             DespawnForClient(@object);
         }
 
+        /// <summary>
+        /// 向所有客户端发送对象重置的消息
+        /// </summary>
+        /// <param name="object"></param>
         private static void DespawnForClient(NetworkObject @object)
         {
             foreach (var client in clients.Values)
@@ -173,6 +173,5 @@ namespace JFramework.Net
             };
             client.Send(@event);
         }
-
     }
 }
