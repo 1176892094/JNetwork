@@ -15,7 +15,12 @@ namespace JFramework.Net
         /// <summary>
         /// Ping的间隔
         /// </summary>
-        public const float Ping = 2;
+        public const float PingInterval = 2;
+
+        /// <summary>
+        /// Ping窗口
+        /// </summary>
+        public const int PingWindow = 6;
         
         /// <summary>
         /// 网络消息的字符串最大长度

@@ -11,7 +11,7 @@ namespace JFramework.Net
     /// 静态泛型事件Id
     /// </summary>
     /// <typeparam name="T">网络事件类型</typeparam>
-    public static class EventId<T> where T : struct, IEvent
+    public static class NetworkEvent<T> where T : struct, IEvent
     {
         /// <summary>
         /// 根据泛型类型的名称来获取Hash的Id
@@ -26,11 +26,11 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="name">传入名称</param>
         /// <returns>返回Hash码</returns>
-        public static int GetHashByName(string name)
+        public static uint GetHashByName(string name)
         {
             unchecked
             {
-                return name.Aggregate(23, (hash, c) => hash * 31 + c);
+                return name.Aggregate(23U, (hash, c) => hash * 31 + c);
             }
         }
         
@@ -43,7 +43,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteEvent<T>(NetworkWriter writer, T @event) where T : struct, IEvent
         {
-            writer.WriteUShort(EventId<T>.Id);
+            writer.WriteUShort(NetworkEvent<T>.Id);
             writer.Write(@event);
         }
 

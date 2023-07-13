@@ -41,7 +41,7 @@ namespace JFramework.Net
         /// </summary>
         private static void RegisterEvent<T>(Action<T> handle, bool authority = true) where T : struct, IEvent
         {
-            events[EventId<T>.Id] = NetworkEvent.Register(handle, authority);
+            events[NetworkEvent<T>.Id] = NetworkEvent.Register(handle, authority);
         }
 
         /// <summary>

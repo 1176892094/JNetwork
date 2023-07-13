@@ -22,7 +22,7 @@ namespace JFramework.Net
         /// </summary>
         private static void RegisterEvent<T>(Action<ClientEntity, T> handle, bool authority = true) where T : struct, IEvent
         {
-            events[EventId<T>.Id] = NetworkEvent.Register(handle, authority);
+            events[NetworkEvent<T>.Id] = NetworkEvent.Register(handle, authority);
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace JFramework.Net
         /// </summary>
         private static void RegisterEvent<T>(Action<ClientEntity, T, Channel> handle, bool authority = true) where T : struct, IEvent
         {
-            events[EventId<T>.Id] = NetworkEvent.Register(handle, authority);
+            events[NetworkEvent<T>.Id] = NetworkEvent.Register(handle, authority);
         }
 
         /// <summary>

@@ -29,7 +29,7 @@ namespace JFramework.Net
         private static void RuntimeInitializeOnLoad()
         {
             Transport.RuntimeInitializeOnLoad();
-            NetworkTime.RuntimeInitializeOnLoad();
+            NetworkTime.Reset();
             OnStartHost = null;
             OnStopHost = null;
             OnStartClient = null;

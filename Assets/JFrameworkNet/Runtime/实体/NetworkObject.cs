@@ -16,7 +16,7 @@ namespace JFramework.Net
         [ReadOnly, ShowInInspector] public uint netId;
         [ReadOnly, SerializeField] private uint m_assetId;
         [ReadOnly, ShowInInspector] internal ulong sceneId;
-        [ReadOnly, ShowInInspector] internal ClientEntity m_connection;
+        [ReadOnly, ShowInInspector] private ClientEntity m_connection;
         [ReadOnly, ShowInInspector] public bool isOwner;
         [ReadOnly, ShowInInspector] public bool isServer;
         [ReadOnly, ShowInInspector] public bool isClient;
@@ -50,7 +50,7 @@ namespace JFramework.Net
         public ClientEntity connection
         {
             get => m_connection;
-            private set => m_connection = value;
+            internal set => m_connection = value;
         }
 
      

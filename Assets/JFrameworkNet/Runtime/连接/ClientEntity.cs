@@ -8,7 +8,12 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端的Id
         /// </summary>
-        public readonly int clientId;
+        [ShowInInspector] public readonly int clientId;
+
+        /// <summary>
+        /// 是主机客户端
+        /// </summary>
+        [ShowInInspector] private readonly bool isHost;
 
         /// <summary>
         /// 网络消息读取
@@ -20,7 +25,11 @@ namespace JFramework.Net
         /// 初始化设置客户端Id
         /// </summary>
         /// <param name="clientId">传入客户端的Id</param>
-        public ClientEntity(int clientId) => this.clientId = clientId;
+        public ClientEntity(int clientId)
+        {
+            this.clientId = clientId;
+            isHost = clientId == NetworkConst.HostId;
+        }
 
         /// <summary>
         /// 客户端向服务器发送消息
@@ -29,7 +38,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            if (NetworkManager.mode == NetworkMode.Host)
+            if (isHost)
             {
                 NetworkWriter writer = NetworkWriter.Pop();
                 writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);

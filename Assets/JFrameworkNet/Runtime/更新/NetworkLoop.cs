@@ -14,7 +14,7 @@ namespace JFramework.Net
         /// <param name="function">插入的方法</param>
         /// <param name="playerLoop">玩家循环</param>
         /// <param name="systemType">循环系统类型</param>
-        /// <returns></returns>
+        /// <returns>返回能否添加循环</returns>
         private static bool AddPlayerLoop(UpdateFunction function, ref PlayerLoopSystem playerLoop, Type systemType)
         {
             if (playerLoop.type == systemType)

@@ -1,7 +1,6 @@
 using System;
 using JFramework.Interface;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace JFramework.Net
 {
@@ -31,12 +30,14 @@ namespace JFramework.Net
 
     internal struct PingEvent : IEvent
     {
-        public double clientTime;
+        public readonly double clientTime;
+        public PingEvent(double clientTime) => this.clientTime = clientTime;
     }
 
     internal struct PongEvent : IEvent
     {
-        public double clientTime;
+        public readonly double clientTime;
+        public PongEvent(double clientTime) => this.clientTime = clientTime;
     }
 
     internal struct ServerRpcEvent : IEvent

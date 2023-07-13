@@ -7,63 +7,6 @@ namespace JFramework.Net
     public static partial class ServerManager
     {
         /// <summary>
-        /// 服务器向指定客户端发送生成对象的消息
-        /// </summary>
-        /// <param name="client">指定的客户端</param>
-        /// <param name="object">生成的游戏对象</param>
-        private static void SendSpawnEvent(ClientEntity client, NetworkObject @object)
-        {
-            Debug.Log($"服务器为客户端 {client.clientId} 生成 {@object}");
-            using NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
-            bool isOwner = @object.connection == client;
-            ArraySegment<byte> segment = SerializeNetworkObject(@object, isOwner, owner, observer);
-            var transform = @object.transform;
-            SpawnEvent message = new SpawnEvent
-            {
-                netId = @object.netId,
-                sceneId = @object.sceneId,
-                assetId = @object.assetId,
-                position = transform.localPosition,
-                rotation = transform.localRotation,
-                localScale = transform.localScale,
-                isOwner = @object.connection == client,
-                segment = segment
-            };
-            client.Send(message);
-        }
-
-        /// <summary>
-        /// 序列化网络对象，并将数据转发给客户端
-        /// </summary>
-        /// <param name="object">网络对象生成</param>
-        /// <param name="isOwner">是否包含权限</param>
-        /// <param name="owner">有权限的</param>
-        /// <param name="observer"></param>
-        /// <returns></returns>
-        private static ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observer)
-        {
-            if (@object.objects.Length == 0) return default;
-            @object.SerializeServer(true, owner, observer);
-            ArraySegment<byte> segment = isOwner ? owner.ToArraySegment() : observer.ToArraySegment();
-            return segment;
-        }
-        
-        /// <summary>
-        /// 服务器给指定客户端移除游戏对象
-        /// </summary>
-        /// <param name="client">传入指定客户端</param>
-        /// <param name="object">传入指定对象</param>
-        private static void SendDespawnEvent(ClientEntity client, NetworkObject @object)
-        {
-            Debug.Log($"服务器为客户端 {client.clientId} 销毁 {@object}");
-            DespawnEvent @event = new DespawnEvent
-            {
-                netId = @object.netId
-            };
-            client.Send(@event);
-        }
-
-        /// <summary>
         /// 生成物体
         /// </summary>
         internal static void SpawnObjects()
@@ -114,7 +57,7 @@ namespace JFramework.Net
                 return;
             }
             
-            @object.m_connection = client;
+            @object.connection = client;
             
             if (NetworkManager.mode == NetworkMode.Host)
             {
@@ -130,19 +73,61 @@ namespace JFramework.Net
                 @object.OnStartServer();
             }
             
-            ReSpawn(@object);
+            SpawnForClient(@object);
         }
 
         /// <summary>
         /// 重新构建对象的观察连接
         /// </summary>
         /// <param name="object">传入对象</param>
-        private static void ReSpawn(NetworkObject @object)
+        private static void SpawnForClient(NetworkObject @object)
         {
             foreach (var client in clients.Values.Where(client => client.isReady))
             {
                 SendSpawnEvent(client, @object);
             }
+        }
+        
+        /// <summary>
+        /// 服务器向指定客户端发送生成对象的消息
+        /// </summary>
+        /// <param name="client">指定的客户端</param>
+        /// <param name="object">生成的游戏对象</param>
+        private static void SendSpawnEvent(ClientEntity client, NetworkObject @object)
+        {
+            Debug.Log($"服务器为客户端 {client.clientId} 生成 {@object}");
+            using NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
+            var isOwner = @object.connection == client;
+            var segment = SerializeNetworkObject(@object, isOwner, owner, observer);
+            var transform = @object.transform;
+            SpawnEvent message = new SpawnEvent
+            {
+                netId = @object.netId,
+                sceneId = @object.sceneId,
+                assetId = @object.assetId,
+                position = transform.localPosition,
+                rotation = transform.localRotation,
+                localScale = transform.localScale,
+                isOwner = @object.connection == client,
+                segment = segment
+            };
+            client.Send(message);
+        }
+
+        /// <summary>
+        /// 序列化网络对象，并将数据转发给客户端
+        /// </summary>
+        /// <param name="object">网络对象生成</param>
+        /// <param name="isOwner">是否包含权限</param>
+        /// <param name="owner">有权限的</param>
+        /// <param name="observer"></param>
+        /// <returns></returns>
+        private static ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observer)
+        {
+            if (@object.objects.Length == 0) return default;
+            @object.SerializeServer(true, owner, observer);
+            ArraySegment<byte> segment = isOwner ? owner.ToArraySegment() : observer.ToArraySegment();
+            return segment;
         }
 
         /// <summary>
@@ -163,15 +148,31 @@ namespace JFramework.Net
 
             @object.OnStopServer();
             @object.Reset();
-            ReDespawn(@object);
+            DespawnForClient(@object);
         }
 
-        private static void ReDespawn(NetworkObject @object)
+        private static void DespawnForClient(NetworkObject @object)
         {
             foreach (var client in clients.Values)
             {
                 SendDespawnEvent(client, @object);
             }
         }
+        
+        /// <summary>
+        /// 服务器给指定客户端移除游戏对象
+        /// </summary>
+        /// <param name="client">传入指定客户端</param>
+        /// <param name="object">传入指定对象</param>
+        private static void SendDespawnEvent(ClientEntity client, NetworkObject @object)
+        {
+            Debug.Log($"服务器为客户端 {client.clientId} 销毁 {@object}");
+            DespawnEvent @event = new DespawnEvent
+            {
+                netId = @object.netId
+            };
+            client.Send(@event);
+        }
+
     }
 }

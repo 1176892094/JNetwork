@@ -36,7 +36,7 @@ namespace JFramework.Net
                 {
                     if (isActive && isAuthority)
                     {
-                        NetworkTime.UpdateClient();
+                        NetworkTime.Update();
                         connection.Update();
                     }
                 }

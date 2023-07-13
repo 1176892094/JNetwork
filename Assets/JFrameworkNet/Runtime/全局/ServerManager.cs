@@ -85,7 +85,7 @@ namespace JFramework.Net
                 clients.Clear();
                 RegisterEvent();
                 RegisterTransport();
-                NetworkTime.RuntimeInitializeOnLoad();
+                NetworkTime.Reset();
             }
 
             SpawnObjects();

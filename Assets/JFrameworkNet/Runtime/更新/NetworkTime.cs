@@ -5,7 +5,15 @@ namespace JFramework.Net
 {
     internal static class NetworkTime
     {
-        private static double lastPingTime;
+        /// <summary>
+        /// 上一次发送Ping的时间
+        /// </summary>
+        private static double lastSendTime;
+
+        /// <summary>
+        /// 客户端回传往返时间
+        /// </summary>
+        private static Smooth smooth = new Smooth(NetworkConst.PingWindow);
 
         /// <summary>
         /// 当前网络时间
@@ -19,45 +27,42 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端发送Ping消息到服务器端
         /// </summary>
-        internal static void UpdateClient()
+        public static void Update()
         {
-            if (localTime - lastPingTime >= NetworkConst.Ping)
+            if (localTime - lastSendTime >= NetworkConst.PingInterval)
             {
-                PingEvent pingEvent = new PingEvent()
-                {
-                    clientTime = localTime,
-                };
-                ClientManager.Send(pingEvent, Channel.Unreliable);
-                lastPingTime = localTime;
+                PingEvent @event = new PingEvent(localTime); // 传入客户端时间到服务器
+                ClientManager.Send(@event, Channel.Unreliable);
+                lastSendTime = localTime;
             }
         }
 
         /// <summary>
         /// 服务器发送Pong消息给指定客户端
         /// </summary>
-        internal static void OnPingEvent(ClientEntity client, PingEvent @event)
+        public static void OnPingEvent(ClientEntity client, PingEvent @event)
         {
-            PongEvent pongEvent = new PongEvent
-            {
-                clientTime = @event.clientTime,
-            };
+            PongEvent pongEvent = new PongEvent(@event.clientTime); //服务器将客户端时间传回到客户端
             client.Send(pongEvent, Channel.Unreliable);
         }
 
         /// <summary>
-        /// 客户端从服务器接收的Pong
+        /// 客户端从服务器接收的回传信息
         /// </summary>
         /// <param name="event"></param>
-        internal static void OnPongEvent(PongEvent @event)
+        public static void OnPongEvent(PongEvent @event)
         {
+            //TODO:进行平滑计算
+            smooth.Calculate( localTime - @event.clientTime);
         }
 
         /// <summary>
-        /// 
+        /// 重置发送时间
         /// </summary>
-        public static void RuntimeInitializeOnLoad()
+        public static void Reset()
         {
-            lastPingTime = 0;
+            lastSendTime = 0;
+            smooth = new Smooth(NetworkConst.PingWindow);
         }
     }
 }
