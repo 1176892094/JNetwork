@@ -16,6 +16,7 @@ namespace JFramework.Net
         [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<uint, NetworkObject> serverSpawns => ServerManager.spawns;
         [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<int, ClientEntity> connections => ServerManager.clients;
         [FoldoutGroup("客户端设置")][ShowInInspector] private ServerEntity clientConnection => ClientManager.connection;
+        [FoldoutGroup("客户端设置")][ShowInInspector] private NetworkReaders readers => ClientManager.readers;
         [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<ushort, EventDelegate> clientEvent => ClientManager.events;
         [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<uint, NetworkObject> clientSpawns => ClientManager.spawns;
         [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<uint, GameObject> assetPrefabs => ClientManager.prefabs;
@@ -24,15 +25,15 @@ namespace JFramework.Net
 #endif
         
         /// <summary>
-        /// 预置体列表
-        /// </summary>
-        internal static readonly List<GameObject> prefabs = new List<GameObject>();
-
-        /// <summary>
         /// 服务器场景
         /// </summary>
         private static string serverScene;
         
+        /// <summary>
+        /// 预置体列表
+        /// </summary>
+        internal static readonly List<GameObject> prefabs = new List<GameObject>();
+
         /// <summary>
         /// 网络传输组件
         /// </summary>
@@ -116,6 +117,7 @@ namespace JFramework.Net
                 return;
             }
             
+            serverScene = "";
             ServerManager.StartServer(isListen);
             OnStartServer?.Invoke();
         }

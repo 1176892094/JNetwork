@@ -36,7 +36,7 @@ namespace JFramework.Net
                 return;
             }
 
-            NetworkTime.Reset();
+            NetworkTime.Resets();
             state = ConnectState.Connected;
             NetworkTime.Update();
             NetworkManager.Instance.OnClientConnectEvent();

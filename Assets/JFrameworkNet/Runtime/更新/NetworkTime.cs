@@ -53,13 +53,13 @@ namespace JFramework.Net
         public static void OnPongEvent(PongEvent @event)
         {
             //TODO:进行平滑计算
-            smooth.Calculate( localTime - @event.clientTime);
+            //smooth.Calculate( localTime - @event.clientTime);
         }
 
         /// <summary>
         /// 重置发送时间
         /// </summary>
-        public static void Reset()
+        public static void Resets()
         {
             lastSendTime = 0;
             smooth = new Smooth(NetworkConst.PingWindow);

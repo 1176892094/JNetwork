@@ -28,8 +28,8 @@ namespace JFramework.Net
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
-            Transport.RuntimeInitializeOnLoad();
-            NetworkTime.Reset();
+            Transport.Resets();
+            NetworkTime.Resets();
             OnStartHost = null;
             OnStopHost = null;
             OnStartClient = null;

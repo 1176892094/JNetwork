@@ -4,17 +4,17 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    internal struct SceneEvent : IEvent
-    {
-        public string sceneName;
-    }
-
     internal struct ReadyEvent : IEvent
     {
     }
 
     internal struct NotReadyEvent : IEvent
     {
+    }
+    
+    internal struct SceneEvent : IEvent
+    {
+        public string sceneName;
     }
 
     internal struct ChangeOwnerEvent : IEvent

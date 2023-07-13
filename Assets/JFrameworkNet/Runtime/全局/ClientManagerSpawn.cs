@@ -51,7 +51,7 @@ namespace JFramework.Net
             NetworkObject[] identities = @object.GetComponentsInChildren<NetworkObject>();
             if (identities.Length > 1)
             {
-                Debug.LogError($"不能注册预置体 {@object.name} 因为它挂在了多个 NetworkObject 组件");
+                Debug.LogError($"不能注册预置体 {@object.name} 因为它拥有多个 NetworkObject 组件");
             }
 
             if (prefabs.TryGetValue(@object.assetId, out var gameObject))

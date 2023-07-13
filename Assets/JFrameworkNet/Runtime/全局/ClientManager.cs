@@ -60,7 +60,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息读取并分包
         /// </summary>
-        private static NetworkReaders readers = new NetworkReaders();
+        internal static NetworkReaders readers = new NetworkReaders();
 
         /// <summary>
         /// 是否活跃
@@ -89,6 +89,7 @@ namespace JFramework.Net
         /// <param name="port">传入连接端口</param>
         internal static void StartClient(string address, ushort port)
         {
+            Debug.Log("开启客户端。");
             RegisterTransport();
             RegisterEvent(false);
             readers = new NetworkReaders();
@@ -104,6 +105,7 @@ namespace JFramework.Net
         /// <param name="uri">传入Uri</param>
         internal static void StartClient(Uri uri)
         {
+            Debug.Log("开启客户端。");
             RegisterTransport();
             RegisterEvent(false);
             readers = new NetworkReaders();
@@ -189,6 +191,7 @@ namespace JFramework.Net
             }
 
             state = ConnectState.Disconnected;
+            readers = new NetworkReaders();
             spawns.Clear();
             scenes.Clear();
             events.Clear();

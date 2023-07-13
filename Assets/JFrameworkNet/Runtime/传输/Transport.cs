@@ -139,7 +139,7 @@ namespace JFramework.Net
         /// <summary>
         /// 运行初始化
         /// </summary>
-        public static void RuntimeInitializeOnLoad()
+        public static void Resets()
         {
             OnClientConnected = null;
             OnClientDisconnected = null;
