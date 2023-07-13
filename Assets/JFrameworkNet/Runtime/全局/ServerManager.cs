@@ -16,7 +16,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器生成的游戏对象字典
         /// </summary>
-        internal static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
+        internal static Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
         
         /// <summary>
         /// 连接的的客户端字典
@@ -114,7 +114,6 @@ namespace JFramework.Net
         internal static void OnClientConnect(ClientEntity client)
         {
             clients.TryAdd(client.clientId, client);
-            Debug.Log($"客户端 {client.clientId} 连接到服务器。");
             client.isAuthority = true;
             if (!string.IsNullOrEmpty(NetworkManager.serverScene))
             {
@@ -136,6 +135,7 @@ namespace JFramework.Net
         {
             Debug.Log($"设置客户端 {client.clientId} 准备就绪。");
             client.isReady = true;
+            spawns = spawns.Where(pair => pair.Value != null).ToDictionary(pair => pair.Key, pair => pair.Value);
             foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
             {
                 SendSpawnEvent(client, @object);
@@ -210,6 +210,7 @@ namespace JFramework.Net
                 }
             }
             UnRegisterTransport();
+            lastSendTime = 0;
             netId = 0;
             spawns.Clear();
             events.Clear();

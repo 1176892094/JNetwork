@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using JFramework.Interface;
 using UnityEngine;
 
@@ -25,7 +26,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端生成的物体数量
         /// </summary>
-        internal static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
+        internal static Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
 
         /// <summary>
         /// 连接到的服务器
@@ -167,6 +168,7 @@ namespace JFramework.Net
                 isReady = true;
                 connection.isReady = true;
                 connection.Send(new ReadyEvent());
+                spawns = spawns.Where(pair => pair.Value != null).ToDictionary(pair => pair.Key, pair => pair.Value);
             }
         }
 
@@ -207,9 +209,10 @@ namespace JFramework.Net
                 Transport.current.ClientDisconnect();
             }
 
+            DestroyForClient();
             state = ConnectState.Disconnected;
             readers = new NetworkReaders();
-            spawns.Clear();
+            lastSendTime = 0;
             scenes.Clear();
             events.Clear();
             prefabs.Clear();

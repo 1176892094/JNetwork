@@ -101,7 +101,7 @@ namespace JFramework.Net
             {
                 ClientManager.Ready();
             }
-
+            
             OnClientSceneChanged?.Invoke(SceneManager.scene);
         }
     }

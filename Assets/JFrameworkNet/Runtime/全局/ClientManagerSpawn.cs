@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace JFramework.Net
 {
@@ -61,7 +63,7 @@ namespace JFramework.Net
 
             prefabs[@object.assetId] = @object.gameObject;
         }
-        
+
         /// <summary>
         /// 获取网络对象
         /// </summary>
@@ -91,7 +93,7 @@ namespace JFramework.Net
 
             return true;
         }
-        
+
         /// <summary>
         /// 生成资源预置体
         /// </summary>
@@ -104,7 +106,7 @@ namespace JFramework.Net
                 var gameObject = Object.Instantiate(prefab, @event.position, @event.rotation);
                 return gameObject.GetComponent<NetworkObject>();
             }
-            
+
             Debug.LogError($"无法生成有效预置体。 assetId：{@event.assetId}  sceneId：{@event.sceneId}");
             return null;
         }
@@ -125,7 +127,7 @@ namespace JFramework.Net
             Debug.LogError($"无法生成有效场景对象。 sceneId：{sceneId}");
             return null;
         }
-        
+
         /// <summary>
         /// 网络对象生成开始
         /// </summary>
@@ -150,7 +152,7 @@ namespace JFramework.Net
                 }
             }
         }
-        
+
         /// <summary>
         /// 生成网络对象
         /// </summary>
@@ -171,12 +173,12 @@ namespace JFramework.Net
             @object.netId = @event.netId;
             @object.isOwner = @event.isOwner;
             @object.isClient = true;
-            
+
             var transform = @object.transform;
             transform.localPosition = @event.position;
             transform.localRotation = @event.rotation;
             transform.localScale = @event.localScale;
-            
+
             if (@event.segment.Count > 0)
             {
                 using var reader = NetworkReader.Pop(@event.segment);
@@ -209,6 +211,37 @@ namespace JFramework.Net
                 {
                     Debug.LogWarning($"网络对象 {@object} 没有被正确销毁。");
                 }
+            }
+        }
+
+        private static void DestroyForClient()
+        {
+            try
+            {
+                foreach (var @object in spawns.Values.Where(@object => @object != null && @object.gameObject != null))
+                {
+                    @object.OnStopClient();
+                    if (NetworkManager.mode is NetworkMode.Host or NetworkMode.Client)
+                    {
+                        if (@object.sceneId != 0)
+                        {
+                            @object.Reset();
+                            @object.gameObject.SetActive(false);
+                        }
+                        else
+                        {
+                            Object.Destroy(@object.gameObject);
+                        }
+                    }
+                }
+            }
+            catch (InvalidOperationException e)
+            {
+                Debug.LogException(e);
+            }
+            finally
+            {
+                spawns.Clear();
             }
         }
     }
