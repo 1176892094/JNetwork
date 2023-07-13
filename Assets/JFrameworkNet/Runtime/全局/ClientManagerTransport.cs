@@ -40,7 +40,6 @@ namespace JFramework.Net
             state = ConnectState.Connected;
             NetworkTime.Update();
             OnClientConnect?.Invoke();
-            connection.isAuthority = true;
             Ready();
         }
 

@@ -22,11 +22,6 @@ namespace JFramework.Net
         public bool isReady;
 
         /// <summary>
-        /// 是否已经验证权限
-        /// </summary>
-        public bool isAuthority;
-        
-        /// <summary>
         /// 远端时间戳
         /// </summary>
         public double timestamp;

@@ -12,21 +12,21 @@ namespace JFramework.Net
         /// 网络消息委托字典
         /// </summary>
         internal static readonly Dictionary<ushort, EventDelegate> events = new Dictionary<ushort, EventDelegate>();
+
+        /// <summary>
+        /// 连接的的客户端字典
+        /// </summary>
+        internal static readonly Dictionary<int, ClientEntity> clients = new Dictionary<int, ClientEntity>();
+
+        /// <summary>
+        /// 用来拷贝当前连接的所有客户端
+        /// </summary>
+        private static readonly List<ClientEntity> copies = new List<ClientEntity>();
         
         /// <summary>
         /// 服务器生成的游戏对象字典
         /// </summary>
         internal static Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
-        
-        /// <summary>
-        /// 连接的的客户端字典
-        /// </summary>
-        internal static readonly Dictionary<int, ClientEntity> clients = new Dictionary<int, ClientEntity>();
-        
-        /// <summary>
-        /// 用来拷贝当前连接的所有客户端
-        /// </summary>
-        private static readonly List<ClientEntity> copies = new List<ClientEntity>();
 
         /// <summary>
         /// 上一次发送消息的时间
@@ -47,22 +47,22 @@ namespace JFramework.Net
         /// 是否在加载场景
         /// </summary>
         public static bool isLoadScene;
-        
+
         /// <summary>
         /// 连接到的主机客户端
         /// </summary>
         public static ClientEntity connection;
-        
+
         /// <summary>
         /// 有客户端连接到服务器的事件
         /// </summary>
         public static event Action<ClientEntity> OnServerConnect;
-        
+
         /// <summary>
         /// 有客户端从服务器断开的事件
         /// </summary>
         public static event Action<ClientEntity> OnServerDisconnect;
-        
+
         /// <summary>
         /// 客户端在服务器准备就绪的事件
         /// </summary>
@@ -72,12 +72,12 @@ namespace JFramework.Net
         /// 心跳包
         /// </summary>
         private static int tickRate => NetworkManager.Instance.tickRate;
-        
+
         /// <summary>
         /// 最大连接数量
         /// </summary>
         private static uint maxConnection => NetworkManager.Instance.maxConnection;
-        
+
         /// <summary>
         /// 信息传送率
         /// </summary>
@@ -114,7 +114,6 @@ namespace JFramework.Net
         internal static void OnClientConnect(ClientEntity client)
         {
             clients.TryAdd(client.clientId, client);
-            client.isAuthority = true;
             if (!string.IsNullOrEmpty(NetworkManager.serverScene))
             {
                 var message = new SceneEvent()
@@ -163,7 +162,7 @@ namespace JFramework.Net
                 SetClientNotReady(client);
             }
         }
-        
+
         /// <summary>
         /// 向所有客户端发送消息
         /// </summary>
@@ -186,8 +185,8 @@ namespace JFramework.Net
                 client.Send(segment, channel);
             }
         }
-        
-        
+
+
         /// <summary>
         /// 停止服务器
         /// </summary>
@@ -200,7 +199,7 @@ namespace JFramework.Net
             {
                 Transport.current.StopServer();
             }
-            
+
             foreach (var client in clients.Values.ToList())
             {
                 client.Disconnect();
@@ -209,6 +208,7 @@ namespace JFramework.Net
                     OnServerDisconnected(client.clientId);
                 }
             }
+
             UnRegisterTransport();
             lastSendTime = 0;
             netId = 0;

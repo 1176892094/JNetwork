@@ -38,7 +38,7 @@ namespace JFramework.Net
 
             await LoadSceneAsync(newSceneName);
         }
-        
+
         /// <summary>
         /// 客户端加载场景
         /// </summary>
@@ -49,6 +49,7 @@ namespace JFramework.Net
                 Debug.LogError("客户端不能加载空场景！");
                 return;
             }
+
             Debug.Log("客户端器开始加载场景");
             OnClientLoadScene?.Invoke(newSceneName);
             if (ServerManager.isActive) return; //Host不做处理
@@ -56,7 +57,7 @@ namespace JFramework.Net
             ClientManager.isLoadScene = true;
             await LoadSceneAsync(newSceneName);
         }
-        
+
         /// <summary>
         /// 异步加载场景
         /// </summary>
@@ -79,7 +80,7 @@ namespace JFramework.Net
                     break;
             }
         }
-        
+
         /// <summary>
         /// 服务器端场景加载完成
         /// </summary>
@@ -97,11 +98,11 @@ namespace JFramework.Net
         {
             if (!ClientManager.isAuthority) return;
             Debug.Log("客户端加载场景完成");
-            if (ClientManager.connection.isAuthority && !ClientManager.isReady)
+            if (!ClientManager.isReady)
             {
                 ClientManager.Ready();
             }
-            
+
             OnClientSceneChanged?.Invoke(SceneManager.scene);
         }
     }

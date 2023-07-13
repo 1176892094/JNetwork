@@ -10,41 +10,6 @@ namespace JFramework.Net
 {
     public sealed partial class NetworkManager : GlobalSingleton<NetworkManager>
     {
-#if UNITY_EDITOR
-        [FoldoutGroup("服务器设置"), ShowInInspector]
-        private ClientEntity serverConnection => ServerManager.connection;
-
-        [FoldoutGroup("服务器设置"), ShowInInspector]
-        private Dictionary<ushort, EventDelegate> serverEvent => ServerManager.events;
-
-        [FoldoutGroup("服务器设置"), ShowInInspector]
-        private Dictionary<uint, NetworkObject> serverSpawns => ServerManager.spawns;
-
-        [FoldoutGroup("服务器设置"), ShowInInspector]
-        private Dictionary<int, ClientEntity> connections => ServerManager.clients;
-
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private ServerEntity clientConnection => ClientManager.connection;
-
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private NetworkReaders readers => ClientManager.readers;
-
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private Dictionary<ushort, EventDelegate> clientEvent => ClientManager.events;
-
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private Dictionary<uint, NetworkObject> clientSpawns => ClientManager.spawns;
-
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private Dictionary<uint, GameObject> assetPrefabs => ClientManager.prefabs;
-
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private Dictionary<ulong, NetworkObject> scenePrefabs => ClientManager.scenes;
-
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private bool isAuthority => ClientManager.isAuthority;
-#endif
-
         /// <summary>
         /// 服务器场景
         /// </summary>

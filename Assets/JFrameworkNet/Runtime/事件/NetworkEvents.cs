@@ -72,23 +72,15 @@ namespace JFramework.Net
         /// 注册网络消息委托
         /// </summary>
         /// <param name="handle">传入网络连接，网络消息，传输通道</param>
-        /// <param name="authority">是否需要认证权限</param>
         /// <typeparam name="T1">网络连接(Server or Client)</typeparam>
         /// <typeparam name="T2">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static EventDelegate Register<T1, T2>(Action<T1, T2, Channel> handle, bool authority) where T1 : Connection where T2 : struct, IEvent
+        internal static EventDelegate Register<T1, T2>(Action<T1, T2, Channel> handle) where T1 : Connection where T2 : struct, IEvent
         {
             return (connection, reader, channel) =>
             {
                 try
                 {
-                    if (authority && !connection.isAuthority)
-                    {
-                        Debug.LogWarning($"发送消息没有权限。客户端：{((ClientEntity)connection).clientId}");
-                        connection.Disconnect();
-                        return;
-                    }
-
                     var message = reader.Read<T2>();
                     handle?.Invoke((T1)connection, message, channel);
                 }
@@ -104,13 +96,12 @@ namespace JFramework.Net
         /// 注册网络消息委托
         /// </summary>
         /// <param name="handle">传入网络连接，网络消息</param>
-        /// <param name="authority">是否需要认证权限</param>
         /// <typeparam name="T1">网络连接(Server or Client)</typeparam>
         /// <typeparam name="T2">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static EventDelegate Register<T1, T2>(Action<T1, T2> handle, bool authority) where T1 : Connection where T2 : struct, IEvent
+        internal static EventDelegate Register<T1, T2>(Action<T1, T2> handle) where T1 : Connection where T2 : struct, IEvent
         {
-            return Register((Action<T1, T2, Channel>)Wrapped, authority);
+            return Register((Action<T1, T2, Channel>)Wrapped);
 
             void Wrapped(T1 connection, T2 reader, Channel channel)
             {
@@ -122,12 +113,11 @@ namespace JFramework.Net
         /// 注册网络消息委托
         /// </summary>
         /// <param name="handle">传入网络消息</param>
-        /// <param name="authority">是否需要认证权限</param>
         /// <typeparam name="T1">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static EventDelegate Register<T1>(Action<T1> handle, bool authority) where T1 : struct, IEvent
+        internal static EventDelegate Register<T1>(Action<T1> handle) where T1 : struct, IEvent
         {
-            return Register((Action<Connection, T1>)Wrapped, authority);
+            return Register((Action<Connection, T1>)Wrapped);
 
             void Wrapped(Connection connection, T1 reader)
             {

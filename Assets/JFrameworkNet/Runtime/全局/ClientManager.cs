@@ -145,7 +145,6 @@ namespace JFramework.Net
             var client = new ClientEntity(NetworkConst.HostId);
             ServerManager.connection = client;
             ServerManager.OnClientConnect(client);
-            connection.isAuthority = true;
             Ready();
         }
 

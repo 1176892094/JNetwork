@@ -14,23 +14,23 @@ namespace JFramework.Net
             Debug.Log("注册服务器事件");
             RegisterEvent<ReadyEvent>(OnServerReadyEvent);
             RegisterEvent<ServerRpcEvent>(OnServerRpcEvent);
-            RegisterEvent<PingEvent>(NetworkTime.OnPingEvent, false);
-        }
-        
-        /// <summary>
-        /// 注册网络消息
-        /// </summary>
-        private static void RegisterEvent<T>(Action<ClientEntity, T> handle, bool authority = true) where T : struct, IEvent
-        {
-            events[NetworkEvent<T>.Id] = NetworkEvent.Register(handle, authority);
+            RegisterEvent<PingEvent>(NetworkTime.OnPingEvent);
         }
 
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        private static void RegisterEvent<T>(Action<ClientEntity, T, Channel> handle, bool authority = true) where T : struct, IEvent
+        private static void RegisterEvent<T>(Action<ClientEntity, T> handle) where T : struct, IEvent
         {
-            events[NetworkEvent<T>.Id] = NetworkEvent.Register(handle, authority);
+            events[NetworkEvent<T>.Id] = NetworkEvent.Register(handle);
+        }
+
+        /// <summary>
+        /// 注册网络消息
+        /// </summary>
+        private static void RegisterEvent<T>(Action<ClientEntity, T, Channel> handle) where T : struct, IEvent
+        {
+            events[NetworkEvent<T>.Id] = NetworkEvent.Register(handle);
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace JFramework.Net
                 @object.InvokeRpcEvent(@event.component, @event.funcHash, RpcType.ServerRpc, reader, client);
             }
         }
-        
+
         /// <summary>
         /// 当客户端在服务器准备就绪，向客户端发送生成物体的消息
         /// </summary>

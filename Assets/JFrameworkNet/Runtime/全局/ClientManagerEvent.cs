@@ -31,7 +31,7 @@ namespace JFramework.Net
             }
 
             RegisterEvent<NotReadyEvent>(OnNotReadyEvent);
-            RegisterEvent<SceneEvent>(OnSceneEvent, false);
+            RegisterEvent<SceneEvent>(OnSceneEvent);
             RegisterEvent<SnapshotEvent>(OnSnapshotEvent);
             RegisterEvent<ChangeOwnerEvent>(OnChangeOwnerEvent);
             RegisterEvent<RpcBufferEvent>(OnRpcBufferEvent);
@@ -40,9 +40,9 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络事件
         /// </summary>
-        private static void RegisterEvent<T>(Action<T> handle, bool authority = true) where T : struct, IEvent
+        private static void RegisterEvent<T>(Action<T> handle) where T : struct, IEvent
         {
-            events[NetworkEvent<T>.Id] = NetworkEvent.Register(handle, authority);
+            events[NetworkEvent<T>.Id] = NetworkEvent.Register(handle);
         }
 
         /// <summary>
