@@ -124,7 +124,9 @@ namespace JFramework.Net
             state = ConnectState.Connected;
             RegisterPrefab(NetworkManager.prefabs);
             connection = new ServerEntity();
-            ServerManager.connection = new ClientEntity(NetworkConst.HostId);
+            var client = new ClientEntity(NetworkConst.HostId);
+            ServerManager.connection = client;
+            ServerManager.OnClientConnect(client);
         }
 
         /// <summary>
@@ -147,20 +149,6 @@ namespace JFramework.Net
                 connection.isReady = true;
                 connection.Send(new ReadyEvent());
             }
-        }
-
-        /// <summary>
-        /// 客户端断开连接
-        /// </summary>
-        public static void Disconnect()
-        {
-            if (state is ConnectState.Disconnecting or ConnectState.Disconnected)
-            {
-                return;
-            }
-            
-            state = ConnectState.Disconnecting;
-            connection?.Disconnect();
         }
 
         /// <summary>
@@ -193,18 +181,20 @@ namespace JFramework.Net
         /// </summary>
         public static void StopClient()
         {
+            if (!isActive) return;
             Debug.Log("停止客户端。");
-            state = ConnectState.Disconnected;
             if (Transport.current != null)
             {
                 Transport.current.ClientDisconnect();
             }
 
+            state = ConnectState.Disconnected;
             spawns.Clear();
+            scenes.Clear();
             events.Clear();
             prefabs.Clear();
-            connection = null;
             isReady = false;
+            connection = null;
             isLoadScene = false;
         }
     }

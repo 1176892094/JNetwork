@@ -10,7 +10,6 @@ namespace JFramework.Net
         /// </summary>
         private static void RegisterTransport()
         {
-            UnRegisterTransport();
             Transport.OnClientConnected += OnClientConnected;
             Transport.OnClientDisconnected += OnClientDisconnected;
             Transport.OnClientReceive += OnClientReceive;
@@ -48,12 +47,13 @@ namespace JFramework.Net
         /// </summary>
         private static void OnClientDisconnected()
         {
-            Debug.Log("客户端传输断开。");
-            isReady = false;
-            connection = null;
+            if (!isActive) return;
+            Debug.Log("客户端断开传输。");
             UnRegisterTransport();
-            state = ConnectState.Disconnected;
             NetworkManager.Instance.OnClientDisconnectEvent();
+            StopClient();
+            state = ConnectState.Disconnected;
+          
         }
 
         /// <summary>

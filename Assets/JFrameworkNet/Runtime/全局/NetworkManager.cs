@@ -10,6 +10,18 @@ namespace JFramework.Net
 {
     public sealed partial class NetworkManager : GlobalSingleton<NetworkManager>
     {
+#if UNITY_EDITOR
+        [FoldoutGroup("服务器设置")][ShowInInspector] private ClientEntity serverConnection => ServerManager.connection;
+        [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<ushort, EventDelegate> serverEvent => ServerManager.events;
+        [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<uint, NetworkObject> serverSpawns => ServerManager.spawns;
+        [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<int, ClientEntity> connections => ServerManager.clients;
+        [FoldoutGroup("客户端设置")][ShowInInspector] private ServerEntity clientConnection => ClientManager.connection;
+        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<ushort, EventDelegate> clientEvent => ClientManager.events;
+        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<uint, NetworkObject> clientSpawns => ClientManager.spawns;
+        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<uint, GameObject> assetPrefabs => ClientManager.prefabs;
+        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<ulong, NetworkObject> scenePrefabs => ClientManager.scenes;
+#endif
+        
         /// <summary>
         /// 预置体列表
         /// </summary>
@@ -71,18 +83,6 @@ namespace JFramework.Net
                 return ClientManager.isActive ? NetworkMode.Client : NetworkMode.None;
             }
         }
-        
-#if UNITY_EDITOR
-        [FoldoutGroup("服务器设置")][ShowInInspector] private ClientEntity serverConnection => ServerManager.connection;
-        [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<ushort, EventDelegate> serverEvent => ServerManager.events;
-        [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<uint, NetworkObject> serverSpawns => ServerManager.spawns;
-        [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<int, ClientEntity> connections => ServerManager.clients;
-        [FoldoutGroup("客户端设置")] [ShowInInspector] private ServerEntity clientConnection => ClientManager.connection;
-        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<ushort, EventDelegate> clientEvent => ClientManager.events;
-        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<uint, NetworkObject> clientSpawns => ClientManager.spawns;
-        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<uint, GameObject> assetPrefabs => ClientManager.prefabs;
-        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<ulong, NetworkObject> scenePrefabs => ClientManager.scenes;
-#endif
 
         /// <summary>
         /// 初始化配置传输
@@ -130,9 +130,9 @@ namespace JFramework.Net
                 return;
             }
             
+            serverScene = "";
             OnStopServer?.Invoke();
             ServerManager.StopServer();
-            serverScene = "";
         }
 
         /// <summary>
@@ -180,10 +180,12 @@ namespace JFramework.Net
             if (mode == NetworkMode.Host)
             {
                 OnServerDisconnectEvent(ServerManager.connection);
+                ServerManager.clients.Remove(ServerManager.connection.clientId);
+                ServerManager.connection = null;
             }
 
-            OnClientDisconnectEvent();
-            ClientManager.Disconnect();
+            OnStopClient?.Invoke();
+            ClientManager.StopClient();
         }
 
         /// <summary>
@@ -201,7 +203,6 @@ namespace JFramework.Net
             Debug.Log("开启主机。");
             ServerManager.StartServer(isListen);
             ClientManager.StartClient();
-            ServerManager.OnClientConnect(ServerManager.connection);
             OnClientConnectEvent();
             OnStartHost?.Invoke();
         }

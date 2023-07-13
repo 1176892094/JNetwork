@@ -39,12 +39,12 @@ namespace JFramework.Net
         public double clientTime;
     }
 
-    internal struct CommandEvent : IEvent
+    internal struct ServerRpcEvent : IEvent
     {
         public uint netId;
         public byte componentIndex;
         public ushort functionHash;
-        public ArraySegment<byte> payload;
+        public ArraySegment<byte> segment;
     }
 
     internal struct SpawnEvent : IEvent

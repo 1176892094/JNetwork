@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using JFramework.Interface;
@@ -81,12 +80,12 @@ namespace JFramework.Net
 
             if (!isActive)
             {
+                Debug.Log("开启服务器。");
                 isActive = true;
                 clients.Clear();
                 RegisterEvent();
                 RegisterTransport();
                 NetworkTime.RuntimeInitializeOnLoad();
-                Debug.Log("开启服务器。");
             }
 
             SpawnObjects();
@@ -160,12 +159,21 @@ namespace JFramework.Net
                 client.Send(segment, channel);
             }
         }
-
+        
+        
         /// <summary>
-        /// 断开所有客户端连接
+        /// 停止服务器
         /// </summary>
-        private static void DisconnectToAll()
+        public static void StopServer()
         {
+            if (!isActive) return;
+            isActive = false;
+            Debug.Log("停止服务器。");
+            if (Transport.current != null)
+            {
+                Transport.current.StopServer();
+            }
+            
             foreach (var client in clients.Values.ToList())
             {
                 client.Disconnect();
@@ -174,27 +182,12 @@ namespace JFramework.Net
                     OnServerDisconnected(client.clientId);
                 }
             }
-        }
-        
-        /// <summary>
-        /// 停止服务器
-        /// </summary>
-        public static void StopServer()
-        {
-            Debug.Log("停止服务器。");
-            if (isActive)
-            {
-                isActive = false;
-                DisconnectToAll();
-                Transport.current.StopServer();
-                UnRegisterTransport();
-            }
-
+            UnRegisterTransport();
             netId = 0;
-            connection = null;
             spawns.Clear();
-            clients.Clear();
             events.Clear();
+            clients.Clear();
+            connection = null;
             isLoadScene = false;
         }
     }

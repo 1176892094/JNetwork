@@ -10,7 +10,7 @@ namespace JFramework.Net
         /// 注册预置体
         /// </summary>
         /// <param name="objects">传入预置体</param>
-        internal static void RegisterPrefab(List<GameObject> objects)
+        private static void RegisterPrefab(List<GameObject> objects)
         {
             foreach (var gameObject in objects.Where(@object => @object != null))
             {

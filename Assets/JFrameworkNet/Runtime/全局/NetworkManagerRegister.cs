@@ -63,11 +63,7 @@ namespace JFramework.Net
         /// </summary>
         internal void OnClientDisconnectEvent()
         {
-            OnStopClient?.Invoke();
-            ClientManager.StopClient();
             OnClientDisconnect?.Invoke();
-            if (mode == NetworkMode.Server) return;
-            serverScene = "";
         }
 
         /// <summary>

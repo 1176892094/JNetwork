@@ -12,7 +12,7 @@ namespace JFramework.Net
         private static void RegisterEvent()
         {
             Debug.Log("注册服务器事件");
-            RegisterEvent<CommandEvent>(OnCommandEvent);
+            RegisterEvent<ServerRpcEvent>(OnServerRpcEvent);
             RegisterEvent<ReadyEvent>(NetworkManager.OnServerReadyEvent);
             RegisterEvent<PingEvent>(OnPingEvent, false);
         }
@@ -36,7 +36,7 @@ namespace JFramework.Net
         /// <summary>
         /// 当发送一条命令到Transport
         /// </summary>
-        private static void OnCommandEvent(ClientEntity client, CommandEvent @event, Channel channel)
+        private static void OnServerRpcEvent(ClientEntity client, ServerRpcEvent @event, Channel channel)
         {
             if (!client.isReady)
             {
@@ -52,7 +52,7 @@ namespace JFramework.Net
             }
             else
             {
-                using var reader = NetworkReader.Pop(@event.payload);
+                using var reader = NetworkReader.Pop(@event.segment);
                 @object.InvokeRpcEvent(@event.componentIndex, @event.functionHash, RpcType.ServerRpc, reader, client);
             }
         }
