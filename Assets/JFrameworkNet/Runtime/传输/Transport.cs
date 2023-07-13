@@ -5,6 +5,9 @@ namespace JFramework.Net
 {
     public abstract class Transport : MonoBehaviour
     {
+        /// <summary>
+        /// 当前传输协议
+        /// </summary>
         public static Transport current;
 
         /// <summary>
@@ -139,7 +142,7 @@ namespace JFramework.Net
         /// <summary>
         /// 运行初始化
         /// </summary>
-        public static void Resets()
+        public static void RestStatic()
         {
             OnClientConnected = null;
             OnClientDisconnected = null;

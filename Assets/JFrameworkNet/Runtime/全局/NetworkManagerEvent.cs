@@ -34,37 +34,7 @@ namespace JFramework.Net
         /// 停止服务器的事件(包含主机)
         /// </summary>
         public static event Action OnStopServer;
-        
-        /// <summary>
-        /// 客户端连接的事件(包含主机)
-        /// </summary>
-        public static event Action OnClientConnect;
-        
-        /// <summary>
-        /// 客户端断开的事件
-        /// </summary>
-        public static event Action OnClientDisconnect;
-        
-        /// <summary>
-        /// 客户端取消准备的事件
-        /// </summary>
-        public static event Action OnClientNotReady;
-        
-        /// <summary>
-        /// 有客户端连接到服务器的事件
-        /// </summary>
-        public static event Action<ClientEntity> OnServerConnect;
-        
-        /// <summary>
-        /// 有客户端从服务器断开的事件
-        /// </summary>
-        public static event Action<ClientEntity> OnServerDisconnect;
-        
-        /// <summary>
-        /// 客户端在服务器准备就绪的事件
-        /// </summary>
-        public static event Action<ClientEntity> OnServerReady;
-        
+
         /// <summary>
         /// 客户端加载场景的事件
         /// </summary>
@@ -91,20 +61,14 @@ namespace JFramework.Net
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
-            Transport.Resets();
-            NetworkTime.Resets();
+            Transport.RestStatic();
+            NetworkTime.ResetStatic();
             OnStartHost = null;
             OnStopHost = null;
             OnStartClient = null;
             OnStopClient = null;
             OnStartServer = null;
             OnStopServer = null;
-            OnClientConnect = null;
-            OnClientDisconnect = null;
-            OnClientNotReady = null;
-            OnServerConnect = null;
-            OnServerDisconnect = null;
-            OnServerReady = null;
             OnClientLoadScene = null;
             OnServerLoadScene = null;
             OnClientSceneChanged = null;

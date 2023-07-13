@@ -29,8 +29,8 @@ namespace JFramework.Net
                 RegisterEvent<PongEvent>(NetworkTime.OnPongEvent);
             }
 
-            RegisterEvent<NotReadyEvent>(NetworkManager.OnClientNotReadyEvent);
-            RegisterEvent<SceneEvent>(NetworkManager.OnClientLoadSceneEvent, false);
+            RegisterEvent<NotReadyEvent>(OnNotReadyEvent);
+            RegisterEvent<SceneEvent>(OnSceneEvent, false);
             RegisterEvent<SnapshotEvent>(OnSnapshotEvent);
             RegisterEvent<ChangeOwnerEvent>(OnChangeOwnerEvent);
             RegisterEvent<RpcBufferEvent>(OnRpcBufferEvent);
@@ -147,6 +147,28 @@ namespace JFramework.Net
         private static void OnSnapshotEvent(SnapshotEvent @event)
         {
             NetworkSnapshot.OnTimeSnapshot(new TimeSnapshot(connection.timestamp, NetworkTime.localTime));
+        }
+
+        /// <summary>
+        /// 客户端场景改变
+        /// </summary>
+        /// <param name="event"></param>
+        private static void OnSceneEvent(SceneEvent @event)
+        {
+            if (isAuthority)
+            {
+                NetworkManager.ClientLoadScene(@event.sceneName);
+            }
+        }
+        
+        /// <summary>
+        /// 客户端未准备就绪的事件 (不能接收和发送消息)
+        /// </summary>
+        /// <param name="event"></param>
+        private static void OnNotReadyEvent(NotReadyEvent @event)
+        {
+            isReady = false;
+            OnClientNotReady?.Invoke();
         }
     }
 }

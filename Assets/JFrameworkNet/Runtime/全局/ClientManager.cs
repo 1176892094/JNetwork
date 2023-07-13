@@ -31,6 +31,21 @@ namespace JFramework.Net
         /// 连接到的服务器
         /// </summary>
         public static ServerEntity connection;
+        
+        /// <summary>
+        /// 客户端连接的事件(包含主机)
+        /// </summary>
+        public static event Action OnClientConnect;
+        
+        /// <summary>
+        /// 客户端断开的事件
+        /// </summary>
+        public static event Action OnClientDisconnect;
+        
+        /// <summary>
+        /// 客户端取消准备的事件
+        /// </summary>
+        public static event Action OnClientNotReady;
 
         /// <summary>
         /// 是否已经准备完成(能进行和Server的信息传输)
@@ -129,6 +144,8 @@ namespace JFramework.Net
             var client = new ClientEntity(NetworkConst.HostId);
             ServerManager.connection = client;
             ServerManager.OnClientConnect(client);
+            connection.isAuthority = true;
+            Ready();
         }
 
         /// <summary>
@@ -159,7 +176,7 @@ namespace JFramework.Net
         /// <param name="event">网络事件</param>
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T"></typeparam>
-        public static void Send<T>(T @event, Channel channel = Channel.Reliable) where T : struct, IEvent
+        internal static void Send<T>(T @event, Channel channel = Channel.Reliable) where T : struct, IEvent
         {
             if (connection != null)
             {
@@ -181,7 +198,7 @@ namespace JFramework.Net
         /// <summary>
         /// 停止客户端
         /// </summary>
-        public static void StopClient()
+        internal static void StopClient()
         {
             if (!isActive) return;
             Debug.Log("停止客户端。");
@@ -199,6 +216,9 @@ namespace JFramework.Net
             isReady = false;
             connection = null;
             isLoadScene = false;
+            OnClientConnect = null;
+            OnClientDisconnect = null;
+            OnClientNotReady = null;
         }
     }
 }

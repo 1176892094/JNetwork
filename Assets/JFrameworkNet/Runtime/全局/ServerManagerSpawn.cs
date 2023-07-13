@@ -166,7 +166,7 @@ namespace JFramework.Net
         /// <param name="object">传入指定对象</param>
         private static void SendDespawnEvent(ClientEntity client, NetworkObject @object)
         {
-            Debug.Log($"服务器为客户端 {client.clientId} 销毁 {@object}");
+            Debug.Log($"服务器为客户端 {client.clientId} 重置 {@object}");
             DespawnEvent @event = new DespawnEvent
             {
                 netId = @object.netId

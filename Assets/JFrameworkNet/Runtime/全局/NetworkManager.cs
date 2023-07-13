@@ -11,24 +11,45 @@ namespace JFramework.Net
     public sealed partial class NetworkManager : GlobalSingleton<NetworkManager>
     {
 #if UNITY_EDITOR
-        [FoldoutGroup("服务器设置")][ShowInInspector] private ClientEntity serverConnection => ServerManager.connection;
-        [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<ushort, EventDelegate> serverEvent => ServerManager.events;
-        [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<uint, NetworkObject> serverSpawns => ServerManager.spawns;
-        [FoldoutGroup("服务器设置")][ShowInInspector] private Dictionary<int, ClientEntity> connections => ServerManager.clients;
-        [FoldoutGroup("客户端设置")][ShowInInspector] private ServerEntity clientConnection => ClientManager.connection;
-        [FoldoutGroup("客户端设置")][ShowInInspector] private NetworkReaders readers => ClientManager.readers;
-        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<ushort, EventDelegate> clientEvent => ClientManager.events;
-        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<uint, NetworkObject> clientSpawns => ClientManager.spawns;
-        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<uint, GameObject> assetPrefabs => ClientManager.prefabs;
-        [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<ulong, NetworkObject> scenePrefabs => ClientManager.scenes;
-        [FoldoutGroup("客户端设置")][ShowInInspector] private bool isAuthority => ClientManager.isAuthority;
+        [FoldoutGroup("服务器设置"), ShowInInspector]
+        private ClientEntity serverConnection => ServerManager.connection;
+
+        [FoldoutGroup("服务器设置"), ShowInInspector]
+        private Dictionary<ushort, EventDelegate> serverEvent => ServerManager.events;
+
+        [FoldoutGroup("服务器设置"), ShowInInspector]
+        private Dictionary<uint, NetworkObject> serverSpawns => ServerManager.spawns;
+
+        [FoldoutGroup("服务器设置"), ShowInInspector]
+        private Dictionary<int, ClientEntity> connections => ServerManager.clients;
+
+        [FoldoutGroup("客户端设置"), ShowInInspector]
+        private ServerEntity clientConnection => ClientManager.connection;
+
+        [FoldoutGroup("客户端设置"), ShowInInspector]
+        private NetworkReaders readers => ClientManager.readers;
+
+        [FoldoutGroup("客户端设置"), ShowInInspector]
+        private Dictionary<ushort, EventDelegate> clientEvent => ClientManager.events;
+
+        [FoldoutGroup("客户端设置"), ShowInInspector]
+        private Dictionary<uint, NetworkObject> clientSpawns => ClientManager.spawns;
+
+        [FoldoutGroup("客户端设置"), ShowInInspector]
+        private Dictionary<uint, GameObject> assetPrefabs => ClientManager.prefabs;
+
+        [FoldoutGroup("客户端设置"), ShowInInspector]
+        private Dictionary<ulong, NetworkObject> scenePrefabs => ClientManager.scenes;
+
+        [FoldoutGroup("客户端设置"), ShowInInspector]
+        private bool isAuthority => ClientManager.isAuthority;
 #endif
-        
+
         /// <summary>
         /// 服务器场景
         /// </summary>
-        private static string serverScene;
-        
+        internal static string serverScene;
+
         /// <summary>
         /// 预置体列表
         /// </summary>
@@ -37,17 +58,20 @@ namespace JFramework.Net
         /// <summary>
         /// 网络传输组件
         /// </summary>
-        [FoldoutGroup("网络管理器"), SerializeField] private Transport transport;
+        [FoldoutGroup("网络管理器"), SerializeField]
+        private Transport transport;
 
         /// <summary>
         /// 心跳传输率
         /// </summary>
-        [FoldoutGroup("网络管理器"), SerializeField] internal int tickRate = 30;
+        [FoldoutGroup("网络管理器"), SerializeField]
+        internal int tickRate = 30;
 
         /// <summary>
         /// 客户端最大连接数量
         /// </summary>
-        [FoldoutGroup("网络管理器"), SerializeField] internal uint maxConnection = 100;
+        [FoldoutGroup("网络管理器"), SerializeField]
+        internal uint maxConnection = 100;
 
         /// <summary>
         /// 传输连接地址
@@ -97,12 +121,32 @@ namespace JFramework.Net
                 Debug.LogError("NetworkManager 没有 Transport 组件。");
                 return;
             }
-            
+
             Application.runInBackground = true;
 #if UNITY_SERVER
             Application.targetFrameRate = tickRate;
 #endif
             Transport.current = transport;
+        }
+
+        /// <summary>
+        /// 自动查找所有的NetworkObject
+        /// </summary>
+        private void OnValidate()
+        {
+#if UNITY_EDITOR
+            prefabs.Clear();
+            string[] guids = AssetDatabase.FindAssets("t:Prefab");
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (prefab != null && prefab.GetComponent<NetworkObject>() != null)
+                {
+                    prefabs.Add(prefab);
+                }
+            }
+#endif
         }
 
         /// <summary>
@@ -116,7 +160,7 @@ namespace JFramework.Net
                 Debug.LogWarning("服务器已经连接！");
                 return;
             }
-            
+
             serverScene = "";
             ServerManager.StartServer(isListen);
             OnStartServer?.Invoke();
@@ -132,7 +176,7 @@ namespace JFramework.Net
                 Debug.LogWarning("服务器已经停止！");
                 return;
             }
-            
+
             serverScene = "";
             OnStopServer?.Invoke();
             ServerManager.StopServer();
@@ -148,7 +192,7 @@ namespace JFramework.Net
                 Debug.LogWarning("客户端已经连接！");
                 return;
             }
-            
+
             ClientManager.StartClient(address, port);
             OnStartClient?.Invoke();
         }
@@ -164,7 +208,7 @@ namespace JFramework.Net
                 Debug.LogWarning("客户端已经连接！");
                 return;
             }
-            
+
             ClientManager.StartClient(uri);
             OnStartClient?.Invoke();
         }
@@ -182,7 +226,6 @@ namespace JFramework.Net
 
             if (mode == NetworkMode.Host)
             {
-                OnServerDisconnectEvent(ServerManager.connection);
                 ServerManager.clients.Remove(ServerManager.connection.clientId);
                 ServerManager.connection = null;
             }
@@ -206,7 +249,6 @@ namespace JFramework.Net
             Debug.Log("开启主机。");
             ServerManager.StartServer(isListen);
             ClientManager.StartClient();
-            OnClientConnectEvent();
             OnStartHost?.Invoke();
         }
 
@@ -218,26 +260,6 @@ namespace JFramework.Net
             OnStopHost?.Invoke();
             StopClient();
             StopServer();
-        }
-        
-        /// <summary>
-        /// 自动查找所有的NetworkObject
-        /// </summary>
-        private void OnValidate()
-        {
-#if UNITY_EDITOR
-            prefabs.Clear();
-            string[] guids = AssetDatabase.FindAssets("t:Prefab");
-            foreach (string guid in guids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-                if (prefab != null && prefab.GetComponent<NetworkObject>() != null)
-                {
-                    prefabs.Add(prefab);
-                }
-            }
-#endif
         }
 
         /// <summary>

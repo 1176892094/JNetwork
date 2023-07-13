@@ -59,7 +59,7 @@ namespace JFramework.Net
         /// <summary>
         /// 重置发送时间
         /// </summary>
-        public static void Resets()
+        public static void ResetStatic()
         {
             lastSendTime = 0;
             smooth = new Smooth(NetworkConst.PingWindow);

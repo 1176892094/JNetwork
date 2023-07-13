@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JFramework.Interface;
@@ -51,6 +52,21 @@ namespace JFramework.Net
         /// 连接到的主机客户端
         /// </summary>
         public static ClientEntity connection;
+        
+        /// <summary>
+        /// 有客户端连接到服务器的事件
+        /// </summary>
+        public static event Action<ClientEntity> OnServerConnect;
+        
+        /// <summary>
+        /// 有客户端从服务器断开的事件
+        /// </summary>
+        public static event Action<ClientEntity> OnServerDisconnect;
+        
+        /// <summary>
+        /// 客户端在服务器准备就绪的事件
+        /// </summary>
+        public static event Action<ClientEntity> OnServerReady;
 
         /// <summary>
         /// 心跳包
@@ -85,7 +101,7 @@ namespace JFramework.Net
                 clients.Clear();
                 RegisterEvent();
                 RegisterTransport();
-                NetworkTime.Resets();
+                NetworkTime.ResetStatic();
             }
 
             SpawnObjects();
@@ -99,14 +115,24 @@ namespace JFramework.Net
         {
             clients.TryAdd(client.clientId, client);
             Debug.Log($"客户端 {client.clientId} 连接到服务器。");
-            NetworkManager.OnServerConnectEvent(client);
+            client.isAuthority = true;
+            if (!string.IsNullOrEmpty(NetworkManager.serverScene))
+            {
+                var message = new SceneEvent()
+                {
+                    sceneName = NetworkManager.serverScene
+                };
+                client.Send(message);
+            }
+
+            OnServerConnect?.Invoke(client);
         }
 
         /// <summary>
         /// 设置客户端准备好(可以进行消息接收)
         /// </summary>
         /// <param name="client"></param>
-        internal static void SetClientReady(ClientEntity client)
+        private static void SetClientReady(ClientEntity client)
         {
             Debug.Log($"设置客户端 {client.clientId} 准备就绪。");
             client.isReady = true;
@@ -130,7 +156,7 @@ namespace JFramework.Net
         /// <summary>
         /// 设置所有客户端取消准备
         /// </summary>
-        public static void SetClientNotReadyAll()
+        internal static void SetClientNotReadyAll()
         {
             foreach (var client in clients.Values)
             {
@@ -144,7 +170,7 @@ namespace JFramework.Net
         /// <param name="message">网络消息</param>
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T"></typeparam>
-        public static void SendToAll<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
+        internal static void SendToAll<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
         {
             if (!isActive)
             {
@@ -165,7 +191,7 @@ namespace JFramework.Net
         /// <summary>
         /// 停止服务器
         /// </summary>
-        public static void StopServer()
+        internal static void StopServer()
         {
             if (!isActive) return;
             isActive = false;
@@ -190,6 +216,9 @@ namespace JFramework.Net
             clients.Clear();
             connection = null;
             isLoadScene = false;
+            OnServerConnect = null;
+            OnServerDisconnect = null;
+            OnServerReady = null;
         }
     }
 }

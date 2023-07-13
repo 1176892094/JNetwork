@@ -13,7 +13,7 @@ namespace JFramework.Net
         {
             Debug.Log("注册服务器事件");
             RegisterEvent<ServerRpcEvent>(OnServerRpcEvent);
-            RegisterEvent<ReadyEvent>(NetworkManager.OnServerReadyEvent);
+            RegisterEvent<ReadyEvent>(OnServerReadyEvent);
             RegisterEvent<PingEvent>(NetworkTime.OnPingEvent, false);
         }
         
@@ -55,6 +55,17 @@ namespace JFramework.Net
                 using var reader = NetworkReader.Pop(@event.segment);
                 @object.InvokeRpcEvent(@event.component, @event.funcHash, RpcType.ServerRpc, reader, client);
             }
+        }
+        
+        /// <summary>
+        /// 当客户端在服务器准备就绪，向客户端发送生成物体的消息
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="event"></param>
+        private static void OnServerReadyEvent(ClientEntity client, ReadyEvent @event)
+        {
+            SetClientReady(client);
+            OnServerReady?.Invoke(client);
         }
     }
 }

@@ -42,7 +42,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端加载场景
         /// </summary>
-        private static async void ClientLoadScene(string newSceneName)
+        internal static async void ClientLoadScene(string newSceneName)
         {
             if (string.IsNullOrWhiteSpace(newSceneName))
             {

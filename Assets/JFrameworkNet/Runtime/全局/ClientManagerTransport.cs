@@ -35,11 +35,13 @@ namespace JFramework.Net
                 Debug.LogError("没有有效的服务器连接！");
                 return;
             }
-
-            NetworkTime.Resets();
+            Debug.Log("设置身份验证成功。");
+            NetworkTime.ResetStatic();
             state = ConnectState.Connected;
             NetworkTime.Update();
-            NetworkManager.OnClientConnectEvent();
+            OnClientConnect?.Invoke();
+            connection.isAuthority = true;
+            Ready();
         }
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace JFramework.Net
             if (!isActive) return;
             Debug.Log("客户端断开传输。");
             UnRegisterTransport();
-            NetworkManager.OnClientDisconnectEvent();
+            OnClientDisconnect?.Invoke();
             StopClient();
             state = ConnectState.Disconnected;
           
