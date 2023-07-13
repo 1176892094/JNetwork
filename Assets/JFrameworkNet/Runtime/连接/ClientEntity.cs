@@ -62,7 +62,7 @@ namespace JFramework.Net
         private void FlushRpc(NetworkWriter writer, Channel channel)
         {
             if (writer.position <= 0) return;
-            Send(new RpcBufferEvent((ArraySegment<byte>)writer), channel);
+            Send(new RpcInvokeEvent((ArraySegment<byte>)writer), channel);
             writer.position = 0;
         }
         

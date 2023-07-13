@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using JFramework.Interface;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -33,8 +32,7 @@ namespace JFramework.Net
             RegisterEvent<NotReadyEvent>(OnNotReadyEvent);
             RegisterEvent<SceneEvent>(OnSceneEvent);
             RegisterEvent<SnapshotEvent>(OnSnapshotEvent);
-            RegisterEvent<ChangeOwnerEvent>(OnChangeOwnerEvent);
-            RegisterEvent<RpcBufferEvent>(OnRpcBufferEvent);
+            RegisterEvent<RpcInvokeEvent>(OnRpcBufferEvent);
         }
 
         /// <summary>
@@ -129,7 +127,7 @@ namespace JFramework.Net
         /// 接收 远程过程调用(RPC) 缓存的事件
         /// </summary>
         /// <param name="event"></param>
-        private static void OnRpcBufferEvent(RpcBufferEvent @event)
+        private static void OnRpcBufferEvent(RpcInvokeEvent @event)
         {
             using var reader = NetworkReader.Pop(@event.segment);
             while (reader.Residue > 0)
@@ -144,14 +142,6 @@ namespace JFramework.Net
             if (!spawns.TryGetValue(@event.netId, out var @object)) return;
             using var reader = NetworkReader.Pop(@event.segment);
             @object.InvokeRpcEvent(@event.component, @event.funcHash, RpcType.ClientRpc, reader);
-        }
-
-        /// <summary>
-        /// 客户端下当游戏对象权限改变的事件
-        /// </summary>
-        /// <param name="event"></param>
-        private static void OnChangeOwnerEvent(ChangeOwnerEvent @event)
-        {
         }
 
         /// <summary>

@@ -116,11 +116,7 @@ namespace JFramework.Net
             clients.TryAdd(client.clientId, client);
             if (!string.IsNullOrEmpty(NetworkManager.serverScene))
             {
-                var message = new SceneEvent()
-                {
-                    sceneName = NetworkManager.serverScene
-                };
-                client.Send(message);
+                client.Send(new SceneEvent(NetworkManager.serverScene));
             }
 
             OnServerConnect?.Invoke(client);

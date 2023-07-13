@@ -167,11 +167,7 @@ namespace JFramework.Net
         private static void SendDespawnEvent(ClientEntity client, NetworkObject @object)
         {
             Debug.Log($"服务器为客户端 {client.clientId} 重置 {@object}");
-            DespawnEvent @event = new DespawnEvent
-            {
-                netId = @object.netId
-            };
-            client.Send(@event);
+            client.Send(new DespawnEvent(@object.netId));
         }
     }
 }

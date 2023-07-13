@@ -41,6 +41,6 @@ namespace JFramework.Net
     public class ServerVarAttribute : PropertyAttribute
     {
         private string onValueChanged;
-        public ServerVarAttribute(string onValueChanged = "") => this.onValueChanged = onValueChanged;
+        public ServerVarAttribute(string onValueChanged = null) => this.onValueChanged = onValueChanged;
     }
 }

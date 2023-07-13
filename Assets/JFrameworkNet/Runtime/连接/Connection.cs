@@ -19,12 +19,12 @@ namespace JFramework.Net
         /// <summary>
         /// 是否准备好可以接收信息
         /// </summary>
-        public bool isReady;
+        internal bool isReady;
 
         /// <summary>
         /// 远端时间戳
         /// </summary>
-        public double timestamp;
+        internal double timestamp;
 
         /// <summary>
         /// 网络消息更新
