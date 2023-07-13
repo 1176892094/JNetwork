@@ -20,6 +20,7 @@ namespace JFramework.Net
         [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<uint, NetworkObject> clientSpawns => ClientManager.spawns;
         [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<uint, GameObject> assetPrefabs => ClientManager.prefabs;
         [FoldoutGroup("客户端设置")][ShowInInspector] private Dictionary<ulong, NetworkObject> scenePrefabs => ClientManager.scenes;
+        [FoldoutGroup("客户端设置")][ShowInInspector] private bool isAuthority => ClientManager.isAuthority;
 #endif
         
         /// <summary>

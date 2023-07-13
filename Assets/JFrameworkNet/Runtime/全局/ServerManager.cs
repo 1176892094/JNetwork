@@ -122,6 +122,7 @@ namespace JFramework.Net
         /// <param name="client"></param>
         private static void SetClientNotReady(ClientEntity client)
         {
+            Debug.Log($"设置客户端 {client.clientId} 未准备就绪");
             client.isReady = false;
             client.Send(new NotReadyEvent());
         }

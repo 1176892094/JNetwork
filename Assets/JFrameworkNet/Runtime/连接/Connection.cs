@@ -38,14 +38,14 @@ namespace JFramework.Net
         {
             foreach (var (channel, writers) in writerDict) // 遍历可靠和不可靠消息
             {
-                using var writer = NetworkWriter.Pop();
-                while (writers.WriteDequeue(writer))
+                using var writer = NetworkWriter.Pop(); // 取出 writer
+                while (writers.WriteDequeue(writer)) // 将数据拷贝到 writer
                 {
-                    var segment = writer.ToArraySegment();
-                    if (IsValid(segment, channel))
+                    var segment = writer.ToArraySegment(); // 将 writer 转化成数据分段
+                    if (IsValid(segment, channel)) // 判断是否 writer 是否有效
                     {
-                        SendToTransport(segment, channel);
-                        writer.position = 0;
+                        SendToTransport(segment, channel); // 发送数据到传输层
+                        writer.position = 0; // 重置 writer 的位置
                     }
                 }
             }

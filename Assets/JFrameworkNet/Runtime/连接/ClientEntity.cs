@@ -1,4 +1,5 @@
 using System;
+using Sirenix.OdinInspector;
 
 namespace JFramework.Net
 {
@@ -12,7 +13,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息读取
         /// </summary>
-        internal readonly NetworkReaders readers = new NetworkReaders();
+        [ShowInInspector] internal readonly NetworkReaders readers = new NetworkReaders();
 
 
         /// <summary>

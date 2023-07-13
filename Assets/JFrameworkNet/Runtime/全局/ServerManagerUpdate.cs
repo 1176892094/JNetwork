@@ -20,7 +20,7 @@ namespace JFramework.Net
         {
             if (isActive)
             {
-                if (NetworkUtils.HeartTick(NetworkTime.localTime, sendRate, ref lastSendTime))
+                if (NetworkUtils.TimeTick(NetworkTime.localTime, sendRate, ref lastSendTime))
                 {
                     Broadcast();
                 }

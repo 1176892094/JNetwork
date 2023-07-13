@@ -13,6 +13,11 @@ namespace JFramework.Net
         public const ushort Port = 20974;
         
         /// <summary>
+        /// Ping的间隔
+        /// </summary>
+        public const float Ping = 2;
+        
+        /// <summary>
         /// 网络消息的字符串最大长度
         /// </summary>
         public const ushort MaxStringLength = ushort.MaxValue - 1;

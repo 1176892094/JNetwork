@@ -19,10 +19,10 @@ namespace JFramework.Udp
         private readonly byte[] rawSendBuffer;
         private readonly byte[] receiveCookie = new byte[4];
         private readonly Stopwatch watch = new Stopwatch();
-        private readonly Action onAuthority;
-        private readonly Action onDisconnected;
-        private readonly Action<ArraySegment<byte>> onSend;
-        private readonly Action<ArraySegment<byte>, Channel> onReceive;
+        private event Action onAuthority;
+        private event Action onDisconnected;
+        private event Action<ArraySegment<byte>> onSend;
+        private event Action<ArraySegment<byte>, Channel> onReceive;
 
         public Peer(Action onAuthority, Action onDisconnected, Action<ArraySegment<byte>> onSend, Action<ArraySegment<byte>, Channel> onReceive, Setting setting, int cookie)
         {

@@ -26,7 +26,7 @@ namespace JFramework.Net
                 RegisterEvent<SpawnEvent>(OnSpawnByClient);
                 RegisterEvent<DestroyEvent>(OnDestroyByClient);
                 RegisterEvent<DespawnEvent>(OnDespawnByClient);
-                RegisterEvent<PongEvent>(OnPongByClient);
+                RegisterEvent<PongEvent>(NetworkTime.OnPongEvent);
             }
 
             RegisterEvent<NotReadyEvent>(NetworkManager.OnClientNotReadyEvent);
@@ -123,16 +123,7 @@ namespace JFramework.Net
             SpawnFinish();
             isSpawn = true;
         }
-
-        /// <summary>
-        /// 客户端从服务器接收的Ping
-        /// </summary>
-        /// <param name="event"></param>
-        private static void OnPongByClient(PongEvent @event)
-        {
-            NetworkTime.OnClientPong();
-        }
-
+        
         /// <summary>
         /// 接收 远程过程调用(RPC) 缓存的事件
         /// </summary>

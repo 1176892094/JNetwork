@@ -5,7 +5,7 @@ namespace JFramework.Net
         /// <summary>
         /// 在Update前调用
         /// </summary>
-        public static void EarlyUpdate()
+        internal static void EarlyUpdate()
         {
             if (Transport.current != null)
             {
@@ -16,11 +16,11 @@ namespace JFramework.Net
         /// <summary>
         /// 在Update之后调用
         /// </summary>
-        public static void AfterUpdate()
+        internal static void AfterUpdate()
         {
             if (isActive)
             {
-                if (NetworkUtils.HeartTick(NetworkTime.localTime, sendRate, ref lastSendTime))
+                if (NetworkUtils.TimeTick(NetworkTime.localTime, sendRate, ref lastSendTime))
                 {
                     Broadcast();
                 }

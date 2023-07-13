@@ -66,15 +66,15 @@ namespace JFramework.Net
         /// 心跳判断
         /// </summary>
         /// <param name="current">当前时间</param>
-        /// <param name="interval">时间间隔</param>
+        /// <param name="sendRate">时间间隔</param>
         /// <param name="lastTime">上次发送的时间</param>
         /// <returns>返回是否能够进行传输</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool HeartTick(double current, double interval, ref double lastTime)
+        public static bool TimeTick(double current, double sendRate, ref double lastTime)
         {
-            if (current < lastTime + interval) return false;
-            var clientTime = (long)(current / interval);
-            lastTime = clientTime * interval;
+            if (current < lastTime + sendRate) return false;
+            var clientTime = (long)(current / sendRate);
+            lastTime = clientTime * sendRate;
             return true;
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -9,7 +10,7 @@ namespace JFramework.Net
         /// <summary>
         /// 批处理队列
         /// </summary>
-        private readonly Queue<NetworkWriter> writers = new Queue<NetworkWriter>();
+        [ShowInInspector]private readonly Queue<NetworkWriter> writers = new Queue<NetworkWriter>();
 
         /// <summary>
         /// 阈值
@@ -19,7 +20,7 @@ namespace JFramework.Net
         /// <summary>
         /// 批处理
         /// </summary>
-        private NetworkWriter writer;
+        [ShowInInspector]private NetworkWriter writer;
 
         /// <summary>
         /// 设置阈值

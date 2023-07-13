@@ -13,9 +13,9 @@ namespace JFramework.Udp
         private EndPoint endPoint;
         private readonly byte[] buffer;
         private readonly Setting setting;
-        private readonly Action onConnected;
-        private readonly Action onDisconnected;
-        private readonly Action<ArraySegment<byte>, Channel> onReceive;
+        private event Action onConnected;
+        private event Action onDisconnected;
+        private event Action<ArraySegment<byte>, Channel> onReceive;
 
         public Client(Setting setting, Action onConnected, Action onDisconnected, Action<ArraySegment<byte>, Channel> onReceive)
         {

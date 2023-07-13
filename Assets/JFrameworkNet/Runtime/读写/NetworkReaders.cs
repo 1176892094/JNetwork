@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 
 namespace JFramework.Net
 {
@@ -8,12 +9,12 @@ namespace JFramework.Net
         /// <summary>
         /// 批处理队列
         /// </summary>
-        private readonly Queue<NetworkWriter> writers = new Queue<NetworkWriter>();
+        [ShowInInspector]private readonly Queue<NetworkWriter> writers = new Queue<NetworkWriter>();
         
         /// <summary>
         /// 读取器
         /// </summary>
-        private readonly NetworkReader reader = new NetworkReader();
+        [ShowInInspector]private readonly NetworkReader reader = new NetworkReader();
 
         /// <summary>
         /// 批处理数量

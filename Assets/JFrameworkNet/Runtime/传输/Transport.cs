@@ -10,12 +10,12 @@ namespace JFramework.Net
         /// <summary>
         /// 网络传输地址
         /// </summary>
-        public string address = "localhost";
+        [HideInInspector] public string address = "localhost";
 
         /// <summary>
         /// 网络传输端口
         /// </summary>
-        public ushort port = 20974;
+        [HideInInspector] public ushort port = 20974;
 
         /// <summary>
         /// 客户端连接事件

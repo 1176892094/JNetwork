@@ -5,7 +5,6 @@ namespace JFramework.Net
 {
     internal static class NetworkTime
     {
-        private static float PingFrequency = 2;
         private static double lastPingTime;
 
         /// <summary>
@@ -22,7 +21,7 @@ namespace JFramework.Net
         /// </summary>
         internal static void UpdateClient()
         {
-            if (localTime - lastPingTime >= PingFrequency)
+            if (localTime - lastPingTime >= NetworkConst.Ping)
             {
                 PingEvent pingEvent = new PingEvent()
                 {
@@ -33,13 +32,31 @@ namespace JFramework.Net
             }
         }
 
-        internal static void OnClientPong()
+        /// <summary>
+        /// 服务器发送Pong消息给指定客户端
+        /// </summary>
+        internal static void OnPingEvent(ClientEntity client, PingEvent @event)
+        {
+            PongEvent pongEvent = new PongEvent
+            {
+                clientTime = @event.clientTime,
+            };
+            client.Send(pongEvent, Channel.Unreliable);
+        }
+
+        /// <summary>
+        /// 客户端从服务器接收的Pong
+        /// </summary>
+        /// <param name="event"></param>
+        internal static void OnPongEvent(PongEvent @event)
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static void RuntimeInitializeOnLoad()
         {
-            PingFrequency = 2;
             lastPingTime = 0;
         }
     }

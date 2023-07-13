@@ -38,19 +38,15 @@ namespace JFramework.Net
             if (NetworkManager.mode != NetworkMode.Host) return;
             while (writeQueue.Count > 0)
             {
-                var writer = writeQueue.Dequeue();
-                var segment = writer.ToArraySegment();
-                var send = GetWriters(Channel.Reliable);
-                send.WriteEnqueue(segment, NetworkTime.localTime);
-                using (var sendWriter = NetworkWriter.Pop())
+                using var writer = writeQueue.Dequeue(); // 从队列中取出
+                var segment = writer.ToArraySegment(); //转化成数据分段
+                var writers = GetWriters(Channel.Reliable); // 获取可靠传输
+                writers.WriteEnqueue(segment, NetworkTime.localTime); // 将数据写入到队列
+                using var template = NetworkWriter.Pop(); // 取出新的 writer
+                if (writers.WriteDequeue(template)) // 将 writer 拷贝到 template
                 {
-                    if (send.WriteDequeue(sendWriter))
-                    {
-                        ClientManager.OnClientReceive(sendWriter.ToArraySegment(), Channel.Reliable);
-                    }
+                    ClientManager.OnClientReceive(template.ToArraySegment(), Channel.Reliable);
                 }
-
-                NetworkWriter.Push(writer);
             }
         }
 

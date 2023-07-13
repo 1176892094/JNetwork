@@ -14,7 +14,7 @@ namespace JFramework.Net
             Debug.Log("注册服务器事件");
             RegisterEvent<ServerRpcEvent>(OnServerRpcEvent);
             RegisterEvent<ReadyEvent>(NetworkManager.OnServerReadyEvent);
-            RegisterEvent<PingEvent>(OnPingEvent, false);
+            RegisterEvent<PingEvent>(NetworkTime.OnPingEvent, false);
         }
         
         /// <summary>
@@ -55,18 +55,6 @@ namespace JFramework.Net
                 using var reader = NetworkReader.Pop(@event.segment);
                 @object.InvokeRpcEvent(@event.componentIndex, @event.functionHash, RpcType.ServerRpc, reader, client);
             }
-        }
-
-        /// <summary>
-        /// Ping的事件
-        /// </summary>
-        private static void OnPingEvent(ClientEntity client, PingEvent @event)
-        {
-            PongEvent pongEvent = new PongEvent
-            {
-                clientTime = @event.clientTime,
-            };
-            client.Send(pongEvent, Channel.Unreliable);
         }
     }
 }
