@@ -83,7 +83,7 @@ namespace JFramework.Net
 
             while (!isLoadScene && client.readers.ReadDequeue(out var reader, out double timestamp))
             {
-                if (reader.Residue >= NetworkConst.MessageSize)
+                if (reader.Residue >= NetworkConst.EventSize)
                 {
                     client.timestamp = timestamp;
                     if (!TryInvoke(client, reader, channel))

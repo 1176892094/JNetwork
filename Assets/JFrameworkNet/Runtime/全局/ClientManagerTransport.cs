@@ -80,7 +80,7 @@ namespace JFramework.Net
 
             while (!isLoadScene && readers.ReadDequeue(out var reader, out double timestamp))
             {
-                if (reader.Residue >= NetworkConst.MessageSize)
+                if (reader.Residue >= NetworkConst.EventSize)
                 {
                     connection.timestamp = timestamp;
                     if (!TryInvoke(reader, channel))

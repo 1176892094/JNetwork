@@ -12,8 +12,8 @@ namespace JFramework.Net
         private static void RegisterEvent()
         {
             Debug.Log("注册服务器事件");
-            RegisterEvent<ServerRpcEvent>(OnServerRpcEvent);
             RegisterEvent<ReadyEvent>(OnServerReadyEvent);
+            RegisterEvent<ServerRpcEvent>(OnServerRpcEvent);
             RegisterEvent<PingEvent>(NetworkTime.OnPingEvent, false);
         }
         

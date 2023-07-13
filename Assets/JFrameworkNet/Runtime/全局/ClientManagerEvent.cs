@@ -131,6 +131,19 @@ namespace JFramework.Net
         /// <param name="event"></param>
         private static void OnRpcBufferEvent(RpcBufferEvent @event)
         {
+            using var reader = NetworkReader.Pop(@event.segment);
+            while (reader.Residue > 0)
+            {
+                var clientRpc = reader.Read<ClientRpcEvent>();
+                OnClientRpcEvent(clientRpc);
+            }
+        }
+        
+        private static void OnClientRpcEvent(ClientRpcEvent @event)
+        {
+            if (!spawns.TryGetValue(@event.netId, out var @object)) return;
+            using var reader = NetworkReader.Pop(@event.segment);
+            @object.InvokeRpcEvent(@event.component, @event.funcHash, RpcType.ClientRpc, reader);
         }
 
         /// <summary>

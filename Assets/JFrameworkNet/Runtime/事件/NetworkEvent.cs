@@ -7,13 +7,17 @@ namespace JFramework.Net
     /// <summary>
     /// 客户端准备就绪
     /// </summary>
-    internal struct ReadyEvent : IEvent { }
+    internal struct ReadyEvent : IEvent
+    {
+    }
 
     /// <summary>
     /// 客户端取消准备
     /// </summary>
-    internal struct NotReadyEvent : IEvent { }
-    
+    internal struct NotReadyEvent : IEvent
+    {
+    }
+
     /// <summary>
     /// 场景改变
     /// </summary>
@@ -29,12 +33,6 @@ namespace JFramework.Net
     {
         public uint netId;
         public bool isOwner;
-    }
-
-    
-    internal struct RpcBufferEvent : IEvent
-    {
-        public ArraySegment<byte> payload;
     }
 
     /// <summary>
@@ -55,8 +53,22 @@ namespace JFramework.Net
         public PongEvent(double clientTime) => this.clientTime = clientTime;
     }
 
-    
+    internal struct RpcBufferEvent : IEvent
+    {
+        public ArraySegment<byte> segment;
+
+        public RpcBufferEvent(ArraySegment<byte> segment) => this.segment = segment;
+    }
+
     internal struct ServerRpcEvent : IEvent
+    {
+        public uint netId;
+        public byte component;
+        public ushort funcHash;
+        public ArraySegment<byte> segment;
+    }
+
+    internal struct ClientRpcEvent : IEvent
     {
         public uint netId;
         public byte component;
@@ -75,7 +87,7 @@ namespace JFramework.Net
         public Vector3 localScale;
         public ArraySegment<byte> segment;
     }
-    
+
     internal struct DestroyEvent : IEvent
     {
         public uint netId;
