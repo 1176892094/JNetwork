@@ -17,22 +17,22 @@ namespace JFramework.Net
                 return;
             }
 
-            if (ServerManager.isLoadScene && newSceneName == sceneName)
+            if (NetworkServer.isLoadScene && newSceneName == sceneName)
             {
                 Debug.LogError($"服务器已经在加载 {newSceneName} 场景");
                 return;
             }
 
             Debug.Log("服务器开始加载场景");
-            ServerManager.SetClientNotReadyAll();
+            NetworkServer.SetClientNotReadyAll();
             OnServerLoadScene?.Invoke(newSceneName);
             sceneName = newSceneName;
-            ServerManager.isLoadScene = true;
-            if (ServerManager.isActive)
+            NetworkServer.isLoadScene = true;
+            if (NetworkServer.isActive)
             {
                 using var writer = NetworkWriter.Pop();
                 NetworkEvent.WriteEvent(writer, new SceneEvent(newSceneName));
-                foreach (var client in ServerManager.clients.Values)
+                foreach (var client in NetworkServer.clients.Values)
                 {
                     client.Send(writer.ToArraySegment());
                 }
@@ -54,9 +54,9 @@ namespace JFramework.Net
 
             Debug.Log("客户端器开始加载场景");
             OnClientLoadScene?.Invoke(newSceneName);
-            if (ServerManager.isActive) return; //Host不做处理
+            if (NetworkServer.isActive) return; //Host不做处理
             sceneName = newSceneName;
-            ClientManager.isLoadScene = true;
+            NetworkClient.isLoadScene = true;
             await LoadSceneAsync(newSceneName);
         }
 
@@ -66,8 +66,8 @@ namespace JFramework.Net
         private static async Task LoadSceneAsync(string newSceneName)
         {
             await SceneManager.LoadSceneAsync(newSceneName);
-            ServerManager.isLoadScene = false;
-            ClientManager.isLoadScene = false;
+            NetworkServer.isLoadScene = false;
+            NetworkClient.isLoadScene = false;
             switch (mode)
             {
                 case NetworkMode.Host:
@@ -89,7 +89,7 @@ namespace JFramework.Net
         private static void OnServerSceneLoadCompleted()
         {
             Debug.Log("服务器加载场景完成");
-            ServerManager.SpawnObjects();
+            NetworkServer.SpawnObjects();
             OnServerSceneChanged?.Invoke(sceneName);
         }
 
@@ -98,11 +98,11 @@ namespace JFramework.Net
         /// </summary>
         private static void OnClientSceneLoadCompleted()
         {
-            if (!ClientManager.isAuthority) return;
+            if (!NetworkClient.isAuthority) return;
             Debug.Log("客户端加载场景完成");
-            if (!ClientManager.isReady)
+            if (!NetworkClient.isReady)
             {
-                ClientManager.Ready();
+                NetworkClient.Ready();
             }
 
             OnClientSceneChanged?.Invoke(SceneManager.scene);

@@ -1,6 +1,6 @@
 namespace JFramework.Net
 {
-    public static partial class ClientManager
+    public static partial class NetworkClient
     {
         /// <summary>
         /// 在Update前调用

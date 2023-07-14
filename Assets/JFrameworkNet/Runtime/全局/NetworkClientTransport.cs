@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public static partial class ClientManager
+    public static partial class NetworkClient
     {
         /// <summary>
         /// 添加传输事件

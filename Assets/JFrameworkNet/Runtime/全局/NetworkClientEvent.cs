@@ -5,7 +5,7 @@ using Object = UnityEngine.Object;
 
 namespace JFramework.Net
 {
-    public static partial class ClientManager
+    public static partial class NetworkClient
     {
         /// <summary>
         /// 注册网络事件
@@ -67,7 +67,7 @@ namespace JFramework.Net
         /// <param name="event"></param>
         private static void OnSpawnByHost(SpawnEvent @event)
         {
-            if (ServerManager.spawns.TryGetValue(@event.netId, out var @object))
+            if (NetworkServer.spawns.TryGetValue(@event.netId, out var @object))
             {
                 spawns[@event.netId] = @object;
                 @object.isOwner = @event.isOwner;

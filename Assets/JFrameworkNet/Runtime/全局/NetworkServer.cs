@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public static partial class ServerManager
+    public static partial class NetworkServer
     {
         /// <summary>
         /// 网络消息委托字典

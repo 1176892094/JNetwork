@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public static partial class ServerManager
+    public static partial class NetworkServer
     {
         /// <summary>
         /// 生成物体
@@ -68,7 +68,7 @@ namespace JFramework.Net
             {
                 @object.netId = ++netId;
                 @object.isServer = true;
-                @object.isClient = ClientManager.isActive;
+                @object.isClient = NetworkClient.isActive;
                 spawns[@object.netId] = @object;
                 @object.OnStartServer();
             }
@@ -139,7 +139,7 @@ namespace JFramework.Net
                 @object.isOwner = false;
                 @object.OnStopClient();
                 @object.OnNotifyAuthority();
-                ClientManager.spawns.Remove(@object.netId);
+                NetworkClient.spawns.Remove(@object.netId);
             }
 
             @object.OnStopServer();

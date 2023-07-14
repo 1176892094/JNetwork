@@ -9,37 +9,37 @@ namespace JFramework.Net
     {
 #if UNITY_EDITOR
         [FoldoutGroup("服务器设置"), ShowInInspector]
-        private ClientEntity serverConnection => ServerManager.connection;
+        private ClientEntity serverConnection => NetworkServer.connection;
 
         [FoldoutGroup("服务器设置"), ShowInInspector]
-        private Dictionary<ushort, EventDelegate> serverEvent => ServerManager.events;
+        private Dictionary<ushort, EventDelegate> serverEvent => NetworkServer.events;
 
         [FoldoutGroup("服务器设置"), ShowInInspector]
-        private Dictionary<uint, NetworkObject> serverSpawns => ServerManager.spawns;
+        private Dictionary<uint, NetworkObject> serverSpawns => NetworkServer.spawns;
 
         [FoldoutGroup("服务器设置"), ShowInInspector]
-        private Dictionary<int, ClientEntity> connections => ServerManager.clients;
+        private Dictionary<int, ClientEntity> connections => NetworkServer.clients;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
-        private ServerEntity clientConnection => ClientManager.connection;
+        private ServerEntity clientConnection => NetworkClient.connection;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
-        private NetworkReaders readers => ClientManager.readers;
+        private NetworkReaders readers => NetworkClient.readers;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
-        private Dictionary<ushort, EventDelegate> clientEvent => ClientManager.events;
+        private Dictionary<ushort, EventDelegate> clientEvent => NetworkClient.events;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
-        private Dictionary<uint, NetworkObject> clientSpawns => ClientManager.spawns;
+        private Dictionary<uint, NetworkObject> clientSpawns => NetworkClient.spawns;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
-        private Dictionary<uint, GameObject> assetPrefabs => ClientManager.prefabs;
+        private Dictionary<uint, GameObject> assetPrefabs => NetworkClient.prefabs;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
-        private Dictionary<ulong, NetworkObject> scenePrefabs => ClientManager.scenes;
+        private Dictionary<ulong, NetworkObject> scenePrefabs => NetworkClient.scenes;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
-        private bool isAuthority => ClientManager.isAuthority;
+        private bool isAuthority => NetworkClient.isAuthority;
 #endif
 
         /// <summary>

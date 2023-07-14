@@ -14,13 +14,13 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         protected void SendServerRpcInternal(string methodName, int methodHash, NetworkWriter writer, Channel channel)
         {
-            if (!ClientManager.isActive)
+            if (!NetworkClient.isActive)
             {
                 Debug.LogError($"调用 {methodName} 但是客户端不是活跃的。", gameObject);
                 return;
             }
 
-            if (!ClientManager.isReady)
+            if (!NetworkClient.isReady)
             {
                 Debug.LogWarning($"调用 {methodName} 但是客户端没有准备就绪的。对象名称{name}", gameObject);
                 return;
@@ -32,7 +32,7 @@ namespace JFramework.Net
                 return;
             }
 
-            if (ClientManager.connection == null)
+            if (NetworkClient.connection == null)
             {
                 Debug.LogError($"调用 {methodName} 但是客户端的连接为空。对象名称{name}", gameObject);
                 return;
@@ -46,7 +46,7 @@ namespace JFramework.Net
                 segment = writer.ToArraySegment()
             };
 
-            ClientManager.connection.Send(message, channel);
+            NetworkClient.connection.Send(message, channel);
         }
 
 
@@ -59,7 +59,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, Channel channel)
         {
-            if (!ServerManager.isActive)
+            if (!NetworkServer.isActive)
             {
                 Debug.LogError($"调用 {methodName} 但是服务器不是活跃的。", gameObject);
                 return;
@@ -82,7 +82,7 @@ namespace JFramework.Net
             using var writerObject = NetworkWriter.Pop();
             writerObject.Write(@event);
 
-            foreach (var client in ServerManager.clients.Values.Where(client => client.isReady))
+            foreach (var client in NetworkServer.clients.Values.Where(client => client.isReady))
             {
                 client.BufferRpc(@event, channel);
             }
@@ -98,7 +98,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         protected void SendTargetRpcInternal(ClientEntity client, string methodName, int methodHash, NetworkWriter writer, Channel channel)
         {
-            if (!ServerManager.isActive)
+            if (!NetworkServer.isActive)
             {
                 Debug.LogError($"调用 {methodName} 但是服务器不是活跃的。", gameObject);
                 return;

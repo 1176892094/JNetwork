@@ -66,12 +66,12 @@ namespace JFramework.Net
         {
             get
             {
-                if (ServerManager.isActive)
+                if (NetworkServer.isActive)
                 {
-                    return ClientManager.isActive ? NetworkMode.Host : NetworkMode.Server;
+                    return NetworkClient.isActive ? NetworkMode.Host : NetworkMode.Server;
                 }
 
-                return ClientManager.isActive ? NetworkMode.Client : NetworkMode.None;
+                return NetworkClient.isActive ? NetworkMode.Client : NetworkMode.None;
             }
         }
 
@@ -120,14 +120,14 @@ namespace JFramework.Net
         /// <param name="isListen">设置false则为单机模式，不进行网络传输</param>
         public void StartServer(bool isListen = true)
         {
-            if (ServerManager.isActive)
+            if (NetworkServer.isActive)
             {
                 Debug.LogWarning("服务器已经连接！");
                 return;
             }
 
             sceneName = "";
-            ServerManager.StartServer(isListen);
+            NetworkServer.StartServer(isListen);
             OnStartServer?.Invoke();
         }
 
@@ -136,7 +136,7 @@ namespace JFramework.Net
         /// </summary>
         public void StopServer()
         {
-            if (!ServerManager.isActive)
+            if (!NetworkServer.isActive)
             {
                 Debug.LogWarning("服务器已经停止！");
                 return;
@@ -144,7 +144,7 @@ namespace JFramework.Net
 
             sceneName = "";
             OnStopServer?.Invoke();
-            ServerManager.StopServer();
+            NetworkServer.StopServer();
         }
 
         /// <summary>
@@ -152,13 +152,13 @@ namespace JFramework.Net
         /// </summary>
         public void StartClient()
         {
-            if (ClientManager.isActive)
+            if (NetworkClient.isActive)
             {
                 Debug.LogWarning("客户端已经连接！");
                 return;
             }
 
-            ClientManager.StartClient(address, port);
+            NetworkClient.StartClient(address, port);
             OnStartClient?.Invoke();
         }
 
@@ -168,13 +168,13 @@ namespace JFramework.Net
         /// <param name="uri">传入Uri</param>
         public void StartClient(Uri uri)
         {
-            if (ClientManager.isActive)
+            if (NetworkClient.isActive)
             {
                 Debug.LogWarning("客户端已经连接！");
                 return;
             }
 
-            ClientManager.StartClient(uri);
+            NetworkClient.StartClient(uri);
             OnStartClient?.Invoke();
         }
 
@@ -183,7 +183,7 @@ namespace JFramework.Net
         /// </summary>
         public void StopClient()
         {
-            if (!ClientManager.isActive)
+            if (!NetworkClient.isActive)
             {
                 Debug.LogWarning("客户端已经停止！");
                 return;
@@ -191,12 +191,12 @@ namespace JFramework.Net
 
             if (mode == NetworkMode.Host)
             {
-                ServerManager.clients.Remove(ServerManager.connection.clientId);
-                ServerManager.connection = null;
+                NetworkServer.clients.Remove(NetworkServer.connection.clientId);
+                NetworkServer.connection = null;
             }
 
             OnStopClient?.Invoke();
-            ClientManager.StopClient();
+            NetworkClient.StopClient();
         }
 
         /// <summary>
@@ -205,15 +205,15 @@ namespace JFramework.Net
         /// <param name="isListen">设置false则为单机模式，不进行网络传输</param>
         public void StartHost(bool isListen = true)
         {
-            if (ServerManager.isActive || ClientManager.isActive)
+            if (NetworkServer.isActive || NetworkClient.isActive)
             {
                 Debug.LogWarning("客户端或服务器已经连接！");
                 return;
             }
 
             Debug.Log("开启主机。");
-            ServerManager.StartServer(isListen);
-            ClientManager.StartClient();
+            NetworkServer.StartServer(isListen);
+            NetworkClient.StartClient();
             OnStartHost?.Invoke();
         }
 
@@ -232,12 +232,12 @@ namespace JFramework.Net
         /// </summary>
         private void OnApplicationQuit()
         {
-            if (ClientManager.isAuthority)
+            if (NetworkClient.isAuthority)
             {
                 StopClient();
             }
 
-            if (ServerManager.isActive)
+            if (NetworkServer.isActive)
             {
                 StopServer();
             }

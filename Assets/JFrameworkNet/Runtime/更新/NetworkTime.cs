@@ -32,7 +32,7 @@ namespace JFramework.Net
             if (localTime - lastSendTime >= NetworkConst.PingInterval)
             {
                 PingEvent @event = new PingEvent(localTime); // 传入客户端时间到服务器
-                ClientManager.Send(@event, Channel.Unreliable);
+                NetworkClient.Send(@event, Channel.Unreliable);
                 lastSendTime = localTime;
             }
         }

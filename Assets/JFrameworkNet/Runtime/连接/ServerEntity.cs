@@ -48,7 +48,7 @@ namespace JFramework.Net
                 using var template = NetworkWriter.Pop(); // 取出新的 writer
                 if (writers.WriteDequeue(template)) // 将 writer 拷贝到 template
                 {
-                    ClientManager.OnClientReceive(template.ToArraySegment(), Channel.Reliable);
+                    NetworkClient.OnClientReceive(template.ToArraySegment(), Channel.Reliable);
                 }
             }
         }
@@ -74,7 +74,7 @@ namespace JFramework.Net
                 using var writer = NetworkWriter.Pop();
                 if (send.WriteDequeue(writer)) // 尝试从队列中取出元素并写入到目标
                 {
-                    ServerManager.OnServerReceive(NetworkConst.HostId, writer.ToArraySegment(), channel);
+                    NetworkServer.OnServerReceive(NetworkConst.HostId, writer.ToArraySegment(), channel);
                 }
                 else
                 {
@@ -93,7 +93,7 @@ namespace JFramework.Net
         public override void Disconnect()
         {
             isReady = false;
-            ClientManager.isReady = false;
+            NetworkClient.isReady = false;
             Transport.current.ClientDisconnect();
         }
     }

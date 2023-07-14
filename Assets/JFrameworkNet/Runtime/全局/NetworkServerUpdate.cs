@@ -1,6 +1,6 @@
 namespace JFramework.Net
 {
-    public static partial class ServerManager
+    public static partial class NetworkServer
     {
         /// <summary>
         /// 在Update之前调用

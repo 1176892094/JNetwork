@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public static partial class ServerManager
+    public static partial class NetworkServer
     {
         /// <summary>
         /// 注册服务器消息事件

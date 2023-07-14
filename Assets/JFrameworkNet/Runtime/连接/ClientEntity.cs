@@ -123,7 +123,7 @@ namespace JFramework.Net
             {
                 NetworkWriter writer = NetworkWriter.Pop();
                 writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
-                ClientManager.connection.writeQueue.Enqueue(writer);
+                NetworkClient.connection.writeQueue.Enqueue(writer);
                 return;
             }
 

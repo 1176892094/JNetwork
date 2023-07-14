@@ -6,7 +6,7 @@ using Object = UnityEngine.Object;
 
 namespace JFramework.Net
 {
-    public static partial class ClientManager
+    public static partial class NetworkClient
     {
         /// <summary>
         /// 注册预置体
