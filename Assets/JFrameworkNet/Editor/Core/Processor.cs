@@ -57,9 +57,9 @@ namespace JFramework.Editor
             TypeReference NetworkEntityType = Import<NetworkEntity>();
             sendServerRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendServerRpcInternal", ref isFailed);
             sendClientRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendClientRpcInternal", ref isFailed);
-            sendTargetRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendTargetRPCInternal", ref isFailed);
+            sendTargetRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendTargetRpcInternal", ref isFailed);
             
-            TypeReference RemoteProcedureCallsType = Import(typeof(RpcUtils));
+            TypeReference RemoteProcedureCallsType = Import(typeof(NetworkRpc));
             registerServerRpcReference = Resolvers.ResolveMethod(RemoteProcedureCallsType, assembly, logger, "RegisterServerRpc", ref isFailed);
             registerClientRpcReference = Resolvers.ResolveMethod(RemoteProcedureCallsType, assembly, logger, "RegisterClientRpc", ref isFailed);
             

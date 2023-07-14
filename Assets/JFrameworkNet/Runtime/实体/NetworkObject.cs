@@ -68,7 +68,7 @@ namespace JFramework.Net
             }
 
             NetworkEntity invokeComponent = entities[index];
-            if (!RpcUtils.Invoke(function, rpcType, reader, invokeComponent, client))
+            if (!NetworkRpc.Invoke(function, rpcType, reader, invokeComponent, client))
             {
                 Debug.LogError($"无法调用{rpcType} [{function}] 网络对象：{gameObject.name} 网络Id：{objectId}");
             }
