@@ -199,7 +199,7 @@ namespace JFramework.Net
             return reader.ReadNetworkBehaviour() as T;
         }
 
-        public static NetworkValue ReadNetworkBehaviourSyncVar(this NetworkReader reader)
+        public static NetworkValue ReadNetworkValue(this NetworkReader reader)
         {
             uint netId = reader.ReadUInt();
             byte componentIndex = default;

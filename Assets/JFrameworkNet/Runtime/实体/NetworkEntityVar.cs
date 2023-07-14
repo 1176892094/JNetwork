@@ -8,10 +8,10 @@ namespace JFramework.Net
 {
     public abstract partial class NetworkEntity
     {
-        #region ServerVar
+#region General
 
         /// <summary>
-        /// 添加标准的服务器变量设置
+        /// 添加标准的标准变量设置器
         /// </summary>
         /// <param name="value"></param>
         /// <param name="field"></param>
@@ -38,7 +38,25 @@ namespace JFramework.Net
         }
         
         /// <summary>
-        /// 服务器变量的值比较
+        /// 添加标准网络变量的访问器
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="OnChanged"></param>
+        /// <param name="value"></param>
+        /// <typeparam name="T"></typeparam>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddServerVarGetter<T>(ref T field, Action<T, T> OnChanged, T value)
+        {
+            T oldValue = field;
+            field = value;
+            if (OnChanged != null && !ServerVarEqual(oldValue, ref field))
+            {
+                OnChanged(oldValue, field);
+            }
+        }
+        
+        /// <summary>
+        /// 标准网络变量的值比较器
         /// </summary>
         /// <param name="value"></param>
         /// <param name="field"></param>
@@ -50,7 +68,7 @@ namespace JFramework.Net
         }
         
         /// <summary>
-        /// 设置服务器变量的值
+        /// 标准网络变量的设置
         /// </summary>
         /// <param name="value"></param>
         /// <param name="field"></param>
@@ -68,7 +86,7 @@ namespace JFramework.Net
 #region GameObject
 
         /// <summary>
-        /// 添加游戏对象的网络变量
+        /// 添加游戏对象的网络变量的设置器
         /// </summary>
         /// <param name="value"></param>
         /// <param name="field"></param>
@@ -95,7 +113,27 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 比较游戏对象的网络变量是否改变
+        /// 添加游戏对象的网络变量的访问器
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="OnChanged"></param>
+        /// <param name="reader"></param>
+        /// <param name="netId"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddServerVarGetter(ref GameObject field, Action<GameObject, GameObject> OnChanged, NetworkReader reader, ref uint netId)
+        {
+            uint oldNetId = netId;
+            GameObject oldObject = field;
+            netId = reader.ReadUInt();
+            field = GetServerVar(netId, ref field);
+            if (OnChanged != null && !ServerVarEqual(oldNetId, ref netId))
+            {
+                OnChanged(oldObject, field);
+            }
+        }
+        
+        /// <summary>
+        /// 游戏对象的网络变量的比较器
         /// </summary>
         /// <param name="newObject"></param>
         /// <param name="netId"></param>
@@ -118,9 +156,29 @@ namespace JFramework.Net
 
             return newNetId == netId;
         }
+        
+        /// <summary>
+        /// 获取游戏对象的网络变量
+        /// </summary>
+        /// <param name="netId"></param>
+        /// <param name="field"></param>
+        /// <returns></returns>
+        private GameObject GetServerVar(uint netId, ref GameObject field)
+        {
+            if (isServer || !isClient)
+            {
+                return field;
+            }
+            
+            if (NetworkClient.spawns.TryGetValue(netId,out var oldObject) && oldObject != null)
+            {
+                return field = oldObject.gameObject;
+            }
+            return null;
+        }
 
         /// <summary>
-        /// 设置游戏对象的网络变量值
+        /// 设置游戏对象的网络变量
         /// </summary>
         /// <param name="newObject"></param>
         /// <param name="objectField"></param>
@@ -152,7 +210,7 @@ namespace JFramework.Net
 #region NetworkObject
 
         /// <summary>
-        /// 设置网络对象的网络变量
+        /// 添加网络对象的网络变量的设置器
         /// </summary>
         /// <param name="value"></param>
         /// <param name="field"></param>
@@ -179,7 +237,27 @@ namespace JFramework.Net
         }
         
         /// <summary>
-        /// 网络对象的网络变量
+        /// 添加网络对象的网络变量的访问器
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="OnChanged"></param>
+        /// <param name="reader"></param>
+        /// <param name="netId"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddServerVarGetter(ref NetworkObject field, Action<NetworkObject, NetworkObject> OnChanged, NetworkReader reader, ref uint netId)
+        {
+            uint oldNetId = netId;
+            NetworkObject oldObject = field;
+            netId = reader.ReadUInt();
+            field = GetServerVar(netId, ref field);
+            if (OnChanged != null && !ServerVarEqual(oldNetId, ref netId))
+            {
+                OnChanged(oldObject, field);
+            }
+        }
+
+        /// <summary>
+        /// 网络对象的网络变量的比较器
         /// </summary>
         /// <param name="object"></param>
         /// <param name="netId"></param>
@@ -200,7 +278,21 @@ namespace JFramework.Net
         }
         
         /// <summary>
-        /// 设置网络变量的网络对象
+        /// 获取网络对象的网络变量
+        /// </summary>
+        /// <param name="netId"></param>
+        /// <param name="object"></param>
+        /// <returns></returns>
+        private NetworkObject GetServerVar(uint netId, ref NetworkObject @object)
+        {
+            if (isServer || !isClient) return @object;
+            NetworkClient.spawns.TryGetValue(netId, out @object);
+            return @object;
+        }
+
+        
+        /// <summary>
+        /// 设置网络对象的网络变量
         /// </summary>
         /// <param name="object"></param>
         /// <param name="field"></param>
@@ -229,7 +321,7 @@ namespace JFramework.Net
 #region NetworkEntity
         
         /// <summary>
-        /// 添加网络实体的网络变量
+        /// 添加网络实体的网络变量的设置器
         /// </summary>
         /// <param name="value"></param>
         /// <param name="field"></param>
@@ -255,9 +347,30 @@ namespace JFramework.Net
                 }
             }
         }
-        
+
         /// <summary>
-        /// 判断网络变量是否相等
+        /// 添加网络实体的网络变量的访问器
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="OnChanged"></param>
+        /// <param name="reader"></param>
+        /// <param name="netIdField"></param>
+        /// <typeparam name="T"></typeparam>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddServerVarGetter<T>(ref T field, Action<T, T> OnChanged, NetworkReader reader, ref NetworkValue netIdField) where T : NetworkEntity
+        {
+            NetworkValue previousNetId = netIdField;
+            T previousBehaviour = field;
+            netIdField = reader.ReadNetworkValue();
+            field = GetServerVar(netIdField, ref field);
+            if (OnChanged != null && !ServerVarEqual(previousNetId, ref netIdField))
+            {
+                OnChanged(previousBehaviour, field);
+            }
+        }
+
+        /// <summary>
+        /// 网络实体的网络变量的比较器
         /// </summary>
         /// <param name="object"></param>
         /// <param name="netId"></param>
@@ -279,9 +392,32 @@ namespace JFramework.Net
             
             return netId.Equals(newNetId, componentIndex);
         }
+        
+        /// <summary>
+        /// 获取网络实体的网络变量
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="field"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        private T GetServerVar<T>(NetworkValue value, ref T field) where T : NetworkEntity
+        {
+            if (isServer || !isClient)
+            {
+                return field;
+            }
+            
+            if (!NetworkClient.spawns.TryGetValue(value.netId,out var oldObject))
+            {
+                return null;
+            }
+
+            field = (T)oldObject.objects[value.index];
+            return field;
+        }
 
         /// <summary>
-        /// 设置网络变量的网络实体值
+        /// 设置网络实体的网络变量
         /// </summary>
         /// <param name="object"></param>
         /// <param name="field"></param>

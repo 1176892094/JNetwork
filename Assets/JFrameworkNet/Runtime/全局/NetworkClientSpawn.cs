@@ -214,6 +214,9 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 销毁客户端物体
+        /// </summary>
         private static void DestroyForClient()
         {
             try
