@@ -30,7 +30,7 @@ namespace JFramework.Net
                     if (NetworkManager.mode == NetworkMode.Host && !GetServerVarHook(dirty))
                     {
                         SetServerVarHook(dirty, true);
-                        OnChanged.Invoke(oldValue, value);
+                        OnChanged(oldValue, value);
                         SetServerVarHook(dirty, false);
                     }
                 }
@@ -92,20 +92,20 @@ namespace JFramework.Net
         /// <param name="field"></param>
         /// <param name="dirty"></param>
         /// <param name="OnChanged"></param>
-        /// <param name="netId"></param>
+        /// <param name="objectId"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddServerVarSetter(GameObject value, ref GameObject field, ulong dirty, Action<GameObject, GameObject> OnChanged, ref uint netId)
+        public void AddServerVarSetter(GameObject value, ref GameObject field, ulong dirty, Action<GameObject, GameObject> OnChanged, ref uint objectId)
         {
-            if (!ServerVarEqual(value, netId))
+            if (!ServerVarEqual(value, objectId))
             {
                 GameObject oldValue = field;
-                SetServerVar(value, ref field, dirty, ref netId);
+                SetServerVar(value, ref field, dirty, ref objectId);
                 if (OnChanged != null)
                 {
                     if (NetworkManager.mode == NetworkMode.Host && !GetServerVarHook(dirty))
                     {
                         SetServerVarHook(dirty, true);
-                        OnChanged.Invoke(oldValue, value);
+                        OnChanged(oldValue, value);
                         SetServerVarHook(dirty, false);
                     }
                 }
@@ -118,15 +118,15 @@ namespace JFramework.Net
         /// <param name="field"></param>
         /// <param name="OnChanged"></param>
         /// <param name="reader"></param>
-        /// <param name="netId"></param>
+        /// <param name="objectId"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddServerVarGetter(ref GameObject field, Action<GameObject, GameObject> OnChanged, NetworkReader reader, ref uint netId)
+        public void AddServerVarGetter(ref GameObject field, Action<GameObject, GameObject> OnChanged, NetworkReader reader, ref uint objectId)
         {
-            uint oldNetId = netId;
+            uint oldId = objectId;
             GameObject oldObject = field;
-            netId = reader.ReadUInt();
-            field = GetServerVar(netId, ref field);
-            if (OnChanged != null && !ServerVarEqual(oldNetId, ref netId))
+            objectId = reader.ReadUInt();
+            field = GetServerVar(objectId, ref field);
+            if (OnChanged != null && !ServerVarEqual(oldId, ref objectId))
             {
                 OnChanged(oldObject, field);
             }
@@ -136,41 +136,41 @@ namespace JFramework.Net
         /// 游戏对象的网络变量的比较器
         /// </summary>
         /// <param name="newObject"></param>
-        /// <param name="netId"></param>
+        /// <param name="objectId"></param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        private static bool ServerVarEqual(GameObject newObject, uint netId)
+        private static bool ServerVarEqual(GameObject newObject, uint objectId)
         {
-            uint newNetId = 0;
+            uint newId = 0;
             if (newObject != null)
             {
                 if (newObject.TryGetComponent(out NetworkObject @object))
                 {
-                    newNetId = @object.netId;
-                    if (newNetId == 0)
+                    newId = @object.objectId;
+                    if (newId == 0)
                     {
                         Debug.LogWarning($"设置网络变量的对象未生成。对象名称：{newObject.name}");
                     }
                 }
             }
 
-            return newNetId == netId;
+            return newId == objectId;
         }
         
         /// <summary>
         /// 获取游戏对象的网络变量
         /// </summary>
-        /// <param name="netId"></param>
+        /// <param name="objectId"></param>
         /// <param name="field"></param>
         /// <returns></returns>
-        private GameObject GetServerVar(uint netId, ref GameObject field)
+        private GameObject GetServerVar(uint objectId, ref GameObject field)
         {
             if (isServer || !isClient)
             {
                 return field;
             }
             
-            if (NetworkClient.spawns.TryGetValue(netId,out var oldObject) && oldObject != null)
+            if (NetworkClient.spawns.TryGetValue(objectId,out var oldObject) && oldObject != null)
             {
                 return field = oldObject.gameObject;
             }
@@ -183,17 +183,17 @@ namespace JFramework.Net
         /// <param name="newObject"></param>
         /// <param name="objectField"></param>
         /// <param name="dirty"></param>
-        /// <param name="netId"></param>
-        private void SetServerVar(GameObject newObject, ref GameObject objectField, ulong dirty, ref uint netId)
+        /// <param name="objectId"></param>
+        private void SetServerVar(GameObject newObject, ref GameObject objectField, ulong dirty, ref uint objectId)
         {
             if (GetServerVarHook(dirty)) return;
-            uint newNetId = 0;
+            uint newId = 0;
             if (newObject != null)
             {
                 if (newObject.TryGetComponent(out NetworkObject identity))
                 {
-                    newNetId = identity.netId;
-                    if (newNetId == 0)
+                    newId = identity.objectId;
+                    if (newId == 0)
                     {
                         Debug.LogWarning($"设置网络变量的对象未生成。对象名称：{newObject.name}");
                     }
@@ -202,7 +202,7 @@ namespace JFramework.Net
             
             SetServerVarDirty(dirty);
             objectField = newObject;
-            netId = newNetId;
+            objectId = newId;
         }
 
 #endregion
@@ -216,41 +216,41 @@ namespace JFramework.Net
         /// <param name="field"></param>
         /// <param name="dirty"></param>
         /// <param name="OnChanged"></param>
-        /// <param name="netId"></param>
+        /// <param name="objectId"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddServerVarSetter(NetworkObject value, ref NetworkObject field, ulong dirty, Action<NetworkObject, NetworkObject> OnChanged, ref uint netId)
+        public void AddServerVarSetter(NetworkObject value, ref NetworkObject field, ulong dirty, Action<NetworkObject, NetworkObject> OnChanged, ref uint objectId)
         {
-            if (!ServerVarEqual(value, netId))
+            if (!ServerVarEqual(value, objectId))
             {
                 NetworkObject oldValue = field;
-                SetServerVar(value, ref field, dirty, ref netId);
+                SetServerVar(value, ref field, dirty, ref objectId);
                 if (OnChanged != null)
                 {
                     if (NetworkManager.mode == NetworkMode.Host  && !GetServerVarHook(dirty))
                     {
                         SetServerVarHook(dirty, true);
-                        OnChanged.Invoke(oldValue, value);
+                        OnChanged(oldValue, value);
                         SetServerVarHook(dirty, false);
                     }
                 }
             }
         }
-        
+
         /// <summary>
         /// 添加网络对象的网络变量的访问器
         /// </summary>
         /// <param name="field"></param>
         /// <param name="OnChanged"></param>
         /// <param name="reader"></param>
-        /// <param name="netId"></param>
+        /// <param name="objectId"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddServerVarGetter(ref NetworkObject field, Action<NetworkObject, NetworkObject> OnChanged, NetworkReader reader, ref uint netId)
+        public void AddServerVarGetter(ref NetworkObject field, Action<NetworkObject, NetworkObject> OnChanged, NetworkReader reader, ref uint objectId)
         {
-            uint oldNetId = netId;
+            uint oldId = objectId;
             NetworkObject oldObject = field;
-            netId = reader.ReadUInt();
-            field = GetServerVar(netId, ref field);
-            if (OnChanged != null && !ServerVarEqual(oldNetId, ref netId))
+            objectId = reader.ReadUInt();
+            field = GetServerVar(objectId, ref field);
+            if (OnChanged != null && !ServerVarEqual(oldId, ref objectId))
             {
                 OnChanged(oldObject, field);
             }
@@ -260,33 +260,34 @@ namespace JFramework.Net
         /// 网络对象的网络变量的比较器
         /// </summary>
         /// <param name="object"></param>
-        /// <param name="netId"></param>
+        /// <param name="objectId"></param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        private static bool ServerVarEqual(NetworkObject @object, uint netId)
+        private static bool ServerVarEqual(NetworkObject @object, uint objectId)
         {
-            uint newNetId = 0;
+            uint newId = 0;
             if (@object != null)
             {
-                newNetId = @object.netId;
-                if (newNetId == 0)
+                newId = @object.objectId;
+                if (newId == 0)
                 {
                     Debug.LogWarning($"设置网络变量的对象未生成。对象名称：{@object.name}");
                 }
             }
-            return newNetId == netId;
+
+            return newId == objectId;
         }
-        
+
         /// <summary>
         /// 获取网络对象的网络变量
         /// </summary>
-        /// <param name="netId"></param>
+        /// <param name="objectId"></param>
         /// <param name="object"></param>
         /// <returns></returns>
-        private NetworkObject GetServerVar(uint netId, ref NetworkObject @object)
+        private NetworkObject GetServerVar(uint objectId, ref NetworkObject @object)
         {
             if (isServer || !isClient) return @object;
-            NetworkClient.spawns.TryGetValue(netId, out @object);
+            NetworkClient.spawns.TryGetValue(objectId, out @object);
             return @object;
         }
 
@@ -297,22 +298,22 @@ namespace JFramework.Net
         /// <param name="object"></param>
         /// <param name="field"></param>
         /// <param name="dirty"></param>
-        /// <param name="netId"></param>
-        private void SetServerVar(NetworkObject @object, ref NetworkObject field, ulong dirty, ref uint netId)
+        /// <param name="objectId"></param>
+        private void SetServerVar(NetworkObject @object, ref NetworkObject field, ulong dirty, ref uint objectId)
         {
             if (GetServerVarHook(dirty)) return;
-            uint newNetId = 0;
+            uint newId = 0;
             if (@object != null)
             {
-                newNetId = @object.netId;
-                if (newNetId == 0)
+                newId = @object.objectId;
+                if (newId == 0)
                 {
                     Debug.LogWarning($"设置网络变量的对象未生成。对象名称：{@object.name}");
                 }
             }
 
             SetServerVarDirty(dirty);
-            netId = newNetId;
+            objectId = newId;
             field = @object;
         }
         
@@ -327,21 +328,21 @@ namespace JFramework.Net
         /// <param name="field"></param>
         /// <param name="dirty"></param>
         /// <param name="OnChanged"></param>
-        /// <param name="netId"></param>
+        /// <param name="objectId"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddServerVarSetter<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkValue netId) where T : NetworkEntity
+        public void AddServerVarSetter<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkVariable objectId) where T : NetworkEntity
         {
-            if (!ServerVarEqual(value, netId))
+            if (!ServerVarEqual(value, objectId))
             {
                 T oldValue = field;
-                SetServerVar(value, ref field, dirty, ref netId);
+                SetServerVar(value, ref field, dirty, ref objectId);
                 if (OnChanged != null)
                 {
                     if (NetworkManager.mode == NetworkMode.Host && !GetServerVarHook(dirty))
                     {
                         SetServerVarHook(dirty, true);
-                        OnChanged.Invoke(oldValue, value);
+                        OnChanged(oldValue, value);
                         SetServerVarHook(dirty, false);
                     }
                 }
@@ -354,18 +355,18 @@ namespace JFramework.Net
         /// <param name="field"></param>
         /// <param name="OnChanged"></param>
         /// <param name="reader"></param>
-        /// <param name="netIdField"></param>
+        /// <param name="objectId"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddServerVarGetter<T>(ref T field, Action<T, T> OnChanged, NetworkReader reader, ref NetworkValue netIdField) where T : NetworkEntity
+        public void AddServerVarGetter<T>(ref T field, Action<T, T> OnChanged, NetworkReader reader, ref NetworkVariable objectId) where T : NetworkEntity
         {
-            NetworkValue previousNetId = netIdField;
-            T previousBehaviour = field;
-            netIdField = reader.ReadNetworkValue();
-            field = GetServerVar(netIdField, ref field);
-            if (OnChanged != null && !ServerVarEqual(previousNetId, ref netIdField))
+            NetworkVariable oldId = objectId;
+            T oldObject = field;
+            objectId = reader.ReadNetworkValue();
+            field = GetServerVar(objectId, ref field);
+            if (OnChanged != null && !ServerVarEqual(oldId, ref objectId))
             {
-                OnChanged(previousBehaviour, field);
+                OnChanged(oldObject, field);
             }
         }
 
@@ -373,24 +374,24 @@ namespace JFramework.Net
         /// 网络实体的网络变量的比较器
         /// </summary>
         /// <param name="object"></param>
-        /// <param name="netId"></param>
+        /// <param name="objectId"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        private static bool ServerVarEqual<T>(T @object, NetworkValue netId) where T : NetworkEntity
+        private static bool ServerVarEqual<T>(T @object, NetworkVariable objectId) where T : NetworkEntity
         {
-            uint newNetId = 0;
-            byte componentIndex = 0;
+            uint newId = 0;
+            byte index = 0;
             if (@object != null)
             {
-                newNetId = @object.netId;
-                componentIndex = @object.component;
-                if (newNetId == 0)
+                newId = @object.objectId;
+                index = @object.serialId;
+                if (newId == 0)
                 {
                     Debug.LogWarning($"设置网络变量的对象未生成。对象名称：{@object.name}");
                 }
             }
             
-            return netId.Equals(newNetId, componentIndex);
+            return objectId.Equals(newId, index);
         }
         
         /// <summary>
@@ -400,19 +401,19 @@ namespace JFramework.Net
         /// <param name="field"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        private T GetServerVar<T>(NetworkValue value, ref T field) where T : NetworkEntity
+        private T GetServerVar<T>(NetworkVariable value, ref T field) where T : NetworkEntity
         {
             if (isServer || !isClient)
             {
                 return field;
             }
             
-            if (!NetworkClient.spawns.TryGetValue(value.netId,out var oldObject))
+            if (!NetworkClient.spawns.TryGetValue(value.objectId,out var oldObject))
             {
                 return null;
             }
 
-            field = (T)oldObject.objects[value.index];
+            field = (T)oldObject.entities[value.serialId];
             return field;
         }
 
@@ -424,23 +425,23 @@ namespace JFramework.Net
         /// <param name="dirty"></param>
         /// <param name="netId"></param>
         /// <typeparam name="T"></typeparam>
-        private void SetServerVar<T>(T @object, ref T field, ulong dirty, ref NetworkValue netId) where T : NetworkEntity
+        private void SetServerVar<T>(T @object, ref T field, ulong dirty, ref NetworkVariable netId) where T : NetworkEntity
         {
             if (GetServerVarHook(dirty)) return;
 
-            uint newNetId = 0;
-            byte componentIndex = 0;
+            uint newId = 0;
+            byte index = 0;
             if (@object != null)
             {
-                newNetId = @object.netId;
-                componentIndex = @object.component;
-                if (newNetId == 0)
+                newId = @object.objectId;
+                index = @object.serialId;
+                if (newId == 0)
                 {
                     Debug.LogWarning($"设置网络变量的对象未生成。对象名称：{@object.name}");
                 }
             }
 
-            netId = new NetworkValue(newNetId, componentIndex);
+            netId = new NetworkVariable(newId, index);
             SetServerVarDirty(dirty);
             field = @object;
         }

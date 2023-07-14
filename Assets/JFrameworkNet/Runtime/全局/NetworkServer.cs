@@ -33,9 +33,9 @@ namespace JFramework.Net
         private static double lastSendTime;
 
         /// <summary>
-        /// 当前网络对象索引
+        /// 当前网络对象Id
         /// </summary>
-        private static uint netId;
+        private static uint objectId;
 
         /// <summary>
         /// 是否是启动的
@@ -125,7 +125,7 @@ namespace JFramework.Net
         /// 设置客户端准备好(可以进行消息接收)
         /// </summary>
         /// <param name="client"></param>
-        private static void SetClientReady(NetworkClientEntity client)
+        private static void SetReadyForClient(NetworkClientEntity client)
         {
             Debug.Log($"设置客户端 {client.clientId} 准备就绪。");
             client.isReady = true;
@@ -140,9 +140,9 @@ namespace JFramework.Net
         /// 设置客户端未准备(不能进行消息接收)
         /// </summary>
         /// <param name="client"></param>
-        private static void SetClientNotReady(NetworkClientEntity client)
+        private static void NotReadyForClient(NetworkClientEntity client)
         {
-            Debug.Log($"设置客户端 {client.clientId} 未准备就绪");
+            Debug.Log($"设置客户端 {client.clientId} 取消准备");
             client.isReady = false;
             client.Send(new NotReadyEvent());
         }
@@ -154,7 +154,7 @@ namespace JFramework.Net
         {
             foreach (var client in clients.Values)
             {
-                SetClientNotReady(client);
+                NotReadyForClient(client);
             }
         }
 
@@ -182,7 +182,7 @@ namespace JFramework.Net
 
             UnRegisterTransport();
             lastSendTime = 0;
-            netId = 0;
+            objectId = 0;
             spawns.Clear();
             events.Clear();
             clients.Clear();

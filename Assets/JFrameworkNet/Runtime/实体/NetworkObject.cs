@@ -1,11 +1,6 @@
-using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
-#if  UNITY_EDITOR
-using UnityEditor;
-using UnityEditor.SceneManagement;
-#endif
 
 namespace JFramework.Net
 {
@@ -13,71 +8,40 @@ namespace JFramework.Net
     {
         private static readonly Dictionary<ulong, NetworkObject> sceneIds = new Dictionary<ulong, NetworkObject>();
         
-        [ReadOnly, ShowInInspector] public uint netId;
-        [ReadOnly, SerializeField] private uint m_assetId;
+        [ReadOnly, ShowInInspector] internal uint assetId;
+        [ReadOnly, ShowInInspector] internal uint objectId;
         [ReadOnly, ShowInInspector] internal ulong sceneId;
-        [ReadOnly, ShowInInspector] internal NetworkServerEntity server;
-        [ReadOnly, ShowInInspector] private NetworkClientEntity client;
         [ReadOnly, ShowInInspector] public bool isOwner;
         [ReadOnly, ShowInInspector] public bool isServer;
         [ReadOnly, ShowInInspector] public bool isClient;
+        [ReadOnly, ShowInInspector] internal NetworkServerEntity server;
+        [ReadOnly, ShowInInspector] internal NetworkClientEntity client;
         private bool isStartClient;
         private bool hasAuthority;
-
-        internal uint assetId
-        {
-            get
-            {
-#if UNITY_EDITOR
-                if (m_assetId == 0)
-                {
-                    SetupIDs();
-                }
-#endif
-                return m_assetId;
-            }
-            set
-            {
-                if (value == 0)
-                {
-                    Debug.LogError("assetId不能为零");
-                    return;
-                }
-                m_assetId = value;
-            }
-        }
-        internal NetworkEntity[] objects;
-        
-        public NetworkClientEntity connection
-        {
-            get => client;
-            internal set => client = value;
-        }
-
-     
+        internal NetworkEntity[] entities;
 
         private void Awake()
         {
-            objects = GetComponentsInChildren<NetworkEntity>(true);
+            entities = GetComponentsInChildren<NetworkEntity>(true);
             if (IsValid())
             {
-                for (int i = 0; i < objects.Length; ++i)
+                for (int i = 0; i < entities.Length; ++i)
                 {
-                    objects[i].@object = this;
-                    objects[i].component = (byte)i;
+                    entities[i].@object = this;
+                    entities[i].serialId = (byte)i;
                 }
             }
         }
 
         private bool IsValid()
         {
-            if (objects == null)
+            if (entities == null)
             {
                 Debug.LogError($"网络对象持有的 NetworkEntity 为空", gameObject);
                 return false;
             }
 
-            if (objects.Length > NetworkConst.MaxEntityCount)
+            if (entities.Length > NetworkConst.MaxEntityCount)
             {
                 Debug.LogError($"网络对象持有的 NetworkEntity 的数量不能超过{NetworkConst.MaxEntityCount}");
                 return false;
@@ -93,20 +57,20 @@ namespace JFramework.Net
         {
             if (this == null)
             {
-                Debug.LogWarning($"调用了已经删除的网络对象。{rpcType} [{function}] 网络Id：{netId}");
+                Debug.LogWarning($"调用了已经删除的网络对象。{rpcType} [{function}] 网络Id：{objectId}");
                 return;
             }
 
-            if (index >= objects.Length)
+            if (index >= entities.Length)
             {
-                Debug.LogWarning($"没有找到组件Id：[{index}] 网络Id：{netId}");
+                Debug.LogWarning($"没有找到组件Id：[{index}] 网络Id：{objectId}");
                 return;
             }
 
-            NetworkEntity invokeComponent = objects[index];
+            NetworkEntity invokeComponent = entities[index];
             if (!RpcUtils.Invoke(function, rpcType, reader, invokeComponent, client))
             {
-                Debug.LogError($"无法调用{rpcType} [{function}] 网络对象：{gameObject.name} 网络Id：{netId}");
+                Debug.LogError($"无法调用{rpcType} [{function}] 网络对象：{gameObject.name} 网络Id：{objectId}");
             }
         }
 
@@ -119,7 +83,7 @@ namespace JFramework.Net
         {
             if (IsValid())
             {
-                NetworkEntity[] entities = objects;
+                NetworkEntity[] entities = this.entities;
 
                 (ulong ownerMask, ulong observerMask) = ServerDirtyMasks(isInit);
             }
@@ -130,7 +94,7 @@ namespace JFramework.Net
             ulong ownerMask = 0;
             ulong observerMask = 0;
 
-            NetworkEntity[] components = objects;
+            NetworkEntity[] components = entities;
             for (int i = 0; i < components.Length; ++i)
             {
                 NetworkEntity component = components[i];
@@ -151,96 +115,16 @@ namespace JFramework.Net
 
             return (ownerMask, observerMask);
         }
-        
-        private void OnValidate()
-        {
-#if UNITY_EDITOR
-            SetupIDs();
-#endif
-        }
 
         internal void Reset()
         {
-            netId = 0;
+            objectId = 0;
             isOwner = false;
             isClient = false;
             isServer = false;
             isStartClient = false;
             hasAuthority = false;
-            connection = null;
+            client = null;
         }
-        
-#if UNITY_EDITOR
-        private void SetupIDs()
-        {
-            if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
-            {
-                sceneId = 0;
-                AssignAssetID(AssetDatabase.GetAssetPath(gameObject));
-            }
-            else if (PrefabStageUtility.GetCurrentPrefabStage() != null)
-            {
-                if (PrefabStageUtility.GetPrefabStage(gameObject) != null)
-                {
-                    sceneId = 0;
-                    AssignAssetID(PrefabStageUtility.GetPrefabStage(gameObject).assetPath);
-                }
-            }
-            else if (IsSceneObjectWithPrefabParent(gameObject, out GameObject prefab))
-            {
-                AssignSceneID();
-                AssignAssetID(AssetDatabase.GetAssetPath(prefab));
-            }
-            else
-            {
-                AssignSceneID();
-            }
-        }
-
-        private void AssignAssetID(string path)
-        {
-            if (!string.IsNullOrWhiteSpace(path))
-            {
-                Guid guid = new Guid(AssetDatabase.AssetPathToGUID(path));
-                assetId = (uint)guid.GetHashCode();
-            }
-        }
-
-        private static bool IsSceneObjectWithPrefabParent(GameObject gameObject, out GameObject prefab)
-        {
-            prefab = null;
-            if (!PrefabUtility.IsPartOfPrefabInstance(gameObject)) return false;
-            prefab = PrefabUtility.GetCorrespondingObjectFromSource(gameObject);
-            if (prefab != null) return true;
-            Debug.LogError($"找不到场景对象的预制父物体。对象名称：{gameObject.name}");
-            return false;
-        }
-        
-        private void AssignSceneID()
-        {
-            if (Application.isPlaying) return;
-            bool duplicate = sceneIds.TryGetValue(sceneId, out NetworkObject @object) && @object != null && @object != this;
-            if (sceneId == 0 || duplicate)
-            {
-                sceneId = 0;
-                if (BuildPipeline.isBuildingPlayer)
-                {
-                    throw new InvalidOperationException($"请构建之前保存场景 {gameObject.scene.path}，场景对象 {name} 没有有效的场景Id。");
-                }
-
-                Undo.RecordObject(this, "生成场景Id");
-
-                uint randomId = (uint)NetworkUtils.GenerateRandom();
-                
-                duplicate = sceneIds.TryGetValue(randomId, out @object) && @object != null && @object != this;
-                if (!duplicate)
-                {
-                    sceneId = randomId;
-                }
-            }
-            
-            sceneIds[sceneId] = this;
-        }
-#endif
     }
 }

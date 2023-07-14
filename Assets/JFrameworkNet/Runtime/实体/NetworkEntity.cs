@@ -39,7 +39,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络对象Id
         /// </summary>
-        public uint netId => @object.netId;
+        public uint objectId => @object.objectId;
 
         /// <summary>
         /// 网络对象权限
@@ -64,12 +64,12 @@ namespace JFramework.Net
         /// <summary>
         /// 网络对象连接的客户端(服务器不为空，客户端为空)
         /// </summary>
-        public NetworkClientEntity connection => @object.connection;
+        public NetworkClientEntity connection => @object.client;
 
         /// <summary>
         /// 当前实体在网络对象中的位置
         /// </summary>
-        internal byte component;
+        internal byte serialId;
 
         /// <summary>
         /// 同步间隔

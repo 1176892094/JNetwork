@@ -62,7 +62,7 @@ namespace JFramework.Net
         private void FlushRpc(NetworkWriter writer, Channel channel)
         {
             if (writer.position <= 0) return;
-            Send(new RpcInvokeEvent((ArraySegment<byte>)writer), channel);
+            Send(new InvokeRpcEvent((ArraySegment<byte>)writer), channel);
             writer.position = 0;
         }
         
@@ -73,7 +73,7 @@ namespace JFramework.Net
         /// <param name="buffer"></param>
         /// <param name="channel"></param>
         /// <param name="maxMessageSize"></param>
-        private void BufferRpc(ClientRpcEvent @event, NetworkWriter buffer, Channel channel, int maxMessageSize)
+        private void InvokeRpc(ClientRpcEvent @event, NetworkWriter buffer, Channel channel, int maxMessageSize)
         {
             int bufferLimit = maxMessageSize - NetworkConst.EventSize - sizeof(int) - NetworkConst.HeaderSize;
             int before = buffer.position;
@@ -81,7 +81,7 @@ namespace JFramework.Net
             int messageSize = buffer.position - before;
             if (messageSize > bufferLimit)
             {
-                Debug.LogWarning($"远程调用 {@event.netId} 消息大小不能超过 {bufferLimit}。消息大小：{messageSize}");
+                Debug.LogWarning($"远程调用 {@event.objectId} 消息大小不能超过 {bufferLimit}。消息大小：{messageSize}");
                 return;
             }
             
@@ -98,16 +98,16 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="message"></param>
         /// <param name="channel"></param>
-        internal void BufferRpc(ClientRpcEvent message, Channel channel)
+        internal void InvokeRpc(ClientRpcEvent message, Channel channel)
         {
             int maxSize = Transport.current.GetMaxPacketSize(channel);
             switch (channel)
             {
                 case Channel.Reliable:
-                    BufferRpc(message, reliableRpc, Channel.Reliable, maxSize);
+                    InvokeRpc(message, reliableRpc, Channel.Reliable, maxSize);
                     break;
                 case Channel.Unreliable:
-                    BufferRpc(message, unreliableRpc, Channel.Unreliable, maxSize);
+                    InvokeRpc(message, unreliableRpc, Channel.Unreliable, maxSize);
                     break;
             }
         }

@@ -166,7 +166,7 @@ namespace JFramework.Net
                 Debug.Log($"客户端准备。");
                 isReady = true;
                 connection.isReady = true;
-                connection.Send(new ReadyEvent());
+                connection.Send(new SetReadyEvent());
                 spawns = spawns.Where(pair => pair.Value != null).ToDictionary(pair => pair.Key, pair => pair.Value);
             }
         }

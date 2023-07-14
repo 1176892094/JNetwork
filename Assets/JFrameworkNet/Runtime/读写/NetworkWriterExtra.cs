@@ -202,12 +202,12 @@ namespace JFramework.Net
                 return;
             }
             
-            if (value.netId == 0)
+            if (value.objectId == 0)
             {
                 Debug.LogWarning($"NetworkObject 的Id为零。\n");
             }
 
-            writer.WriteUInt(value.netId);
+            writer.WriteUInt(value.objectId);
         }
 
         public static void WriteNetworkBehaviour(this NetworkWriter writer, NetworkEntity value)
@@ -218,15 +218,15 @@ namespace JFramework.Net
                 return;
             }
             
-            if (value.netId == 0)
+            if (value.objectId == 0)
             {
                 Debug.LogWarning($"NetworkObject 的Id为零。\n");
                 writer.WriteUInt(0);
                 return;
             }
 
-            writer.WriteUInt(value.netId);
-            writer.WriteByte(value.component);
+            writer.WriteUInt(value.objectId);
+            writer.WriteByte(value.serialId);
         }
 
         public static void WriteTransform(this NetworkWriter writer, Transform value)
@@ -238,7 +238,7 @@ namespace JFramework.Net
             }
             if (value.TryGetComponent(out NetworkObject identity))
             {
-                writer.WriteUInt(identity.netId);
+                writer.WriteUInt(identity.objectId);
             }
             else
             {

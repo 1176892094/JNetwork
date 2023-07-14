@@ -191,7 +191,7 @@ namespace JFramework.Net
             if (netId == 0) return null;
             byte componentIndex = reader.ReadByte();
             NetworkObject @object = NetworkUtils.GetNetworkObject(netId);
-            return @object != null ? @object.objects[componentIndex] : null;
+            return @object != null ? @object.entities[componentIndex] : null;
         }
 
         public static T ReadNetworkBehaviour<T>(this NetworkReader reader) where T : NetworkEntity
@@ -199,7 +199,7 @@ namespace JFramework.Net
             return reader.ReadNetworkBehaviour() as T;
         }
 
-        public static NetworkValue ReadNetworkValue(this NetworkReader reader)
+        public static NetworkVariable ReadNetworkValue(this NetworkReader reader)
         {
             uint netId = reader.ReadUInt();
             byte componentIndex = default;
@@ -208,7 +208,7 @@ namespace JFramework.Net
                 componentIndex = reader.ReadByte();
             }
 
-            return new NetworkValue(netId, componentIndex);
+            return new NetworkVariable(netId, componentIndex);
         }
 
         public static Transform ReadTransform(this NetworkReader reader)

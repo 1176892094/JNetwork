@@ -13,7 +13,7 @@ namespace JFramework.Net
             if (isStartClient) return;
             isStartClient = true;
 
-            foreach (var entity in objects)
+            foreach (var entity in entities)
             {
                 try
                 {
@@ -33,7 +33,7 @@ namespace JFramework.Net
         {
             if (!isStartClient) return;
 
-            foreach (var entity in objects)
+            foreach (var entity in entities)
             {
                 try
                 {
@@ -51,7 +51,7 @@ namespace JFramework.Net
         /// </summary>
         internal void OnStartServer()
         {
-            foreach (var entity in objects)
+            foreach (var entity in entities)
             {
                 try
                 {
@@ -69,7 +69,7 @@ namespace JFramework.Net
         /// </summary>
         internal void OnStopServer()
         {
-            foreach (var entity in objects)
+            foreach (var entity in entities)
             {
                 try
                 {
@@ -104,7 +104,7 @@ namespace JFramework.Net
         /// </summary>
         private void OnStartAuthority()
         {
-            foreach (var entity in objects)
+            foreach (var entity in entities)
             {
                 try
                 {
@@ -122,7 +122,7 @@ namespace JFramework.Net
         /// </summary>
         private void OnStopAuthority()
         {
-            foreach (var entity in objects)
+            foreach (var entity in entities)
             {
                 try
                 {

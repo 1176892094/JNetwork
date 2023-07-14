@@ -31,8 +31,8 @@ namespace JFramework.Net
 
             RegisterEvent<NotReadyEvent>(OnNotReadyEvent);
             RegisterEvent<SceneEvent>(OnSceneEvent);
-            RegisterEvent<SnapshotEvent>(OnSnapshotEvent);
-            RegisterEvent<RpcInvokeEvent>(OnRpcBufferEvent);
+            RegisterEvent<TimeEvent>(OnTimeEvent);
+            RegisterEvent<InvokeRpcEvent>(OnInvokeRpcEvent);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace JFramework.Net
         /// <param name="event"></param>
         private static void OnDestroyByHost(DestroyEvent @event)
         {
-            spawns.Remove(@event.netId);
+            spawns.Remove(@event.objectId);
         }
 
         /// <summary>
@@ -67,9 +67,9 @@ namespace JFramework.Net
         /// <param name="event"></param>
         private static void OnSpawnByHost(SpawnEvent @event)
         {
-            if (NetworkServer.spawns.TryGetValue(@event.netId, out var @object))
+            if (NetworkServer.spawns.TryGetValue(@event.objectId, out var @object))
             {
-                spawns[@event.netId] = @object;
+                spawns[@event.objectId] = @object;
                 @object.isOwner = @event.isOwner;
                 @object.isClient = true;
                 @object.OnNotifyAuthority();
@@ -83,12 +83,12 @@ namespace JFramework.Net
         /// <param name="event"></param>
         private static void OnDespawnByClient(DespawnEvent @event)
         {
-            if (spawns.TryGetValue(@event.netId, out var @object))
+            if (spawns.TryGetValue(@event.objectId, out var @object))
             {
                 @object.OnStopClient();
                 @object.gameObject.SetActive(false);
                 @object.Reset();
-                spawns.Remove(@event.netId);
+                spawns.Remove(@event.objectId);
             }
         }
 
@@ -98,11 +98,11 @@ namespace JFramework.Net
         /// <param name="event"></param>
         private static void OnDestroyByClient(DestroyEvent @event)
         {
-            if (spawns.TryGetValue(@event.netId, out var @object))
+            if (spawns.TryGetValue(@event.objectId, out var @object))
             {
                 @object.OnStopClient();
                 Object.Destroy(@object.gameObject);
-                spawns.Remove(@event.netId);
+                spawns.Remove(@event.objectId);
             }
         }
 
@@ -127,7 +127,7 @@ namespace JFramework.Net
         /// 接收 远程过程调用(RPC) 缓存的事件
         /// </summary>
         /// <param name="event"></param>
-        private static void OnRpcBufferEvent(RpcInvokeEvent @event)
+        private static void OnInvokeRpcEvent(InvokeRpcEvent @event)
         {
             using var reader = NetworkReader.Pop(@event.segment);
             while (reader.Residue > 0)
@@ -139,16 +139,16 @@ namespace JFramework.Net
         
         private static void OnClientRpcEvent(ClientRpcEvent @event)
         {
-            if (!spawns.TryGetValue(@event.netId, out var @object)) return;
+            if (!spawns.TryGetValue(@event.objectId, out var @object)) return;
             using var reader = NetworkReader.Pop(@event.segment);
-            @object.InvokeRpcEvent(@event.component, @event.methodHash, RpcType.ClientRpc, reader);
+            @object.InvokeRpcEvent(@event.serialId, @event.methodHash, RpcType.ClientRpc, reader);
         }
 
         /// <summary>
         /// 客户端下网络消息快照的事件
         /// </summary>
         /// <param name="event"></param>
-        private static void OnSnapshotEvent(SnapshotEvent @event)
+        private static void OnTimeEvent(TimeEvent @event)
         {
             NetworkSnapshot.OnTimeSnapshot(new TimeSnapshot(connection.timestamp, NetworkTime.localTime));
         }

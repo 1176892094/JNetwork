@@ -21,12 +21,12 @@ namespace JFramework.Net
 
             foreach (var @object in objects)
             {
-                if (NetworkUtils.IsSceneObject(@object) && @object.netId == 0)
+                if (NetworkUtils.IsSceneObject(@object) && @object.objectId == 0)
                 {
                     @object.gameObject.SetActive(true);
                     if (NetworkUtils.IsValidParent(@object))
                     {
-                        Spawn(@object.gameObject, @object.connection);
+                        Spawn(@object.gameObject, @object.client);
                     }
                 }
             }
@@ -51,25 +51,25 @@ namespace JFramework.Net
                 return;
             }
 
-            if (spawns.ContainsKey(@object.netId))
+            if (spawns.ContainsKey(@object.objectId))
             {
                 Debug.LogWarning($"网络对象 {@object} 已经被生成。", @object.gameObject);
                 return;
             }
             
-            @object.connection = client;
+            @object.client = client;
             
             if (NetworkManager.mode == NetworkMode.Host)
             {
                 @object.isOwner = true;
             }
             
-            if (!@object.isServer && @object.netId == 0)
+            if (!@object.isServer && @object.objectId == 0)
             {
-                @object.netId = ++netId;
+                @object.objectId = ++objectId;
                 @object.isServer = true;
                 @object.isClient = NetworkClient.isActive;
-                spawns[@object.netId] = @object;
+                spawns[@object.objectId] = @object;
                 @object.OnStartServer();
             }
             
@@ -100,13 +100,13 @@ namespace JFramework.Net
             var transform = @object.transform;
             SpawnEvent @event = new SpawnEvent
             {
-                netId = @object.netId,
+                objectId = @object.objectId,
                 sceneId = @object.sceneId,
                 assetId = @object.assetId,
                 position = transform.localPosition,
                 rotation = transform.localRotation,
                 localScale = transform.localScale,
-                isOwner = @object.connection == client,
+                isOwner = @object.client == client,
                 segment = SerializeNetworkObject(@object, writer)
             };
             client.Send(@event);
@@ -120,7 +120,7 @@ namespace JFramework.Net
         /// <returns></returns>
         private static ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, NetworkWriter writer)
         {
-            if (@object.objects.Length == 0) return default;
+            if (@object.entities.Length == 0) return default;
             @object.SerializeServer(true, writer);
             ArraySegment<byte> segment = writer.ToArraySegment();
             return segment;
@@ -132,14 +132,14 @@ namespace JFramework.Net
         /// <param name="object"></param>
         public static void Despawn(NetworkObject @object)
         {
-            spawns.Remove(@object.netId);
+            spawns.Remove(@object.objectId);
 
             if (NetworkManager.mode == NetworkMode.Host)
             {
                 @object.isOwner = false;
                 @object.OnStopClient();
                 @object.OnNotifyAuthority();
-                NetworkClient.spawns.Remove(@object.netId);
+                NetworkClient.spawns.Remove(@object.objectId);
             }
 
             @object.OnStopServer();
@@ -167,7 +167,7 @@ namespace JFramework.Net
         private static void SendDespawnEvent(NetworkClientEntity client, NetworkObject @object)
         {
             Debug.Log($"服务器为客户端 {client.clientId} 重置 {@object}");
-            client.Send(new DespawnEvent(@object.netId));
+            client.Send(new DespawnEvent(@object.objectId));
         }
     }
 }

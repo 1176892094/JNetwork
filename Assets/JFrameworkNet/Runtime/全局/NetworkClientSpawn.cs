@@ -72,14 +72,14 @@ namespace JFramework.Net
         /// <returns>返回是否能获取</returns>
         private static bool TrySpawn(SpawnEvent @event, out NetworkObject @object)
         {
-            if (spawns.TryGetValue(@event.netId, out @object))
+            if (spawns.TryGetValue(@event.objectId, out @object))
             {
                 return true;
             }
 
             if (@event is { assetId: 0, sceneId: 0 })
             {
-                Debug.LogError($"生成游戏对象 {@event.netId} 需要保证 assetId 和 sceneId 其中一个不为零");
+                Debug.LogError($"生成游戏对象 {@event.objectId} 需要保证 assetId 和 sceneId 其中一个不为零");
                 return false;
             }
 
@@ -87,7 +87,7 @@ namespace JFramework.Net
 
             if (@object == null)
             {
-                Debug.LogError($"不能成 {@object}。 assetId：{@event.netId} sceneId：{@event.sceneId}");
+                Debug.LogError($"不能成 {@object}。 assetId：{@event.assetId} sceneId：{@event.sceneId}");
                 return false;
             }
 
@@ -170,7 +170,7 @@ namespace JFramework.Net
                 @object.gameObject.SetActive(true);
             }
 
-            @object.netId = @event.netId;
+            @object.objectId = @event.objectId;
             @object.isOwner = @event.isOwner;
             @object.isClient = true;
 
@@ -185,7 +185,7 @@ namespace JFramework.Net
                 //TODO: @object.DeserializeClient(reader, true);
             }
 
-            spawns[@event.netId] = @object;
+            spawns[@event.objectId] = @object;
 
             if (isSpawn)
             {
@@ -199,7 +199,7 @@ namespace JFramework.Net
         /// </summary>
         private static void SpawnFinish()
         {
-            foreach (var @object in spawns.Values.OrderBy(@object => @object.netId))
+            foreach (var @object in spawns.Values.OrderBy(@object => @object.objectId))
             {
                 if (@object != null)
                 {

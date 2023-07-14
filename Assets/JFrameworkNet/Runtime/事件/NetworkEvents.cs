@@ -1,20 +1,21 @@
 using System;
 using JFramework.Interface;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace JFramework.Net
 {
     /// <summary>
     /// 快照差值
     /// </summary>
-    internal struct SnapshotEvent : IEvent
+    internal struct TimeEvent : IEvent
     {
     }
     
     /// <summary>
     /// 客户端准备就绪
     /// </summary>
-    internal struct ReadyEvent : IEvent
+    internal struct SetReadyEvent : IEvent
     {
     }
 
@@ -51,25 +52,25 @@ namespace JFramework.Net
         public readonly double clientTime;
         public PongEvent(double clientTime) => this.clientTime = clientTime;
     }
-
-    /// <summary>
-    /// Rpc缓存事件
-    /// </summary>
-    internal struct RpcInvokeEvent : IEvent
-    {
-        public readonly ArraySegment<byte> segment;
-        public RpcInvokeEvent(ArraySegment<byte> segment) => this.segment = segment;
-    }
-
+    
     /// <summary>
     /// 客户端远程调用服务器
     /// </summary>
     internal struct ServerRpcEvent : IEvent
     {
-        public uint netId;
-        public byte component;
-        public ushort methodHsh;
+        public uint objectId;
+        public byte serialId;
+        public ushort methodHash;
         public ArraySegment<byte> segment;
+    }
+
+    /// <summary>
+    /// Rpc缓存事件
+    /// </summary>
+    internal struct InvokeRpcEvent : IEvent
+    {
+        public readonly ArraySegment<byte> segment;
+        public InvokeRpcEvent(ArraySegment<byte> segment) => this.segment = segment;
     }
 
     /// <summary>
@@ -77,8 +78,8 @@ namespace JFramework.Net
     /// </summary>
     internal struct ClientRpcEvent : IEvent
     {
-        public uint netId;
-        public byte component;
+        public uint objectId;
+        public byte serialId;
         public ushort methodHash;
         public ArraySegment<byte> segment;
     }
@@ -88,10 +89,10 @@ namespace JFramework.Net
     /// </summary>
     internal struct SpawnEvent : IEvent
     {
-        public uint netId;
         public bool isOwner;
-        public ulong sceneId;
         public uint assetId;
+        public uint objectId;
+        public ulong sceneId;
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 localScale;
@@ -103,8 +104,8 @@ namespace JFramework.Net
     /// </summary>
     internal struct DespawnEvent : IEvent
     {
-        public readonly uint netId;
-        public DespawnEvent(uint netId) => this.netId = netId;
+        public readonly uint objectId;
+        public DespawnEvent(uint objectId) => this.objectId = objectId;
     }
 
     /// <summary>
@@ -112,7 +113,7 @@ namespace JFramework.Net
     /// </summary>
     internal struct DestroyEvent : IEvent
     {
-        public readonly uint netId;
-        public DestroyEvent(uint netId) => this.netId = netId;
+        public readonly uint objectId;
+        public DestroyEvent(uint objectId) => this.objectId = objectId;
     }
 }

@@ -38,11 +38,11 @@ namespace JFramework.Net
                 return;
             }
 
-            ServerRpcEvent @event = new ServerRpcEvent
+            var @event = new ServerRpcEvent
             {
-                netId = netId,
-                component = component,
-                methodHsh = (ushort)methodHash,
+                objectId = objectId,
+                serialId = serialId,
+                methodHash = (ushort)methodHash,
                 segment = writer.ToArraySegment()
             };
 
@@ -73,8 +73,8 @@ namespace JFramework.Net
 
             var @event = new ClientRpcEvent
             {
-                netId = netId,
-                component = component,
+                objectId = objectId,
+                serialId = serialId,
                 methodHash = (ushort)methodHash,
                 segment = writer.ToArraySegment()
             };
@@ -84,7 +84,7 @@ namespace JFramework.Net
 
             foreach (var client in NetworkServer.clients.Values.Where(client => client.isReady))
             {
-                client.BufferRpc(@event, channel);
+                client.InvokeRpc(@event, channel);
             }
         }
 
@@ -118,15 +118,15 @@ namespace JFramework.Net
                 return;
             }
 
-            ClientRpcEvent @event = new ClientRpcEvent
+            var @event = new ClientRpcEvent
             {
-                netId = netId,
-                component = component,
+                objectId = objectId,
+                serialId = serialId,
                 methodHash = (ushort)methodHash,
                 segment = writer.ToArraySegment()
             };
 
-            client.BufferRpc(@event, channel);
+            client.InvokeRpc(@event, channel);
         }
     }
 }

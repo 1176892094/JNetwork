@@ -12,7 +12,7 @@ namespace JFramework.Net
         private static void RegisterEvent()
         {
             Debug.Log("注册服务器事件");
-            RegisterEvent<ReadyEvent>(OnServerReadyEvent);
+            RegisterEvent<SetReadyEvent>(OnSetReadyEvent);
             RegisterEvent<ServerRpcEvent>(OnServerRpcEvent);
             RegisterEvent<PingEvent>(NetworkTime.OnPingEvent);
         }
@@ -42,18 +42,18 @@ namespace JFramework.Net
             {
                 Debug.LogWarning("接收到 ServerRpc 但客户端没有准备就绪");
             }
-            else if (!spawns.TryGetValue(@event.netId, out var @object))
+            else if (!spawns.TryGetValue(@event.objectId, out var @object))
             {
-                Debug.LogWarning($"没有找到发送 ServerRpc 的对象。对象网络Id：{@event.netId}");
+                Debug.LogWarning($"没有找到发送 ServerRpc 的对象。对象网络Id：{@event.objectId}");
             }
-            else if (RpcUtils.GetAuthorityByHash(@event.methodHsh) && @object.connection != client)
+            else if (RpcUtils.GetAuthorityByHash(@event.methodHash) && @object.client != client)
             {
-                Debug.LogWarning($"接收到 ServerRpc 但对象没有通过验证。对象网络Id：{@event.netId}");
+                Debug.LogWarning($"接收到 ServerRpc 但对象没有通过验证。对象网络Id：{@event.objectId}");
             }
             else
             {
                 using var reader = NetworkReader.Pop(@event.segment);
-                @object.InvokeRpcEvent(@event.component, @event.methodHsh, RpcType.ServerRpc, reader, client);
+                @object.InvokeRpcEvent(@event.serialId, @event.methodHash, RpcType.ServerRpc, reader, client);
             }
         }
 
@@ -62,9 +62,9 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="client"></param>
         /// <param name="event"></param>
-        private static void OnServerReadyEvent(NetworkClientEntity client, ReadyEvent @event)
+        private static void OnSetReadyEvent(NetworkClientEntity client, SetReadyEvent @event)
         {
-            SetClientReady(client);
+            SetReadyForClient(client);
             OnServerReady?.Invoke(client);
         }
     }
