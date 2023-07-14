@@ -12,7 +12,7 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendServerRpcInternal(string methodName, int methodHash, NetworkWriter writer, Channel channel)
+        protected void SendServerRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel)
         {
             if (!NetworkClient.isActive)
             {
@@ -46,7 +46,7 @@ namespace JFramework.Net
                 segment = writer.ToArraySegment()
             };
 
-            NetworkClient.connection.Send(@event, channel);
+            NetworkClient.connection.Send(@event, (Channel)channel);
         }
 
 
@@ -57,7 +57,7 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, Channel channel)
+        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel)
         {
             if (!NetworkServer.isActive)
             {
@@ -84,7 +84,7 @@ namespace JFramework.Net
 
             foreach (var client in NetworkServer.clients.Values.Where(client => client.isReady))
             {
-                client.InvokeRpc(@event, channel);
+                client.InvokeRpc(@event, (Channel)channel);
             }
         }
 
@@ -96,7 +96,7 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendTargetRpcInternal(NetworkClientEntity client, string methodName, int methodHash, NetworkWriter writer, Channel channel)
+        protected void SendTargetRpcInternal(NetworkClientEntity client, string methodName, int methodHash, NetworkWriter writer, int channel)
         {
             if (!NetworkServer.isActive)
             {
@@ -126,7 +126,7 @@ namespace JFramework.Net
                 segment = writer.ToArraySegment()
             };
 
-            client.InvokeRpc(@event, channel);
+            client.InvokeRpc(@event, (Channel)channel);
         }
     }
 }

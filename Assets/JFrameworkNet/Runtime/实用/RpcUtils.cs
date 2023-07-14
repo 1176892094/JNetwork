@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace JFramework.Net
 {
-    internal static class RpcUtils
+    public static class RpcUtils
     {
         private static readonly Dictionary<ushort, Invoker> events = new Dictionary<ushort, Invoker>();
 

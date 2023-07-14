@@ -9,14 +9,27 @@ namespace JFramework.Editor
     internal class Processor
     {
         private readonly AssemblyDefinition assembly;
+        
+        public readonly MethodReference GetWriterReference;
+        public readonly MethodReference ReturnWriterReference;
+        
+        public readonly MethodReference RemoteCallDelegateConstructor;
 
         public readonly MethodReference logErrorReference;
+        public readonly MethodReference logWarningReference;
         public readonly MethodReference NetworkClientGetActive;
+        public readonly MethodReference NetworkServerGetActive;
         
         public readonly MethodReference ArraySegmentConstructorReference;
         public readonly MethodReference ScriptableObjectCreateInstanceMethod;
         public readonly MethodReference readNetworkBehaviourGeneric;
-        public MethodReference sendRpcInternal;
+        public readonly MethodReference sendServerRpcInternal;
+        public readonly MethodReference sendTargetRpcInternal;
+        public readonly MethodReference sendClientRpcInternal;
+        
+        public readonly MethodReference registerServerRpcReference;
+        public readonly MethodReference registerClientRpcReference;
+        public readonly MethodReference getTypeFromHandleReference;
         
         
         public readonly TypeDefinition initializeOnLoadMethodAttribute;
@@ -34,22 +47,38 @@ namespace JFramework.Editor
             
             TypeReference NetworkClientType = Import(typeof(NetworkClient)); // 处理ClientRpc
             NetworkClientGetActive = Resolvers.ResolveMethod(NetworkClientType, assembly, logger, "get_isActive", ref isFailed);
+            TypeReference NetworkServerType = Import(typeof(NetworkServer)); // 处理ServerRpc
+            NetworkServerGetActive = Resolvers.ResolveMethod(NetworkServerType, assembly, logger, "get_isActive", ref isFailed);
             
             TypeReference readerExtensions = Import(typeof(StreamExtensions));
             readNetworkBehaviourGeneric = Resolvers.ResolveMethod(readerExtensions, assembly, logger, method => method.Name == nameof(StreamExtensions.ReadNetworkBehaviour) && method.HasGenericParameters, ref isFailed);
             
+          
+            TypeReference NetworkEntityType = Import<NetworkEntity>();
+            sendServerRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendServerRpcInternal", ref isFailed);
+            sendClientRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendClientRpcInternal", ref isFailed);
+            sendTargetRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendTargetRPCInternal", ref isFailed);
+            
+            TypeReference RemoteProcedureCallsType = Import(typeof(RpcUtils));
+            registerServerRpcReference = Resolvers.ResolveMethod(RemoteProcedureCallsType, assembly, logger, "RegisterServerRpc", ref isFailed);
+            registerClientRpcReference = Resolvers.ResolveMethod(RemoteProcedureCallsType, assembly, logger, "RegisterClientRpc", ref isFailed);
+            
+            TypeReference RemoteCallDelegateType = Import<RpcDelegate>();
+            RemoteCallDelegateConstructor = Resolvers.ResolveMethod(RemoteCallDelegateType, assembly, logger, ".ctor", ref isFailed);
+            
             TypeReference ScriptableObjectType = Import<ScriptableObject>();
             ScriptableObjectCreateInstanceMethod = Resolvers.ResolveMethod(ScriptableObjectType, assembly, logger, method => method.Name == "CreateInstance" && method.HasGenericParameters, ref isFailed);
-            
-          //  TypeReference NetworkEntityType = Import<NetworkEntity>();
 
-          //  sendRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendRPCInternal", ref isFailed);
             
             TypeReference unityDebugType = Import(typeof(Debug));
             logErrorReference = Resolvers.ResolveMethod(unityDebugType, assembly, logger, method => method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName,ref isFailed);
-
-         //   logWarningReference = Resolvers.ResolveMethod(unityDebugType, assembly, logger, md => md.Name == "LogWarning" && md.Parameters.Count == 1 && md.Parameters[0].ParameterType.FullName == typeof(object).FullName, ref isFailed);
-            
+            logWarningReference = Resolvers.ResolveMethod(unityDebugType, assembly, logger, md => md.Name == "LogWarning" && md.Parameters.Count == 1 && md.Parameters[0].ParameterType.FullName == typeof(object).FullName, ref isFailed);
+            TypeReference typeType = Import(typeof(Type));
+            getTypeFromHandleReference = Resolvers.ResolveMethod(typeType, assembly, logger, "GetTypeFromHandle", ref isFailed);
+            TypeReference NetworkWriterPoolType = Import(typeof(NetworkWriter));
+            GetWriterReference = Resolvers.ResolveMethod(NetworkWriterPoolType, assembly, logger, "Pop", ref isFailed); 
+            ReturnWriterReference = Resolvers.ResolveMethod(NetworkWriterPoolType, assembly, logger, "Push", ref isFailed);
+         
             if (Helpers.IsEditorAssembly(assembly))
             {
                 TypeReference initializeOnLoadMethodAttributeRef = Import(typeof(InitializeOnLoadMethodAttribute));

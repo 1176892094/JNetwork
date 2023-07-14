@@ -137,6 +137,10 @@ namespace JFramework.Net
             }
         }
         
+        /// <summary>
+        /// 当接收到 ClientRpc 的消息
+        /// </summary>
+        /// <param name="event"></param>
         private static void OnClientRpcEvent(ClientRpcEvent @event)
         {
             if (!spawns.TryGetValue(@event.objectId, out var @object)) return;

@@ -40,7 +40,7 @@ namespace JFramework.Net
         /// <summary>
         /// 是否是启动的
         /// </summary>
-        public static bool isActive;
+        public static bool isActive { get; private set; }
 
         /// <summary>
         /// 是否在加载场景

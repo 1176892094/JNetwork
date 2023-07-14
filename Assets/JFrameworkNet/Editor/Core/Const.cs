@@ -18,6 +18,7 @@ namespace JFramework.Editor
 
         public const MethodAttributes METHOD_RPC = MethodAttributes.Family | MethodAttributes.Static | MethodAttributes.HideBySig;
         public const MethodAttributes METHOD_ATTRS = MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig;
+        public const MethodAttributes STATIC_CCTOR = MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName | MethodAttributes.Static;
         public const TypeAttributes ATTRIBUTES = TypeAttributes.Class | TypeAttributes.AnsiClass | TypeAttributes.Public | TypeAttributes.AutoClass | TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit;
     }
 }

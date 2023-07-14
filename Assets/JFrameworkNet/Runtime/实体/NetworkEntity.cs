@@ -81,7 +81,7 @@ namespace JFramework.Net
         /// </summary>
         private double lastSyncTime;
 
-        private readonly List<ServerObject> serverObjects = new List<ServerObject>();
+        private readonly List<SyncObject> syncObjects = new List<SyncObject>();
 
         /// <summary>
         /// 是否能够改变网络值
@@ -161,7 +161,7 @@ namespace JFramework.Net
         /// <param name="writer"></param>
         private void SerializeObjectsAll(NetworkWriter writer)
         {
-            foreach (var syncObject in serverObjects)
+            foreach (var syncObject in syncObjects)
             {
                 syncObject.OnSerializeAll(writer);
             }
@@ -174,9 +174,9 @@ namespace JFramework.Net
         private void SerializeObjectsDelta(NetworkWriter writer)
         {
             writer.WriteULong(serverObjectDirty);
-            for (int i = 0; i < serverObjects.Count; i++)
+            for (int i = 0; i < syncObjects.Count; i++)
             {
-                ServerObject syncObject = serverObjects[i];
+                SyncObject syncObject = syncObjects[i];
                 if ((serverObjectDirty & (1UL << i)) != 0)
                 {
                     syncObject.OnSerializeDelta(writer);
@@ -229,7 +229,7 @@ namespace JFramework.Net
         /// <param name="reader"></param>
         private void DeserializeObjectsAll(NetworkReader reader)
         {
-            foreach (var syncObject in serverObjects)
+            foreach (var syncObject in syncObjects)
             {
                 syncObject.OnDeserializeAll(reader);
             }
@@ -242,9 +242,9 @@ namespace JFramework.Net
         private void DeserializeObjectsDelta(NetworkReader reader)
         {
             ulong dirty = reader.ReadULong();
-            for (int i = 0; i < serverObjects.Count; i++)
+            for (int i = 0; i < syncObjects.Count; i++)
             {
-                ServerObject syncObject = serverObjects[i];
+                SyncObject syncObject = syncObjects[i];
                 if ((dirty & (1UL << i)) != 0)
                 {
                     syncObject.OnDeserializeDelta(reader);

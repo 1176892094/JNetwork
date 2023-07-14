@@ -11,9 +11,9 @@ namespace JFramework.Net
         [ReadOnly, ShowInInspector] internal uint assetId;
         [ReadOnly, ShowInInspector] internal uint objectId;
         [ReadOnly, ShowInInspector] internal ulong sceneId;
-        [ReadOnly, ShowInInspector] public bool isOwner;
-        [ReadOnly, ShowInInspector] public bool isServer;
-        [ReadOnly, ShowInInspector] public bool isClient;
+        [ReadOnly, ShowInInspector] internal bool isOwner;
+        [ReadOnly, ShowInInspector] internal bool isServer;
+        [ReadOnly, ShowInInspector] internal bool isClient;
         [ReadOnly, ShowInInspector] internal NetworkServerEntity server;
         [ReadOnly, ShowInInspector] internal NetworkClientEntity client;
         private bool isStartClient;
@@ -81,12 +81,12 @@ namespace JFramework.Net
         /// <param name="observer"></param>
         internal void SerializeServer(bool isInit,  NetworkWriter observer)
         {
-            if (IsValid())
-            {
-                NetworkEntity[] entities = this.entities;
-
-                (ulong ownerMask, ulong observerMask) = ServerDirtyMasks(isInit);
-            }
+            // if (IsValid())
+            // {
+            //     NetworkEntity[] entities = this.entities;
+            //
+            //     (ulong ownerMask, ulong observerMask) = ServerDirtyMasks(isInit);
+            // }
         }
 
         private (ulong, ulong) ServerDirtyMasks(bool isInit)
@@ -125,6 +125,8 @@ namespace JFramework.Net
             isStartClient = false;
             hasAuthority = false;
             client = null;
+            server = null;
+            sceneIds.Clear();
         }
     }
 }

@@ -3,7 +3,8 @@ namespace JFramework.Net
     public enum RpcType : byte
     {
         ServerRpc,
-        ClientRpc
+        ClientRpc,
+        TargetRpc,
     }
 
     internal enum NetworkMode : byte

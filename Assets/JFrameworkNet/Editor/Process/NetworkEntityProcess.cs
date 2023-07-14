@@ -5,26 +5,28 @@ using Mono.Cecil.Cil;
 
 namespace JFramework.Editor
 {
-    public enum RemoteType
+    internal partial class NetworkEntityProcess
     {
-        ServerRpc,
-        ClientRpc,
-        TargetRpc
-    }
-
-    internal class NetworkEntityProcess
-    {
-        private Writers writers;
-        private Readers readers;
-        private Processor processor;
+        private readonly Writers writers;
+        private readonly Readers readers;
+        private readonly Processor processor;
         private ServerVarList serverVars;
-        private ServerVarProcess serverVarProcess;
+        private readonly ServerVarProcess serverVarProcess;
         private AssemblyDefinition assembly;
-        private Logger logger;
-        private TypeDefinition type;
+        private readonly Logger logger;
+        private readonly TypeDefinition type;
         private List<FieldDefinition> syncVars = new List<FieldDefinition>();
         private Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>();
         private List<FieldDefinition> syncObjects = new List<FieldDefinition>();
+        
+        private readonly List<ServerRpcResult> serverRpcList = new List<ServerRpcResult>();
+        private readonly List<MethodDefinition> serverRpcFuncList = new List<MethodDefinition>();
+        private readonly List<ClientRpcResult> clientRpcList = new List<ClientRpcResult>();
+        private readonly List<MethodDefinition> clientRpcFuncList = new List<MethodDefinition>();
+        private readonly List<MethodDefinition> targetRpcList = new List<MethodDefinition>();
+        private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
+
+        private readonly TypeDefinition generateCode;
 
         public struct ServerRpcResult
         {
@@ -61,6 +63,15 @@ namespace JFramework.Editor
             
             (syncVars, syncVarNetIds) = serverVarProcess.ProcessSyncVars(type, ref isFailed);
             
+            ProcessMethods(ref isFailed);
+            
+            if (isFailed)
+            {
+                return true;
+            }
+            
+            InjectIntoStaticConstructor(ref isFailed);
+            
             return true;
         }
 
@@ -84,15 +95,61 @@ namespace JFramework.Editor
         {
             worker.Emit(OpCodes.Call, processor.NetworkClientGetActive);
             worker.Emit(OpCodes.Brtrue, label);
-            worker.Emit(OpCodes.Ldstr, $"{error} {mdName} called on server.");
+            worker.Emit(OpCodes.Ldstr, $"{error} 方法 {mdName} 远程调用服务器异常.");
+            worker.Emit(OpCodes.Call, processor.logErrorReference);
+            worker.Emit(OpCodes.Ret);
+            worker.Append(label);
+        }
+        
+        public static void WriteServerActiveCheck(ILProcessor worker, Processor processor, string mdName, Instruction label, string errString)
+        {
+            worker.Emit(OpCodes.Call, processor.NetworkServerGetActive);
+            worker.Emit(OpCodes.Brtrue, label);
+
+            worker.Emit(OpCodes.Ldstr, $"{errString} {mdName} called on client.");
             worker.Emit(OpCodes.Call, processor.logErrorReference);
             worker.Emit(OpCodes.Ret);
             worker.Append(label);
         }
 
-        public static bool ReadArguments(MethodDefinition method, Readers readers, Logger logger, ILProcessor worker, RemoteType callType, ref bool WeavingFailed)
+
+        public static bool WriteArguments(ILProcessor worker, Writers writers, Logger logger, MethodDefinition method, RpcType rpcType, ref bool isFailed)
         {
-            bool skipFirst = callType == RemoteType.TargetRpc && TargetRpcProcess.HasNetworkConnectionParameter(method);
+            bool skipFirst = rpcType == RpcType.TargetRpc && TargetRpcProcess.HasNetworkConnectionParameter(method);
+            
+            int argNum = 1;
+            foreach (ParameterDefinition param in method.Parameters)
+            {
+                if (argNum == 1 && skipFirst)
+                {
+                    argNum += 1;
+                    continue;
+                }
+                if (IsSenderConnection(param, rpcType))
+                {
+                    argNum += 1;
+                    continue;
+                }
+
+                MethodReference writeFunc = writers.GetWriteFunc(param.ParameterType, ref isFailed);
+                if (writeFunc == null)
+                {
+                    logger.Error($"{method.Name} 有无效的参数 {param}。不支持类型 {param.ParameterType}。", method);
+                    isFailed = true;
+                    return false;
+                }
+                
+                worker.Emit(OpCodes.Ldloc_0);
+                worker.Emit(OpCodes.Ldarg, argNum);
+                worker.Emit(OpCodes.Call, writeFunc);
+                argNum += 1;
+            }
+            return true;
+        }
+        
+        public static bool ReadArguments(MethodDefinition method, Readers readers, Logger logger, ILProcessor worker, RpcType rpcType, ref bool isFailed)
+        {
+            bool skipFirst = rpcType == RpcType.TargetRpc && TargetRpcProcess.HasNetworkConnectionParameter(method);
             int argNum = 1;
             foreach (ParameterDefinition param in method.Parameters)
             {
@@ -102,18 +159,18 @@ namespace JFramework.Editor
                     continue;
                 }
                 
-                if (IsSenderConnection(param, callType))
+                if (IsSenderConnection(param, rpcType))
                 {
                     argNum += 1;
                     continue;
                 }
                 
-                MethodReference readFunc = readers.GetReadFunc(param.ParameterType, ref WeavingFailed);
+                MethodReference readFunc = readers.GetReadFunc(param.ParameterType, ref isFailed);
 
                 if (readFunc == null)
                 {
-                    logger.Error($"{method.Name} has invalid parameter {param}.  Unsupported type {param.ParameterType},  use a supported Mirror type instead", method);
-                    WeavingFailed = true;
+                    logger.Error($"{method.Name} 有无效的参数 {param}。不支持类型 {param.ParameterType}。", method);
+                    isFailed = true;
                     return false;
                 }
 
@@ -132,10 +189,10 @@ namespace JFramework.Editor
 
             return true;
         }
-        
-        public static bool IsSenderConnection(ParameterDefinition param, RemoteType callType)
+
+        public static bool IsSenderConnection(ParameterDefinition param, RpcType rpcType)
         {
-            if (callType != RemoteType.ServerRpc)
+            if (rpcType != RpcType.ServerRpc)
             {
                 return false;
             }
@@ -144,6 +201,25 @@ namespace JFramework.Editor
             return type.Is<NetworkClientEntity>() || type.Resolve().IsDerivedFrom<NetworkClientEntity>();
         }
         
+        public static void WriteSetupLocals(ILProcessor worker, Processor processor)
+        {
+            worker.Body.InitLocals = true;
+            worker.Body.Variables.Add(new VariableDefinition(processor.Import<NetworkWriter>()));
+        }
+
+        public static void WriteGetWriter(ILProcessor worker, Processor processor)
+        {
+            worker.Emit(OpCodes.Call, processor.GetWriterReference);
+            worker.Emit(OpCodes.Stloc_0);
+        }
+
+        public static void WriteReturnWriter(ILProcessor worker, Processor processor)
+        {
+            worker.Emit(OpCodes.Ldloc_0);
+            worker.Emit(OpCodes.Call, processor.ReturnWriterReference);
+        }
+
+
         public static void AddInvokeParameters(Processor processor, ICollection<ParameterDefinition> collection)
         {
             collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, processor.Import<NetworkEntity>()));

@@ -2,7 +2,10 @@ using System;
 
 namespace JFramework.Net
 {
-    public abstract class ServerObject
+    /// <summary>
+    /// 网络同步对戏那个
+    /// </summary>
+    public abstract class SyncObject
     {
         public Action OnDirty;
         public Func<bool> IsRecording = () => true;

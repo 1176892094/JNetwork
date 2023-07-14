@@ -223,5 +223,29 @@ namespace JFramework.Editor
             }
             return defaultValue;
         }
+        
+        public static MethodDefinition GetMethodInBaseType(this TypeDefinition td, string methodName)
+        {
+            TypeDefinition typedef = td;
+            while (typedef != null)
+            {
+                foreach (var definition in typedef.Methods.Where(method => method.Name == methodName))
+                {
+                    return definition;
+                }
+
+                try
+                {
+                    TypeReference parent = typedef.BaseType;
+                    typedef = parent?.Resolve();
+                }
+                catch (AssemblyResolutionException)
+                {
+                    break;
+                }
+            }
+
+            return null;
+        }
     }
 }
