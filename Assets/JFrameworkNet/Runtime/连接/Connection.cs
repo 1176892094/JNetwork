@@ -83,6 +83,19 @@ namespace JFramework.Net
             NetworkEvent.WriteEvent(writer, @event);
             Send(writer.ToArraySegment(), channel);
         }
+        
+        /// <summary>
+        /// 网络消息发送
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <returns>返回一个发送类</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected NetworkWriters GetWriters(Channel channel)
+        {
+            if (writerDict.TryGetValue(channel, out var writers)) return writers;
+            var threshold = Transport.current.UnreliableSize();
+            return writerDict[channel] = new NetworkWriters(threshold);
+        }
 
         /// <summary>
         /// 获取网络消息并添加到发送队列中
@@ -90,10 +103,7 @@ namespace JFramework.Net
         /// <param name="segment">数据分段</param>
         /// <param name="channel">传输通道</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
-        {
-            GetWriters(channel).WriteEnqueue(segment, NetworkTime.localTime);
-        }
+        internal abstract void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable);
 
         /// <summary>
         /// 发送消息到传输层
@@ -102,19 +112,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected abstract void SendToTransport(ArraySegment<byte> segment, Channel channel = Channel.Reliable);
-
-        /// <summary>
-        /// 网络消息发送
-        /// </summary>
-        /// <param name="channel"></param>
-        /// <returns>返回一个发送类</returns>
-        protected NetworkWriters GetWriters(Channel channel)
-        {
-            if (writerDict.TryGetValue(channel, out var writers)) return writers;
-            var threshold = Transport.current.UnreliableSize();
-            return writerDict[channel] = new NetworkWriters(threshold);
-        }
-
+        
         /// <summary>
         /// 连接断开
         /// </summary>

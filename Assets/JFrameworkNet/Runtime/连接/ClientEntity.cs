@@ -127,7 +127,7 @@ namespace JFramework.Net
                 return;
             }
 
-            base.Send(segment, channel);
+            GetWriters(channel).WriteEnqueue(segment, NetworkTime.localTime);
         }
 
         /// <summary>

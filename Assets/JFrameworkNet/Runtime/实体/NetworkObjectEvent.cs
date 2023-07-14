@@ -6,23 +6,6 @@ namespace JFramework.Net
     public sealed partial class NetworkObject
     {
         /// <summary>
-        /// 仅在客户端调用，触发Notify则进行权限认证
-        /// </summary>
-        internal void OnNotifyAuthority()
-        {
-            if (!hasAuthority && isOwner)
-            {
-                OnStartAuthority();
-            }
-            else if (hasAuthority && !isOwner)
-            {
-                OnStopAuthority();
-            }
-
-            hasAuthority = isOwner;
-        }
-
-        /// <summary>
         /// 仅在客户端调用，当在客户端生成时调用
         /// </summary>
         internal void OnStartClient()
@@ -97,6 +80,23 @@ namespace JFramework.Net
                     Debug.LogException(e, entity);
                 }
             }
+        }
+        
+        /// <summary>
+        /// 仅在客户端调用，触发Notify则进行权限认证
+        /// </summary>
+        internal void OnNotifyAuthority()
+        {
+            if (!hasAuthority && isOwner)
+            {
+                OnStartAuthority();
+            }
+            else if (hasAuthority && !isOwner)
+            {
+                OnStopAuthority();
+            }
+
+            hasAuthority = isOwner;
         }
 
         /// <summary>

@@ -83,7 +83,7 @@ namespace JFramework.Net
             }
             else
             {
-                base.Send(segment, channel);
+                GetWriters(channel).WriteEnqueue(segment, NetworkTime.localTime);
             }
         }
 
