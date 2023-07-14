@@ -8,46 +8,7 @@ namespace JFramework.Net
 {
     public abstract partial class NetworkEntity
     {
-        /// <summary>
-        /// 服务器变量的改变选项
-        /// </summary>
-        protected ulong serverVarDirty;
-        
-        /// <summary>
-        /// 服务器对象的改变选项
-        /// </summary>
-        internal ulong serverObjectDirty;
-        
-        /// <summary>
-        /// 服务器变量的钩子
-        /// </summary>
-        private ulong serverVarHook;
-
-        /// <summary>
-        /// 设置服务器变量改变
-        /// </summary>
-        /// <param name="dirty"></param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetServerVarDirty(ulong dirty) => serverVarDirty |= dirty;
-        
-        /// <summary>
-        /// 获取服务器变量的钩子
-        /// </summary>
-        /// <param name="dirty"></param>
-        /// <returns></returns>
-        private bool GetServerVarHook(ulong dirty) => (serverVarHook & dirty) != 0UL;
-
-        /// <summary>
-        /// 设置服务器变量的钩子
-        /// </summary>
-        /// <param name="dirty"></param>
-        /// <param name="value"></param>
-        private void SetServerVarHook(ulong dirty, bool value)
-        {
-            serverVarHook = value ? serverVarHook | dirty : serverVarHook & ~dirty;
-        }
-        
-#region ServerVar
+        #region ServerVar
 
         /// <summary>
         /// 添加标准的服务器变量设置

@@ -226,7 +226,7 @@ namespace JFramework.Net
             }
 
             writer.WriteUInt(value.netId);
-            writer.WriteByte(value.componentId);
+            writer.WriteByte(value.component);
         }
 
         public static void WriteTransform(this NetworkWriter writer, Transform value)

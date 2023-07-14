@@ -22,23 +22,23 @@ namespace JFramework.Net
 
             if (!NetworkClient.isReady)
             {
-                Debug.LogWarning($"调用 {methodName} 但是客户端没有准备就绪的。对象名称{name}", gameObject);
+                Debug.LogWarning($"调用 {methodName} 但是客户端没有准备就绪的。对象名称：{name}", gameObject);
                 return;
             }
 
             if (!isOwner)
             {
-                Debug.LogWarning($"调用 {methodName} 但是客户端没有对象权限。对象名称{name}", gameObject);
+                Debug.LogWarning($"调用 {methodName} 但是客户端没有对象权限。对象名称：{name}", gameObject);
                 return;
             }
 
             if (NetworkClient.connection == null)
             {
-                Debug.LogError($"调用 {methodName} 但是客户端的连接为空。对象名称{name}", gameObject);
+                Debug.LogError($"调用 {methodName} 但是客户端的连接为空。对象名称：{name}", gameObject);
                 return;
             }
 
-            ServerRpcEvent message = new ServerRpcEvent
+            ServerRpcEvent @event = new ServerRpcEvent
             {
                 netId = netId,
                 component = component,
@@ -46,7 +46,7 @@ namespace JFramework.Net
                 segment = writer.ToArraySegment()
             };
 
-            NetworkClient.connection.Send(message, channel);
+            NetworkClient.connection.Send(@event, channel);
         }
 
 
