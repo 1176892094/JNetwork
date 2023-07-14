@@ -30,7 +30,7 @@ namespace JFramework.Net
     /// </summary>
     internal struct SceneEvent : IEvent
     {
-        public string sceneName;
+        public readonly string sceneName;
         public SceneEvent(string sceneName) => this.sceneName = sceneName;
     }
 
@@ -57,7 +57,7 @@ namespace JFramework.Net
     /// </summary>
     internal struct RpcInvokeEvent : IEvent
     {
-        public ArraySegment<byte> segment;
+        public readonly ArraySegment<byte> segment;
         public RpcInvokeEvent(ArraySegment<byte> segment) => this.segment = segment;
     }
 

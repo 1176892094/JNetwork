@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JFramework.Interface;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -158,30 +157,6 @@ namespace JFramework.Net
                 SetClientNotReady(client);
             }
         }
-
-        /// <summary>
-        /// 向所有客户端发送消息
-        /// </summary>
-        /// <param name="message">网络消息</param>
-        /// <param name="channel">传输通道</param>
-        /// <typeparam name="T"></typeparam>
-        internal static void SendToAll<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
-        {
-            if (!isActive)
-            {
-                Debug.LogWarning("服务器不是活跃的。");
-                return;
-            }
-
-            using var writer = NetworkWriter.Pop();
-            NetworkEvent.WriteEvent(writer, message);
-            var segment = writer.ToArraySegment();
-            foreach (var client in clients.Values)
-            {
-                client.Send(segment, channel);
-            }
-        }
-
 
         /// <summary>
         /// 停止服务器

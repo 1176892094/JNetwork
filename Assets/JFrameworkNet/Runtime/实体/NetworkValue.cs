@@ -2,18 +2,18 @@ using System;
 
 namespace JFramework.Net
 {
-    public readonly struct NetworkVariable : IEquatable<NetworkVariable>
+    public readonly struct NetworkValue : IEquatable<NetworkValue>
     {
         public readonly byte index;
         public readonly uint netId;
 
-        public NetworkVariable(uint netId, int index) : this()
+        public NetworkValue(uint netId, int index) : this()
         {
             this.netId = netId;
             this.index = (byte)index;
         }
 
-        public bool Equals(NetworkVariable other)
+        public bool Equals(NetworkValue other)
         {
             return other.netId == netId && other.index == index;
         }

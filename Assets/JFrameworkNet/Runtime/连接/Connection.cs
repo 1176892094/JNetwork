@@ -94,7 +94,7 @@ namespace JFramework.Net
         {
             GetWriters(channel).WriteEnqueue(segment, NetworkTime.localTime);
         }
-        
+
         /// <summary>
         /// 发送消息到传输层
         /// </summary>
@@ -102,7 +102,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected abstract void SendToTransport(ArraySegment<byte> segment, Channel channel = Channel.Reliable);
-        
+
         /// <summary>
         /// 网络消息发送
         /// </summary>
@@ -114,7 +114,7 @@ namespace JFramework.Net
             var threshold = Transport.current.UnreliableSize();
             return writerDict[channel] = new NetworkWriters(threshold);
         }
-        
+
         /// <summary>
         /// 连接断开
         /// </summary>

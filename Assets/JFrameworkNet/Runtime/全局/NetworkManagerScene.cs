@@ -30,10 +30,12 @@ namespace JFramework.Net
             ServerManager.isLoadScene = true;
             if (ServerManager.isActive)
             {
-                ServerManager.SendToAll(new SceneEvent
+                using var writer = NetworkWriter.Pop();
+                NetworkEvent.WriteEvent(writer, new SceneEvent(newSceneName));
+                foreach (var client in ServerManager.clients.Values)
                 {
-                    sceneName = newSceneName
-                });
+                    client.Send(writer.ToArraySegment());
+                }
             }
 
             await LoadSceneAsync(newSceneName);
