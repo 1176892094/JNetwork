@@ -13,6 +13,7 @@ namespace JFramework.Editor
             ILProcessor worker = rpc.Body.GetILProcessor();
             Instruction label = worker.Create(OpCodes.Nop);
             NetworkEntityProcess.WriteClientActiveCheck(worker, processor, md.Name, label, "TargetRpc");
+            
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, type);
             
@@ -36,12 +37,10 @@ namespace JFramework.Editor
         public static MethodDefinition ProcessTargetRpcInvoke(Processor processor, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute targetRpcAttr, ref bool isFailed)
         {
             MethodDefinition rpc = MethodProcess.SubstituteMethod(logger, td, md, ref isFailed);
-
             ILProcessor worker = md.Body.GetILProcessor();
-
             NetworkEntityProcess.WriteSetupLocals(worker, processor);
-
             NetworkEntityProcess.WriteGetWriter(worker, processor);
+            
             if (!NetworkEntityProcess.WriteArguments(worker, writers, logger, md, RpcType.TargetRpc, ref isFailed))
             {
                 return null;
@@ -52,21 +51,18 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldstr, md.FullName);
             worker.Emit(OpCodes.Ldc_I4, NetworkEvent.GetHashByName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, targetRpcAttr.GetField("channel", 0));
+            worker.Emit(OpCodes.Ldc_I4, targetRpcAttr.GetField("channel", 1));
             worker.Emit(OpCodes.Callvirt, processor.sendTargetRpcInternal);
-
             NetworkEntityProcess.WriteReturnWriter(worker, processor);
-
             worker.Emit(OpCodes.Ret);
-
             return rpc;
         }
         
         public static bool HasNetworkConnectionParameter(MethodDefinition md)
         {
             if (md.Parameters.Count <= 0) return false;
-            TypeReference type = md.Parameters[0].ParameterType;
-            return type.Is<NetworkConnection>() || type.IsDerivedFrom<NetworkConnection>();
+            TypeReference td = md.Parameters[0].ParameterType;
+            return td.Is<NetworkConnection>() || td.IsDerivedFrom<NetworkConnection>();
         }
     }
 }

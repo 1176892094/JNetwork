@@ -54,7 +54,7 @@ namespace JFramework.Editor
             clientRpcList.Add(new ClientRpcResult(md));
             MethodDefinition func = ClientRpcProcess.ProcessClientRpcInvoke(processor, writers, logger, generateCode, md, rpc, ref isFailed);
             if (func == null) return;
-            MethodDefinition rpcFunc = ClientRpcProcess.ProcessClientRpc(processor, writers, readers, logger, generateCode, md, func, ref isFailed);
+            MethodDefinition rpcFunc = ClientRpcProcess.ProcessClientRpc(processor, readers, logger, generateCode, md, func, ref isFailed);
             if (rpcFunc != null)
             {
                 clientRpcFuncList.Add(rpcFunc);

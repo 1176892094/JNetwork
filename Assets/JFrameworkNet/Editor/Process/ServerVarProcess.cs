@@ -1,16 +1,18 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JFramework.Net;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace JFramework.Editor
 {
     internal class ServerVarProcess
     {
         private readonly Logger logger;
-        private Processor processor;
-        private ServerVarList serverVars;
-        private AssemblyDefinition assembly;
+        private readonly Processor processor;
+        private readonly ServerVarList serverVars;
+        private readonly AssemblyDefinition assembly;
 
         public ServerVarProcess(AssemblyDefinition assembly, Processor processor, ServerVarList serverVars, Logger logger)
         {
@@ -18,6 +20,28 @@ namespace JFramework.Editor
             this.processor = processor;
             this.serverVars = serverVars;
             this.logger = logger;
+        }
+        
+        public void GenerateNewActionFromHookMethod(FieldDefinition syncVar, ILProcessor worker, MethodDefinition hookMethod)
+        {
+            worker.Emit(hookMethod.IsStatic ? OpCodes.Ldnull : OpCodes.Ldarg_0);
+
+            var genericInstanceType = hookMethod.DeclaringType.MakeGenericInstanceType(hookMethod.DeclaringType.GenericParameters.ToArray());
+            var hookMethodReference = hookMethod.DeclaringType.HasGenericParameters ? hookMethod.MakeHostInstanceGeneric(hookMethod.Module,genericInstanceType) : hookMethod;
+            
+            if (hookMethod.IsVirtual)
+            {
+                worker.Emit(OpCodes.Dup);
+                worker.Emit(OpCodes.Ldvirtftn, hookMethodReference);
+            }
+            else
+            {
+                worker.Emit(OpCodes.Ldftn, hookMethodReference);
+            }
+            
+            TypeReference actionRef = assembly.MainModule.ImportReference(typeof(Action<,>));
+            GenericInstanceType genericInstance = actionRef.MakeGenericInstanceType(syncVar.FieldType, syncVar.FieldType);
+            worker.Emit(OpCodes.Newobj, processor.ActionDoubleReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
         }
 
         public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition serverVar, ref bool isFailed)
@@ -66,7 +90,61 @@ namespace JFramework.Editor
 
         public (List<FieldDefinition> syncVars, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds) ProcessSyncVars(TypeDefinition td, ref bool isFailed)
         {
-            return (null, null);
+            List<FieldDefinition> syncVars = new List<FieldDefinition>();
+            Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>(); 
+            int dirtyBitCounter = serverVars.GetServerVar(td.BaseType.FullName);
+            
+            foreach (var fd in td.Fields.Where(fd => fd.HasCustomAttribute<ServerVarAttribute>()))
+            {
+                if ((fd.Attributes & FieldAttributes.Static) != 0)
+                {
+                    logger.Error($"{fd.Name} 不能是静态字段。", fd);
+                    isFailed = true;
+                    continue;
+                }
+
+                if (fd.FieldType.IsGenericParameter)
+                {
+                    logger.Error($"{fd.Name} 不能用泛型参数。", fd);
+                    isFailed = true;
+                    continue;
+                }
+
+                if (fd.FieldType.IsArray)
+                {
+                    logger.Error($"{fd.Name} 不能使用数组。", fd);
+                    isFailed = true;
+                    continue;
+                }
+
+                // if (SyncObjectInitializer.ImplementsSyncObject(fd.FieldType))
+                // {
+                //     logger.Warning($"{fd.Name} has [SyncVar] attribute. SyncLists should not be marked with SyncVar", fd);
+                // }
+                // else
+                // {
+                //     syncVars.Add(fd);
+                //
+                //     ProcessSyncVar(td, fd, syncVarNetIds, 1L << dirtyBitCounter, ref isFailed);
+                //     dirtyBitCounter += 1;
+                //
+                //     if (dirtyBitCounter > SyncVarLimit)
+                //     {
+                //         logger.Error($"{td.Name} has > {CONST.SERVER_VAR_LIMIT} SyncVars. Consider refactoring your class into multiple components", td);
+                //         isFailed = true;
+                //         continue;
+                //     }
+                // }
+            }
+            
+            foreach (FieldDefinition fd in syncVarNetIds.Values)
+            {
+                td.Fields.Add(fd);
+            }
+            
+            int parentSyncVarCount = serverVars.GetServerVar(td.BaseType.FullName);
+            serverVars.SetServerVarCount(td.FullName, parentSyncVarCount + syncVars.Count);
+            return (syncVars, syncVarNetIds);
         }
     }
 }

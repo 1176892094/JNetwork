@@ -10,10 +10,15 @@ namespace JFramework.Editor
     {
         private readonly AssemblyDefinition assembly;
         
+        public readonly MethodReference ActionDoubleReference;
+        
         public readonly MethodReference GetWriterReference;
         public readonly MethodReference ReturnWriterReference;
         
+        public readonly MethodReference NetworkEntityDirtyReference;
         public readonly MethodReference RemoteCallDelegateConstructor;
+        
+        public readonly MethodReference InitSyncObjectReference;
 
         public readonly MethodReference logErrorReference;
         public readonly MethodReference logWarningReference;
@@ -26,6 +31,16 @@ namespace JFramework.Editor
         public readonly MethodReference sendServerRpcInternal;
         public readonly MethodReference sendTargetRpcInternal;
         public readonly MethodReference sendClientRpcInternal;
+        
+        public readonly MethodReference generalSyncVarSetter;
+        public readonly MethodReference gameObjectSyncVarSetter;
+        public readonly MethodReference networkObjectSyncVarSetter;
+        public readonly MethodReference networkEntitySyncVarSetter;
+        
+        public readonly MethodReference generalSyncVarGetter;
+        public readonly MethodReference gameObjectSyncVarGetter;
+        public readonly MethodReference networkObjectSyncVarGetter;
+        public readonly MethodReference networkEntitySyncVarGetter;
         
         public readonly MethodReference registerServerRpcReference;
         public readonly MethodReference registerClientRpcReference;
@@ -45,6 +60,9 @@ namespace JFramework.Editor
             TypeReference ArraySegmentType = Import(typeof(ArraySegment<>));
             ArraySegmentConstructorReference = Resolvers.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CONSTRUCTOR, ref isFailed);
             
+            TypeReference ActionType = Import(typeof(Action<,>));
+            ActionDoubleReference = Resolvers.ResolveMethod(ActionType, assembly, logger, ".ctor", ref isFailed);
+            
             TypeReference NetworkClientType = Import(typeof(NetworkClient)); // 处理ClientRpc
             NetworkClientGetActive = Resolvers.ResolveMethod(NetworkClientType, assembly, logger, "get_isActive", ref isFailed);
             TypeReference NetworkServerType = Import(typeof(NetworkServer)); // 处理ServerRpc
@@ -55,9 +73,22 @@ namespace JFramework.Editor
             
           
             TypeReference NetworkEntityType = Import<NetworkEntity>();
+            NetworkEntityDirtyReference = Resolvers.ResolveProperty(NetworkEntityType, assembly, "serverVarDirty");
+            
+            generalSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GeneralSyncVarSetter", ref isFailed);
+            generalSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GeneralSyncVarGetter", ref isFailed);
+            gameObjectSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GameObjectSyncVarSetter", ref isFailed);
+            gameObjectSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GameObjectSyncVarGetter", ref isFailed);
+            networkObjectSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkObjectSyncVarSetter", ref isFailed);
+            networkObjectSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkObjectSyncVarGetter", ref isFailed);
+            networkEntitySyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkEntitySyncVarSetter", ref isFailed);
+            networkEntitySyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkEntitySyncVarGetter", ref isFailed);
+            
             sendServerRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendServerRpcInternal", ref isFailed);
             sendClientRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendClientRpcInternal", ref isFailed);
             sendTargetRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendTargetRpcInternal", ref isFailed);
+            
+            InitSyncObjectReference = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "InitSyncObject", ref isFailed);
             
             TypeReference RemoteProcedureCallsType = Import(typeof(NetworkRpc));
             registerServerRpcReference = Resolvers.ResolveMethod(RemoteProcedureCallsType, assembly, logger, "RegisterServerRpc", ref isFailed);

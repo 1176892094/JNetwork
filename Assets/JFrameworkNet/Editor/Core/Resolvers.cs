@@ -68,6 +68,28 @@ namespace JFramework.Editor
             return null;
         }
         
+        public static MethodReference TryResolveMethodInParents(TypeReference tr, AssemblyDefinition assembly, string name)
+        {
+            if (tr == null)
+            {
+                return null;
+            }
+            foreach (MethodDefinition methodDef in tr.Resolve().Methods)
+            {
+                if (methodDef.Name == name)
+                {
+                    MethodReference methodRef = methodDef;
+                    if (tr.IsGenericInstance)
+                    {
+                        methodRef = methodRef.MakeHostInstanceGeneric(tr.Module, (GenericInstanceType)tr);
+                    }
+                    return assembly.MainModule.ImportReference(methodRef);
+                }
+            }
+            
+            return TryResolveMethodInParents(tr.Resolve().BaseType.ApplyGenericParameters(tr), assembly, name);
+        }
+        
         public static MethodDefinition ResolveDefaultPublicCtor(TypeReference variable)
         {
             foreach (MethodDefinition methodRef in variable.Resolve().Methods)

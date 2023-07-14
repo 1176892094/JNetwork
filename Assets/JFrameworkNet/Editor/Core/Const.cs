@@ -12,7 +12,8 @@ namespace JFramework.Editor
         public const string INVOKE_RPC = "InvokeUserCode_";
         public const string USER_RPC = "UserCode_";
         public const string CONSTRUCTOR = ".ctor";
-       
+        public const string SERIAL_METHOD = "SerializeSyncVars";
+        public const string DE_SERIAL_METHOD = "DeserializeSyncVars";
 
         public const int SERVER_VAR_LIMIT = 64;
 

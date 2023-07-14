@@ -38,11 +38,11 @@ namespace JFramework.Editor
             FixRemoteCallToBaseMethod(logger, td, cmd, ref isFailed);
             return cmd;
         }
-        
-        public static void FixRemoteCallToBaseMethod(Logger logger, TypeDefinition type, MethodDefinition method, ref bool isFailed)
+
+        private static void FixRemoteCallToBaseMethod(Logger logger, TypeDefinition type, MethodDefinition method, ref bool isFailed)
         {
-            string callName = method.Name;
-            if (!callName.StartsWith(CONST.USER_RPC)) return;
+            string methodName = method.Name;
+            if (!methodName.StartsWith(CONST.USER_RPC)) return;
             string baseRemoteCallName = method.Name.Substring(CONST.USER_RPC.Length);
 
             foreach (Instruction instruction in method.Body.Instructions)
@@ -53,18 +53,18 @@ namespace JFramework.Editor
                     if (calledMethodName_Generated == baseRemoteCallName)
                     {
                         TypeDefinition baseType = type.BaseType.Resolve();
-                        MethodDefinition baseMethod = baseType.GetMethodInBaseType(callName);
+                        MethodDefinition baseMethod = baseType.GetMethodInBaseType(methodName);
 
                         if (baseMethod == null)
                         {
-                            logger.Error($"Could not find base method for {callName}", method);
+                            logger.Error($"找不到 base 方法{methodName}", method);
                             isFailed = true;
                             return;
                         }
 
                         if (!baseMethod.IsVirtual)
                         {
-                            logger.Error($"Could not find base method that was virtual {callName}", method);
+                            logger.Error($"找不到 virtual 的 base 方法{methodName}", method);
                             isFailed = true;
                             return;
                         }

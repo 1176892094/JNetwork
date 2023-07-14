@@ -247,5 +247,55 @@ namespace JFramework.Editor
 
             return null;
         }
+        
+        public static TypeReference ApplyGenericParameters(this TypeReference parentReference, TypeReference childReference)
+        {
+            if (!parentReference.IsGenericInstance) return parentReference;
+            GenericInstanceType parentGeneric = (GenericInstanceType)parentReference;
+            GenericInstanceType generic = new GenericInstanceType(parentReference.Resolve());
+            foreach (TypeReference arg in parentGeneric.GenericArguments)
+            {
+                generic.GenericArguments.Add(arg);
+            }
+
+            for (int i = 0; i < generic.GenericArguments.Count; i++)
+            {
+                if (!generic.GenericArguments[i].IsGenericParameter) continue;
+                string name = generic.GenericArguments[i].Name;
+                TypeReference arg = FindMatchingGenericArgument(childReference, name);
+                TypeReference imported = parentReference.Module.ImportReference(arg);
+                generic.GenericArguments[i] = imported;
+            }
+
+            return generic;
+        }
+        
+        private static TypeReference FindMatchingGenericArgument(TypeReference childReference, string paramName)
+        {
+            TypeDefinition def = childReference.Resolve();
+            if (!def.HasGenericParameters) throw new InvalidOperationException("基类有泛型参数，但在子类中找不到它们。");
+            for (int i = 0; i < def.GenericParameters.Count; i++)
+            {
+                GenericParameter param = def.GenericParameters[i];
+                if (param.Name == paramName)
+                {
+                    GenericInstanceType generic = (GenericInstanceType)childReference;
+                    return generic.GenericArguments[i];
+                }
+            }
+            
+            throw new InvalidOperationException("没有找到匹配的泛型");
+        }
+        
+                
+        public static FieldReference MakeHostInstanceGeneric(this FieldReference self)
+        {
+            var declaringType = new GenericInstanceType(self.DeclaringType);
+            foreach (var parameter in self.DeclaringType.GenericParameters)
+            {
+                declaringType.GenericArguments.Add(parameter);
+            }
+            return new FieldReference(self.Name, self.FieldType, declaringType);
+        }
     }
 }

@@ -12,46 +12,45 @@ namespace JFramework.Editor
             MethodDefinition cmd = new MethodDefinition(rpcName, CONST.METHOD_RPC, processor.Import(typeof(void)));
             ILProcessor worker = cmd.Body.GetILProcessor();
             Instruction label = worker.Create(OpCodes.Nop);
-            
             NetworkEntityProcess.WriteServerActiveCheck(worker, processor, md.Name, label, "ServerRpc");
             
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, td);
 
-            if (!NetworkEntityProcess.ReadArguments(md, readers, logger, worker, RpcType.ServerRpc, ref isFailed)) return null;
+            if (!NetworkEntityProcess.ReadArguments(md, readers, logger, worker, RpcType.ServerRpc, ref isFailed))
+            {
+                return null;
+            }
 
             AddSenderConnection(md, worker);
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-
             NetworkEntityProcess.AddInvokeParameters(processor, cmd.Parameters);
-
             td.Methods.Add(cmd);
             return cmd;
         }
         
-        public static MethodDefinition ProcessServerRpcInvoke(Processor processor, Writers writers, Logger Log, TypeDefinition td, MethodDefinition md, CustomAttribute commandAttr, ref bool isFailed)
+        public static MethodDefinition ProcessServerRpcInvoke(Processor processor, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute commandAttr, ref bool isFailed)
         {
-            MethodDefinition cmd = MethodProcess.SubstituteMethod(Log, td, md, ref isFailed);
-
+            MethodDefinition rpc = MethodProcess.SubstituteMethod(logger, td, md, ref isFailed);
             ILProcessor worker = md.Body.GetILProcessor();
-
             NetworkEntityProcess.WriteSetupLocals(worker, processor);
             NetworkEntityProcess.WriteGetWriter(worker, processor);
-            if (!NetworkEntityProcess.WriteArguments(worker, writers, Log, md, RpcType.ServerRpc, ref isFailed)) return null;
-            
-            int channel = commandAttr.GetField("channel", 1);
 
+            if (!NetworkEntityProcess.WriteArguments(worker, writers, logger, md, RpcType.ServerRpc, ref isFailed))
+            {
+                return null;
+            }
 
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldstr, md.FullName);
             worker.Emit(OpCodes.Ldc_I4, NetworkEvent.GetHashByName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, channel);
+            worker.Emit(OpCodes.Ldc_I4, commandAttr.GetField("channel", 1));
             worker.Emit(OpCodes.Call, processor.sendServerRpcInternal);
             NetworkEntityProcess.WriteReturnWriter(worker, processor);
             worker.Emit(OpCodes.Ret);
-            return cmd;
+            return rpc;
         }
         
         private static void AddSenderConnection(MethodDefinition method, ILProcessor worker)

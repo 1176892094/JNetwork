@@ -17,8 +17,7 @@ namespace JFramework.Editor
         private readonly TypeDefinition type;
         private List<FieldDefinition> syncVars = new List<FieldDefinition>();
         private Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>();
-        private List<FieldDefinition> syncObjects = new List<FieldDefinition>();
-        
+
         private readonly List<ServerRpcResult> serverRpcList = new List<ServerRpcResult>();
         private readonly List<MethodDefinition> serverRpcFuncList = new List<MethodDefinition>();
         private readonly List<ClientRpcResult> clientRpcList = new List<ClientRpcResult>();
@@ -30,13 +29,13 @@ namespace JFramework.Editor
 
         public struct ServerRpcResult
         {
-            public MethodDefinition method;
+            public readonly MethodDefinition method;
             public ServerRpcResult(MethodDefinition method) => this.method = method;
         }
 
         public struct ClientRpcResult
         {
-            public MethodDefinition method;
+            public readonly MethodDefinition method;
             public ClientRpcResult(MethodDefinition method) => this.method = method;
         }
         
@@ -72,6 +71,13 @@ namespace JFramework.Editor
             
             InjectIntoStaticConstructor(ref isFailed);
             
+            GenerateSerialization(ref isFailed);
+            if (isFailed)
+            {
+                return true;
+            }
+            
+            GenerateDeserialization(ref isFailed);
             return true;
         }
 
@@ -90,8 +96,8 @@ namespace JFramework.Editor
                 td.Methods.Add(versionMethod);
             }
         }
-        
-        public static void WriteClientActiveCheck(ILProcessor worker, Processor processor, string mdName, Instruction label,string error)
+
+        public static void WriteClientActiveCheck(ILProcessor worker, Processor processor, string mdName, Instruction label, string error)
         {
             worker.Emit(OpCodes.Call, processor.NetworkClientGetActive);
             worker.Emit(OpCodes.Brtrue, label);
@@ -100,13 +106,13 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ret);
             worker.Append(label);
         }
-        
-        public static void WriteServerActiveCheck(ILProcessor worker, Processor processor, string mdName, Instruction label, string errString)
+
+        public static void WriteServerActiveCheck(ILProcessor worker, Processor processor, string mdName, Instruction label, string error)
         {
             worker.Emit(OpCodes.Call, processor.NetworkServerGetActive);
             worker.Emit(OpCodes.Brtrue, label);
 
-            worker.Emit(OpCodes.Ldstr, $"{errString} {mdName} called on client.");
+            worker.Emit(OpCodes.Ldstr, $"{error} {mdName} called on client.");
             worker.Emit(OpCodes.Call, processor.logErrorReference);
             worker.Emit(OpCodes.Ret);
             worker.Append(label);

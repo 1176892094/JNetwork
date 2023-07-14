@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -9,7 +10,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器变量的改变选项
         /// </summary>
-        protected ulong serverVarDirty;
+        protected ulong serverVarDirty { get; set; }
 
         /// <summary>
         /// 服务器对象的改变选项
@@ -90,7 +91,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsDirty()
         {
-            return (serverVarDirty | serverObjectDirty) != 0UL && NetworkTime.localTime - lastSyncTime >= syncInterval;
+            return serverVarDirty  != 0UL && NetworkTime.localTime - lastSyncTime >= syncInterval;
         }
 
         /// <summary>
@@ -109,6 +110,9 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetServerVarDirty(ulong dirty) => serverVarDirty |= dirty;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void SetServerObjectDirty(ulong dirty) => serverObjectDirty |= dirty;
+
         /// <summary>
         /// 获取服务器变量的钩子
         /// </summary>
@@ -124,6 +128,10 @@ namespace JFramework.Net
         private void SetServerVarHook(ulong dirty, bool value)
         {
             serverVarHook = value ? serverVarHook | dirty : serverVarHook & ~dirty;
+        }
+
+        protected void InitSyncObject(SyncObject syncObject)
+        {
         }
 
         /// <summary>
@@ -188,8 +196,8 @@ namespace JFramework.Net
         /// 序列化网络变量
         /// </summary>
         /// <param name="writer"></param>
-        /// <param name="initialState"></param>
-        protected virtual void SerializeSyncVars(NetworkWriter writer, bool initialState)
+        /// <param name="force"></param>
+        protected virtual void SerializeSyncVars(NetworkWriter writer, bool force)
         {
             //TODO：通过自动生成
         }
@@ -256,8 +264,8 @@ namespace JFramework.Net
         /// 反序列化网络变量
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="initialState"></param>
-        protected virtual void DeserializeSyncVars(NetworkReader reader, bool initialState)
+        /// <param name="force"></param>
+        protected virtual void DeserializeSyncVars(NetworkReader reader, bool force)
         {
             //TODO：通过自动生成
         }
