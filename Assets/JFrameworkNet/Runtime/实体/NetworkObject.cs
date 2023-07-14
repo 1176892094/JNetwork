@@ -16,7 +16,8 @@ namespace JFramework.Net
         [ReadOnly, ShowInInspector] public uint netId;
         [ReadOnly, SerializeField] private uint m_assetId;
         [ReadOnly, ShowInInspector] internal ulong sceneId;
-        [ReadOnly, ShowInInspector] private ClientEntity m_connection;
+        [ReadOnly, ShowInInspector] internal ServerEntity server;
+        [ReadOnly, ShowInInspector] private ClientEntity client;
         [ReadOnly, ShowInInspector] public bool isOwner;
         [ReadOnly, ShowInInspector] public bool isServer;
         [ReadOnly, ShowInInspector] public bool isClient;
@@ -49,8 +50,8 @@ namespace JFramework.Net
         
         public ClientEntity connection
         {
-            get => m_connection;
-            internal set => m_connection = value;
+            get => client;
+            internal set => client = value;
         }
 
      
@@ -58,13 +59,31 @@ namespace JFramework.Net
         private void Awake()
         {
             objects = GetComponentsInChildren<NetworkEntity>(true);
+            if (IsValid())
+            {
+                for (int i = 0; i < objects.Length; ++i)
+                {
+                    objects[i].@object = this;
+                    objects[i].component = (byte)i;
+                }
+            }
         }
-        
-        private void OnValidate()
+
+        private bool IsValid()
         {
-#if UNITY_EDITOR
-            SetupIDs();
-#endif
+            if (objects == null)
+            {
+                Debug.LogError($"网络对象持有的 NetworkEntity 为空", gameObject);
+                return false;
+            }
+
+            if (objects.Length > NetworkConst.MaxEntityCount)
+            {
+                Debug.LogError($"网络对象持有的 NetworkEntity 的数量不能超过{NetworkConst.MaxEntityCount}");
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -98,21 +117,12 @@ namespace JFramework.Net
         /// <param name="observer"></param>
         internal void SerializeServer(bool isInit,  NetworkWriter observer)
         {
-            if (objects == null)
+            if (IsValid())
             {
-                Debug.LogError($"网络对象持有的 NetworkEntity 为空", gameObject);
-                return;
+                NetworkEntity[] entities = objects;
+
+                (ulong ownerMask, ulong observerMask) = ServerDirtyMasks(isInit);
             }
-
-            if (objects.Length > NetworkConst.MaxEntityCount)
-            {
-                Debug.LogError($"网络对象持有的 NetworkEntity 的数量不能超过{NetworkConst.MaxEntityCount}");
-                return;
-            }
-
-            NetworkEntity[] entities = objects;
-
-            (ulong ownerMask, ulong observerMask) = ServerDirtyMasks(isInit);
         }
 
         private (ulong, ulong) ServerDirtyMasks(bool isInit)
@@ -140,6 +150,13 @@ namespace JFramework.Net
             }
 
             return (ownerMask, observerMask);
+        }
+        
+        private void OnValidate()
+        {
+#if UNITY_EDITOR
+            SetupIDs();
+#endif
         }
 
         internal void Reset()

@@ -68,7 +68,7 @@ namespace JFramework.Net
     {
         public uint netId;
         public byte component;
-        public ushort funcHash;
+        public ushort methodHsh;
         public ArraySegment<byte> segment;
     }
 
@@ -79,7 +79,7 @@ namespace JFramework.Net
     {
         public uint netId;
         public byte component;
-        public ushort funcHash;
+        public ushort methodHash;
         public ArraySegment<byte> segment;
     }
 

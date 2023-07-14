@@ -113,9 +113,9 @@ namespace JFramework.Net
         internal static void OnClientConnect(ClientEntity client)
         {
             clients.TryAdd(client.clientId, client);
-            if (!string.IsNullOrEmpty(NetworkManager.serverScene))
+            if (!string.IsNullOrEmpty(NetworkManager.sceneName))
             {
-                client.Send(new SceneEvent(NetworkManager.serverScene));
+                client.Send(new SceneEvent(NetworkManager.sceneName));
             }
 
             OnServerConnect?.Invoke(client);

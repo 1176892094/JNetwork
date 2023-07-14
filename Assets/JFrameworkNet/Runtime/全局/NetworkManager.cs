@@ -13,7 +13,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器场景
         /// </summary>
-        internal static string serverScene;
+        internal static string sceneName;
 
         /// <summary>
         /// 预置体列表
@@ -126,7 +126,7 @@ namespace JFramework.Net
                 return;
             }
 
-            serverScene = "";
+            sceneName = "";
             ServerManager.StartServer(isListen);
             OnStartServer?.Invoke();
         }
@@ -142,7 +142,7 @@ namespace JFramework.Net
                 return;
             }
 
-            serverScene = "";
+            sceneName = "";
             OnStopServer?.Invoke();
             ServerManager.StopServer();
         }

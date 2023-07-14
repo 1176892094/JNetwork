@@ -141,7 +141,7 @@ namespace JFramework.Net
         {
             if (!spawns.TryGetValue(@event.netId, out var @object)) return;
             using var reader = NetworkReader.Pop(@event.segment);
-            @object.InvokeRpcEvent(@event.component, @event.funcHash, RpcType.ClientRpc, reader);
+            @object.InvokeRpcEvent(@event.component, @event.methodHash, RpcType.ClientRpc, reader);
         }
 
         /// <summary>
