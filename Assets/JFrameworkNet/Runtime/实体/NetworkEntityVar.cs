@@ -190,6 +190,14 @@ namespace JFramework.Net
       
 #region NetworkObject
 
+        /// <summary>
+        /// 设置网络对象的网络变量
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="field"></param>
+        /// <param name="dirty"></param>
+        /// <param name="OnChanged"></param>
+        /// <param name="netId"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddServerVarSetter(NetworkObject value, ref NetworkObject field, ulong dirty, Action<NetworkObject, NetworkObject> OnChanged, ref uint netId)
         {
@@ -209,6 +217,12 @@ namespace JFramework.Net
             }
         }
         
+        /// <summary>
+        /// 网络对象的网络变量
+        /// </summary>
+        /// <param name="object"></param>
+        /// <param name="netId"></param>
+        /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
         private static bool ServerVarEqual(NetworkObject @object, uint netId)
         {
@@ -224,6 +238,13 @@ namespace JFramework.Net
             return newNetId == netId;
         }
         
+        /// <summary>
+        /// 设置网络变量的网络对象
+        /// </summary>
+        /// <param name="object"></param>
+        /// <param name="field"></param>
+        /// <param name="dirty"></param>
+        /// <param name="netId"></param>
         private void SetServerVar(NetworkObject @object, ref NetworkObject field, ulong dirty, ref uint netId)
         {
             if (GetServerVarHook(dirty)) return;
@@ -246,6 +267,15 @@ namespace JFramework.Net
         
 #region NetworkEntity
         
+        /// <summary>
+        /// 添加网络实体的网络变量
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="field"></param>
+        /// <param name="dirty"></param>
+        /// <param name="OnChanged"></param>
+        /// <param name="netId"></param>
+        /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddServerVarSetter<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkValue netId) where T : NetworkEntity
         {
@@ -265,6 +295,13 @@ namespace JFramework.Net
             }
         }
         
+        /// <summary>
+        /// 判断网络变量是否相等
+        /// </summary>
+        /// <param name="object"></param>
+        /// <param name="netId"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         private static bool ServerVarEqual<T>(T @object, NetworkValue netId) where T : NetworkEntity
         {
             uint newNetId = 0;
@@ -282,6 +319,14 @@ namespace JFramework.Net
             return netId.Equals(newNetId, componentIndex);
         }
 
+        /// <summary>
+        /// 设置网络变量的网络实体值
+        /// </summary>
+        /// <param name="object"></param>
+        /// <param name="field"></param>
+        /// <param name="dirty"></param>
+        /// <param name="netId"></param>
+        /// <typeparam name="T"></typeparam>
         private void SetServerVar<T>(T @object, ref T field, ulong dirty, ref NetworkValue netId) where T : NetworkEntity
         {
             if (GetServerVarHook(dirty)) return;
