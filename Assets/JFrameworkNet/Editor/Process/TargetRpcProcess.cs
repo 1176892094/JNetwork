@@ -37,7 +37,7 @@ namespace JFramework.Editor
         {
             if (md.Parameters.Count <= 0) return false;
             TypeReference type = md.Parameters[0].ParameterType;
-            return type.Is<Connection>() || type.IsDerivedFrom<Connection>();
+            return type.Is<NetworkConnection>() || type.IsDerivedFrom<NetworkConnection>();
         }
     }
 }

@@ -13,9 +13,9 @@ namespace JFramework.Net
         public bool isOwner => @object.isOwner;
         public bool isServer => @object.isServer;
         public bool isClient => @object.isClient;
-        public ServerEntity server => @object.server;
+        public NetworkServerEntity server => @object.server;
         // 连接的客户端
-        public ClientEntity connection => @object.connection;
+        public NetworkClientEntity connection => @object.connection;
         internal byte component;
 
 

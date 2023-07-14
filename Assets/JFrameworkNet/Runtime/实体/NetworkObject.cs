@@ -16,8 +16,8 @@ namespace JFramework.Net
         [ReadOnly, ShowInInspector] public uint netId;
         [ReadOnly, SerializeField] private uint m_assetId;
         [ReadOnly, ShowInInspector] internal ulong sceneId;
-        [ReadOnly, ShowInInspector] internal ServerEntity server;
-        [ReadOnly, ShowInInspector] private ClientEntity client;
+        [ReadOnly, ShowInInspector] internal NetworkServerEntity server;
+        [ReadOnly, ShowInInspector] private NetworkClientEntity client;
         [ReadOnly, ShowInInspector] public bool isOwner;
         [ReadOnly, ShowInInspector] public bool isServer;
         [ReadOnly, ShowInInspector] public bool isClient;
@@ -48,7 +48,7 @@ namespace JFramework.Net
         }
         internal NetworkEntity[] objects;
         
-        public ClientEntity connection
+        public NetworkClientEntity connection
         {
             get => client;
             internal set => client = value;
@@ -89,7 +89,7 @@ namespace JFramework.Net
         /// <summary>
         /// 处理Rpc事件
         /// </summary>
-        internal void InvokeRpcEvent(byte index, ushort function, RpcType rpcType, NetworkReader reader, ClientEntity client = null)
+        internal void InvokeRpcEvent(byte index, ushort function, RpcType rpcType, NetworkReader reader, NetworkClientEntity client = null)
         {
             if (this == null)
             {

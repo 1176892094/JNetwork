@@ -20,7 +20,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        private static void RegisterEvent<T>(Action<ClientEntity, T> handle) where T : struct, IEvent
+        private static void RegisterEvent<T>(Action<NetworkClientEntity, T> handle) where T : struct, IEvent
         {
             events[NetworkEvent<T>.Id] = NetworkEvent.Register(handle);
         }
@@ -28,7 +28,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        private static void RegisterEvent<T>(Action<ClientEntity, T, Channel> handle) where T : struct, IEvent
+        private static void RegisterEvent<T>(Action<NetworkClientEntity, T, Channel> handle) where T : struct, IEvent
         {
             events[NetworkEvent<T>.Id] = NetworkEvent.Register(handle);
         }
@@ -36,7 +36,7 @@ namespace JFramework.Net
         /// <summary>
         /// 当发送一条命令到Transport
         /// </summary>
-        private static void OnServerRpcEvent(ClientEntity client, ServerRpcEvent @event, Channel channel)
+        private static void OnServerRpcEvent(NetworkClientEntity client, ServerRpcEvent @event, Channel channel)
         {
             if (!client.isReady)
             {
@@ -62,7 +62,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="client"></param>
         /// <param name="event"></param>
-        private static void OnServerReadyEvent(ClientEntity client, ReadyEvent @event)
+        private static void OnServerReadyEvent(NetworkClientEntity client, ReadyEvent @event)
         {
             SetClientReady(client);
             OnServerReady?.Invoke(client);

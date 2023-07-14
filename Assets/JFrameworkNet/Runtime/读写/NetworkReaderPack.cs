@@ -4,7 +4,7 @@ using Sirenix.OdinInspector;
 
 namespace JFramework.Net
 {
-    internal class NetworkReaders
+    internal class NetworkReaderPack
     {
         /// <summary>
         /// 批处理队列

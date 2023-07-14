@@ -7,12 +7,12 @@ namespace JFramework.Net
     /// <summary>
     /// 仅在服务器上被创建
     /// </summary>
-    public sealed class ClientEntity : Connection
+    public sealed class NetworkClientEntity : NetworkConnection
     {
         /// <summary>
         /// 网络消息读取
         /// </summary>
-        [ShowInInspector] internal readonly NetworkReaders readers = new NetworkReaders();
+        [ShowInInspector] internal readonly NetworkReaderPack readers = new NetworkReaderPack();
         
         /// <summary>
         /// 可靠Rpc列表
@@ -38,7 +38,7 @@ namespace JFramework.Net
         /// 初始化设置客户端Id
         /// </summary>
         /// <param name="clientId">传入客户端的Id</param>
-        public ClientEntity(int clientId)
+        public NetworkClientEntity(int clientId)
         {
             this.clientId = clientId;
             isHost = clientId == NetworkConst.HostId;

@@ -31,7 +31,7 @@ namespace JFramework.Net
         /// <summary>
         /// 连接到的服务器
         /// </summary>
-        public static ServerEntity connection;
+        public static NetworkServerEntity connection;
         
         /// <summary>
         /// 客户端连接的事件(包含主机)
@@ -76,7 +76,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息读取并分包
         /// </summary>
-        internal static NetworkReaders readers = new NetworkReaders();
+        internal static NetworkReaderPack readers = new NetworkReaderPack();
 
         /// <summary>
         /// 是否活跃
@@ -108,11 +108,11 @@ namespace JFramework.Net
             Debug.Log("开启客户端。");
             RegisterTransport();
             RegisterEvent(false);
-            readers = new NetworkReaders();
+            readers = new NetworkReaderPack();
             state = ConnectState.Connecting;
             RegisterPrefab(NetworkManager.prefabs);
             Transport.current.ClientConnect(address, port);
-            connection = new ServerEntity();
+            connection = new NetworkServerEntity();
         }
 
         /// <summary>
@@ -124,11 +124,11 @@ namespace JFramework.Net
             Debug.Log("开启客户端。");
             RegisterTransport();
             RegisterEvent(false);
-            readers = new NetworkReaders();
+            readers = new NetworkReaderPack();
             state = ConnectState.Connecting;
             RegisterPrefab(NetworkManager.prefabs);
             Transport.current.ClientConnect(uri);
-            connection = new ServerEntity();
+            connection = new NetworkServerEntity();
         }
 
         /// <summary>
@@ -138,11 +138,11 @@ namespace JFramework.Net
         {
             Debug.Log("开启客户端。");
             RegisterEvent(true);
-            readers = new NetworkReaders();
+            readers = new NetworkReaderPack();
             state = ConnectState.Connected;
             RegisterPrefab(NetworkManager.prefabs);
-            connection = new ServerEntity();
-            var client = new ClientEntity(NetworkConst.HostId);
+            connection = new NetworkServerEntity();
+            var client = new NetworkClientEntity(NetworkConst.HostId);
             NetworkServer.connection = client;
             NetworkServer.OnClientConnect(client);
             Ready();
@@ -210,7 +210,7 @@ namespace JFramework.Net
 
             DestroyForClient();
             state = ConnectState.Disconnected;
-            readers = new NetworkReaders();
+            readers = new NetworkReaderPack();
             lastSendTime = 0;
             scenes.Clear();
             events.Clear();

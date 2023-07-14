@@ -141,14 +141,14 @@ namespace JFramework.Editor
             }
 
             TypeReference type = param.ParameterType;
-            return type.Is<ClientEntity>() || type.Resolve().IsDerivedFrom<ClientEntity>();
+            return type.Is<NetworkClientEntity>() || type.Resolve().IsDerivedFrom<NetworkClientEntity>();
         }
         
         public static void AddInvokeParameters(Processor processor, ICollection<ParameterDefinition> collection)
         {
             collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, processor.Import<NetworkEntity>()));
             collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, processor.Import<NetworkReader>()));
-            collection.Add(new ParameterDefinition("target", ParameterAttributes.None, processor.Import<ClientEntity>()));
+            collection.Add(new ParameterDefinition("target", ParameterAttributes.None, processor.Import<NetworkClientEntity>()));
         }
     }
 }

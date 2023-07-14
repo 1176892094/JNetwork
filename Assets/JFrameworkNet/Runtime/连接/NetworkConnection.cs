@@ -9,12 +9,12 @@ namespace JFramework.Net
     /// <summary>
     /// 网络连接 (Server or Client)
     /// </summary>
-    public abstract class Connection
+    public abstract class NetworkConnection
     {
         /// <summary>
         /// 存储不同传输通道写入的网络信息
         /// </summary>
-        private readonly Dictionary<Channel, NetworkWriters> writerDict = new Dictionary<Channel, NetworkWriters>();
+        private readonly Dictionary<Channel, NetworkWriterPack> writerDict = new Dictionary<Channel, NetworkWriterPack>();
 
         /// <summary>
         /// 是否准备好可以接收信息
@@ -90,11 +90,11 @@ namespace JFramework.Net
         /// <param name="channel"></param>
         /// <returns>返回一个发送类</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected NetworkWriters GetWriters(Channel channel)
+        protected NetworkWriterPack GetWriters(Channel channel)
         {
             if (writerDict.TryGetValue(channel, out var writers)) return writers;
             var threshold = Transport.current.UnreliableSize();
-            return writerDict[channel] = new NetworkWriters(threshold);
+            return writerDict[channel] = new NetworkWriterPack(threshold);
         }
 
         /// <summary>
