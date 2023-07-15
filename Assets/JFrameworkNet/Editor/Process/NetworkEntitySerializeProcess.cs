@@ -12,7 +12,7 @@ namespace JFramework.Editor
             if (generateCode.GetMethod(CONST.SERIAL_METHOD) != null) return;
             if (syncVars.Count == 0) return;
             
-            MethodDefinition serialize = new MethodDefinition(CONST.SERIAL_METHOD, MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig, processor.Import(typeof(void)));
+            MethodDefinition serialize = new MethodDefinition(CONST.SERIAL_METHOD, CONST.SERIAL_ATTRS, processor.Import(typeof(void)));
 
             serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, processor.Import<NetworkWriter>()));
             serialize.Parameters.Add(new ParameterDefinition("force", ParameterAttributes.None, processor.Import<bool>()));
@@ -123,7 +123,7 @@ namespace JFramework.Editor
             if (generateCode.GetMethod(CONST.DE_SERIAL_METHOD) != null) return;
             if (syncVars.Count == 0) return;
 
-            MethodDefinition serialize = new MethodDefinition(CONST.DE_SERIAL_METHOD, MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig, processor.Import(typeof(void)));
+            MethodDefinition serialize = new MethodDefinition(CONST.DE_SERIAL_METHOD, CONST.SERIAL_ATTRS, processor.Import(typeof(void)));
 
             serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, processor.Import<NetworkReader>()));
             serialize.Parameters.Add(new ParameterDefinition("force", ParameterAttributes.None, processor.Import<bool>()));
@@ -231,7 +231,7 @@ namespace JFramework.Editor
                 MethodReference readFunc = readers.GetReadFunc(syncVar.FieldType, ref WeavingFailed);
                 if (readFunc == null)
                 {
-                    logger.Error($"{syncVar.Name} has unsupported type. Use a supported Mirror type instead", syncVar);
+                    logger.Error($"不支持 {syncVar.Name} 的类型。", syncVar);
                     WeavingFailed = true;
                     return;
                 }

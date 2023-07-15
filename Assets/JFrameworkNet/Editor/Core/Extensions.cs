@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JFramework.Net;
 using Mono.Cecil;
+using UnityEngine;
 
 namespace JFramework.Editor
 {
@@ -136,7 +138,7 @@ namespace JFramework.Editor
             return parent.CanBeResolved() && IsDerivedFrom(parent.Resolve(), baseClass);
         }
 
-        private static bool CanBeResolved(this TypeReference parent)
+        internal static bool CanBeResolved(this TypeReference parent)
         {
             while (parent != null)
             {
@@ -297,5 +299,7 @@ namespace JFramework.Editor
             }
             return new FieldReference(self.Name, self.FieldType, declaringType);
         }
+        
+        public static bool IsNetworkEntityField(this TypeReference tr) => tr.Is<GameObject>() || tr.Is<NetworkObject>() || tr.IsDerivedFrom<NetworkEntity>() || tr.Is<NetworkEntity>();
     }
 }

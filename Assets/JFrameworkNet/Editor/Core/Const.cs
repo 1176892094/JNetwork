@@ -17,6 +17,8 @@ namespace JFramework.Editor
 
         public const int SERVER_VAR_LIMIT = 64;
 
+        public const MethodAttributes SERVER_VALUE = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
+        public const MethodAttributes SERIAL_ATTRS = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig;
         public const MethodAttributes METHOD_RPC = MethodAttributes.Family | MethodAttributes.Static | MethodAttributes.HideBySig;
         public const MethodAttributes METHOD_ATTRS = MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig;
         public const MethodAttributes STATIC_CCTOR = MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName | MethodAttributes.Static;

@@ -11,6 +11,7 @@ namespace JFramework.Net
     public class ClientRpcAttribute : Attribute
     {
         private Channel channel;
+        public ClientRpcAttribute() => channel = Channel.Reliable;
         public ClientRpcAttribute(Channel channel = Channel.Reliable) => this.channel = channel;
     }
 
@@ -21,6 +22,7 @@ namespace JFramework.Net
     public class ServerRpcAttribute : Attribute
     {
         private Channel channel;
+        public ServerRpcAttribute() => channel = Channel.Reliable;
         public ServerRpcAttribute(Channel channel = Channel.Reliable) => this.channel = channel;
     }
 
@@ -31,6 +33,7 @@ namespace JFramework.Net
     public class TargetRpcAttribute : Attribute
     {
         private Channel channel;
+        public TargetRpcAttribute() => channel = Channel.Reliable;
         public TargetRpcAttribute(Channel channel = Channel.Reliable) => this.channel = channel;
     }
 
@@ -41,6 +44,7 @@ namespace JFramework.Net
     public class ServerVarAttribute : PropertyAttribute
     {
         private string onValueChanged;
+        public ServerVarAttribute() => onValueChanged = null;
         public ServerVarAttribute(string onValueChanged = null) => this.onValueChanged = onValueChanged;
     }
 }

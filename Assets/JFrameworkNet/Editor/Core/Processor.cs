@@ -21,7 +21,6 @@ namespace JFramework.Editor
         public readonly MethodReference InitSyncObjectReference;
 
         public readonly MethodReference logErrorReference;
-        public readonly MethodReference logWarningReference;
         public readonly MethodReference NetworkClientGetActive;
         public readonly MethodReference NetworkServerGetActive;
         
@@ -31,6 +30,10 @@ namespace JFramework.Editor
         public readonly MethodReference sendServerRpcInternal;
         public readonly MethodReference sendTargetRpcInternal;
         public readonly MethodReference sendClientRpcInternal;
+        
+        public readonly MethodReference getSyncVarGameObjectReference;
+        public readonly MethodReference getSyncVarNetworkIdentityReference;
+        public readonly MethodReference getSyncVarNetworkBehaviourReference;
         
         public readonly MethodReference generalSyncVarSetter;
         public readonly MethodReference gameObjectSyncVarSetter;
@@ -75,14 +78,18 @@ namespace JFramework.Editor
             TypeReference NetworkEntityType = Import<NetworkEntity>();
             NetworkEntityDirtyReference = Resolvers.ResolveProperty(NetworkEntityType, assembly, "serverVarDirty");
             
-            generalSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GeneralSyncVarSetter", ref isFailed);
-            generalSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GeneralSyncVarGetter", ref isFailed);
-            gameObjectSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GameObjectSyncVarSetter", ref isFailed);
-            gameObjectSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GameObjectSyncVarGetter", ref isFailed);
-            networkObjectSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkObjectSyncVarSetter", ref isFailed);
-            networkObjectSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkObjectSyncVarGetter", ref isFailed);
-            networkEntitySyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkEntitySyncVarSetter", ref isFailed);
-            networkEntitySyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkEntitySyncVarGetter", ref isFailed);
+            generalSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GeneralServerVarSetter", ref isFailed);
+            generalSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GeneralServerVarGetter", ref isFailed);
+            gameObjectSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GameObjectServerVarSetter", ref isFailed);
+            gameObjectSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GameObjectServerVarGetter", ref isFailed);
+            networkObjectSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkObjectServerVarSetter", ref isFailed);
+            networkObjectSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkObjectServerVarGetter", ref isFailed);
+            networkEntitySyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkEntityServerVarSetter", ref isFailed);
+            networkEntitySyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkEntityServerVarGetter", ref isFailed);
+            
+            getSyncVarGameObjectReference = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GetGameObjectServerVar", ref isFailed);
+            getSyncVarNetworkIdentityReference = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GetNetworkObjectServerVar", ref isFailed);
+            getSyncVarNetworkBehaviourReference = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GetNetworkEntityServerVar", ref isFailed);
             
             sendServerRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendServerRpcInternal", ref isFailed);
             sendClientRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendClientRpcInternal", ref isFailed);
@@ -103,7 +110,7 @@ namespace JFramework.Editor
             
             TypeReference unityDebugType = Import(typeof(Debug));
             logErrorReference = Resolvers.ResolveMethod(unityDebugType, assembly, logger, method => method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName,ref isFailed);
-            logWarningReference = Resolvers.ResolveMethod(unityDebugType, assembly, logger, md => md.Name == "LogWarning" && md.Parameters.Count == 1 && md.Parameters[0].ParameterType.FullName == typeof(object).FullName, ref isFailed);
+           
             TypeReference typeType = Import(typeof(Type));
             getTypeFromHandleReference = Resolvers.ResolveMethod(typeType, assembly, logger, "GetTypeFromHandle", ref isFailed);
             TypeReference NetworkWriterPoolType = Import(typeof(NetworkWriter));

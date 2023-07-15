@@ -10,14 +10,13 @@ namespace JFramework.Editor
         private readonly Writers writers;
         private readonly Readers readers;
         private readonly Processor processor;
-        private ServerVarList serverVars;
+        private readonly ServerVarList serverVars;
         private readonly ServerVarProcess serverVarProcess;
-        private AssemblyDefinition assembly;
+        private readonly AssemblyDefinition assembly;
         private readonly Logger logger;
         private readonly TypeDefinition type;
         private List<FieldDefinition> syncVars = new List<FieldDefinition>();
         private Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>();
-
         private readonly List<ServerRpcResult> serverRpcList = new List<ServerRpcResult>();
         private readonly List<MethodDefinition> serverRpcFuncList = new List<MethodDefinition>();
         private readonly List<ClientRpcResult> clientRpcList = new List<ClientRpcResult>();

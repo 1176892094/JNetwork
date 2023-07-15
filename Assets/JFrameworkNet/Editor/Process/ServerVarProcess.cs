@@ -4,6 +4,7 @@ using System.Linq;
 using JFramework.Net;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using UnityEngine;
 
 namespace JFramework.Editor
 {
@@ -117,24 +118,24 @@ namespace JFramework.Editor
                     continue;
                 }
 
-                // if (SyncObjectInitializer.ImplementsSyncObject(fd.FieldType))
-                // {
-                //     logger.Warning($"{fd.Name} has [SyncVar] attribute. SyncLists should not be marked with SyncVar", fd);
-                // }
-                // else
-                // {
-                //     syncVars.Add(fd);
-                //
-                //     ProcessSyncVar(td, fd, syncVarNetIds, 1L << dirtyBitCounter, ref isFailed);
-                //     dirtyBitCounter += 1;
-                //
-                //     if (dirtyBitCounter > SyncVarLimit)
-                //     {
-                //         logger.Error($"{td.Name} has > {CONST.SERVER_VAR_LIMIT} SyncVars. Consider refactoring your class into multiple components", td);
-                //         isFailed = true;
-                //         continue;
-                //     }
-                // }
+                if (SyncObjectInitializer.ImplementsSyncObject(fd.FieldType))
+                {
+                    logger.Warn($"{fd.Name} has [SyncVar] attribute. SyncLists should not be marked with SyncVar", fd);
+                }
+                else
+                {
+                    syncVars.Add(fd);
+                
+                    ProcessSyncVar(td, fd, syncVarNetIds, 1L << dirtyBitCounter, ref isFailed);
+                    dirtyBitCounter += 1;
+                
+                    if (dirtyBitCounter > CONST.SERVER_VAR_LIMIT)
+                    {
+                        logger.Error($"{td.Name} 网络变量数量大于{CONST.SERVER_VAR_LIMIT}。", td);
+                        isFailed = true;
+                        continue;
+                    }
+                }
             }
             
             foreach (FieldDefinition fd in syncVarNetIds.Values)
@@ -145,6 +146,173 @@ namespace JFramework.Editor
             int parentSyncVarCount = serverVars.GetServerVar(td.BaseType.FullName);
             serverVars.SetServerVarCount(td.FullName, parentSyncVarCount + syncVars.Count);
             return (syncVars, syncVarNetIds);
+        }
+        
+        public void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds, long dirtyBit, ref bool WeavingFailed)
+        {
+            string originalName = fd.Name;
+            
+            FieldDefinition netIdField = null;
+            if (fd.FieldType.IsDerivedFrom<NetworkEntity>() || fd.FieldType.Is<NetworkEntity>())
+            {
+                netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, processor.Import<NetworkVariable>());
+                netIdField.DeclaringType = td;
+
+                syncVarNetIds[fd] = netIdField;
+            }
+            else if (fd.FieldType.IsNetworkEntityField())
+            {
+                netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, processor.Import<uint>());
+                netIdField.DeclaringType = td;
+
+                syncVarNetIds[fd] = netIdField;
+            }
+
+            MethodDefinition get = GenerateSyncVarGetter(fd, originalName, netIdField);
+            MethodDefinition set = GenerateSyncVarSetter(td, fd, originalName, dirtyBit, netIdField, ref WeavingFailed);
+
+       
+            PropertyDefinition propertyDefinition = new PropertyDefinition($"Network{originalName}", PropertyAttributes.None, fd.FieldType)
+            {
+                GetMethod = get,
+                SetMethod = set
+            };
+
+         
+            td.Methods.Add(get);
+            td.Methods.Add(set);
+            td.Properties.Add(propertyDefinition);
+            serverVars.setterProperties[fd] = set;
+
+            if (fd.FieldType.IsNetworkEntityField())
+            {
+                serverVars.getterProperties[fd] = get;
+            }
+        }
+
+        private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string originalName, FieldDefinition netFieldId)
+        {
+            MethodDefinition get = new MethodDefinition($"get_Network{originalName}", CONST.SERVER_VALUE, fd.FieldType);
+
+            ILProcessor worker = get.Body.GetILProcessor();
+
+            FieldReference fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;
+
+            FieldReference netIdFieldReference = null;
+            if (netFieldId != null)
+            {
+                netIdFieldReference = netFieldId.DeclaringType.HasGenericParameters ? netFieldId.MakeHostInstanceGeneric() : netFieldId;
+            }
+            
+            if (fd.FieldType.Is<GameObject>())
+            {
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldfld, netIdFieldReference);
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldflda, fr);
+                worker.Emit(OpCodes.Call, processor.getSyncVarGameObjectReference);
+                worker.Emit(OpCodes.Ret);
+            }
+            else if (fd.FieldType.Is<NetworkObject>())
+            {
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldfld, netIdFieldReference);
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldflda, fr);
+                worker.Emit(OpCodes.Call, processor.getSyncVarNetworkIdentityReference);
+                worker.Emit(OpCodes.Ret);
+            }
+            else if (fd.FieldType.IsDerivedFrom<NetworkEntity>() || fd.FieldType.Is<NetworkEntity>())
+            {
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldfld, netIdFieldReference);
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldflda, fr);
+                MethodReference getFunc = processor.getSyncVarNetworkBehaviourReference.MakeGeneric(assembly.MainModule, fd.FieldType);
+                worker.Emit(OpCodes.Call, getFunc);
+                worker.Emit(OpCodes.Ret);
+            }
+            else
+            {
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldfld, fr);
+                worker.Emit(OpCodes.Ret);
+            }
+
+            get.Body.Variables.Add(new VariableDefinition(fd.FieldType));
+            get.Body.InitLocals = true;
+            get.SemanticsAttributes = MethodSemanticsAttributes.Getter;
+
+            return get;
+        }
+
+        private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string originalName, long dirtyBit, FieldDefinition netFieldId, ref bool WeavingFailed)
+        {
+            MethodDefinition set = new MethodDefinition($"set_Network{originalName}", CONST.SERVER_VALUE, processor.Import(typeof(void)));
+
+            ILProcessor worker = set.Body.GetILProcessor();
+            FieldReference fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;
+
+            FieldReference netIdFieldReference = null;
+            if (netFieldId != null)
+            {
+                netIdFieldReference = netFieldId.DeclaringType.HasGenericParameters ? netFieldId.MakeHostInstanceGeneric() : netFieldId;
+            }
+            
+            Instruction endOfMethod = worker.Create(OpCodes.Nop);
+            
+            worker.Emit(OpCodes.Ldarg_0);
+            worker.Emit(OpCodes.Ldarg_1);
+            worker.Emit(OpCodes.Ldarg_0);
+            worker.Emit(OpCodes.Ldflda, fr);
+            worker.Emit(OpCodes.Ldc_I8, dirtyBit);
+            
+            MethodDefinition hookMethod = GetHookMethod(td, fd, ref WeavingFailed);
+            if (hookMethod != null)
+            {
+                GenerateNewActionFromHookMethod(fd, worker, hookMethod);
+            }
+            else
+            {
+                worker.Emit(OpCodes.Ldnull);
+            }
+            
+            if (fd.FieldType.Is<GameObject>())
+            {
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldflda, netIdFieldReference);
+                worker.Emit(OpCodes.Call, processor.gameObjectSyncVarSetter);
+            }
+            else if (fd.FieldType.Is<NetworkObject>())
+            {
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldflda, netIdFieldReference);
+                worker.Emit(OpCodes.Call, processor.networkObjectSyncVarSetter);
+            }
+            else if (fd.FieldType.IsDerivedFrom<NetworkEntity>() || fd.FieldType.Is<NetworkEntity>())
+            {
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldflda, netIdFieldReference);
+                MethodReference getFunc = processor.networkEntitySyncVarSetter.MakeGeneric(assembly.MainModule, fd.FieldType);
+                worker.Emit(OpCodes.Call, getFunc);
+            }
+            else
+            {
+                MethodReference generic = processor.generalSyncVarSetter.MakeGeneric(assembly.MainModule, fd.FieldType);
+                worker.Emit(OpCodes.Call, generic);
+            }
+
+            worker.Append(endOfMethod);
+
+            worker.Emit(OpCodes.Ret);
+
+            set.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.In, fd.FieldType));
+            set.SemanticsAttributes = MethodSemanticsAttributes.Setter;
+
+            return set;
         }
     }
 }
