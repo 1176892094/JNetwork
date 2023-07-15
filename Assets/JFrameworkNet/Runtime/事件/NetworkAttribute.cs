@@ -12,7 +12,7 @@ namespace JFramework.Net
     {
         private Channel channel;
         public ClientRpcAttribute() => channel = Channel.Reliable;
-        public ClientRpcAttribute(Channel channel = Channel.Reliable) => this.channel = channel;
+        public ClientRpcAttribute(Channel channel) => this.channel = channel;
     }
 
     /// <summary>
@@ -23,7 +23,7 @@ namespace JFramework.Net
     {
         private Channel channel;
         public ServerRpcAttribute() => channel = Channel.Reliable;
-        public ServerRpcAttribute(Channel channel = Channel.Reliable) => this.channel = channel;
+        public ServerRpcAttribute(Channel channel) => this.channel = channel;
     }
 
     /// <summary>
@@ -34,7 +34,7 @@ namespace JFramework.Net
     {
         private Channel channel;
         public TargetRpcAttribute() => channel = Channel.Reliable;
-        public TargetRpcAttribute(Channel channel = Channel.Reliable) => this.channel = channel;
+        public TargetRpcAttribute(Channel channel) => this.channel = channel;
     }
 
     /// <summary>
@@ -43,8 +43,8 @@ namespace JFramework.Net
     [AttributeUsage(AttributeTargets.Field)]
     public class SyncVarAttribute : PropertyAttribute
     {
-        private string onValueChanged;
-        public SyncVarAttribute() => onValueChanged = null;
-        public SyncVarAttribute(string onValueChanged = null) => this.onValueChanged = onValueChanged;
+        private string func;
+        public SyncVarAttribute() => func = null;
+        public SyncVarAttribute(string func) => this.func = func;
     }
 }

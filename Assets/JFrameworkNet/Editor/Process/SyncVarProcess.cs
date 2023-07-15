@@ -26,10 +26,17 @@ namespace JFramework.Editor
         public void GenerateNewActionFromHookMethod(FieldDefinition syncVar, ILProcessor worker, MethodDefinition hookMethod)
         {
             worker.Emit(hookMethod.IsStatic ? OpCodes.Ldnull : OpCodes.Ldarg_0);
+            MethodReference hookMethodReference;
+            if (hookMethod.DeclaringType.HasGenericParameters)
+            {
+                var genericInstanceType = hookMethod.DeclaringType.MakeGenericInstanceType(hookMethod.DeclaringType.GenericParameters.ToArray());
+                hookMethodReference = hookMethod.MakeHostInstanceGeneric(hookMethod.Module, genericInstanceType);
+            }
+            else
+            {
+                hookMethodReference = hookMethod;
+            }
 
-            var genericInstanceType = hookMethod.DeclaringType.MakeGenericInstanceType(hookMethod.DeclaringType.GenericParameters.ToArray());
-            var hookMethodReference = hookMethod.DeclaringType.HasGenericParameters ? hookMethod.MakeHostInstanceGeneric(hookMethod.Module,genericInstanceType) : hookMethod;
-            
             if (hookMethod.IsVirtual)
             {
                 worker.Emit(OpCodes.Dup);
@@ -45,24 +52,17 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Newobj, processor.HookMethodReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
         }
 
-        public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition serverVar)
+        public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition syncVar)
         {
-            CustomAttribute attribute = serverVar.GetCustomAttribute<SyncVarAttribute>();
-
-            string hookMethod = attribute?.GetField<string>(CONST.VALUE_CHANGED, null);
-
-            if (hookMethod == null)
-            {
-                return null;
-            }
-
-            return FindHookMethod(td, serverVar, hookMethod);
+            CustomAttribute attribute = syncVar.GetCustomAttribute<SyncVarAttribute>();
+            string hookMethod = attribute.GetField<string>(null);
+            return hookMethod == null ? null : FindHookMethod(td, syncVar, hookMethod);
         }
 
         private MethodDefinition FindHookMethod(TypeDefinition td, FieldDefinition serverVar, string hookMethod)
         {
             List<MethodDefinition> methods = td.GetMethods(hookMethod);
-
+    
             List<MethodDefinition> fixMethods = new List<MethodDefinition>(methods.Where(method => method.Parameters.Count == 2));
 
             if (fixMethods.Count == 0)
@@ -90,11 +90,11 @@ namespace JFramework.Editor
         }
 
         public (List<FieldDefinition> syncVars, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds) ProcessSyncVars(TypeDefinition td)
-        {
+        { 
             List<FieldDefinition> syncVars = new List<FieldDefinition>();
             Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>(); 
             int dirtyBitCounter = syncVarList.GetServerVar(td.BaseType.FullName);
-            
+           
             foreach (var fd in td.Fields.Where(fd => fd.HasCustomAttribute<SyncVarAttribute>()))
             {
                 if ((fd.Attributes & FieldAttributes.Static) != 0)
@@ -125,10 +125,10 @@ namespace JFramework.Editor
                 else
                 {
                     syncVars.Add(fd);
-                
+                   
                     ProcessSyncVar(td, fd, syncVarNetIds, 1L << dirtyBitCounter);
                     dirtyBitCounter += 1;
-                
+                  
                     if (dirtyBitCounter > CONST.SERVER_VAR_LIMIT)
                     {
                         logger.Error($"{td.Name} 网络变量数量大于{CONST.SERVER_VAR_LIMIT}。", td);
@@ -146,27 +146,27 @@ namespace JFramework.Editor
             syncVarList.SetServerVarCount(td.FullName, parentSyncVarCount + syncVars.Count);
             return (syncVars, syncVarNetIds);
         }
-        
-        public void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds, long dirtyBit)
+
+        private void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds, long dirtyBit)
         {
             string originalName = fd.Name;
             
             FieldDefinition netIdField = null;
             if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
-            {
+            { 
                 netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, processor.Import<NetworkVariable>());
                 netIdField.DeclaringType = td;
 
                 syncVarNetIds[fd] = netIdField;
             }
             else if (fd.FieldType.IsNetworkEntityField())
-            {
+            {  
                 netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, processor.Import<uint>());
                 netIdField.DeclaringType = td;
 
                 syncVarNetIds[fd] = netIdField;
             }
-
+         
             MethodDefinition get = GenerateSyncVarGetter(fd, originalName, netIdField);
             MethodDefinition set = GenerateSyncVarSetter(td, fd, originalName, dirtyBit, netIdField);
 
@@ -244,14 +244,13 @@ namespace JFramework.Editor
             get.Body.Variables.Add(new VariableDefinition(fd.FieldType));
             get.Body.InitLocals = true;
             get.SemanticsAttributes = MethodSemanticsAttributes.Getter;
-
             return get;
         }
 
         private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string originalName, long dirtyBit, FieldDefinition netFieldId)
         {
             MethodDefinition set = new MethodDefinition($"set_Network{originalName}", CONST.SERVER_VALUE, processor.Import(typeof(void)));
-
+            
             ILProcessor worker = set.Body.GetILProcessor();
             FieldReference fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;
 
@@ -260,7 +259,7 @@ namespace JFramework.Editor
             {
                 netIdFieldReference = netFieldId.DeclaringType.HasGenericParameters ? netFieldId.MakeHostInstanceGeneric() : netFieldId;
             }
-            
+          
             Instruction endOfMethod = worker.Create(OpCodes.Nop);
             
             worker.Emit(OpCodes.Ldarg_0);
@@ -268,7 +267,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldflda, fr);
             worker.Emit(OpCodes.Ldc_I8, dirtyBit);
-            
+        
             MethodDefinition hookMethod = GetHookMethod(td, fd);
             if (hookMethod != null)
             {
@@ -278,7 +277,7 @@ namespace JFramework.Editor
             {
                 worker.Emit(OpCodes.Ldnull);
             }
-            
+          
             if (fd.FieldType.Is<GameObject>())
             {
                 worker.Emit(OpCodes.Ldarg_0);

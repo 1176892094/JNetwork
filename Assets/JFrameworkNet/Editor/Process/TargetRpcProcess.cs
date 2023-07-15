@@ -51,7 +51,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldstr, md.FullName);
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkEvent.GetHashByName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, attr.GetField("channel", 1));
+            worker.Emit(OpCodes.Ldc_I4_S, attr.GetField<sbyte>( 1));
             worker.Emit(OpCodes.Callvirt, processor.sendTargetRpcInternal);
             NetworkBehaviourProcess.WriteReturnWriter(worker, processor);
             worker.Emit(OpCodes.Ret);

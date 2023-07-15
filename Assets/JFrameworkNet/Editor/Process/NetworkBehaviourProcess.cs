@@ -61,7 +61,7 @@ namespace JFramework.Editor
             MarkAsProcessed(type);
             
             (syncVars, syncVarNetIds) = serverVarProcess.ProcessSyncVars(type);
-          
+           
             ProcessMethods();
             
             if (Injection.failed)
@@ -72,6 +72,7 @@ namespace JFramework.Editor
             InjectIntoStaticConstructor();
             
             GenerateSerialization();
+        
             if (Injection.failed)
             {
                 return true;

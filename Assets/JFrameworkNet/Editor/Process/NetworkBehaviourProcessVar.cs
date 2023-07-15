@@ -8,7 +8,7 @@ namespace JFramework.Editor
     internal partial class NetworkBehaviourProcess
     {
         private void GenerateSerialization()
-        {
+        {   
             if (generateCode.GetMethod(CONST.SERIAL_METHOD) != null) return;
             if (syncVars.Count == 0) return;
             
@@ -30,11 +30,11 @@ namespace JFramework.Editor
             
             Instruction initialStateLabel = worker.Create(OpCodes.Nop);
             worker.Emit(OpCodes.Ldarg_2);           
-            worker.Emit(OpCodes.Brfalse, initialStateLabel); 
-
+            worker.Emit(OpCodes.Brfalse, initialStateLabel);
             foreach (FieldDefinition syncVarDef in syncVars)
             {
                 FieldReference syncVar = syncVarDef;
+               
                 if (generateCode.HasGenericParameters)
                 {
                     syncVar = syncVarDef.MakeHostInstanceGeneric();

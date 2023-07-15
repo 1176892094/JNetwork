@@ -63,7 +63,7 @@ namespace JFramework.Editor
 
             return genericInstanceType;
         }
-        
+
         public static FieldReference SpecializeField(this FieldReference self, ModuleDefinition module, GenericInstanceType instanceType)
         {
             var reference = new FieldReference(self.Name, self.FieldType, instanceType);
@@ -217,15 +217,15 @@ namespace JFramework.Editor
             return method.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<TAttribute>());
         }
         
-        public static T GetField<T>(this CustomAttribute attribute, string field, T defaultValue)
+        public static T GetField<T>(this CustomAttribute attribute, T defaultValue)
         {
-            foreach (var custom in attribute.Fields.Where(custom => custom.Name == field))
+            foreach (var custom in attribute.ConstructorArguments)
             {
-                return (T)custom.Argument.Value;
+                return (T)custom.Value;
             }
             return defaultValue;
         }
-        
+
         public static MethodDefinition GetMethodInBaseType(this TypeDefinition td, string methodName)
         {
             TypeDefinition typedef = td;
