@@ -124,7 +124,7 @@ namespace JFramework.Editor
         public static string GenerateMethodName(string prefix, MethodDefinition md)
         {
             prefix += md.Name;
-            return md.Parameters.Aggregate(prefix, (str, definition) => str + $"_{NetworkEvent.GetHashByName(definition.ParameterType.Name)}");
+            return md.Parameters.Aggregate(prefix, (str, definition) => str + $"{NetworkEvent.GetHashByName(definition.ParameterType.Name)}");
         }
     }
 }

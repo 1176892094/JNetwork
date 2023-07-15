@@ -87,7 +87,7 @@ namespace JFramework.Net
                 SendSpawnEvent(client, @object);
             }
         }
-        
+
         /// <summary>
         /// 服务器向指定客户端发送生成对象的消息
         /// </summary>
@@ -96,20 +96,20 @@ namespace JFramework.Net
         private static void SendSpawnEvent(ClientEntity client, NetworkObject @object)
         {
             Debug.Log($"服务器为客户端 {client.clientId} 生成 {@object}");
-            using var writer = NetworkWriter.Pop();
+            using NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
+            var isOwner = @object.client == client;
             var transform = @object.transform;
-            SpawnEvent @event = new SpawnEvent
+            var @event = new SpawnEvent
             {
-                objectId = @object.objectId,
+                isOwner = isOwner,
                 sceneId = @object.sceneId,
                 assetId = @object.assetId,
+                objectId = @object.objectId,
                 position = transform.localPosition,
                 rotation = transform.localRotation,
                 localScale = transform.localScale,
-                isOwner = @object.client == client,
-                segment = SerializeNetworkObject(@object, writer)
+                segment = SerializeNetworkObject(@object, isOwner, owner, observer)
             };
-            Debug.Log(@event.assetId+"___"+@event.sceneId);
             client.Send(@event);
         }
 
@@ -117,14 +117,15 @@ namespace JFramework.Net
         /// 序列化网络对象，并将数据转发给客户端
         /// </summary>
         /// <param name="object">网络对象生成</param>
-        /// <param name="writer"></param>
+        /// <param name="isOwner"></param>
+        /// <param name="owner"></param>
+        /// <param name="observer"></param>
         /// <returns></returns>
-        private static ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, NetworkWriter writer)
+        private static ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observer)
         {
             if (@object.entities.Length == 0) return default;
-            @object.SerializeServer(true, writer);
-            ArraySegment<byte> segment = writer.ToArraySegment();
-            return segment;
+            @object.SerializeServer(true, owner, observer);
+            return isOwner ? owner.ToArraySegment() : observer.ToArraySegment();
         }
 
         /// <summary>

@@ -12,6 +12,7 @@ namespace JFramework.Net
         private static void RegisterEvent()
         {
             Debug.Log("注册服务器事件");
+            RegisterEvent<EntityEvent>(OnEntityEvent);
             RegisterEvent<SetReadyEvent>(OnSetReadyEvent);
             RegisterEvent<ServerRpcEvent>(OnServerRpcEvent);
             RegisterEvent<PingEvent>(NetworkTime.OnPingEvent);
@@ -56,6 +57,32 @@ namespace JFramework.Net
                 @object.InvokeRpcEvent(@event.serialId, @event.methodHash, RpcType.ServerRpc, reader, client);
             }
         }
+        
+        /// <summary>
+        /// 实体状态同步事件
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="event"></param>
+        private static void OnEntityEvent(ClientEntity client, EntityEvent @event)
+        {
+            if (spawns.TryGetValue(@event.objectId, out var @object) && @object != null)
+            {
+                if (@object.client == client)
+                {
+                    using var reader = NetworkReader.Pop(@event.segment);
+                    if (!@object.DeserializeServer(reader))
+                    {
+                        Debug.LogWarning($"无法反序列化对象：{@object.name}。对象Id：{@object.objectId}");
+                        client.Disconnect();
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"网络对象 {client} 为 {@object} 发送的 ObjectEvent 没有权限");
+                }
+            }
+        }
+
 
         /// <summary>
         /// 当客户端在服务器准备就绪，向客户端发送生成物体的消息

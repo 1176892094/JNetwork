@@ -22,12 +22,6 @@ namespace JFramework.Net
         Connected = 2,
     }
 
-    internal enum SyncMode : byte
-    {
-        Owner,
-        Observer,
-    }
-
     internal enum SyncDirection : byte
     {
         ServerToClient,

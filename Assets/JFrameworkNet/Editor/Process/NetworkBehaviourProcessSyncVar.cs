@@ -15,7 +15,7 @@ namespace JFramework.Editor
             MethodDefinition serialize = new MethodDefinition(CONST.SER_METHOD, CONST.SER_ATTRS, process.Import(typeof(void)));
 
             serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, process.Import<NetworkWriter>()));
-            serialize.Parameters.Add(new ParameterDefinition("force", ParameterAttributes.None, process.Import<bool>()));
+            serialize.Parameters.Add(new ParameterDefinition("serialize", ParameterAttributes.None, process.Import<bool>()));
             ILProcessor worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
@@ -110,7 +110,7 @@ namespace JFramework.Editor
             MethodDefinition serialize = new MethodDefinition(CONST.DES_METHOD, CONST.SER_ATTRS, process.Import(typeof(void)));
 
             serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, process.Import<NetworkReader>()));
-            serialize.Parameters.Add(new ParameterDefinition("force", ParameterAttributes.None, process.Import<bool>()));
+            serialize.Parameters.Add(new ParameterDefinition("serialize", ParameterAttributes.None, process.Import<bool>()));
             ILProcessor serWorker = serialize.Body.GetILProcessor();
             serialize.Body.InitLocals = true;
             VariableDefinition dirtyBitsLocal = new VariableDefinition(process.Import<long>());

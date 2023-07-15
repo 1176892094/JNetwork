@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -22,11 +20,6 @@ namespace JFramework.Net
         /// 网络对象组件
         /// </summary>
         internal NetworkObject @object;
-
-        /// <summary>
-        /// 同步模式
-        /// </summary>
-        internal SyncMode syncMode;
 
         /// <summary>
         /// 同步方向
@@ -78,8 +71,6 @@ namespace JFramework.Net
         /// </summary>
         private double lastSyncTime;
 
-       
-
         /// <summary>
         /// 是否能够改变网络值
         /// </summary>
@@ -97,6 +88,12 @@ namespace JFramework.Net
         public void SetDirty()
         {
             SetSyncVarDirty(ulong.MaxValue);
+        }
+        
+        public void ClearAllDirty()
+        {
+            lastSyncTime = NetworkTime.localTime;
+            syncVarDirty= 0L;
         }
 
         /// <summary>
@@ -123,7 +120,7 @@ namespace JFramework.Net
             syncVarHook = value ? syncVarHook | dirty : syncVarHook & ~dirty;
         }
         
-        internal void Serialize(NetworkWriter writer, bool initialState)
+        internal void Serialize(NetworkWriter writer, bool serialize)
         {
             int headerPosition = writer.position;
             writer.WriteByte(0);
@@ -131,7 +128,7 @@ namespace JFramework.Net
             
             try
             {
-                SerializeSyncVars(writer, initialState);
+                SerializeSyncVars(writer, serialize);
             }
             catch (Exception e)
             {
@@ -149,24 +146,24 @@ namespace JFramework.Net
         /// 序列化网络变量
         /// </summary>
         /// <param name="writer"></param>
-        /// <param name="force"></param>
-        protected virtual void SerializeSyncVars(NetworkWriter writer, bool force)
+        /// <param name="serialize"></param>
+        protected virtual void SerializeSyncVars(NetworkWriter writer, bool serialize)
         {
             //TODO：通过自动生成
         }
 
-        internal bool Deserialize(NetworkReader reader, bool initialState)
+        internal bool Deserialize(NetworkReader reader, bool serialize)
         {
             bool result = true;
             byte safety = reader.ReadByte();
             int chunkStart = reader.position;
             try
             {
-                DeserializeSyncVars(reader, initialState);
+                DeserializeSyncVars(reader, serialize);
             }
             catch (Exception e)
             {
-                Debug.LogError($"序列化对象失败。对象名称：{name} 组件：{GetType()} 场景Id：{@object.sceneId:X}\n{e}");
+                Debug.LogError($"反序列化对象失败。对象名称：{name} 组件：{GetType()} 场景Id：{@object.sceneId:X}\n{e}");
                 result = false;
             }
             
@@ -194,8 +191,8 @@ namespace JFramework.Net
         /// 反序列化网络变量
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="force"></param>
-        protected virtual void DeserializeSyncVars(NetworkReader reader, bool force)
+        /// <param name="serialize"></param>
+        protected virtual void DeserializeSyncVars(NetworkReader reader, bool serialize)
         {
             //TODO：通过自动生成
         }

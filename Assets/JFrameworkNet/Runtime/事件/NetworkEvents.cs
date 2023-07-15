@@ -116,4 +116,19 @@ namespace JFramework.Net
         public readonly uint objectId;
         public DestroyEvent(uint objectId) => this.objectId = objectId;
     }
+    
+    /// <summary>
+    /// 对象事件
+    /// </summary>
+    public struct EntityEvent : IEvent
+    {
+        public readonly uint objectId;
+        public readonly ArraySegment<byte> segment;
+
+        public EntityEvent(uint objectId, ArraySegment<byte> segment)
+        {
+            this.objectId = objectId;
+            this.segment = segment;
+        }
+    }
 }

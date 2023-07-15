@@ -1,6 +1,5 @@
 using System;
 using JFramework.Udp;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -18,8 +17,8 @@ namespace JFramework.Net
         [SerializeField] private uint receivePacketSize = 1024 * 4;
         [SerializeField] private uint interval = 10;
         private Setting setting;
-        [ShowInInspector]private Client client;
-        [ShowInInspector]private Server server;
+        private Client client;
+        private Server server;
 
         private void Awake()
         {

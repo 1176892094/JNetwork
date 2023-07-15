@@ -179,13 +179,13 @@ namespace JFramework.Net
             transform.localPosition = @event.position;
             transform.localRotation = @event.rotation;
             transform.localScale = @event.localScale;
-
+            
             if (@event.segment.Count > 0)
             {
                 using var reader = NetworkReader.Pop(@event.segment);
-                //TODO: @object.DeserializeClient(reader, true);
+                @object.DeserializeClient(reader, true);
             }
-
+            
             spawns[@event.objectId] = @object;
 
             if (isSpawn)

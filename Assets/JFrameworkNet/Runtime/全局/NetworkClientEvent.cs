@@ -20,6 +20,7 @@ namespace JFramework.Net
                 RegisterEvent<DestroyEvent>(OnDestroyByHost);
                 RegisterEvent<DespawnEvent>(OnEmptyEventByHost);
                 RegisterEvent<PongEvent>(OnEmptyEventByHost);
+                RegisterEvent<EntityEvent>(OnEmptyEventByHost);
             }
             else
             {
@@ -27,6 +28,7 @@ namespace JFramework.Net
                 RegisterEvent<DestroyEvent>(OnDestroyByClient);
                 RegisterEvent<DespawnEvent>(OnDespawnByClient);
                 RegisterEvent<PongEvent>(NetworkTime.OnPongEvent);
+                RegisterEvent<EntityEvent>(OnEntityEvent);
             }
 
             RegisterEvent<NotReadyEvent>(OnNotReadyEvent);
@@ -155,6 +157,23 @@ namespace JFramework.Net
         private static void OnTimeEvent(TimeEvent @event)
         {
             NetworkSnapshot.OnTimeSnapshot(new TimeSnapshot(connection.timestamp, NetworkTime.localTime));
+        }
+
+        /// <summary>
+        /// 实体状态同步
+        /// </summary>
+        /// <param name="event"></param>
+        private static void OnEntityEvent(EntityEvent @event)
+        {
+            if (spawns.TryGetValue(@event.objectId, out var @object) && @object != null)
+            {
+                using var reader = NetworkReader.Pop(@event.segment);
+                @object.DeserializeClient(reader, false);
+            }
+            else
+            {
+                Debug.LogWarning($"没有为 {@event.objectId} 的同步消息找到目。");
+            }
         }
 
         /// <summary>

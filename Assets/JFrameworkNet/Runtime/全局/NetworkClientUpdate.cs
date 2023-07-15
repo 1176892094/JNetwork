@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace JFramework.Net
 {
     public static partial class NetworkClient
@@ -53,6 +55,20 @@ namespace JFramework.Net
         /// </summary>
         private static void Broadcast()
         {
+            if (!connection.isReady) return;
+            if (NetworkServer.isActive) return;
+            foreach (var @object in spawns.Values.Where(@object => @object.isOwner))
+            {
+                using var writer = NetworkWriter.Pop();
+                @object.SerializeClient(writer);
+                if (writer.position > 0)
+                {
+                    Send(new EntityEvent(@object.objectId, writer.ToArraySegment()));
+                    @object.ClearAllDirty();
+                }
+            }
+
+            Send(new TimeEvent(), Channel.Unreliable);
         }
     }
 }

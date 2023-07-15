@@ -51,6 +51,14 @@ namespace JFramework.Net
 
             return true;
         }
+        
+        internal void ClearAllDirty()
+        {
+            foreach (NetworkBehaviour entity in entities)
+            {
+                entity.ClearAllDirty();
+            }
+        }
 
         /// <summary>
         /// 处理Rpc事件
@@ -79,34 +87,38 @@ namespace JFramework.Net
         /// <summary>
         /// 在Server端中序列化
         /// </summary>
-        /// <param name="isInit"></param>
+        /// <param name="serialize"></param>
+        /// <param name="owner"></param>
         /// <param name="observer"></param>
-        internal void SerializeServer(bool isInit,  NetworkWriter observer)
+        internal void SerializeServer(bool serialize, NetworkWriter owner,NetworkWriter observer)
         {
             IsValid();
             NetworkBehaviour[] components = entities;
-            var observerMask = ServerDirtyMasks(isInit);
-
-            if (observerMask != 0)
+            var (ownerMask, observerMask) = ServerDirtyMasks(serialize);
+            if (ownerMask != 0) Compression.CompressVarUInt(owner, ownerMask);
+            if (observerMask != 0) Compression.CompressVarUInt(observer, observerMask);
+            if ((ownerMask | observerMask) != 0)
             {
-                Compression.CompressVarUInt(observer, observerMask);
                 for (int i = 0; i < components.Length; ++i)
                 {
-                    NetworkBehaviour component = components[i];
+                    NetworkBehaviour comp = components[i];
+                    bool ownerDirty = IsDirty(ownerMask, i);
                     bool observersDirty = IsDirty(observerMask, i);
-                    if (observersDirty)
+                    if (ownerDirty || observersDirty)
                     {
                         using var writer = NetworkWriter.Pop();
-                        component.Serialize(writer, isInit);
+                        comp.Serialize(writer, serialize);
                         var segment = writer.ToArraySegment();
-                        observer.WriteBytes(segment.Array, segment.Offset, segment.Count);
+                        if (ownerDirty) owner.WriteBytes(segment.Array, segment.Offset, segment.Count);
+                        if (observersDirty) observer.WriteBytes(segment.Array, segment.Offset, segment.Count);
                     }
                 }
             }
         }
 
-        private ulong ServerDirtyMasks(bool isInit)
+        private (ulong, ulong) ServerDirtyMasks(bool initialState)
         {
+            ulong ownerMask = 0;
             ulong observerMask = 0;
 
             NetworkBehaviour[] components = entities;
@@ -115,15 +127,18 @@ namespace JFramework.Net
                 NetworkBehaviour component = components[i];
 
                 bool dirty = component.IsDirty();
-                ulong nthBit = 1U << i;
-
-                if (component.syncMode == SyncMode.Observer && (isInit || dirty))
+                ulong nthBit = 1u << i;
+                if (initialState || (component.syncDirection == SyncDirection.ServerToClient && dirty))
+                {
+                    ownerMask |= nthBit;
+                }
+                if (initialState || dirty)
                 {
                     observerMask |= nthBit;
                 }
             }
 
-            return observerMask;
+            return (ownerMask, observerMask);
         }
         
         internal void SerializeClient(NetworkWriter writer)
