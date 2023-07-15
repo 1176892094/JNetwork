@@ -51,7 +51,7 @@ namespace JFramework.Editor
         /// <returns></returns>
         public static MethodDefinition ProcessClientRpcInvoke(Process process, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute attribute)
         {
-            MethodDefinition rpc = SubstituteMethod(logger, td, md);
+            MethodDefinition rpc = TemplateMethod(logger, td, md);
             ILProcessor worker = md.Body.GetILProcessor();
             NetworkBehaviourProcess.WriteSetupLocals(worker, process);
             NetworkBehaviourProcess.WriteGetWriter(worker, process);
@@ -118,7 +118,7 @@ namespace JFramework.Editor
         /// <returns></returns>
         public static MethodDefinition ProcessServerRpcInvoke(Process process, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute commandAttr)
         {
-            MethodDefinition rpc = SubstituteMethod(logger, td, md);
+            MethodDefinition rpc = TemplateMethod(logger, td, md);
             ILProcessor worker = md.Body.GetILProcessor();
             NetworkBehaviourProcess.WriteSetupLocals(worker, process);
             NetworkBehaviourProcess.WriteGetWriter(worker, process);
@@ -206,7 +206,7 @@ namespace JFramework.Editor
         /// <returns></returns>
         public static MethodDefinition ProcessTargetRpcInvoke(Process process, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute attr)
         {
-            MethodDefinition rpc = SubstituteMethod(logger, td, md);
+            MethodDefinition rpc = TemplateMethod(logger, td, md);
             ILProcessor worker = md.Body.GetILProcessor();
             NetworkBehaviourProcess.WriteSetupLocals(worker, process);
             NetworkBehaviourProcess.WriteGetWriter(worker, process);

@@ -27,11 +27,6 @@ namespace JFramework.Editor
         /// Rpc委托的构造函数
         /// </summary>
         public readonly MethodReference RpcDelegateConstructor;
-        
-        /// <summary>
-        /// 初始化同步对象
-        /// </summary>
-        public readonly MethodReference InitSyncObjectReference;
 
         /// <summary>
         /// 日志出现错误
@@ -209,9 +204,7 @@ namespace JFramework.Editor
             sendServerRpcInternal = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SendServerRpcInternal");
             sendClientRpcInternal = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SendClientRpcInternal");
             sendTargetRpcInternal = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SendTargetRpcInternal");
-            
-            InitSyncObjectReference = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "InitSyncObject");
-            
+
             TypeReference RegisterRpcType = Import(typeof(NetworkRpc));
             registerServerRpcReference = Resolvers.ResolveMethod(RegisterRpcType, assembly, logger, "RegisterServerRpc");
             registerClientRpcReference = Resolvers.ResolveMethod(RegisterRpcType, assembly, logger, "RegisterClientRpc");

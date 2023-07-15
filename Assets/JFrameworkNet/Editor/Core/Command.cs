@@ -13,7 +13,7 @@ namespace JFramework.Editor
         public static bool change;
         private Writers writers;
         private Readers readers;
-        private Process _process;
+        private Process process;
         private SyncVarList syncVars;
         private TypeDefinition generate;
         private AssemblyDefinition currentAssembly;
@@ -37,11 +37,11 @@ namespace JFramework.Editor
                 }
 
                 syncVars = new SyncVarList();
-                _process = new Process(currentAssembly, logger);
+                process = new Process(currentAssembly, logger);
                 
-                generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE, CONST.TYPE_ATTRS, _process.Import<object>());
-                writers = new Writers(currentAssembly, _process, generate, logger);
-                readers = new Readers(currentAssembly, _process, generate, logger);
+                generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE, CONST.TYPE_ATTRS, process.Import<object>());
+                writers = new Writers(currentAssembly, process, generate, logger);
+                readers = new Readers(currentAssembly, process, generate, logger);
                 change = StreamingProcess.Process(currentAssembly, resolver, logger, writers, readers);
 
                 ModuleDefinition moduleDefinition = currentAssembly.MainModule;
@@ -55,7 +55,7 @@ namespace JFramework.Editor
                 if (change)
                 {
                     moduleDefinition.Types.Add(generate);
-                    StreamingProcess.StreamingInitialize(currentAssembly, _process, writers,readers,generate);
+                    StreamingProcess.StreamingInitialize(currentAssembly, process, writers,readers,generate);
                 }
                 
                 return true;
@@ -105,7 +105,7 @@ namespace JFramework.Editor
             bool changed = false;
             foreach (TypeDefinition behaviour in behaviourClasses)
             {
-                changed |= new NetworkBehaviourProcess(currentAssembly, _process, syncVars, writers, readers, logger, behaviour).Process();
+                changed |= new NetworkBehaviourProcess(currentAssembly, process, syncVars, writers, readers, logger, behaviour).Process();
             }
             return changed;
         }

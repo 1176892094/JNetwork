@@ -16,13 +16,13 @@ namespace JFramework.Editor
         private readonly Dictionary<TypeReference, MethodReference> readFuncList = new Dictionary<TypeReference, MethodReference>(new Comparer());
         private readonly AssemblyDefinition assembly;
         private readonly Logger logger;
-        private readonly Process _process;
+        private readonly Process process;
         private readonly TypeDefinition generate;
 
         public Readers(AssemblyDefinition assembly, Process process, TypeDefinition generate, Logger logger)
         {
             this.assembly = assembly;
-            this._process = process;
+            this.process = process;
             this.generate = generate;
             this.logger = logger;
         }
@@ -167,7 +167,7 @@ namespace JFramework.Editor
         {
             string functionName = $"Read{NetworkEvent.GetHashByName(variable.FullName)}";
             MethodDefinition readerFunc = new MethodDefinition(functionName, CONST.RAW_ATTRS, variable);
-            readerFunc.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, _process.Import<NetworkReader>()));
+            readerFunc.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, process.Import<NetworkReader>()));
             readerFunc.Body.InitLocals = true;
             RegisterReadFunc(variable, readerFunc);
             return readerFunc;
@@ -194,14 +194,14 @@ namespace JFramework.Editor
             ArrayType arrayType = new ArrayType(elementType);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Call, GetReadFunc(arrayType));
-            worker.Emit(OpCodes.Newobj, _process.ArraySegmentConstructorReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
+            worker.Emit(OpCodes.Newobj, process.ArraySegmentConstructorReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
             worker.Emit(OpCodes.Ret);
             return readerFunc;
         }
 
         private MethodReference GetNetworkBehaviourReader(TypeReference variableReference)
         {
-            MethodReference generic = _process.readNetworkBehaviourGeneric;
+            MethodReference generic = process.readNetworkBehaviourGeneric;
             MethodReference readFunc = generic.MakeGeneric(assembly.MainModule, variableReference);
             Register(variableReference, readFunc);
             return readFunc;
@@ -233,7 +233,7 @@ namespace JFramework.Editor
         private void GenerateNullCheck(ILProcessor worker)
         {
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Call, GetReadFunc(_process.Import<bool>()));
+            worker.Emit(OpCodes.Call, GetReadFunc(process.Import<bool>()));
             Instruction labelEmptyArray = worker.Create(OpCodes.Nop);
             worker.Emit(OpCodes.Brtrue, labelEmptyArray);
             worker.Emit(OpCodes.Ldnull);
@@ -250,7 +250,7 @@ namespace JFramework.Editor
             }
             else if (td.IsDerivedFrom<ScriptableObject>())
             {
-                GenericInstanceMethod genericInstanceMethod = new GenericInstanceMethod(_process.ScriptableObjectCreateInstanceMethod);
+                GenericInstanceMethod genericInstanceMethod = new GenericInstanceMethod(process.ScriptableObjectCreateInstanceMethod);
                 genericInstanceMethod.GenericArguments.Add(variable);
                 worker.Emit(OpCodes.Call, genericInstanceMethod);
                 worker.Emit(OpCodes.Stloc_0);

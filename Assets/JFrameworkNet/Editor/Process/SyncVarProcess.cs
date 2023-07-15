@@ -136,7 +136,7 @@ namespace JFramework.Editor
             }
             
             int parentSyncVarCount = syncVarList.GetServerVar(td.BaseType.FullName);
-            syncVarList.SetServerVarCount(td.FullName, parentSyncVarCount + syncVars.Count);
+            syncVarList.SetServerVar(td.FullName, parentSyncVarCount + syncVars.Count);
             return (syncVars, syncVarNetIds);
         }
 
@@ -147,13 +147,13 @@ namespace JFramework.Editor
             FieldDefinition netIdField = null;
             if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
             { 
-                netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, process.Import<NetworkVariable>());
+                netIdField = new FieldDefinition($"m_{fd.Name}NetId", FieldAttributes.Family, process.Import<NetworkVariable>());
                 netIdField.DeclaringType = td;
                 syncVarNetIds[fd] = netIdField;
             }
             else if (fd.FieldType.IsNetworkEntityField())
             {  
-                netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, process.Import<uint>());
+                netIdField = new FieldDefinition($"m_{fd.Name}NetId", FieldAttributes.Family, process.Import<uint>());
                 netIdField.DeclaringType = td;
 
                 syncVarNetIds[fd] = netIdField;
@@ -163,7 +163,7 @@ namespace JFramework.Editor
             MethodDefinition set = GenerateSyncVarSetter(td, fd, originalName, dirtyBit, netIdField);
 
        
-            PropertyDefinition propertyDefinition = new PropertyDefinition($"Network{originalName}", PropertyAttributes.None, fd.FieldType)
+            PropertyDefinition propertyDefinition = new PropertyDefinition($"m_{originalName}", PropertyAttributes.None, fd.FieldType)
             {
                 GetMethod = get,
                 SetMethod = set
@@ -173,17 +173,11 @@ namespace JFramework.Editor
             td.Methods.Add(get);
             td.Methods.Add(set);
             td.Properties.Add(propertyDefinition);
-            syncVarList.setterProperties[fd] = set;
-
-            if (fd.FieldType.IsNetworkEntityField())
-            {
-                syncVarList.getterProperties[fd] = get;
-            }
         }
 
         private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string originalName, FieldDefinition netFieldId)
         {
-            MethodDefinition get = new MethodDefinition($"get_Network{originalName}", CONST.VAR_ATTRS, fd.FieldType);
+            MethodDefinition get = new MethodDefinition($"get_m_{originalName}", CONST.VAR_ATTRS, fd.FieldType);
 
             ILProcessor worker = get.Body.GetILProcessor();
 
@@ -241,7 +235,7 @@ namespace JFramework.Editor
 
         private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string originalName, long dirtyBit, FieldDefinition netFieldId)
         {
-            MethodDefinition set = new MethodDefinition($"set_Network{originalName}", CONST.VAR_ATTRS, process.Import(typeof(void)));
+            MethodDefinition set = new MethodDefinition($"set_m_{originalName}", CONST.VAR_ATTRS, process.Import(typeof(void)));
             
             ILProcessor worker = set.Body.GetILProcessor();
             FieldReference fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;
