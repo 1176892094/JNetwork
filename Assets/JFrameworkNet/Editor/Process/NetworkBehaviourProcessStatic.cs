@@ -21,7 +21,7 @@ namespace JFramework.Editor
             }
             else
             {
-                cctor = new MethodDefinition(".cctor",CONST.STATIC_CCTOR, process.Import(typeof(void)));
+                cctor = new MethodDefinition(".cctor",CONST.CTOR_ATTRS, process.Import(typeof(void)));
             }
 
             ILProcessor cctorWorker = cctor.Body.GetILProcessor();

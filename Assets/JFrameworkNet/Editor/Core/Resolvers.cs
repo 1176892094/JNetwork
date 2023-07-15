@@ -63,7 +63,7 @@ namespace JFramework.Editor
         {
             foreach (MethodDefinition methodRef in variable.Resolve().Methods)
             {
-                if (methodRef.Name == CONST.CONSTRUCTOR && methodRef.Resolve().IsPublic && methodRef.Parameters.Count == 0)
+                if (methodRef.Name == CONST.CTOR && methodRef.Resolve().IsPublic && methodRef.Parameters.Count == 0)
                 {
                     return methodRef;
                 }

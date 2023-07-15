@@ -11,15 +11,15 @@ namespace JFramework.Editor
     internal class ServerVarProcess
     {
         private readonly Logger logger;
-        private readonly Process _process;
+        private readonly Process process;
         private readonly SyncVarList syncVarList;
         private readonly AssemblyDefinition assembly;
 
-        public ServerVarProcess(AssemblyDefinition assembly, Process process, SyncVarList syncVars, Logger logger)
+        public ServerVarProcess(AssemblyDefinition assembly, Process process, SyncVarList syncVarList, Logger logger)
         {
             this.assembly = assembly;
-            this._process = process;
-            this.syncVarList = syncVars;
+            this.process = process;
+            this.syncVarList = syncVarList;
             this.logger = logger;
         }
         
@@ -29,13 +29,7 @@ namespace JFramework.Editor
             MethodReference hookMethodReference;
             if (hookMethod.DeclaringType.HasGenericParameters)
             {
-                GenericParameter[] genericParameters = hookMethod.DeclaringType.GenericParameters.ToArray();
-                TypeReference[] typeReferences = new TypeReference[genericParameters.Length];
-                for (int i = 0; i < genericParameters.Length; i++)
-                {
-                    typeReferences[i] = genericParameters[i];
-                }
-                var genericInstanceType = hookMethod.DeclaringType.MakeGenericInstanceType(typeReferences);
+                var genericInstanceType = hookMethod.DeclaringType.MakeGenericInstanceType(hookMethod.DeclaringType.GenericParameters.Cast<TypeReference>().ToArray());
                 hookMethodReference = hookMethod.MakeHostInstanceGeneric(hookMethod.Module, genericInstanceType);
             }
             else
@@ -55,7 +49,7 @@ namespace JFramework.Editor
             
             TypeReference actionRef = assembly.MainModule.ImportReference(typeof(Action<,>));
             GenericInstanceType genericInstance = actionRef.MakeGenericInstanceType(syncVar.FieldType, syncVar.FieldType);
-            worker.Emit(OpCodes.Newobj, _process.HookMethodReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
+            worker.Emit(OpCodes.Newobj, process.HookMethodReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
         }
 
         public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition syncVar)
@@ -129,9 +123,9 @@ namespace JFramework.Editor
                 ProcessSyncVar(td, fd, syncVarNetIds, 1L << dirtyBitCounter);
                 dirtyBitCounter += 1;
                   
-                if (dirtyBitCounter > CONST.SERVER_VAR_LIMIT)
+                if (dirtyBitCounter > CONST.SYNC_LIMIT)
                 {
-                    logger.Error($"{td.Name} 网络变量数量大于 {CONST.SERVER_VAR_LIMIT}。", td);
+                    logger.Error($"{td.Name} 网络变量数量大于 {CONST.SYNC_LIMIT}。", td);
                     Command.failed = true;
                 }
             }
@@ -153,14 +147,13 @@ namespace JFramework.Editor
             FieldDefinition netIdField = null;
             if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
             { 
-                netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, _process.Import<NetworkVariable>());
+                netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, process.Import<NetworkVariable>());
                 netIdField.DeclaringType = td;
-
                 syncVarNetIds[fd] = netIdField;
             }
             else if (fd.FieldType.IsNetworkEntityField())
             {  
-                netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, _process.Import<uint>());
+                netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, process.Import<uint>());
                 netIdField.DeclaringType = td;
 
                 syncVarNetIds[fd] = netIdField;
@@ -190,7 +183,7 @@ namespace JFramework.Editor
 
         private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string originalName, FieldDefinition netFieldId)
         {
-            MethodDefinition get = new MethodDefinition($"get_Network{originalName}", CONST.SERVER_VALUE, fd.FieldType);
+            MethodDefinition get = new MethodDefinition($"get_Network{originalName}", CONST.VAR_ATTRS, fd.FieldType);
 
             ILProcessor worker = get.Body.GetILProcessor();
 
@@ -209,7 +202,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                worker.Emit(OpCodes.Call, _process.getSyncVarGameObject);
+                worker.Emit(OpCodes.Call, process.getSyncVarGameObject);
                 worker.Emit(OpCodes.Ret);
             }
             else if (fd.FieldType.Is<NetworkObject>())
@@ -219,7 +212,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                worker.Emit(OpCodes.Call, _process.getSyncVarNetworkObject);
+                worker.Emit(OpCodes.Call, process.getSyncVarNetworkObject);
                 worker.Emit(OpCodes.Ret);
             }
             else if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
@@ -229,7 +222,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                MethodReference getFunc = _process.getSyncVarNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
+                MethodReference getFunc = process.getSyncVarNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
                 worker.Emit(OpCodes.Ret);
             }
@@ -248,7 +241,7 @@ namespace JFramework.Editor
 
         private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string originalName, long dirtyBit, FieldDefinition netFieldId)
         {
-            MethodDefinition set = new MethodDefinition($"set_Network{originalName}", CONST.SERVER_VALUE, _process.Import(typeof(void)));
+            MethodDefinition set = new MethodDefinition($"set_Network{originalName}", CONST.VAR_ATTRS, process.Import(typeof(void)));
             
             ILProcessor worker = set.Body.GetILProcessor();
             FieldReference fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;
@@ -281,24 +274,24 @@ namespace JFramework.Editor
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                worker.Emit(OpCodes.Call, _process.syncVarSetterGameObject);
+                worker.Emit(OpCodes.Call, process.syncVarSetterGameObject);
             }
             else if (fd.FieldType.Is<NetworkObject>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                worker.Emit(OpCodes.Call, _process.syncVarSetterNetworkObject);
+                worker.Emit(OpCodes.Call, process.syncVarSetterNetworkObject);
             }
             else if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                MethodReference getFunc = _process.syncVarSetterNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
+                MethodReference getFunc = process.syncVarSetterNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else
             {
-                MethodReference generic = _process.syncVarSetterGeneral.MakeGeneric(assembly.MainModule, fd.FieldType);
+                MethodReference generic = process.syncVarSetterGeneral.MakeGeneric(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, generic);
             }
 

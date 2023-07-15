@@ -84,14 +84,14 @@ namespace JFramework.Editor
 
         private static bool WasProcessed(TypeDefinition td)
         {
-            return td.GetMethod(CONST.PROCESS_FUNC) != null;
+            return td.GetMethod(CONST.GEN_FUNC) != null;
         }
 
         private void MarkAsProcessed(TypeDefinition td)
         {
             if (!WasProcessed(td))
             {
-                MethodDefinition versionMethod = new MethodDefinition(CONST.PROCESS_FUNC, MethodAttributes.Private, process.Import(typeof(void)));
+                MethodDefinition versionMethod = new MethodDefinition(CONST.GEN_FUNC, MethodAttributes.Private, process.Import(typeof(void)));
                 ILProcessor worker = versionMethod.Body.GetILProcessor();
                 worker.Emit(OpCodes.Ret);
                 td.Methods.Add(versionMethod);

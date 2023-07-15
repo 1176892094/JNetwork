@@ -176,7 +176,7 @@ namespace JFramework.Editor
             this.assembly = assembly;
 
             TypeReference ArraySegmentType = Import(typeof(ArraySegment<>));
-            ArraySegmentConstructorReference = Resolvers.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CONSTRUCTOR);
+            ArraySegmentConstructorReference = Resolvers.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CTOR);
             
             TypeReference ActionType = Import(typeof(Action<,>));
             HookMethodReference = Resolvers.ResolveMethod(ActionType, assembly, logger, ".ctor");

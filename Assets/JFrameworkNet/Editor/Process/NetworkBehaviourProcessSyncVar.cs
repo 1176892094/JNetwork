@@ -9,17 +9,17 @@ namespace JFramework.Editor
     {
         private void GenerateSerialization()
         {   
-            if (generateCode.GetMethod(CONST.SERIAL_METHOD) != null) return;
+            if (generateCode.GetMethod(CONST.SER_METHOD) != null) return;
             if (syncVars.Count == 0) return;
             
-            MethodDefinition serialize = new MethodDefinition(CONST.SERIAL_METHOD, CONST.SERIAL_ATTRS, process.Import(typeof(void)));
+            MethodDefinition serialize = new MethodDefinition(CONST.SER_METHOD, CONST.SER_ATTRS, process.Import(typeof(void)));
 
             serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, process.Import<NetworkWriter>()));
             serialize.Parameters.Add(new ParameterDefinition("force", ParameterAttributes.None, process.Import<bool>()));
             ILProcessor worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
-            MethodReference baseSerialize = Resolvers.TryResolveMethodInParents(generateCode.BaseType, assembly, CONST.SERIAL_METHOD);
+            MethodReference baseSerialize = Resolvers.TryResolveMethodInParents(generateCode.BaseType, assembly, CONST.SER_METHOD);
             if (baseSerialize != null)
             {
                 worker.Emit(OpCodes.Ldarg_0);
@@ -104,10 +104,10 @@ namespace JFramework.Editor
 
         private void GenerateDeserialization()
         {
-            if (generateCode.GetMethod(CONST.DE_SERIAL_METHOD) != null) return;
+            if (generateCode.GetMethod(CONST.DES_METHOD) != null) return;
             if (syncVars.Count == 0) return;
 
-            MethodDefinition serialize = new MethodDefinition(CONST.DE_SERIAL_METHOD, CONST.SERIAL_ATTRS, process.Import(typeof(void)));
+            MethodDefinition serialize = new MethodDefinition(CONST.DES_METHOD, CONST.SER_ATTRS, process.Import(typeof(void)));
 
             serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, process.Import<NetworkReader>()));
             serialize.Parameters.Add(new ParameterDefinition("force", ParameterAttributes.None, process.Import<bool>()));
@@ -116,7 +116,7 @@ namespace JFramework.Editor
             VariableDefinition dirtyBitsLocal = new VariableDefinition(process.Import<long>());
             serialize.Body.Variables.Add(dirtyBitsLocal);
 
-            MethodReference baseDeserialize = Resolvers.TryResolveMethodInParents(generateCode.BaseType, assembly, CONST.DE_SERIAL_METHOD);
+            MethodReference baseDeserialize = Resolvers.TryResolveMethodInParents(generateCode.BaseType, assembly, CONST.DES_METHOD);
             if (baseDeserialize != null)
             {
                 serWorker.Append(serWorker.Create(OpCodes.Ldarg_0));

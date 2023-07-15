@@ -7,7 +7,7 @@ namespace JFramework.Editor
     {
         private static MethodDefinition SubstituteMethod(Logger logger, TypeDefinition td, MethodDefinition md)
         {
-            string newName = Command.GenerateMethodName(CONST.USER_RPC, md);
+            string newName = Command.GenerateMethodName(CONST.RPC_METHOD, md);
             var cmd = new MethodDefinition(newName, md.Attributes, md.ReturnType)
             {
                 IsPublic = false,
@@ -35,15 +35,15 @@ namespace JFramework.Editor
 
             (md.DebugInformation.Scope, cmd.DebugInformation.Scope) = (cmd.DebugInformation.Scope, md.DebugInformation.Scope);
             td.Methods.Add(cmd);
-            FixRemoteCallToBaseMethod(logger, td, cmd);
+            FixBaseMethodForRpc(logger, td, cmd);
             return cmd;
         }
 
-        private static void FixRemoteCallToBaseMethod(Logger logger, TypeDefinition type, MethodDefinition method)
+        private static void FixBaseMethodForRpc(Logger logger, TypeDefinition type, MethodDefinition method)
         {
             string methodName = method.Name;
-            if (!methodName.StartsWith(CONST.USER_RPC)) return;
-            string baseRemoteCallName = method.Name.Substring(CONST.USER_RPC.Length);
+            if (!methodName.StartsWith(CONST.RPC_METHOD)) return;
+            string baseRemoteCallName = method.Name.Substring(CONST.RPC_METHOD.Length);
 
             foreach (Instruction instruction in method.Body.Instructions)
             {

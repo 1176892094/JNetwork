@@ -18,8 +18,8 @@ namespace JFramework.Editor
         /// <returns></returns>
         public static MethodDefinition ProcessClientRpc(Process process, Readers readers, Logger logger, TypeDefinition td, MethodDefinition md, MethodDefinition func)
         {
-            string rpcName = Command.GenerateMethodName(CONST.INVOKE_RPC, md);
-            MethodDefinition rpc = new MethodDefinition(rpcName, CONST.METHOD_RPC, process.Import(typeof(void)));
+            string rpcName = Command.GenerateMethodName(CONST.INV_METHOD, md);
+            MethodDefinition rpc = new MethodDefinition(rpcName, CONST.RPC_ATTRS, process.Import(typeof(void)));
             ILProcessor worker = rpc.Body.GetILProcessor();
             Instruction label = worker.Create(OpCodes.Nop);
             NetworkClientActive(worker, process, md.Name, label,"ClientRpc");
@@ -84,8 +84,8 @@ namespace JFramework.Editor
         /// <returns></returns>
         public static MethodDefinition ProcessServerRpc(Process process, Readers readers, Logger logger, TypeDefinition td, MethodDefinition md, MethodDefinition func)
         {
-            string rpcName = Command.GenerateMethodName(CONST.INVOKE_RPC, md);
-            MethodDefinition cmd = new MethodDefinition(rpcName, CONST.METHOD_RPC, process.Import(typeof(void)));
+            string rpcName = Command.GenerateMethodName(CONST.INV_METHOD, md);
+            MethodDefinition cmd = new MethodDefinition(rpcName, CONST.RPC_ATTRS, process.Import(typeof(void)));
             ILProcessor worker = cmd.Body.GetILProcessor();
             Instruction label = worker.Create(OpCodes.Nop);
             NetworkServerActive(worker, process, md.Name, label, "ServerRpc");
@@ -168,8 +168,8 @@ namespace JFramework.Editor
         /// <returns></returns>
         public static MethodDefinition ProcessTargetRpc(Process process, Readers readers, Logger logger, TypeDefinition td, MethodDefinition md, MethodDefinition func)
         {
-            string rpcName = Command.GenerateMethodName(CONST.INVOKE_RPC, md);
-            MethodDefinition rpc = new MethodDefinition(rpcName, CONST.METHOD_RPC, process.Import(typeof(void)));
+            string rpcName = Command.GenerateMethodName(CONST.INV_METHOD, md);
+            MethodDefinition rpc = new MethodDefinition(rpcName, CONST.RPC_ATTRS, process.Import(typeof(void)));
             ILProcessor worker = rpc.Body.GetILProcessor();
             Instruction label = worker.Create(OpCodes.Nop);
             NetworkClientActive(worker, process, md.Name, label, "TargetRpc");

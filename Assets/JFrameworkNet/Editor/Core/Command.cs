@@ -39,7 +39,7 @@ namespace JFramework.Editor
                 syncVars = new SyncVarList();
                 _process = new Process(currentAssembly, logger);
                 
-                generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE, CONST.ATTRIBUTES, _process.Import<object>());
+                generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE, CONST.TYPE_ATTRS, _process.Import<object>());
                 writers = new Writers(currentAssembly, _process, generate, logger);
                 readers = new Readers(currentAssembly, _process, generate, logger);
                 change = StreamingProcess.Process(currentAssembly, resolver, logger, writers, readers);
