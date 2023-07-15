@@ -154,7 +154,6 @@ namespace JFramework.Editor
         /// <param name="writers"></param>
         /// <param name="readers"></param>
         /// <param name="type"></param>
-        /// <param name="isFailed"></param>
         /// <returns></returns>
         private static bool LoadStreamingMessage(ModuleDefinition module, Writers writers, Readers readers, TypeDefinition type)
         {
@@ -180,7 +179,7 @@ namespace JFramework.Editor
         /// <param name="assembly"></param>
         /// <param name="process"></param>
         /// <param name="method"></param>
-        private static void AddRuntimeInitializeOnLoadAttribute(AssemblyDefinition assembly, Processor process, MethodDefinition method)
+        private static void AddRuntimeInitializeOnLoadAttribute(AssemblyDefinition assembly, Process process, MethodDefinition method)
         {
             MethodDefinition definition = process.RuntimeInitializeOnLoadMethodAttribute.GetConstructors().Last();
             CustomAttribute attribute = new CustomAttribute(assembly.MainModule.ImportReference(definition));
@@ -194,7 +193,7 @@ namespace JFramework.Editor
         /// <param name="assembly"></param>
         /// <param name="process"></param>
         /// <param name="method"></param>
-        private static void AddInitializeOnLoadAttribute(AssemblyDefinition assembly, Processor process, MethodDefinition method)
+        private static void AddInitializeOnLoadAttribute(AssemblyDefinition assembly, Process process, MethodDefinition method)
         {
             MethodDefinition ctor = process.InitializeOnLoadMethodAttribute.GetConstructors().First();
             CustomAttribute attribute = new CustomAttribute(assembly.MainModule.ImportReference(ctor));
@@ -209,7 +208,7 @@ namespace JFramework.Editor
         /// <param name="writers"></param>
         /// <param name="readers"></param>
         /// <param name="generatedClass"></param>
-        public static void StreamingInitialize(AssemblyDefinition currentAssembly, Processor process, Writers writers, Readers readers, TypeDefinition generatedClass)
+        public static void StreamingInitialize(AssemblyDefinition currentAssembly, Process process, Writers writers, Readers readers, TypeDefinition generatedClass)
         {
             MethodDefinition initReadWriters = new MethodDefinition("RuntimeInitializeOnLoad", MethodAttributes.Public | MethodAttributes.Static, process.Import(typeof(void)));
             

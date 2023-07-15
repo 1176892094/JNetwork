@@ -15,31 +15,31 @@ namespace JFramework.Editor
                 if (!RemoveFinalRetInstruction(cctor))
                 {
                     logger.Error($"{generateCode.Name} 无效的静态构造函数。", cctor);
-                    Injection.failed = true;
+                    Command.failed = true;
                     return;
                 }
             }
             else
             {
-                cctor = new MethodDefinition(".cctor",CONST.STATIC_CCTOR, processor.Import(typeof(void)));
+                cctor = new MethodDefinition(".cctor",CONST.STATIC_CCTOR, process.Import(typeof(void)));
             }
 
             ILProcessor cctorWorker = cctor.Body.GetILProcessor();
             for (int i = 0; i < serverRpcList.Count; ++i)
             {
                 ServerRpcResult cmdResult = serverRpcList[i];
-                GenerateRegisterServerRpcDelegate(cctorWorker, processor.registerServerRpcReference, serverRpcFuncList[i], cmdResult);
+                GenerateRegisterServerRpcDelegate(cctorWorker, process.registerServerRpcReference, serverRpcFuncList[i], cmdResult);
             }
             
             for (int i = 0; i < clientRpcList.Count; ++i)
             {
                 ClientRpcResult clientRpcResult = clientRpcList[i];
-                GenerateRegisterClientRpcDelegate(cctorWorker, processor.registerClientRpcReference, clientRpcFuncList[i], clientRpcResult.method.FullName);
+                GenerateRegisterClientRpcDelegate(cctorWorker, process.registerClientRpcReference, clientRpcFuncList[i], clientRpcResult.method.FullName);
             }
             
             for (int i = 0; i < targetRpcList.Count; ++i)
             {
-                GenerateRegisterClientRpcDelegate(cctorWorker, processor.registerClientRpcReference, targetRpcFuncList[i], targetRpcList[i].FullName);
+                GenerateRegisterClientRpcDelegate(cctorWorker, process.registerClientRpcReference, targetRpcFuncList[i], targetRpcList[i].FullName);
             }
             
             cctorWorker.Append(cctorWorker.Create(OpCodes.Ret));
@@ -71,11 +71,11 @@ namespace JFramework.Editor
         private void GenerateRegisterClientRpcDelegate(ILProcessor worker, MethodReference registerMethod, MethodDefinition func, string functionFullName)
         {
             worker.Emit(OpCodes.Ldtoken, generateCode);
-            worker.Emit(OpCodes.Call, processor.getTypeFromHandleReference);
+            worker.Emit(OpCodes.Call, process.getTypeFromHandleReference);
             worker.Emit(OpCodes.Ldstr, functionFullName);
             worker.Emit(OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldftn, func);
-            worker.Emit(OpCodes.Newobj, processor.RpcDelegateConstructor);
+            worker.Emit(OpCodes.Newobj, process.RpcDelegateConstructor);
             worker.Emit(OpCodes.Call, registerMethod);
         }
 
@@ -84,11 +84,11 @@ namespace JFramework.Editor
             string cmdName = cmdResult.method.FullName;
 
             worker.Emit(OpCodes.Ldtoken, generateCode);
-            worker.Emit(OpCodes.Call, processor.getTypeFromHandleReference);
+            worker.Emit(OpCodes.Call, process.getTypeFromHandleReference);
             worker.Emit(OpCodes.Ldstr, cmdName);
             worker.Emit(OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldftn, func);
-            worker.Emit(OpCodes.Newobj, processor.RpcDelegateConstructor);
+            worker.Emit(OpCodes.Newobj, process.RpcDelegateConstructor);
             worker.Emit(OpCodes.Call, registerMethod);
         }
     }

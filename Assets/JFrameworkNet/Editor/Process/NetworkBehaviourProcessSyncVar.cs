@@ -12,10 +12,10 @@ namespace JFramework.Editor
             if (generateCode.GetMethod(CONST.SERIAL_METHOD) != null) return;
             if (syncVars.Count == 0) return;
             
-            MethodDefinition serialize = new MethodDefinition(CONST.SERIAL_METHOD, CONST.SERIAL_ATTRS, processor.Import(typeof(void)));
+            MethodDefinition serialize = new MethodDefinition(CONST.SERIAL_METHOD, CONST.SERIAL_ATTRS, process.Import(typeof(void)));
 
-            serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, processor.Import<NetworkWriter>()));
-            serialize.Parameters.Add(new ParameterDefinition("force", ParameterAttributes.None, processor.Import<bool>()));
+            serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, process.Import<NetworkWriter>()));
+            serialize.Parameters.Add(new ParameterDefinition("force", ParameterAttributes.None, process.Import<bool>()));
             ILProcessor worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
@@ -42,7 +42,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
-                MethodReference writeFunc = writers.GetWriteFunc(syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? processor.Import<NetworkBehaviour>() : syncVar.FieldType);
+                MethodReference writeFunc = writers.GetWriteFunc(syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? process.Import<NetworkBehaviour>() : syncVar.FieldType);
 
                 if (writeFunc != null)
                 {
@@ -51,7 +51,7 @@ namespace JFramework.Editor
                 else
                 {
                     logger.Error($"不支持 {syncVar.Name} 的类型", syncVar);
-                    Injection.failed = true;
+                    Command.failed = true;
                     return;
                 }
             }
@@ -60,8 +60,8 @@ namespace JFramework.Editor
             worker.Append(initialStateLabel);
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Call, processor.NetworkBehaviourDirtyReference);
-            MethodReference writeUint64Func = writers.GetWriteFunc(processor.Import<ulong>());
+            worker.Emit(OpCodes.Call, process.NetworkBehaviourDirtyReference);
+            MethodReference writeUint64Func = writers.GetWriteFunc(process.Import<ulong>());
             worker.Emit(OpCodes.Call, writeUint64Func);
             int dirty = syncVarList.GetServerVar(generateCode.BaseType.FullName);
             foreach (FieldDefinition syncVarDef in syncVars)
@@ -73,7 +73,7 @@ namespace JFramework.Editor
                 }
                 Instruction varLabel = worker.Create(OpCodes.Nop);
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Call, processor.NetworkBehaviourDirtyReference);
+                worker.Emit(OpCodes.Call, process.NetworkBehaviourDirtyReference);
                 worker.Emit(OpCodes.Ldc_I8, 1L << dirty);
                 worker.Emit(OpCodes.And);
                 worker.Emit(OpCodes.Brfalse, varLabel);
@@ -81,7 +81,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
 
-                MethodReference writeFunc = writers.GetWriteFunc(syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? processor.Import<NetworkBehaviour>() : syncVar.FieldType);
+                MethodReference writeFunc = writers.GetWriteFunc(syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? process.Import<NetworkBehaviour>() : syncVar.FieldType);
 
                 if (writeFunc != null)
                 {
@@ -90,7 +90,7 @@ namespace JFramework.Editor
                 else
                 {
                     logger.Error($"不支持 {syncVar.Name} 的类型", syncVar);
-                    Injection.failed = true;
+                    Command.failed = true;
                     return;
                 }
 
@@ -107,13 +107,13 @@ namespace JFramework.Editor
             if (generateCode.GetMethod(CONST.DE_SERIAL_METHOD) != null) return;
             if (syncVars.Count == 0) return;
 
-            MethodDefinition serialize = new MethodDefinition(CONST.DE_SERIAL_METHOD, CONST.SERIAL_ATTRS, processor.Import(typeof(void)));
+            MethodDefinition serialize = new MethodDefinition(CONST.DE_SERIAL_METHOD, CONST.SERIAL_ATTRS, process.Import(typeof(void)));
 
-            serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, processor.Import<NetworkReader>()));
-            serialize.Parameters.Add(new ParameterDefinition("force", ParameterAttributes.None, processor.Import<bool>()));
+            serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, process.Import<NetworkReader>()));
+            serialize.Parameters.Add(new ParameterDefinition("force", ParameterAttributes.None, process.Import<bool>()));
             ILProcessor serWorker = serialize.Body.GetILProcessor();
             serialize.Body.InitLocals = true;
-            VariableDefinition dirtyBitsLocal = new VariableDefinition(processor.Import<long>());
+            VariableDefinition dirtyBitsLocal = new VariableDefinition(process.Import<long>());
             serialize.Body.Variables.Add(dirtyBitsLocal);
 
             MethodReference baseDeserialize = Resolvers.TryResolveMethodInParents(generateCode.BaseType, assembly, CONST.DE_SERIAL_METHOD);
@@ -138,7 +138,7 @@ namespace JFramework.Editor
             serWorker.Append(serWorker.Create(OpCodes.Ret));
             serWorker.Append(initialStateLabel);
             serWorker.Append(serWorker.Create(OpCodes.Ldarg_1));
-            serWorker.Append(serWorker.Create(OpCodes.Call, readers.GetReadFunc(processor.Import<ulong>())));
+            serWorker.Append(serWorker.Create(OpCodes.Call, readers.GetReadFunc(process.Import<ulong>())));
             serWorker.Append(serWorker.Create(OpCodes.Stloc_0));
             
             int dirty = syncVarList.GetServerVar(generateCode.BaseType.FullName);
@@ -184,7 +184,7 @@ namespace JFramework.Editor
                 FieldDefinition netIdField = syncVarNetIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdField);
-                worker.Emit(OpCodes.Call, processor.syncVarGetterGameObject);
+                worker.Emit(OpCodes.Call, process.syncVarGetterGameObject);
             }
             else if (syncVar.FieldType.Is<NetworkObject>())
             {
@@ -192,7 +192,7 @@ namespace JFramework.Editor
                 FieldDefinition netIdField = syncVarNetIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdField);
-                worker.Emit(OpCodes.Call, processor.syncVarGetterNetworkObject);
+                worker.Emit(OpCodes.Call, process.syncVarGetterNetworkObject);
             }
             else if (syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() || syncVar.FieldType.Is<NetworkBehaviour>())
             {
@@ -200,7 +200,7 @@ namespace JFramework.Editor
                 FieldDefinition netIdField = syncVarNetIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdField);
-                MethodReference getFunc = processor.syncVarGetterNetworkBehaviour.MakeGeneric(assembly.MainModule, syncVar.FieldType);
+                MethodReference getFunc = process.syncVarGetterNetworkBehaviour.MakeGeneric(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else
@@ -209,12 +209,12 @@ namespace JFramework.Editor
                 if (readFunc == null)
                 {
                     logger.Error($"不支持 {syncVar.Name} 的类型。", syncVar);
-                    Injection.failed = true;
+                    Command.failed = true;
                     return;
                 }
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Call, readFunc);
-                MethodReference generic = processor.syncVarGetterGeneral.MakeGeneric(assembly.MainModule, syncVar.FieldType);
+                MethodReference generic = process.syncVarGetterGeneral.MakeGeneric(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, generic);
             }
         }

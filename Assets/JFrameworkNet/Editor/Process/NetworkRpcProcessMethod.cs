@@ -3,11 +3,11 @@ using Mono.Cecil.Cil;
 
 namespace JFramework.Editor
 {
-    internal static class MethodProcess
+    internal static partial class NetworkRpcProcess
     {
-        public static MethodDefinition SubstituteMethod(Logger logger, TypeDefinition td, MethodDefinition md)
+        private static MethodDefinition SubstituteMethod(Logger logger, TypeDefinition td, MethodDefinition md)
         {
-            string newName = Injection.GenerateMethodName(CONST.USER_RPC, md);
+            string newName = Command.GenerateMethodName(CONST.USER_RPC, md);
             var cmd = new MethodDefinition(newName, md.Attributes, md.ReturnType)
             {
                 IsPublic = false,
@@ -49,7 +49,7 @@ namespace JFramework.Editor
             {
                 if (IsCallToMethod(instruction, out MethodDefinition calledMethod))
                 {
-                    string calledMethodName_Generated = Injection.GenerateMethodName("", calledMethod);
+                    string calledMethodName_Generated = Command.GenerateMethodName("", calledMethod);
                     if (calledMethodName_Generated == baseRemoteCallName)
                     {
                         TypeDefinition baseType = type.BaseType.Resolve();
@@ -58,14 +58,14 @@ namespace JFramework.Editor
                         if (baseMethod == null)
                         {
                             logger.Error($"找不到 base 方法{methodName}", method);
-                            Injection.failed = true;
+                            Command.failed = true;
                             return;
                         }
 
                         if (!baseMethod.IsVirtual)
                         {
                             logger.Error($"找不到 virtual 的 base 方法{methodName}", method);
-                            Injection.failed = true;
+                            Command.failed = true;
                             return;
                         }
 

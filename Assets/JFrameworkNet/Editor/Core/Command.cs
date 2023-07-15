@@ -7,19 +7,19 @@ using UnityEngine;
 
 namespace JFramework.Editor
 {
-    internal class Injection
+    internal class Command
     {
         public static bool failed;
         public static bool change;
         private Writers writers;
         private Readers readers;
-        private Processor processor;
+        private Process _process;
         private SyncVarList syncVars;
         private TypeDefinition generate;
         private AssemblyDefinition currentAssembly;
         private readonly Logger logger;
         
-        public Injection(Logger logger)
+        public Command(Logger logger)
         {
             this.logger = logger;
         }
@@ -37,11 +37,11 @@ namespace JFramework.Editor
                 }
 
                 syncVars = new SyncVarList();
-                processor = new Processor(currentAssembly, logger);
+                _process = new Process(currentAssembly, logger);
                 
-                generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE, CONST.ATTRIBUTES, processor.Import<object>());
-                writers = new Writers(currentAssembly, processor, generate, logger);
-                readers = new Readers(currentAssembly, processor, generate, logger);
+                generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE, CONST.ATTRIBUTES, _process.Import<object>());
+                writers = new Writers(currentAssembly, _process, generate, logger);
+                readers = new Readers(currentAssembly, _process, generate, logger);
                 change = StreamingProcess.Process(currentAssembly, resolver, logger, writers, readers);
 
                 ModuleDefinition moduleDefinition = currentAssembly.MainModule;
@@ -55,7 +55,7 @@ namespace JFramework.Editor
                 if (change)
                 {
                     moduleDefinition.Types.Add(generate);
-                    StreamingProcess.StreamingInitialize(currentAssembly, processor, writers,readers,generate);
+                    StreamingProcess.StreamingInitialize(currentAssembly, _process, writers,readers,generate);
                 }
                 
                 return true;
@@ -105,7 +105,7 @@ namespace JFramework.Editor
             bool changed = false;
             foreach (TypeDefinition behaviour in behaviourClasses)
             {
-                changed |= new NetworkBehaviourProcess(currentAssembly, processor, syncVars, writers, readers, logger, behaviour).Process();
+                changed |= new NetworkBehaviourProcess(currentAssembly, _process, syncVars, writers, readers, logger, behaviour).Process();
             }
             return changed;
         }

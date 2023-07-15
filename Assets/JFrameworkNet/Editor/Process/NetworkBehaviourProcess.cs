@@ -10,7 +10,7 @@ namespace JFramework.Editor
         private readonly Logger logger;
         private readonly Writers writers;
         private readonly Readers readers;
-        private readonly Processor processor;
+        private readonly Process process;
         private readonly SyncVarList syncVarList;
         private readonly TypeDefinition type;
         private readonly ServerVarProcess serverVarProcess;
@@ -38,16 +38,16 @@ namespace JFramework.Editor
             public ClientRpcResult(MethodDefinition method) => this.method = method;
         }
         
-        public NetworkBehaviourProcess(AssemblyDefinition assembly, Processor processor, SyncVarList syncVars, Writers writers, Readers readers, Logger logger, TypeDefinition type)
+        public NetworkBehaviourProcess(AssemblyDefinition assembly, Process process, SyncVarList syncVarList, Writers writers, Readers readers, Logger logger, TypeDefinition type)
         {
             this.type = type;
             this.logger = logger;
             this.writers = writers;
             this.readers = readers;
             this.assembly = assembly;
-            this.processor = processor;
-            this.syncVarList = syncVars;
-            serverVarProcess = new ServerVarProcess(assembly, processor, syncVars, logger);
+            this.process = process;
+            this.syncVarList = syncVarList;
+            serverVarProcess = new ServerVarProcess(assembly, process, syncVarList, logger);
             generateCode = this.type;
         }
 
@@ -64,7 +64,7 @@ namespace JFramework.Editor
            
             ProcessMethods();
             
-            if (Injection.failed)
+            if (Command.failed)
             {
                 return true;
             }
@@ -73,7 +73,7 @@ namespace JFramework.Editor
             
             GenerateSerialization();
         
-            if (Injection.failed)
+            if (Command.failed)
             {
                 return true;
             }
@@ -91,58 +91,37 @@ namespace JFramework.Editor
         {
             if (!WasProcessed(td))
             {
-                MethodDefinition versionMethod = new MethodDefinition(CONST.PROCESS_FUNC, MethodAttributes.Private, processor.Import(typeof(void)));
+                MethodDefinition versionMethod = new MethodDefinition(CONST.PROCESS_FUNC, MethodAttributes.Private, process.Import(typeof(void)));
                 ILProcessor worker = versionMethod.Body.GetILProcessor();
                 worker.Emit(OpCodes.Ret);
                 td.Methods.Add(versionMethod);
             }
         }
 
-        public static void NetworkClientActive(ILProcessor worker, Processor processor, string mdName, Instruction label, string error)
-        {
-            worker.Emit(OpCodes.Call, processor.NetworkClientGetActive);
-            worker.Emit(OpCodes.Brtrue, label);
-            worker.Emit(OpCodes.Ldstr, $"{error} 方法 {mdName} 远程调用服务器异常。");
-            worker.Emit(OpCodes.Call, processor.logErrorReference);
-            worker.Emit(OpCodes.Ret);
-            worker.Append(label);
-        }
-
-        public static void NetworkServerActive(ILProcessor worker, Processor processor, string mdName, Instruction label, string error)
-        {
-            worker.Emit(OpCodes.Call, processor.NetworkServerGetActive);
-            worker.Emit(OpCodes.Brtrue, label);
-
-            worker.Emit(OpCodes.Ldstr, $"{error} 方法 {mdName} 远程调用客户端异常。");
-            worker.Emit(OpCodes.Call, processor.logErrorReference);
-            worker.Emit(OpCodes.Ret);
-            worker.Append(label);
-        }
-
-        public static void WriteSetupLocals(ILProcessor worker, Processor processor)
+        public static void WriteSetupLocals(ILProcessor worker, Process process)
         {
             worker.Body.InitLocals = true;
-            worker.Body.Variables.Add(new VariableDefinition(processor.Import<NetworkWriter>()));
+            worker.Body.Variables.Add(new VariableDefinition(process.Import<NetworkWriter>()));
         }
 
-        public static void WriteGetWriter(ILProcessor worker, Processor processor)
+        public static void WriteGetWriter(ILProcessor worker, Process process)
         {
-            worker.Emit(OpCodes.Call, processor.PopWriterReference);
+            worker.Emit(OpCodes.Call, process.PopWriterReference);
             worker.Emit(OpCodes.Stloc_0);
         }
 
-        public static void WriteReturnWriter(ILProcessor worker, Processor processor)
+        public static void WriteReturnWriter(ILProcessor worker, Process process)
         {
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Call, processor.PushWriterReference);
+            worker.Emit(OpCodes.Call, process.PushWriterReference);
         }
 
 
-        public static void AddInvokeParameters(Processor processor, ICollection<ParameterDefinition> collection)
+        public static void AddInvokeParameters(Process process, ICollection<ParameterDefinition> collection)
         {
-            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, processor.Import<NetworkBehaviour>()));
-            collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, processor.Import<NetworkReader>()));
-            collection.Add(new ParameterDefinition("target", ParameterAttributes.None, processor.Import<ClientEntity>()));
+            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, process.Import<NetworkBehaviour>()));
+            collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, process.Import<NetworkReader>()));
+            collection.Add(new ParameterDefinition("target", ParameterAttributes.None, process.Import<ClientEntity>()));
         }
     }
 }

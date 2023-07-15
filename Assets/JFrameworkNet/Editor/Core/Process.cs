@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace JFramework.Editor
 {
-    internal class Processor
+    internal class Process
     {
         /// <summary>
         /// 注入的指定程序集
@@ -171,7 +171,7 @@ namespace JFramework.Editor
         public TypeReference Import<T>() => Import(typeof(T));
         public TypeReference Import(Type t) => assembly.MainModule.ImportReference(t);
 
-        public Processor(AssemblyDefinition assembly, Logger logger)
+        public Process(AssemblyDefinition assembly, Logger logger)
         {
             this.assembly = assembly;
 

@@ -11,14 +11,14 @@ namespace JFramework.Editor
     internal class ServerVarProcess
     {
         private readonly Logger logger;
-        private readonly Processor processor;
+        private readonly Process _process;
         private readonly SyncVarList syncVarList;
         private readonly AssemblyDefinition assembly;
 
-        public ServerVarProcess(AssemblyDefinition assembly, Processor processor, SyncVarList syncVars, Logger logger)
+        public ServerVarProcess(AssemblyDefinition assembly, Process process, SyncVarList syncVars, Logger logger)
         {
             this.assembly = assembly;
-            this.processor = processor;
+            this._process = process;
             this.syncVarList = syncVars;
             this.logger = logger;
         }
@@ -55,7 +55,7 @@ namespace JFramework.Editor
             
             TypeReference actionRef = assembly.MainModule.ImportReference(typeof(Action<,>));
             GenericInstanceType genericInstance = actionRef.MakeGenericInstanceType(syncVar.FieldType, syncVar.FieldType);
-            worker.Emit(OpCodes.Newobj, processor.HookMethodReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
+            worker.Emit(OpCodes.Newobj, _process.HookMethodReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
         }
 
         public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition syncVar)
@@ -74,7 +74,7 @@ namespace JFramework.Editor
             if (fixMethods.Count == 0)
             {
                 logger.Error($"无法注册 {serverVar.Name} 请修改为 {HookMethod(hookMethod, serverVar.FieldType)}", serverVar);
-                Injection.failed = true;
+                Command.failed = true;
                 return null;
             }
 
@@ -84,7 +84,7 @@ namespace JFramework.Editor
             }
 
             logger.Error($"参数类型错误 {serverVar.Name} 请修改为 {HookMethod(hookMethod, serverVar.FieldType)}", serverVar);
-            Injection.failed = true;
+            Command.failed = true;
             return null;
         }
 
@@ -106,21 +106,21 @@ namespace JFramework.Editor
                 if ((fd.Attributes & FieldAttributes.Static) != 0)
                 {
                     logger.Error($"{fd.Name} 不能是静态字段。", fd);
-                    Injection.failed = true;
+                    Command.failed = true;
                     continue;
                 }
 
                 if (fd.FieldType.IsGenericParameter)
                 {
                     logger.Error($"{fd.Name} 不能用泛型参数。", fd);
-                    Injection.failed = true;
+                    Command.failed = true;
                     continue;
                 }
 
                 if (fd.FieldType.IsArray)
                 {
                     logger.Error($"{fd.Name} 不能使用数组。", fd);
-                    Injection.failed = true;
+                    Command.failed = true;
                     continue;
                 }
 
@@ -132,7 +132,7 @@ namespace JFramework.Editor
                 if (dirtyBitCounter > CONST.SERVER_VAR_LIMIT)
                 {
                     logger.Error($"{td.Name} 网络变量数量大于 {CONST.SERVER_VAR_LIMIT}。", td);
-                    Injection.failed = true;
+                    Command.failed = true;
                 }
             }
             
@@ -153,14 +153,14 @@ namespace JFramework.Editor
             FieldDefinition netIdField = null;
             if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
             { 
-                netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, processor.Import<NetworkVariable>());
+                netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, _process.Import<NetworkVariable>());
                 netIdField.DeclaringType = td;
 
                 syncVarNetIds[fd] = netIdField;
             }
             else if (fd.FieldType.IsNetworkEntityField())
             {  
-                netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, processor.Import<uint>());
+                netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, _process.Import<uint>());
                 netIdField.DeclaringType = td;
 
                 syncVarNetIds[fd] = netIdField;
@@ -209,7 +209,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                worker.Emit(OpCodes.Call, processor.getSyncVarGameObject);
+                worker.Emit(OpCodes.Call, _process.getSyncVarGameObject);
                 worker.Emit(OpCodes.Ret);
             }
             else if (fd.FieldType.Is<NetworkObject>())
@@ -219,7 +219,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                worker.Emit(OpCodes.Call, processor.getSyncVarNetworkObject);
+                worker.Emit(OpCodes.Call, _process.getSyncVarNetworkObject);
                 worker.Emit(OpCodes.Ret);
             }
             else if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
@@ -229,7 +229,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                MethodReference getFunc = processor.getSyncVarNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
+                MethodReference getFunc = _process.getSyncVarNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
                 worker.Emit(OpCodes.Ret);
             }
@@ -248,7 +248,7 @@ namespace JFramework.Editor
 
         private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string originalName, long dirtyBit, FieldDefinition netFieldId)
         {
-            MethodDefinition set = new MethodDefinition($"set_Network{originalName}", CONST.SERVER_VALUE, processor.Import(typeof(void)));
+            MethodDefinition set = new MethodDefinition($"set_Network{originalName}", CONST.SERVER_VALUE, _process.Import(typeof(void)));
             
             ILProcessor worker = set.Body.GetILProcessor();
             FieldReference fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;
@@ -281,24 +281,24 @@ namespace JFramework.Editor
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                worker.Emit(OpCodes.Call, processor.syncVarSetterGameObject);
+                worker.Emit(OpCodes.Call, _process.syncVarSetterGameObject);
             }
             else if (fd.FieldType.Is<NetworkObject>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                worker.Emit(OpCodes.Call, processor.syncVarSetterNetworkObject);
+                worker.Emit(OpCodes.Call, _process.syncVarSetterNetworkObject);
             }
             else if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                MethodReference getFunc = processor.syncVarSetterNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
+                MethodReference getFunc = _process.syncVarSetterNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else
             {
-                MethodReference generic = processor.syncVarSetterGeneral.MakeGeneric(assembly.MainModule, fd.FieldType);
+                MethodReference generic = _process.syncVarSetterGeneral.MakeGeneric(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, generic);
             }
 

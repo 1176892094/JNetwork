@@ -18,7 +18,7 @@ namespace JFramework.Editor
                 if (fd.HasCustomAttribute<SyncVarAttribute>())
                 {
                     logger.Error($"网络变量 {fd.Name} 必须在 NetworkEntity 中使用。", fd);
-                    Injection.failed = true;
+                    Command.failed = true;
                 }
             }
         }
@@ -30,19 +30,19 @@ namespace JFramework.Editor
                 if (md.HasCustomAttribute<ServerRpcAttribute>())
                 {
                     logger.Error($"ServerRpc {md.Name} 必须在 NetworkEntity 中使用。", md);
-                    Injection.failed = true;
+                    Command.failed = true;
                 }
 
                 if (md.HasCustomAttribute<ClientRpcAttribute>())
                 {
                     logger.Error($"ClientRpc {md.Name} 必须在 NetworkEntity 中使用。", md);
-                    Injection.failed = true;
+                    Command.failed = true;
                 }
 
                 if (md.HasCustomAttribute<TargetRpcAttribute>())
                 {
                     logger.Error($"TargetRpc {md.Name} 必须在 NetworkEntity 中使用。", md);
-                    Injection.failed = true;
+                    Command.failed = true;
                 }
             }
         }
