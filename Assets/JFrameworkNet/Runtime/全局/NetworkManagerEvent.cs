@@ -9,7 +9,7 @@ namespace JFramework.Net
     {
 #if UNITY_EDITOR
         [FoldoutGroup("服务器设置"), ShowInInspector]
-        private NetworkClientEntity serverConnection => NetworkServer.connection;
+        private ClientEntity serverConnection => NetworkServer.connection;
 
         [FoldoutGroup("服务器设置"), ShowInInspector]
         private Dictionary<ushort, EventDelegate> serverEvent => NetworkServer.events;
@@ -18,10 +18,10 @@ namespace JFramework.Net
         private Dictionary<uint, NetworkObject> serverSpawns => NetworkServer.spawns;
 
         [FoldoutGroup("服务器设置"), ShowInInspector]
-        private Dictionary<int, NetworkClientEntity> connections => NetworkServer.clients;
+        private Dictionary<int, ClientEntity> connections => NetworkServer.clients;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
-        private NetworkServerEntity clientConnection => NetworkClient.connection;
+        private ServerEntity clientConnection => NetworkClient.connection;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
         private NetworkReaderPack readers => NetworkClient.readers;

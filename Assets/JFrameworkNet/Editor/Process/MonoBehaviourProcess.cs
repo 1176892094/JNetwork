@@ -20,12 +20,6 @@ namespace JFramework.Editor
                     logger.Error($"网络变量 {fd.Name} 必须在 NetworkEntity 中使用。", fd);
                     Injection.failed = true;
                 }
-
-                if (SyncObjectInitializer.ImplementsSyncObject(fd.FieldType))
-                {
-                    logger.Error($"网络对象 {fd.Name} 必须在 NetworkEntity 中使用。", fd);
-                    Injection.failed = true;
-                }
             }
         }
 

@@ -29,7 +29,13 @@ namespace JFramework.Editor
             MethodReference hookMethodReference;
             if (hookMethod.DeclaringType.HasGenericParameters)
             {
-                var genericInstanceType = hookMethod.DeclaringType.MakeGenericInstanceType(hookMethod.DeclaringType.GenericParameters.ToArray());
+                GenericParameter[] genericParameters = hookMethod.DeclaringType.GenericParameters.ToArray();
+                TypeReference[] typeReferences = new TypeReference[genericParameters.Length];
+                for (int i = 0; i < genericParameters.Length; i++)
+                {
+                    typeReferences[i] = genericParameters[i];
+                }
+                var genericInstanceType = hookMethod.DeclaringType.MakeGenericInstanceType(typeReferences);
                 hookMethodReference = hookMethod.MakeHostInstanceGeneric(hookMethod.Module, genericInstanceType);
             }
             else
@@ -118,22 +124,15 @@ namespace JFramework.Editor
                     continue;
                 }
 
-                if (SyncObjectInitializer.ImplementsSyncObject(fd.FieldType))
-                {
-                    logger.Warn($"{fd.Name} has [SyncVar] attribute. SyncLists should not be marked with SyncVar", fd);
-                }
-                else
-                {
-                    syncVars.Add(fd);
+                syncVars.Add(fd);
                    
-                    ProcessSyncVar(td, fd, syncVarNetIds, 1L << dirtyBitCounter);
-                    dirtyBitCounter += 1;
+                ProcessSyncVar(td, fd, syncVarNetIds, 1L << dirtyBitCounter);
+                dirtyBitCounter += 1;
                   
-                    if (dirtyBitCounter > CONST.SERVER_VAR_LIMIT)
-                    {
-                        logger.Error($"{td.Name} 网络变量数量大于{CONST.SERVER_VAR_LIMIT}。", td);
-                        Injection.failed = true;
-                    }
+                if (dirtyBitCounter > CONST.SERVER_VAR_LIMIT)
+                {
+                    logger.Error($"{td.Name} 网络变量数量大于 {CONST.SERVER_VAR_LIMIT}。", td);
+                    Injection.failed = true;
                 }
             }
             

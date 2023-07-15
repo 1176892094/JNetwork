@@ -31,7 +31,7 @@ namespace JFramework.Net
         /// <summary>
         /// 连接到的服务器
         /// </summary>
-        public static NetworkServerEntity connection;
+        public static ServerEntity connection;
         
         /// <summary>
         /// 客户端连接的事件(包含主机)
@@ -112,7 +112,7 @@ namespace JFramework.Net
             state = ConnectState.Connecting;
             RegisterPrefab(NetworkManager.prefabs);
             Transport.current.ClientConnect(address, port);
-            connection = new NetworkServerEntity();
+            connection = new ServerEntity();
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace JFramework.Net
             state = ConnectState.Connecting;
             RegisterPrefab(NetworkManager.prefabs);
             Transport.current.ClientConnect(uri);
-            connection = new NetworkServerEntity();
+            connection = new ServerEntity();
         }
 
         /// <summary>
@@ -141,8 +141,8 @@ namespace JFramework.Net
             readers = new NetworkReaderPack();
             state = ConnectState.Connected;
             RegisterPrefab(NetworkManager.prefabs);
-            connection = new NetworkServerEntity();
-            var client = new NetworkClientEntity(NetworkConst.HostId);
+            connection = new ServerEntity();
+            var client = new ClientEntity(NetworkConst.HostId);
             NetworkServer.connection = client;
             NetworkServer.OnClientConnect(client);
             Ready();

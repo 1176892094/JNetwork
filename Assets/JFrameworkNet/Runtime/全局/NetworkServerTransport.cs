@@ -46,7 +46,7 @@ namespace JFramework.Net
             }
             else
             {
-                OnClientConnect(new NetworkClientEntity(clientId));
+                OnClientConnect(new ClientEntity(clientId));
             }
         }
 
@@ -114,7 +114,7 @@ namespace JFramework.Net
         /// <param name="reader">网络读取器</param>
         /// <param name="channel">传输通道</param>
         /// <returns>返回是否读取成功</returns>
-        private static bool TryInvoke(NetworkClientEntity client, NetworkReader reader, Channel channel)
+        private static bool TryInvoke(ClientEntity client, NetworkReader reader, Channel channel)
         {
             if (NetworkEvent.ReadEvent(reader, out ushort id))
             {

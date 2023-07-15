@@ -123,7 +123,7 @@ namespace JFramework.Editor
                 return field.FieldType;
             }
 
-            throw new ArgumentException($"Invalid enum {td.FullName}");
+            throw new ArgumentException($"无效的枚举类型：{td.FullName}");
         }
         
         public static bool IsDerivedFrom<T>(this TypeReference tr) => IsDerivedFrom(tr, typeof(T));

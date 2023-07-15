@@ -12,7 +12,7 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendServerRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel)
+        protected void SendServerRpcInternal(string methodName, int methodHash, NetworkWriter writer, sbyte channel)
         {
             if (!NetworkClient.isActive)
             {
@@ -57,7 +57,7 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel)
+        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, sbyte channel)
         {
             if (!NetworkServer.isActive)
             {
@@ -96,7 +96,7 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendTargetRpcInternal(NetworkClientEntity client, string methodName, int methodHash, NetworkWriter writer, int channel)
+        protected void SendTargetRpcInternal(ClientEntity client, string methodName, int methodHash, NetworkWriter writer, sbyte channel)
         {
             if (!NetworkServer.isActive)
             {

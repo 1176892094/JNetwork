@@ -15,12 +15,12 @@ namespace JFramework.Net
         /// <summary>
         /// 连接的的客户端字典
         /// </summary>
-        internal static readonly Dictionary<int, NetworkClientEntity> clients = new Dictionary<int, NetworkClientEntity>();
+        internal static readonly Dictionary<int, ClientEntity> clients = new Dictionary<int, ClientEntity>();
 
         /// <summary>
         /// 用来拷贝当前连接的所有客户端
         /// </summary>
-        private static readonly List<NetworkClientEntity> copies = new List<NetworkClientEntity>();
+        private static readonly List<ClientEntity> copies = new List<ClientEntity>();
         
         /// <summary>
         /// 服务器生成的游戏对象字典
@@ -50,22 +50,22 @@ namespace JFramework.Net
         /// <summary>
         /// 连接到的主机客户端
         /// </summary>
-        public static NetworkClientEntity connection;
+        public static ClientEntity connection;
 
         /// <summary>
         /// 有客户端连接到服务器的事件
         /// </summary>
-        public static event Action<NetworkClientEntity> OnServerConnect;
+        public static event Action<ClientEntity> OnServerConnect;
 
         /// <summary>
         /// 有客户端从服务器断开的事件
         /// </summary>
-        public static event Action<NetworkClientEntity> OnServerDisconnect;
+        public static event Action<ClientEntity> OnServerDisconnect;
 
         /// <summary>
         /// 客户端在服务器准备就绪的事件
         /// </summary>
-        public static event Action<NetworkClientEntity> OnServerReady;
+        public static event Action<ClientEntity> OnServerReady;
 
         /// <summary>
         /// 心跳包
@@ -110,7 +110,7 @@ namespace JFramework.Net
         /// 当客户端连接
         /// </summary>
         /// <param name="client">连接的客户端实体</param>
-        internal static void OnClientConnect(NetworkClientEntity client)
+        internal static void OnClientConnect(ClientEntity client)
         {
             clients.TryAdd(client.clientId, client);
             if (!string.IsNullOrEmpty(NetworkManager.sceneName))
@@ -125,7 +125,7 @@ namespace JFramework.Net
         /// 设置客户端准备好(可以进行消息接收)
         /// </summary>
         /// <param name="client"></param>
-        private static void SetReadyForClient(NetworkClientEntity client)
+        private static void SetReadyForClient(ClientEntity client)
         {
             Debug.Log($"设置客户端 {client.clientId} 准备就绪。");
             client.isReady = true;
@@ -140,7 +140,7 @@ namespace JFramework.Net
         /// 设置客户端未准备(不能进行消息接收)
         /// </summary>
         /// <param name="client"></param>
-        private static void NotReadyForClient(NetworkClientEntity client)
+        private static void NotReadyForClient(ClientEntity client)
         {
             Debug.Log($"设置客户端 {client.clientId} 取消准备");
             client.isReady = false;

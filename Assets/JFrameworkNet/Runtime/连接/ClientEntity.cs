@@ -7,7 +7,7 @@ namespace JFramework.Net
     /// <summary>
     /// 仅在服务器上被创建
     /// </summary>
-    public sealed class NetworkClientEntity : NetworkConnection
+    public sealed class ClientEntity : Connection
     {
         /// <summary>
         /// 网络消息读取
@@ -38,7 +38,7 @@ namespace JFramework.Net
         /// 初始化设置客户端Id
         /// </summary>
         /// <param name="clientId">传入客户端的Id</param>
-        public NetworkClientEntity(int clientId)
+        public ClientEntity(int clientId)
         {
             this.clientId = clientId;
             isHost = clientId == NetworkConst.HostId;

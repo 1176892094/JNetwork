@@ -53,9 +53,9 @@ namespace JFramework.Editor
 
             names.Add(md.Name);
             clientRpcList.Add(new ClientRpcResult(md));
-            MethodDefinition func = ClientRpcProcess.ProcessClientRpcInvoke(processor, writers, logger, generateCode, md, rpc);
+            MethodDefinition func = NetworkRpcProcess.ProcessClientRpcInvoke(processor, writers, logger, generateCode, md, rpc);
             if (func == null) return;
-            MethodDefinition rpcFunc = ClientRpcProcess.ProcessClientRpc(processor, readers, logger, generateCode, md, func);
+            MethodDefinition rpcFunc = NetworkRpcProcess.ProcessClientRpc(processor, readers, logger, generateCode, md, func);
             if (rpcFunc != null)
             {
                 clientRpcFuncList.Add(rpcFunc);
@@ -78,9 +78,9 @@ namespace JFramework.Editor
          
             names.Add(md.Name);
             serverRpcList.Add(new ServerRpcResult(md));
-            MethodDefinition func = ServerRpcProcess.ProcessServerRpcInvoke(processor, writers, logger, generateCode, md, rpc);
+            MethodDefinition func = NetworkRpcProcess.ProcessServerRpcInvoke(processor, writers, logger, generateCode, md, rpc);
             if (func == null) return;
-            MethodDefinition rpcFunc = ServerRpcProcess.ProcessServerRpc(processor, readers, logger, generateCode, md, func);
+            MethodDefinition rpcFunc = NetworkRpcProcess.ProcessServerRpc(processor, readers, logger, generateCode, md, func);
             if (rpcFunc != null)
             {
                 serverRpcFuncList.Add(rpcFunc);
@@ -103,8 +103,8 @@ namespace JFramework.Editor
 
             names.Add(md.Name);
             targetRpcList.Add(md);
-            MethodDefinition func = TargetRpcProcess.ProcessTargetRpcInvoke(processor, writers, logger, generateCode, md, rpc);
-            MethodDefinition rpcFunc = TargetRpcProcess.ProcessTargetRpc(processor, readers, logger, generateCode, md, func);
+            MethodDefinition func = NetworkRpcProcess.ProcessTargetRpcInvoke(processor, writers, logger, generateCode, md, rpc);
+            MethodDefinition rpcFunc = NetworkRpcProcess.ProcessTargetRpc(processor, readers, logger, generateCode, md, func);
             if (rpcFunc != null)
             {
                 targetRpcFuncList.Add(rpcFunc);
@@ -163,8 +163,8 @@ namespace JFramework.Editor
                 return false;
             }
 
-            bool isNetworkConnection = param.ParameterType.Is<NetworkConnection>();
-            bool isSenderConnection = IsSenderConnection(param, rpcType);
+            bool isNetworkConnection = param.ParameterType.Is<Connection>();
+            bool isSenderConnection = NetworkRpcProcess.IsSenderConnection(param, rpcType);
 
             if (param.IsOut)
             {

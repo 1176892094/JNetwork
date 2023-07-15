@@ -14,7 +14,7 @@ namespace JFramework.Editor
             {
                 if (!RemoveFinalRetInstruction(cctor))
                 {
-                    logger.Error($"{generateCode.Name} has invalid class constructor", cctor);
+                    logger.Error($"{generateCode.Name} 无效的静态构造函数。", cctor);
                     Injection.failed = true;
                     return;
                 }

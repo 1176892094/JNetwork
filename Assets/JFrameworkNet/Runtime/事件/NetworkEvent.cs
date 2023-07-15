@@ -75,7 +75,7 @@ namespace JFramework.Net
         /// <typeparam name="T1">网络连接(Server or Client)</typeparam>
         /// <typeparam name="T2">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static EventDelegate Register<T1, T2>(Action<T1, T2, Channel> handle) where T1 : NetworkConnection where T2 : struct, IEvent
+        internal static EventDelegate Register<T1, T2>(Action<T1, T2, Channel> handle) where T1 : Connection where T2 : struct, IEvent
         {
             return (connection, reader, channel) =>
             {
@@ -86,7 +86,7 @@ namespace JFramework.Net
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"断开连接。客户端：{((NetworkClientEntity)connection)?.clientId}\n{e}");
+                    Debug.LogError($"断开连接。客户端：{((ClientEntity)connection)?.clientId}\n{e}");
                     connection?.Disconnect();
                 }
             };
@@ -99,7 +99,7 @@ namespace JFramework.Net
         /// <typeparam name="T1">网络连接(Server or Client)</typeparam>
         /// <typeparam name="T2">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static EventDelegate Register<T1, T2>(Action<T1, T2> handle) where T1 : NetworkConnection where T2 : struct, IEvent
+        internal static EventDelegate Register<T1, T2>(Action<T1, T2> handle) where T1 : Connection where T2 : struct, IEvent
         {
             return Register((Action<T1, T2, Channel>)Wrapped);
 
@@ -117,9 +117,9 @@ namespace JFramework.Net
         /// <returns>返回一个消息委托</returns>
         internal static EventDelegate Register<T1>(Action<T1> handle) where T1 : struct, IEvent
         {
-            return Register((Action<NetworkConnection, T1>)Wrapped);
+            return Register((Action<Connection, T1>)Wrapped);
 
-            void Wrapped(NetworkConnection connection, T1 reader)
+            void Wrapped(Connection connection, T1 reader)
             {
                 handle?.Invoke(reader);
             }

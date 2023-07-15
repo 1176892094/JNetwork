@@ -55,7 +55,7 @@ namespace JFramework.Net
         /// 被广播的指定客户端
         /// </summary>
         /// <param name="client">指定的客户端</param>
-        private static void BroadcastToClient(NetworkClientEntity client)
+        private static void BroadcastToClient(ClientEntity client)
         {
         }
     }

@@ -40,7 +40,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器发送Pong消息给指定客户端
         /// </summary>
-        public static void OnPingEvent(NetworkClientEntity client, PingEvent @event)
+        public static void OnPingEvent(ClientEntity client, PingEvent @event)
         {
             PongEvent pongEvent = new PongEvent(@event.clientTime); //服务器将客户端时间传回到客户端
             client.Send(pongEvent, Channel.Unreliable);

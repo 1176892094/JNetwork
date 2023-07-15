@@ -14,8 +14,8 @@ namespace JFramework.Net
         [ReadOnly, ShowInInspector] internal bool isOwner;
         [ReadOnly, ShowInInspector] internal bool isServer;
         [ReadOnly, ShowInInspector] internal bool isClient;
-        [ReadOnly, ShowInInspector] internal NetworkServerEntity server;
-        [ReadOnly, ShowInInspector] internal NetworkClientEntity client;
+        [ReadOnly, ShowInInspector] internal ServerEntity server;
+        [ReadOnly, ShowInInspector] internal ClientEntity client;
         private bool isStartClient;
         private bool hasAuthority;
         internal NetworkBehaviour[] entities;
@@ -53,7 +53,7 @@ namespace JFramework.Net
         /// <summary>
         /// 处理Rpc事件
         /// </summary>
-        internal void InvokeRpcEvent(byte index, ushort function, RpcType rpcType, NetworkReader reader, NetworkClientEntity client = null)
+        internal void InvokeRpcEvent(byte index, ushort function, RpcType rpcType, NetworkReader reader, ClientEntity client = null)
         {
             if (this == null)
             {
