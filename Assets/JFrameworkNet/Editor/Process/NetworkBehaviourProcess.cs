@@ -5,7 +5,7 @@ using Mono.Cecil.Cil;
 
 namespace JFramework.Editor
 {
-    internal partial class NetworkEntityProcess
+    internal partial class NetworkBehaviourProcess
     {
         private readonly Writers writers;
         private readonly Readers readers;
@@ -38,7 +38,7 @@ namespace JFramework.Editor
             public ClientRpcResult(MethodDefinition method) => this.method = method;
         }
         
-        public NetworkEntityProcess(AssemblyDefinition assembly, Processor processor, SyncVarList syncVars, Writers writers, Readers readers, Logger logger, TypeDefinition type)
+        public NetworkBehaviourProcess(AssemblyDefinition assembly, Processor processor, SyncVarList syncVars, Writers writers, Readers readers, Logger logger, TypeDefinition type)
         {
             this.type = type;
             this.logger = logger;

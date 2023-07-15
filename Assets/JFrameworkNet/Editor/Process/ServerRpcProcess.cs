@@ -12,12 +12,12 @@ namespace JFramework.Editor
             MethodDefinition cmd = new MethodDefinition(rpcName, CONST.METHOD_RPC, processor.Import(typeof(void)));
             ILProcessor worker = cmd.Body.GetILProcessor();
             Instruction label = worker.Create(OpCodes.Nop);
-            NetworkEntityProcess.WriteServerActiveCheck(worker, processor, md.Name, label, "ServerRpc");
+            NetworkBehaviourProcess.WriteServerActiveCheck(worker, processor, md.Name, label, "ServerRpc");
             
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, td);
 
-            if (!NetworkEntityProcess.ReadArguments(md, readers, logger, worker, RpcType.ServerRpc))
+            if (!NetworkBehaviourProcess.ReadArguments(md, readers, logger, worker, RpcType.ServerRpc))
             {
                 return null;
             }
@@ -25,7 +25,7 @@ namespace JFramework.Editor
             AddSenderConnection(md, worker);
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-            NetworkEntityProcess.AddInvokeParameters(processor, cmd.Parameters);
+            NetworkBehaviourProcess.AddInvokeParameters(processor, cmd.Parameters);
             td.Methods.Add(cmd);
             return cmd;
         }
@@ -34,10 +34,10 @@ namespace JFramework.Editor
         {
             MethodDefinition rpc = MethodProcess.SubstituteMethod(logger, td, md);
             ILProcessor worker = md.Body.GetILProcessor();
-            NetworkEntityProcess.WriteSetupLocals(worker, processor);
-            NetworkEntityProcess.WriteGetWriter(worker, processor);
+            NetworkBehaviourProcess.WriteSetupLocals(worker, processor);
+            NetworkBehaviourProcess.WriteGetWriter(worker, processor);
 
-            if (!NetworkEntityProcess.WriteArguments(worker, writers, logger, md, RpcType.ServerRpc))
+            if (!NetworkBehaviourProcess.WriteArguments(worker, writers, logger, md, RpcType.ServerRpc))
             {
                 return null;
             }
@@ -48,7 +48,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, commandAttr.GetField("channel", 1));
             worker.Emit(OpCodes.Call, processor.sendServerRpcInternal);
-            NetworkEntityProcess.WriteReturnWriter(worker, processor);
+            NetworkBehaviourProcess.WriteReturnWriter(worker, processor);
             worker.Emit(OpCodes.Ret);
             return rpc;
         }
@@ -57,7 +57,7 @@ namespace JFramework.Editor
         {
             foreach (var definition in method.Parameters)
             {
-                if (NetworkEntityProcess.IsSenderConnection(definition, RpcType.ServerRpc))
+                if (NetworkBehaviourProcess.IsSenderConnection(definition, RpcType.ServerRpc))
                 {
                     worker.Emit(OpCodes.Ldarg_2);
                 }

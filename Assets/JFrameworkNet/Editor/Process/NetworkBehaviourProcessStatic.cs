@@ -3,7 +3,7 @@ using Mono.Cecil.Cil;
 
 namespace JFramework.Editor
 {
-    internal partial class NetworkEntityProcess
+    internal partial class NetworkBehaviourProcess
     {
         private void InjectIntoStaticConstructor(ref bool isFailed)
         {

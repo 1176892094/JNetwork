@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace JFramework.Editor
 {
-    internal partial class NetworkEntityProcess
+    internal partial class NetworkBehaviourProcess
     {
         private void GenerateSerialization(ref bool isFailed)
         {
@@ -207,7 +207,7 @@ namespace JFramework.Editor
                 FieldDefinition netIdField = syncVarNetIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdField);
-                worker.Emit(OpCodes.Call, processor.gameObjectSyncVarGetter);
+                worker.Emit(OpCodes.Call, processor.syncVarGetterGameObject);
             }
             else if (syncVar.FieldType.Is<NetworkObject>())
             {
@@ -215,7 +215,7 @@ namespace JFramework.Editor
                 FieldDefinition netIdField = syncVarNetIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdField);
-                worker.Emit(OpCodes.Call, processor.networkObjectSyncVarGetter);
+                worker.Emit(OpCodes.Call, processor.syncVarGetterNetworkObject);
             }
             else if (syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() || syncVar.FieldType.Is<NetworkBehaviour>())
             {
@@ -223,7 +223,7 @@ namespace JFramework.Editor
                 FieldDefinition netIdField = syncVarNetIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdField);
-                MethodReference getFunc = processor.networkBehaviourSyncVarGetter.MakeGeneric(assembly.MainModule, syncVar.FieldType);
+                MethodReference getFunc = processor.syncVarGetterNetworkBehaviour.MakeGeneric(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else
@@ -237,7 +237,7 @@ namespace JFramework.Editor
                 }
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Call, readFunc);
-                MethodReference generic = processor.generalSyncVarGetter.MakeGeneric(assembly.MainModule, syncVar.FieldType);
+                MethodReference generic = processor.syncVarGetterGeneral.MakeGeneric(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, generic);
             }
         }

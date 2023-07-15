@@ -4,7 +4,7 @@ using Mono.Cecil;
 
 namespace JFramework.Editor
 {
-    internal partial class NetworkEntityProcess
+    internal partial class NetworkBehaviourProcess
     {
         private void ProcessMethods()
         {

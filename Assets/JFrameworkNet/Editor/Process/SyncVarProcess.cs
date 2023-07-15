@@ -210,7 +210,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                worker.Emit(OpCodes.Call, processor.getSyncVarGameObjectReference);
+                worker.Emit(OpCodes.Call, processor.getSyncVarGameObject);
                 worker.Emit(OpCodes.Ret);
             }
             else if (fd.FieldType.Is<NetworkObject>())
@@ -220,7 +220,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                worker.Emit(OpCodes.Call, processor.getSyncVarNetworkObjectReference);
+                worker.Emit(OpCodes.Call, processor.getSyncVarNetworkObject);
                 worker.Emit(OpCodes.Ret);
             }
             else if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
@@ -230,7 +230,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                MethodReference getFunc = processor.getSyncVarNetworkBehaviourReference.MakeGeneric(assembly.MainModule, fd.FieldType);
+                MethodReference getFunc = processor.getSyncVarNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
                 worker.Emit(OpCodes.Ret);
             }
@@ -283,24 +283,24 @@ namespace JFramework.Editor
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                worker.Emit(OpCodes.Call, processor.gameObjectSyncVarSetter);
+                worker.Emit(OpCodes.Call, processor.syncVarSetterGameObject);
             }
             else if (fd.FieldType.Is<NetworkObject>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                worker.Emit(OpCodes.Call, processor.networkObjectSyncVarSetter);
+                worker.Emit(OpCodes.Call, processor.syncVarSetterNetworkObject);
             }
             else if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                MethodReference getFunc = processor.networkBehaviourSyncVarSetter.MakeGeneric(assembly.MainModule, fd.FieldType);
+                MethodReference getFunc = processor.syncVarSetterNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else
             {
-                MethodReference generic = processor.generalSyncVarSetter.MakeGeneric(assembly.MainModule, fd.FieldType);
+                MethodReference generic = processor.syncVarSetterGeneral.MakeGeneric(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, generic);
             }
 

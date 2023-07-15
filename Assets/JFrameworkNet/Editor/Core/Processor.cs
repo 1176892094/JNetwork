@@ -8,18 +8,11 @@ namespace JFramework.Editor
 {
     internal class Processor
     {
+        /// <summary>
+        /// 注入的指定程序集
+        /// </summary>
         private readonly AssemblyDefinition assembly;
-        
-        /// <summary>
-        /// NetworkWriter.Pop
-        /// </summary>
-        public readonly MethodReference PopWriterReference;
-        
-        /// <summary>
-        /// NetworkWriter.Push
-        /// </summary>
-        public readonly MethodReference PushWriterReference;
-        
+
         /// <summary>
         /// 当网络变量值改变时调用的方法
         /// </summary>
@@ -88,57 +81,57 @@ namespace JFramework.Editor
         /// <summary>
         /// NetworkBehaviour.SyncVarSetterGeneral
         /// </summary>
-        public readonly MethodReference generalSyncVarSetter;
+        public readonly MethodReference syncVarSetterGeneral;
         
         /// <summary>
         /// NetworkBehaviour.SyncVarSetterGameObject
         /// </summary>
-        public readonly MethodReference gameObjectSyncVarSetter;
+        public readonly MethodReference syncVarSetterGameObject;
         
         /// <summary>
         /// NetworkBehaviour.SyncVarSetterNetworkObject
         /// </summary>
-        public readonly MethodReference networkObjectSyncVarSetter;
+        public readonly MethodReference syncVarSetterNetworkObject;
         
         /// <summary>
         /// NetworkBehaviour.SyncVarSetterNetworkBehaviour
         /// </summary>
-        public readonly MethodReference networkBehaviourSyncVarSetter;
+        public readonly MethodReference syncVarSetterNetworkBehaviour;
         
         /// <summary>
         /// NetworkBehaviour.SyncVarGetterGeneral
         /// </summary>
-        public readonly MethodReference generalSyncVarGetter;
+        public readonly MethodReference syncVarGetterGeneral;
         
         /// <summary>
         /// NetworkBehaviour.SyncVarGetterGameObject
         /// </summary>
-        public readonly MethodReference gameObjectSyncVarGetter;
+        public readonly MethodReference syncVarGetterGameObject;
         
         /// <summary>
         /// NetworkBehaviour.SyncVarGetterNetworkObject
         /// </summary>
-        public readonly MethodReference networkObjectSyncVarGetter;
+        public readonly MethodReference syncVarGetterNetworkObject;
         
         /// <summary>
         /// NetworkBehaviour.SyncVarGetterNetworkBehaviour
         /// </summary>
-        public readonly MethodReference networkBehaviourSyncVarGetter;
+        public readonly MethodReference syncVarGetterNetworkBehaviour;
         
         /// <summary>
         /// NetworkBehaviour.GetSyncVarGameObject
         /// </summary>
-        public readonly MethodReference getSyncVarGameObjectReference;
+        public readonly MethodReference getSyncVarGameObject;
         
         /// <summary>
         /// NetworkBehaviour.GetSyncVarNetworkObject
         /// </summary>
-        public readonly MethodReference getSyncVarNetworkObjectReference;
+        public readonly MethodReference getSyncVarNetworkObject;
         
         /// <summary>
         /// NetworkBehaviour.GetSyncVarNetworkBehaviour
         /// </summary>
-        public readonly MethodReference getSyncVarNetworkBehaviourReference;
+        public readonly MethodReference getSyncVarNetworkBehaviour;
         
         /// <summary>
         /// NetworkUtilsRpc.RegisterServerRpc
@@ -151,15 +144,28 @@ namespace JFramework.Editor
         public readonly MethodReference registerClientRpcReference;
         
         /// <summary>
+        /// NetworkWriter.Pop
+        /// </summary>
+        public readonly MethodReference PopWriterReference;
+        
+        /// <summary>
+        /// NetworkWriter.Push
+        /// </summary>
+        public readonly MethodReference PushWriterReference;
+        
+        /// <summary>
         /// Type.GetTypeFromHandle
         /// </summary>
         public readonly MethodReference getTypeFromHandleReference;
-        
         
         /// <summary>
         /// InitializeOnLoadMethodAttribute
         /// </summary>
         public readonly TypeDefinition InitializeOnLoadMethodAttribute;
+        
+        /// <summary>
+        /// RuntimeInitializeOnLoadMethodAttribute
+        /// </summary>
         public readonly TypeDefinition RuntimeInitializeOnLoadMethodAttribute;
 
         public TypeReference Import<T>() => Import(typeof(T));
@@ -175,31 +181,30 @@ namespace JFramework.Editor
             TypeReference ActionType = Import(typeof(Action<,>));
             HookMethodReference = Resolvers.ResolveMethod(ActionType, assembly, logger, ".ctor");
             
-            TypeReference NetworkClientType = Import(typeof(NetworkClient)); // 处理ClientRpc
+            TypeReference NetworkClientType = Import(typeof(NetworkClient));
             NetworkClientGetActive = Resolvers.ResolveMethod(NetworkClientType, assembly, logger, "get_isActive");
-            TypeReference NetworkServerType = Import(typeof(NetworkServer)); // 处理ServerRpc
+            TypeReference NetworkServerType = Import(typeof(NetworkServer));
             NetworkServerGetActive = Resolvers.ResolveMethod(NetworkServerType, assembly, logger, "get_isActive");
             
             TypeReference readerExtensions = Import(typeof(StreamExtensions));
             readNetworkBehaviourGeneric = Resolvers.ResolveMethod(readerExtensions, assembly, logger, method => method.Name == nameof(StreamExtensions.ReadNetworkBehaviour) && method.HasGenericParameters);
-            
-          
+
             TypeReference NetworkBehaviourType = Import<NetworkBehaviour>();
             NetworkBehaviourDirtyReference = Resolvers.ResolveProperty(NetworkBehaviourType, assembly, "syncVarDirty");
             
-            generalSyncVarSetter = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterGeneral");
-            gameObjectSyncVarSetter = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterGameObject");
-            networkObjectSyncVarSetter = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterNetworkObject");
-            networkBehaviourSyncVarSetter = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterNetworkBehaviour");
+            syncVarSetterGeneral = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterGeneral");
+            syncVarSetterGameObject = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterGameObject");
+            syncVarSetterNetworkObject = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterNetworkObject");
+            syncVarSetterNetworkBehaviour = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterNetworkBehaviour");
             
-            generalSyncVarGetter = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterGeneral");
-            gameObjectSyncVarGetter = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterGameObject");
-            networkObjectSyncVarGetter = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterNetworkObject");
-            networkBehaviourSyncVarGetter = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterNetworkBehaviour");
+            syncVarGetterGeneral = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterGeneral");
+            syncVarGetterGameObject = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterGameObject");
+            syncVarGetterNetworkObject = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterNetworkObject");
+            syncVarGetterNetworkBehaviour = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterNetworkBehaviour");
             
-            getSyncVarGameObjectReference = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarGameObject");
-            getSyncVarNetworkObjectReference = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarNetworkObject");
-            getSyncVarNetworkBehaviourReference = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarNetworkBehaviour");
+            getSyncVarGameObject = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarGameObject");
+            getSyncVarNetworkObject = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarNetworkObject");
+            getSyncVarNetworkBehaviour = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarNetworkBehaviour");
             
             sendServerRpcInternal = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SendServerRpcInternal");
             sendClientRpcInternal = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SendClientRpcInternal");
@@ -207,9 +212,9 @@ namespace JFramework.Editor
             
             InitSyncObjectReference = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "InitSyncObject");
             
-            TypeReference RemoteProcedureCallsType = Import(typeof(NetworkRpc));
-            registerServerRpcReference = Resolvers.ResolveMethod(RemoteProcedureCallsType, assembly, logger, "RegisterServerRpc");
-            registerClientRpcReference = Resolvers.ResolveMethod(RemoteProcedureCallsType, assembly, logger, "RegisterClientRpc");
+            TypeReference RegisterRpcType = Import(typeof(NetworkRpc));
+            registerServerRpcReference = Resolvers.ResolveMethod(RegisterRpcType, assembly, logger, "RegisterServerRpc");
+            registerClientRpcReference = Resolvers.ResolveMethod(RegisterRpcType, assembly, logger, "RegisterClientRpc");
             
             TypeReference RemoteCallDelegateType = Import<RpcDelegate>();
             RpcDelegateConstructor = Resolvers.ResolveMethod(RemoteCallDelegateType, assembly, logger, ".ctor");
@@ -218,23 +223,24 @@ namespace JFramework.Editor
             ScriptableObjectCreateInstanceMethod = Resolvers.ResolveMethod(ScriptableObjectType, assembly, logger, method => method.Name == "CreateInstance" && method.HasGenericParameters);
 
             
-            TypeReference unityDebugType = Import(typeof(Debug));
-            logErrorReference = Resolvers.ResolveMethod(unityDebugType, assembly, logger, method => method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName);
+            TypeReference DebugType = Import(typeof(Debug));
+            logErrorReference = Resolvers.ResolveMethod(DebugType, assembly, logger, method => method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName);
            
-            TypeReference typeType = Import(typeof(Type));
-            getTypeFromHandleReference = Resolvers.ResolveMethod(typeType, assembly, logger, "GetTypeFromHandle");
-            TypeReference NetworkWriterPoolType = Import(typeof(NetworkWriter));
-            PopWriterReference = Resolvers.ResolveMethod(NetworkWriterPoolType, assembly, logger, "Pop"); 
-            PushWriterReference = Resolvers.ResolveMethod(NetworkWriterPoolType, assembly, logger, "Push");
+            TypeReference TypeRef = Import(typeof(Type));
+            getTypeFromHandleReference = Resolvers.ResolveMethod(TypeRef, assembly, logger, "GetTypeFromHandle");
+            
+            TypeReference NetworkWriterType = Import(typeof(NetworkWriter));
+            PopWriterReference = Resolvers.ResolveMethod(NetworkWriterType, assembly, logger, "Pop"); 
+            PushWriterReference = Resolvers.ResolveMethod(NetworkWriterType, assembly, logger, "Push");
          
             if (Helpers.IsEditorAssembly(assembly))
             {
-                TypeReference initializeOnLoadMethodAttributeRef = Import(typeof(InitializeOnLoadMethodAttribute));
-                InitializeOnLoadMethodAttribute = initializeOnLoadMethodAttributeRef.Resolve();
+                TypeReference InitializeOnLoadMethodAttributeRef = Import(typeof(InitializeOnLoadMethodAttribute));
+                InitializeOnLoadMethodAttribute = InitializeOnLoadMethodAttributeRef.Resolve();
             }
 
-            TypeReference runtimeInitializeOnLoadMethodAttributeRef = Import(typeof(RuntimeInitializeOnLoadMethodAttribute));
-            RuntimeInitializeOnLoadMethodAttribute = runtimeInitializeOnLoadMethodAttributeRef.Resolve();
+            TypeReference RuntimeInitializeOnLoadMethodAttributeRef = Import(typeof(RuntimeInitializeOnLoadMethodAttribute));
+            RuntimeInitializeOnLoadMethodAttribute = RuntimeInitializeOnLoadMethodAttributeRef.Resolve();
         }
     }
 }

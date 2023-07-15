@@ -104,7 +104,7 @@ namespace JFramework.Editor
             bool changed = false;
             foreach (TypeDefinition behaviour in behaviourClasses)
             {
-                changed |= new NetworkEntityProcess(currentAssembly, processor, syncVars, writers, readers, logger, behaviour).Process(ref failed);
+                changed |= new NetworkBehaviourProcess(currentAssembly, processor, syncVars, writers, readers, logger, behaviour).Process(ref failed);
             }
             return changed;
         }
