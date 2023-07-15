@@ -10,12 +10,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器变量的改变选项
         /// </summary>
-        protected ulong syncVarDirty { get; set; }
-
-        /// <summary>
-        /// 服务器对象的改变选项
-        /// </summary>
-        internal ulong serverObjectDirty;
+        private ulong syncVarDirty { get; set; }
 
         /// <summary>
         /// 服务器变量的钩子
@@ -82,8 +77,6 @@ namespace JFramework.Net
         /// </summary>
         private double lastSyncTime;
 
-        private readonly List<SyncObject> syncObjects = new List<SyncObject>();
-
         /// <summary>
         /// 是否能够改变网络值
         /// </summary>
@@ -110,9 +103,6 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetSyncVarDirty(ulong dirty) => syncVarDirty |= dirty;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetServerObjectDirty(ulong dirty) => serverObjectDirty |= dirty;
-
         /// <summary>
         /// 获取服务器变量的钩子
         /// </summary>
@@ -129,67 +119,27 @@ namespace JFramework.Net
         {
             syncVarHook = value ? syncVarHook | dirty : syncVarHook & ~dirty;
         }
-
-        protected void InitSyncObject(SyncObject syncObject)
+        
+        internal void Serialize(NetworkWriter writer, bool initialState)
         {
-        }
-
-        /// <summary>
-        /// 网络变量序列化
-        /// </summary>
-        /// <param name="writer"></param>
-        /// <param name="init"></param>
-        protected virtual void OnSerialize(NetworkWriter writer, bool init)
-        {
-            SerializeSyncObjects(writer, init);
-            SerializeSyncVars(writer, init);
-        }
-
-        /// <summary>
-        /// 序列化网络对象
-        /// </summary>
-        /// <param name="writer"></param>
-        /// <param name="init"></param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SerializeSyncObjects(NetworkWriter writer, bool init)
-        {
-            if (init)
+            int headerPosition = writer.position;
+            writer.WriteByte(0);
+            int contentPosition = writer.position;
+            
+            try
             {
-                SerializeObjectsAll(writer);
+                SerializeSyncVars(writer, initialState);
             }
-            else
+            catch (Exception e)
             {
-                SerializeObjectsDelta(writer);
+                Debug.LogError($"序列化对象失败。对象名称：{name} 组件：{GetType()} 场景Id：{@object.sceneId:X}\n{e}");
             }
-        }
-
-        /// <summary>
-        /// 序列化所有网络对象
-        /// </summary>
-        /// <param name="writer"></param>
-        private void SerializeObjectsAll(NetworkWriter writer)
-        {
-            foreach (var syncObject in syncObjects)
-            {
-                syncObject.OnSerializeAll(writer);
-            }
-        }
-
-        /// <summary>
-        /// 序列化指定网络对象
-        /// </summary>
-        /// <param name="writer"></param>
-        private void SerializeObjectsDelta(NetworkWriter writer)
-        {
-            writer.WriteULong(serverObjectDirty);
-            for (int i = 0; i < syncObjects.Count; i++)
-            {
-                SyncObject syncObject = syncObjects[i];
-                if ((serverObjectDirty & (1UL << i)) != 0)
-                {
-                    syncObject.OnSerializeDelta(writer);
-                }
-            }
+            int endPosition = writer.position;
+            writer.position = headerPosition;
+            int size = endPosition - contentPosition;
+            byte safety = (byte)(size & 0xFF);
+            writer.WriteByte(safety);
+            writer.position = endPosition;
         }
 
         /// <summary>
@@ -202,62 +152,39 @@ namespace JFramework.Net
             //TODO：通过自动生成
         }
 
-        /// <summary>
-        /// 网络变量反序列化
-        /// </summary>
-        /// <param name="reader"></param>
-        /// <param name="init"></param>
-        protected virtual void OnDeserialize(NetworkReader reader, bool init)
+        internal bool Deserialize(NetworkReader reader, bool initialState)
         {
-            DeserializeSyncObjects(reader, init);
-            DeserializeSyncVars(reader, init);
-        }
+            bool result = true;
+            byte safety = reader.ReadByte();
+            int chunkStart = reader.position;
+            try
+            {
+                DeserializeSyncVars(reader, initialState);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"序列化对象失败。对象名称：{name} 组件：{GetType()} 场景Id：{@object.sceneId:X}\n{e}");
+                result = false;
+            }
+            
+            int size = reader.position - chunkStart;
+            byte sizeHash = (byte)(size & 0xFF);
+            if (sizeHash != safety)
+            {
+                Debug.LogWarning($"反序列化大小不匹配，请确保读取的数据量相同。读取字节：{size} bytes 哈希对比：{sizeHash:X2}/{safety:X2}");
+                int correctedSize = ErrorCorrection(size, safety);
+                reader.position = chunkStart + correctedSize;
+                result = false;
+            }
 
-        /// <summary>
-        /// 反序列化网络对象
-        /// </summary>
-        /// <param name="reader"></param>
-        /// <param name="init"></param>
+            return result;
+        }
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void DeserializeSyncObjects(NetworkReader reader, bool init)
+        private static int ErrorCorrection(int size, byte safety)
         {
-            if (init)
-            {
-                DeserializeObjectsAll(reader);
-            }
-            else
-            {
-                DeserializeObjectsDelta(reader);
-            }
-        }
-
-        /// <summary>
-        /// 反序列化所有网络对象
-        /// </summary>
-        /// <param name="reader"></param>
-        private void DeserializeObjectsAll(NetworkReader reader)
-        {
-            foreach (var syncObject in syncObjects)
-            {
-                syncObject.OnDeserializeAll(reader);
-            }
-        }
-
-        /// <summary>
-        /// 反序列化指定网络对象
-        /// </summary>
-        /// <param name="reader"></param>
-        private void DeserializeObjectsDelta(NetworkReader reader)
-        {
-            ulong dirty = reader.ReadULong();
-            for (int i = 0; i < syncObjects.Count; i++)
-            {
-                SyncObject syncObject = syncObjects[i];
-                if ((dirty & (1UL << i)) != 0)
-                {
-                    syncObject.OnDeserializeDelta(reader);
-                }
-            }
+            uint cleared = (uint)size & 0xFFFFFF00;
+            return (int)(cleared | safety);
         }
 
         /// <summary>

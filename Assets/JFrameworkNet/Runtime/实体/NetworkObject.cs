@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -81,17 +82,30 @@ namespace JFramework.Net
         /// <param name="observer"></param>
         internal void SerializeServer(bool isInit,  NetworkWriter observer)
         {
-            // if (IsValid())
-            // {
-            //     NetworkEntity[] entities = this.entities;
-            //
-            //     (ulong ownerMask, ulong observerMask) = ServerDirtyMasks(isInit);
-            // }
+            IsValid();
+            NetworkBehaviour[] components = entities;
+            var observerMask = ServerDirtyMasks(isInit);
+
+            if (observerMask != 0)
+            {
+                Compression.CompressVarUInt(observer, observerMask);
+                for (int i = 0; i < components.Length; ++i)
+                {
+                    NetworkBehaviour component = components[i];
+                    bool observersDirty = IsDirty(observerMask, i);
+                    if (observersDirty)
+                    {
+                        using var writer = NetworkWriter.Pop();
+                        component.Serialize(writer, isInit);
+                        var segment = writer.ToArraySegment();
+                        observer.WriteBytes(segment.Array, segment.Offset, segment.Count);
+                    }
+                }
+            }
         }
 
-        private (ulong, ulong) ServerDirtyMasks(bool isInit)
+        private ulong ServerDirtyMasks(bool isInit)
         {
-            ulong ownerMask = 0;
             ulong observerMask = 0;
 
             NetworkBehaviour[] components = entities;
@@ -102,19 +116,96 @@ namespace JFramework.Net
                 bool dirty = component.IsDirty();
                 ulong nthBit = 1U << i;
 
-                if (isInit || (component.syncDirection == SyncDirection.ServerToClient && dirty))
-                {
-                    ownerMask |= nthBit;
-                }
-
                 if (component.syncMode == SyncMode.Observer && (isInit || dirty))
                 {
                     observerMask |= nthBit;
                 }
             }
 
-            return (ownerMask, observerMask);
+            return observerMask;
         }
+        
+        internal void SerializeClient(NetworkWriter writer)
+        {
+            IsValid();
+            NetworkBehaviour[] components = entities;
+            ulong dirtyMask = ClientDirtyMask();
+
+            if (dirtyMask != 0)
+            {
+                Compression.CompressVarUInt(writer, dirtyMask);
+                for (int i = 0; i < components.Length; ++i)
+                {
+                    NetworkBehaviour component = components[i];
+
+                    if (IsDirty(dirtyMask, i))
+                    {
+                        component.Serialize(writer, false);
+                    }
+                }
+            }
+        }
+        
+        private ulong ClientDirtyMask()
+        {
+            ulong mask = 0;
+            NetworkBehaviour[] components = entities;
+            for (int i = 0; i < components.Length; ++i)
+            {
+                NetworkBehaviour component = components[i];
+                if (isOwner && component.syncDirection == SyncDirection.ClientToServer)
+                {
+                    if (component.IsDirty()) mask |= (1u << i);
+                }
+            }
+
+            return mask;
+        }
+
+        internal bool DeserializeServer(NetworkReader reader)
+        {
+            IsValid();
+            NetworkBehaviour[] components = entities;
+
+            ulong mask = Compression.DecompressVarUInt(reader);
+
+            for (int i = 0; i < components.Length; ++i)
+            {
+                if (IsDirty(mask, i))
+                {
+                    NetworkBehaviour component = components[i];
+
+                    if (component.syncDirection == SyncDirection.ClientToServer)
+                    {
+                        if (!component.Deserialize(reader, false)) return false;
+
+                        component.SetDirty();
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        internal void DeserializeClient(NetworkReader reader, bool initialState)
+        {
+            IsValid();
+            NetworkBehaviour[] components = entities;
+            
+            ulong mask = Compression.DecompressVarUInt(reader);
+            
+            for (int i = 0; i < components.Length; ++i)
+            {
+                if (IsDirty(mask, i))
+                {
+                    NetworkBehaviour comp = components[i];
+                    comp.Deserialize(reader, initialState);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsDirty(ulong mask, int index) => (mask & (ulong)(1 << index)) != 0;
 
         internal void Reset()
         {
