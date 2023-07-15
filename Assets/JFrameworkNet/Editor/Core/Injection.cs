@@ -70,16 +70,17 @@ namespace JFramework.Editor
         
         private bool WeaveNetworkBehavior(TypeDefinition td)
         {
+            
             if (!td.IsClass) return false;
             if (!td.IsDerivedFrom<NetworkBehaviour>())
             {
                 if (td.IsDerivedFrom<MonoBehaviour>())
                 {
-                    MonoBehaviourProcess.Process(logger, td, ref failed);
+                    MonoBehaviourProcess.Process(logger, td);
                 }
                 return false;
             }
-            
+           
             var behaviourClasses = new List<TypeDefinition>();
 
             TypeDefinition parent = td;
@@ -104,7 +105,7 @@ namespace JFramework.Editor
             bool changed = false;
             foreach (TypeDefinition behaviour in behaviourClasses)
             {
-                changed |= new NetworkBehaviourProcess(currentAssembly, processor, syncVars, writers, readers, logger, behaviour).Process(ref failed);
+                changed |= new NetworkBehaviourProcess(currentAssembly, processor, syncVars, writers, readers, logger, behaviour).Process();
             }
             return changed;
         }

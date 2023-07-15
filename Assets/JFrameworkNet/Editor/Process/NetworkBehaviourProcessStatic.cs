@@ -5,7 +5,7 @@ namespace JFramework.Editor
 {
     internal partial class NetworkBehaviourProcess
     {
-        private void InjectIntoStaticConstructor(ref bool isFailed)
+        private void InjectIntoStaticConstructor()
         {
             if (serverRpcList.Count == 0 && clientRpcList.Count == 0 && targetRpcList.Count == 0) return;
             MethodDefinition cctor = generateCode.GetMethod(".cctor");
@@ -15,7 +15,7 @@ namespace JFramework.Editor
                 if (!RemoveFinalRetInstruction(cctor))
                 {
                     logger.Error($"{generateCode.Name} has invalid class constructor", cctor);
-                    isFailed = true;
+                    Injection.failed = true;
                     return;
                 }
             }

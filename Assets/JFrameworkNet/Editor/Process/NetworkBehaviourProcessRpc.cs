@@ -10,6 +10,7 @@ namespace JFramework.Editor
         {
             HashSet<string> names = new HashSet<string>();
             List<MethodDefinition> methods = new List<MethodDefinition>(generateCode.Methods);
+
             foreach (MethodDefinition md in methods)
             {
                 foreach (CustomAttribute ca in md.CustomAttributes)
@@ -40,7 +41,7 @@ namespace JFramework.Editor
             if (md.IsAbstract)
             {
                 logger.Error("ClientRpc不能作用在抽象方法中。", md);
-                Editor.Injection.failed = true;
+                Injection.failed = true;
                 return;
             }
 
@@ -66,15 +67,15 @@ namespace JFramework.Editor
             if (md.IsAbstract)
             { 
                 logger.Error("ServerRpc不能作用在抽象方法中。", md);
-                Editor.Injection.failed = true;
+                Injection.failed = true;
                 return;
             }
-
+            
             if (!IsValidMethod(md, RpcType.ServerRpc))
             {
                 return;
             }
-            
+         
             names.Add(md.Name);
             serverRpcList.Add(new ServerRpcResult(md));
             MethodDefinition func = ServerRpcProcess.ProcessServerRpcInvoke(processor, writers, logger, generateCode, md, rpc);
@@ -91,7 +92,7 @@ namespace JFramework.Editor
             if (md.IsAbstract)
             {
                 logger.Error("TargetRpc不能作用在抽象方法中。", md);
-                Editor.Injection.failed = true;
+                Injection.failed = true;
                 return;
             }
 
@@ -115,7 +116,7 @@ namespace JFramework.Editor
             if (method.IsStatic)
             {
                 logger.Error($"{method.Name} 方法不能是静态的。", method);
-                Editor.Injection.failed = true;
+                Injection.failed = true;
                 return false;
             }
 
@@ -127,15 +128,16 @@ namespace JFramework.Editor
             if (!md.ReturnType.Is(typeof(void)))
             {
                 logger.Error($"{md.Name} 方法不能有返回值。", md);
-                Editor.Injection.failed = true;
+                Injection.failed = true;
                 return false;
             }
             if (md.HasGenericParameters)
             {
                 logger.Error($"{md.Name} 方法不能有泛型参数。", md);
-                Editor.Injection.failed = true;
+                Injection.failed = true;
                 return false;
             }
+         
             return true;
         }
 
@@ -157,7 +159,7 @@ namespace JFramework.Editor
             if (param.ParameterType.IsGenericParameter)
             {
                 logger.Error($"{method.Name} 方法不能有泛型参数。", method);
-                Editor.Injection.failed = true;
+                Injection.failed = true;
                 return false;
             }
 
@@ -167,21 +169,21 @@ namespace JFramework.Editor
             if (param.IsOut)
             {
                 logger.Error($"{method.Name} 方法不能携带 out 关键字。", method);
-                Editor.Injection.failed = true;
+                Injection.failed = true;
                 return false;
             }
             
             if (!isSenderConnection && isNetworkConnection && !(rpcType == RpcType.TargetRpc && firstParam))
             {
                 logger.Error($"{method.Name} 方法无效的参数 {param}，不能传递网络连接。", method);
-                Editor.Injection.failed = true;
+                Injection.failed = true;
                 return false;
             }
             
             if (param.IsOptional && !isSenderConnection)
             {
                 logger.Error($"{method.Name} 方法不能有可选参数。", method);
-                Editor.Injection.failed = true;
+                Injection.failed = true;
                 return false;
             }
 

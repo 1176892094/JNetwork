@@ -6,7 +6,7 @@ namespace JFramework.Editor
 {
     internal static class TargetRpcProcess
     {
-        public static MethodDefinition ProcessTargetRpc(Processor processor, Readers readers, Logger logger, TypeDefinition type, MethodDefinition md, MethodDefinition func)
+        public static MethodDefinition ProcessTargetRpc(Processor processor, Readers readers, Logger logger, TypeDefinition td, MethodDefinition md, MethodDefinition func)
         {
             string rpcName = Injection.GenerateMethodName(CONST.INVOKE_RPC, md);
             MethodDefinition rpc = new MethodDefinition(rpcName, CONST.METHOD_RPC, processor.Import(typeof(void)));
@@ -15,7 +15,7 @@ namespace JFramework.Editor
             NetworkBehaviourProcess.WriteClientActiveCheck(worker, processor, md.Name, label, "TargetRpc");
             
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Castclass, type);
+            worker.Emit(OpCodes.Castclass, td);
             
             if (HasNetworkConnectionParameter(md))
             {
@@ -30,11 +30,11 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
             NetworkBehaviourProcess.AddInvokeParameters(processor, rpc.Parameters);
-            type.Methods.Add(rpc);
+            td.Methods.Add(rpc);
             return rpc;
         }
 
-        public static MethodDefinition ProcessTargetRpcInvoke(Processor processor, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute targetRpcAttr)
+        public static MethodDefinition ProcessTargetRpcInvoke(Processor processor, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute attr)
         {
             MethodDefinition rpc = MethodProcess.SubstituteMethod(logger, td, md);
             ILProcessor worker = md.Body.GetILProcessor();
@@ -49,9 +49,9 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(HasNetworkConnectionParameter(md) ? OpCodes.Ldarg_1 : OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldstr, md.FullName);
-            worker.Emit(OpCodes.Ldc_I4, NetworkEvent.GetHashByName(md.FullName));
+            worker.Emit(OpCodes.Ldc_I4, (int)NetworkEvent.GetHashByName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, targetRpcAttr.GetField("channel", 1));
+            worker.Emit(OpCodes.Ldc_I4, attr.GetField("channel", 1));
             worker.Emit(OpCodes.Callvirt, processor.sendTargetRpcInternal);
             NetworkBehaviourProcess.WriteReturnWriter(worker, processor);
             worker.Emit(OpCodes.Ret);

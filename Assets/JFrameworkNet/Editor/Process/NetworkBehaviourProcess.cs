@@ -7,22 +7,22 @@ namespace JFramework.Editor
 {
     internal partial class NetworkBehaviourProcess
     {
+        private readonly Logger logger;
         private readonly Writers writers;
         private readonly Readers readers;
         private readonly Processor processor;
         private readonly SyncVarList syncVarList;
+        private readonly TypeDefinition type;
         private readonly ServerVarProcess serverVarProcess;
         private readonly AssemblyDefinition assembly;
-        private readonly Logger logger;
-        private readonly TypeDefinition type;
-        private List<FieldDefinition> syncVars = new List<FieldDefinition>();
-        private Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>();
         private readonly List<ServerRpcResult> serverRpcList = new List<ServerRpcResult>();
         private readonly List<MethodDefinition> serverRpcFuncList = new List<MethodDefinition>();
         private readonly List<ClientRpcResult> clientRpcList = new List<ClientRpcResult>();
         private readonly List<MethodDefinition> clientRpcFuncList = new List<MethodDefinition>();
         private readonly List<MethodDefinition> targetRpcList = new List<MethodDefinition>();
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
+        private List<FieldDefinition> syncVars = new List<FieldDefinition>();
+        private Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>();
 
         private readonly TypeDefinition generateCode;
 
@@ -48,35 +48,36 @@ namespace JFramework.Editor
             this.processor = processor;
             this.syncVarList = syncVars;
             serverVarProcess = new ServerVarProcess(assembly, processor, syncVars, logger);
+            generateCode = this.type;
         }
 
-        public bool Process(ref bool isFailed)
+        public bool Process()
         {
             if (WasProcessed(type))
             {
                 return false;
             }
-
+            
             MarkAsProcessed(type);
             
             (syncVars, syncVarNetIds) = serverVarProcess.ProcessSyncVars(type);
-            
+          
             ProcessMethods();
             
-            if (isFailed)
+            if (Injection.failed)
             {
                 return true;
             }
             
-            InjectIntoStaticConstructor(ref isFailed);
+            InjectIntoStaticConstructor();
             
-            GenerateSerialization(ref isFailed);
-            if (isFailed)
+            GenerateSerialization();
+            if (Injection.failed)
             {
                 return true;
             }
-            
-            GenerateDeserialization(ref isFailed);
+
+            GenerateDeserialization();
             return true;
         }
 
@@ -140,7 +141,7 @@ namespace JFramework.Editor
                 if (writeFunc == null)
                 {
                     logger.Error($"{method.Name} 有无效的参数 {param}。不支持类型 {param.ParameterType}。", method);
-                    Editor.Injection.failed = true;
+                    Injection.failed = true;
                     return false;
                 }
                 
@@ -175,7 +176,7 @@ namespace JFramework.Editor
                 if (readFunc == null)
                 {
                     logger.Error($"{method.Name} 有无效的参数 {param}。不支持类型 {param.ParameterType}。", method);
-                    Editor.Injection.failed = true;
+                    Injection.failed = true;
                     return false;
                 }
 

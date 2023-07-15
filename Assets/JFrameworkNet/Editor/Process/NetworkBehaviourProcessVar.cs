@@ -7,7 +7,7 @@ namespace JFramework.Editor
 {
     internal partial class NetworkBehaviourProcess
     {
-        private void GenerateSerialization(ref bool isFailed)
+        private void GenerateSerialization()
         {
             if (generateCode.GetMethod(CONST.SERIAL_METHOD) != null) return;
             if (syncVars.Count == 0) return;
@@ -42,15 +42,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
-                MethodReference writeFunc;
-                if (syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>())
-                {
-                    writeFunc = writers.GetWriteFunc(processor.Import<NetworkBehaviour>());
-                }
-                else
-                {
-                    writeFunc = writers.GetWriteFunc(syncVar.FieldType);
-                }
+                MethodReference writeFunc = writers.GetWriteFunc(syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? processor.Import<NetworkBehaviour>() : syncVar.FieldType);
 
                 if (writeFunc != null)
                 {
@@ -59,7 +51,7 @@ namespace JFramework.Editor
                 else
                 {
                     logger.Error($"不支持 {syncVar.Name} 的类型", syncVar);
-                    isFailed = true;
+                    Injection.failed = true;
                     return;
                 }
             }
@@ -89,16 +81,8 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
 
-                MethodReference writeFunc;
-                if (syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>())
-                {
-                    writeFunc = writers.GetWriteFunc(processor.Import<NetworkBehaviour>());
-                }
-                else
-                {
-                    writeFunc = writers.GetWriteFunc(syncVar.FieldType);
-                }
-                
+                MethodReference writeFunc = writers.GetWriteFunc(syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? processor.Import<NetworkBehaviour>() : syncVar.FieldType);
+
                 if (writeFunc != null)
                 {
                     worker.Emit(OpCodes.Call, writeFunc);
@@ -106,7 +90,7 @@ namespace JFramework.Editor
                 else
                 {
                     logger.Error($"不支持 {syncVar.Name} 的类型", syncVar);
-                    isFailed = true;
+                    Injection.failed = true;
                     return;
                 }
 
@@ -118,7 +102,7 @@ namespace JFramework.Editor
             generateCode.Methods.Add(serialize);
         }
 
-        private void GenerateDeserialization(ref bool WeavingFailed)
+        private void GenerateDeserialization()
         {
             if (generateCode.GetMethod(CONST.DE_SERIAL_METHOD) != null) return;
             if (syncVars.Count == 0) return;
@@ -182,15 +166,8 @@ namespace JFramework.Editor
             worker.Append(worker.Create(OpCodes.Ldarg_0));
             
             worker.Emit(OpCodes.Ldarg_0);
-            if (generateCode.HasGenericParameters)
-            {
-                worker.Emit(OpCodes.Ldflda, syncVar.MakeHostInstanceGeneric());
-            }
-            else
-            {
-                worker.Emit(OpCodes.Ldflda, syncVar);
-            }
-            
+            worker.Emit(OpCodes.Ldflda, generateCode.HasGenericParameters ? syncVar.MakeHostInstanceGeneric() : syncVar);
+
             MethodDefinition hookMethod = serverVarProcess.GetHookMethod(generateCode, syncVar);
             if (hookMethod != null)
             {
@@ -232,7 +209,7 @@ namespace JFramework.Editor
                 if (readFunc == null)
                 {
                     logger.Error($"不支持 {syncVar.Name} 的类型。", syncVar);
-                    Editor.Injection.failed = true;
+                    Injection.failed = true;
                     return;
                 }
                 worker.Emit(OpCodes.Ldarg_1);

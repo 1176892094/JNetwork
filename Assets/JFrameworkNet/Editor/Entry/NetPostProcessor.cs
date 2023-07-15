@@ -62,11 +62,11 @@ namespace JFramework.Editor
             using var definition = AssemblyDefinition.ReadAssembly(stream, readerParameters);
             resolver.SetAssemblyDefinitionForCompiledAssembly(definition);
             var weaver = new Injection(logger);
-            if (!weaver.Execute(definition, resolver) || !Editor.Injection.change)
+          
+            if (!weaver.Execute(definition, resolver) || !Injection.change)
             {
                 return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, logger.logs);
             }
-
             var mainModule = definition.MainModule;
             if (mainModule.AssemblyReferences.Any(reference => reference.Name == definition.Name.Name))
             {
