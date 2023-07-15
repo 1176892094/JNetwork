@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -76,6 +77,8 @@ namespace JFramework.Net
         /// 上一次同步时间
         /// </summary>
         private double lastSyncTime;
+
+       
 
         /// <summary>
         /// 是否能够改变网络值

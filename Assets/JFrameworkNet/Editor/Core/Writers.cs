@@ -239,7 +239,7 @@ namespace JFramework.Editor
 
             ModuleDefinition module = assembly.MainModule;
             TypeReference readerExtensions = module.ImportReference(typeof(StreamExtensions));
-            MethodReference collectionWriter = Resolvers.ResolveMethod(readerExtensions, assembly, logger, writerFunction);
+            MethodReference collectionWriter = Utils.ResolveMethod(readerExtensions, assembly, logger, writerFunction);
 
             GenericInstanceMethod methodRef = new GenericInstanceMethod(collectionWriter);
             methodRef.GenericArguments.Add(elementType);

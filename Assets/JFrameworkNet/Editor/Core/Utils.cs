@@ -4,7 +4,7 @@ using Mono.Cecil;
 
 namespace JFramework.Editor
 {
-    internal static class Resolvers
+    internal static class Utils
     {
         public static MethodReference ResolveMethod(TypeReference type, AssemblyDefinition assembly, Logger logger, string name)
         {

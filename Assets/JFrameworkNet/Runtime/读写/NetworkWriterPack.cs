@@ -20,7 +20,7 @@ namespace JFramework.Net
         /// <summary>
         /// 批处理
         /// </summary>
-        [ShowInInspector]private NetworkWriter writer;
+        [ShowInInspector] private NetworkWriter writer;
 
         /// <summary>
         /// 设置阈值

@@ -6,7 +6,7 @@ namespace JFramework.Net
     public abstract partial class NetworkBehaviour
     {
         /// <summary>
-        /// 服务器Rpc调用
+        /// TODO:自动生成代码调用服务器Rpc
         /// </summary>
         /// <param name="methodName">方法名称</param>
         /// <param name="methodHash">方法哈希值</param>
@@ -51,7 +51,7 @@ namespace JFramework.Net
 
 
         /// <summary>
-        /// 客户端Rpc调用
+        /// TODO:自动生成代码调用客户端Rpc
         /// </summary>
         /// <param name="methodName">方法名称</param>
         /// <param name="methodHash">方法哈希值</param>
@@ -89,7 +89,7 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 指定客户端Rpc调用
+        /// TODO:自动生成代码调用指定客户端Rpc
         /// </summary>
         /// <param name="client">传入指定客户端</param>
         /// <param name="methodName">方法名称</param>

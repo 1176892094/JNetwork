@@ -171,60 +171,60 @@ namespace JFramework.Editor
             this.assembly = assembly;
 
             TypeReference ArraySegmentType = Import(typeof(ArraySegment<>));
-            ArraySegmentConstructorReference = Resolvers.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CTOR);
+            ArraySegmentConstructorReference = Utils.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CTOR);
             
             TypeReference ActionType = Import(typeof(Action<,>));
-            HookMethodReference = Resolvers.ResolveMethod(ActionType, assembly, logger, ".ctor");
+            HookMethodReference = Utils.ResolveMethod(ActionType, assembly, logger, ".ctor");
             
             TypeReference NetworkClientType = Import(typeof(NetworkClient));
-            NetworkClientGetActive = Resolvers.ResolveMethod(NetworkClientType, assembly, logger, "get_isActive");
+            NetworkClientGetActive = Utils.ResolveMethod(NetworkClientType, assembly, logger, "get_isActive");
             TypeReference NetworkServerType = Import(typeof(NetworkServer));
-            NetworkServerGetActive = Resolvers.ResolveMethod(NetworkServerType, assembly, logger, "get_isActive");
+            NetworkServerGetActive = Utils.ResolveMethod(NetworkServerType, assembly, logger, "get_isActive");
             
             TypeReference readerExtensions = Import(typeof(StreamExtensions));
-            readNetworkBehaviourGeneric = Resolvers.ResolveMethod(readerExtensions, assembly, logger, method => method.Name == nameof(StreamExtensions.ReadNetworkBehaviour) && method.HasGenericParameters);
+            readNetworkBehaviourGeneric = Utils.ResolveMethod(readerExtensions, assembly, logger, method => method.Name == nameof(StreamExtensions.ReadNetworkBehaviour) && method.HasGenericParameters);
 
             TypeReference NetworkBehaviourType = Import<NetworkBehaviour>();
-            NetworkBehaviourDirtyReference = Resolvers.ResolveProperty(NetworkBehaviourType, assembly, "syncVarDirty");
+            NetworkBehaviourDirtyReference = Utils.ResolveProperty(NetworkBehaviourType, assembly, "syncVarDirty");
             
-            syncVarSetterGeneral = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterGeneral");
-            syncVarSetterGameObject = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterGameObject");
-            syncVarSetterNetworkObject = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterNetworkObject");
-            syncVarSetterNetworkBehaviour = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterNetworkBehaviour");
+            syncVarSetterGeneral = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterGeneral");
+            syncVarSetterGameObject = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterGameObject");
+            syncVarSetterNetworkObject = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterNetworkObject");
+            syncVarSetterNetworkBehaviour = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterNetworkBehaviour");
             
-            syncVarGetterGeneral = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterGeneral");
-            syncVarGetterGameObject = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterGameObject");
-            syncVarGetterNetworkObject = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterNetworkObject");
-            syncVarGetterNetworkBehaviour = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterNetworkBehaviour");
+            syncVarGetterGeneral = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterGeneral");
+            syncVarGetterGameObject = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterGameObject");
+            syncVarGetterNetworkObject = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterNetworkObject");
+            syncVarGetterNetworkBehaviour = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterNetworkBehaviour");
             
-            getSyncVarGameObject = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarGameObject");
-            getSyncVarNetworkObject = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarNetworkObject");
-            getSyncVarNetworkBehaviour = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarNetworkBehaviour");
+            getSyncVarGameObject = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarGameObject");
+            getSyncVarNetworkObject = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarNetworkObject");
+            getSyncVarNetworkBehaviour = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarNetworkBehaviour");
             
-            sendServerRpcInternal = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SendServerRpcInternal");
-            sendClientRpcInternal = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SendClientRpcInternal");
-            sendTargetRpcInternal = Resolvers.ResolveMethod(NetworkBehaviourType, assembly, logger, "SendTargetRpcInternal");
+            sendServerRpcInternal = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SendServerRpcInternal");
+            sendClientRpcInternal = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SendClientRpcInternal");
+            sendTargetRpcInternal = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SendTargetRpcInternal");
 
             TypeReference RegisterRpcType = Import(typeof(NetworkRpc));
-            registerServerRpcReference = Resolvers.ResolveMethod(RegisterRpcType, assembly, logger, "RegisterServerRpc");
-            registerClientRpcReference = Resolvers.ResolveMethod(RegisterRpcType, assembly, logger, "RegisterClientRpc");
+            registerServerRpcReference = Utils.ResolveMethod(RegisterRpcType, assembly, logger, "RegisterServerRpc");
+            registerClientRpcReference = Utils.ResolveMethod(RegisterRpcType, assembly, logger, "RegisterClientRpc");
             
             TypeReference RemoteCallDelegateType = Import<RpcDelegate>();
-            RpcDelegateConstructor = Resolvers.ResolveMethod(RemoteCallDelegateType, assembly, logger, ".ctor");
+            RpcDelegateConstructor = Utils.ResolveMethod(RemoteCallDelegateType, assembly, logger, ".ctor");
             
             TypeReference ScriptableObjectType = Import<ScriptableObject>();
-            ScriptableObjectCreateInstanceMethod = Resolvers.ResolveMethod(ScriptableObjectType, assembly, logger, method => method.Name == "CreateInstance" && method.HasGenericParameters);
+            ScriptableObjectCreateInstanceMethod = Utils.ResolveMethod(ScriptableObjectType, assembly, logger, method => method.Name == "CreateInstance" && method.HasGenericParameters);
 
             
             TypeReference DebugType = Import(typeof(Debug));
-            logErrorReference = Resolvers.ResolveMethod(DebugType, assembly, logger, method => method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName);
+            logErrorReference = Utils.ResolveMethod(DebugType, assembly, logger, method => method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName);
            
             TypeReference TypeRef = Import(typeof(Type));
-            getTypeFromHandleReference = Resolvers.ResolveMethod(TypeRef, assembly, logger, "GetTypeFromHandle");
+            getTypeFromHandleReference = Utils.ResolveMethod(TypeRef, assembly, logger, "GetTypeFromHandle");
             
             TypeReference NetworkWriterType = Import(typeof(NetworkWriter));
-            PopWriterReference = Resolvers.ResolveMethod(NetworkWriterType, assembly, logger, "Pop"); 
-            PushWriterReference = Resolvers.ResolveMethod(NetworkWriterType, assembly, logger, "Push");
+            PopWriterReference = Utils.ResolveMethod(NetworkWriterType, assembly, logger, "Pop"); 
+            PushWriterReference = Utils.ResolveMethod(NetworkWriterType, assembly, logger, "Push");
          
             if (Helpers.IsEditorAssembly(assembly))
             {

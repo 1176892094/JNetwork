@@ -5,13 +5,14 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
+    [DefaultExecutionOrder(-1)]
     public sealed partial class NetworkObject : MonoBehaviour
     {
         private static readonly Dictionary<ulong, NetworkObject> sceneIds = new Dictionary<ulong, NetworkObject>();
         
-        [ReadOnly, ShowInInspector] internal uint assetId;
+        [ReadOnly, SerializeField] internal uint assetId;
+        [ReadOnly, SerializeField] internal ulong sceneId;
         [ReadOnly, ShowInInspector] internal uint objectId;
-        [ReadOnly, ShowInInspector] internal ulong sceneId;
         [ReadOnly, ShowInInspector] internal bool isOwner;
         [ReadOnly, ShowInInspector] internal bool isServer;
         [ReadOnly, ShowInInspector] internal bool isClient;

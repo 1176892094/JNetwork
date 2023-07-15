@@ -109,6 +109,7 @@ namespace JFramework.Net
                 isOwner = @object.client == client,
                 segment = SerializeNetworkObject(@object, writer)
             };
+            Debug.Log(@event.assetId+"___"+@event.sceneId);
             client.Send(@event);
         }
 
