@@ -41,10 +41,10 @@ namespace JFramework.Net
     /// 服务器变量，当变量改变后，向所有客户端同步
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
-    public class ServerVarAttribute : PropertyAttribute
+    public class SyncVarAttribute : PropertyAttribute
     {
         private string onValueChanged;
-        public ServerVarAttribute() => onValueChanged = null;
-        public ServerVarAttribute(string onValueChanged = null) => this.onValueChanged = onValueChanged;
+        public SyncVarAttribute() => onValueChanged = null;
+        public SyncVarAttribute(string onValueChanged = null) => this.onValueChanged = onValueChanged;
     }
 }

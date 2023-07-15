@@ -61,8 +61,8 @@ namespace JFramework.Editor
 
             using var definition = AssemblyDefinition.ReadAssembly(stream, readerParameters);
             resolver.SetAssemblyDefinitionForCompiledAssembly(definition);
-            var weaver = new Process(logger);
-            if (!weaver.Execute(definition, resolver) || !Editor.Process.change)
+            var weaver = new Injection(logger);
+            if (!weaver.Execute(definition, resolver) || !Editor.Injection.change)
             {
                 return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, logger.logs);
             }

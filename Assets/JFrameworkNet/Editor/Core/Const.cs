@@ -7,7 +7,7 @@ namespace JFramework.Editor
         public const string ASSEMBLY_NAME = "JFramework.Net";
         public const string GEN_NAMESPACE = "JFramework.Net";
         public const string GEN_NET_CODE = "NetworkGenerator";
-        public const string PROCESS_FUNCTION = "JFrameworkProcessor";
+        public const string PROCESS_FUNC = "JFrameworkProcessor";
         public const string VALUE_CHANGED = "onValueChanged";
         public const string INVOKE_RPC = "InvokeUserCode_";
         public const string USER_RPC = "UserCode_";

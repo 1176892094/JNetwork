@@ -15,7 +15,7 @@ namespace JFramework.Editor
         {
             foreach (FieldDefinition fd in td.Fields)
             {
-                if (fd.HasCustomAttribute<ServerVarAttribute>())
+                if (fd.HasCustomAttribute<SyncVarAttribute>())
                 {
                     logger.Error($"网络变量 {fd.Name} 必须在 NetworkEntity 中使用。", fd);
                     isFailed = true;

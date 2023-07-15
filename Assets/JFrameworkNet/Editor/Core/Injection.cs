@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace JFramework.Editor
 {
-    internal class Process
+    internal class Injection
     {
         public static bool failed;
         public static bool change;
@@ -19,7 +19,7 @@ namespace JFramework.Editor
         private AssemblyDefinition currentAssembly;
         private readonly Logger logger;
         
-        public Process(Logger logger)
+        public Injection(Logger logger)
         {
             this.logger = logger;
         }
@@ -27,7 +27,7 @@ namespace JFramework.Editor
         public bool Execute(AssemblyDefinition assembly, IAssemblyResolver resolver)
         {
             failed = false;
-            change = failed;
+            change = false;
             try
             {
                 currentAssembly = assembly;
@@ -36,15 +36,12 @@ namespace JFramework.Editor
                     return true;
                 }
 
-                processor = new Processor(currentAssembly, logger);
-
                 serverVarList = new ServerVarList();
+                processor = new Processor(currentAssembly, logger);
                 generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE, CONST.ATTRIBUTES, processor.Import<object>());
-                
                 writers = new Writers(currentAssembly, processor, generate, logger);
                 readers = new Readers(currentAssembly, processor, generate, logger);
-                
-                change = StreamingProcess.Process(currentAssembly, resolver, logger, writers, readers, ref failed);
+                change = StreamingProcess.Process(currentAssembly, resolver, logger, writers, readers);
 
                 ModuleDefinition moduleDefinition = currentAssembly.MainModule;
 

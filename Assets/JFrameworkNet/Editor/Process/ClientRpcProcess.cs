@@ -8,7 +8,7 @@ namespace JFramework.Editor
     {
         public static MethodDefinition ProcessClientRpc(Processor processor, Readers readers, Logger logger, TypeDefinition td, MethodDefinition md, MethodDefinition func)
         {
-            string rpcName = Process.GenerateMethodName(CONST.INVOKE_RPC, md);
+            string rpcName = Injection.GenerateMethodName(CONST.INVOKE_RPC, md);
             MethodDefinition rpc = new MethodDefinition(rpcName, CONST.METHOD_RPC, processor.Import(typeof(void)));
             ILProcessor worker = rpc.Body.GetILProcessor();
             Instruction label = worker.Create(OpCodes.Nop);

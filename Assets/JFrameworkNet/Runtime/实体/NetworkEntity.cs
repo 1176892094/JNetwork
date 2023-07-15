@@ -10,7 +10,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器变量的改变选项
         /// </summary>
-        protected ulong serverVarDirty { get; set; }
+        protected ulong syncVarDirty { get; set; }
 
         /// <summary>
         /// 服务器对象的改变选项
@@ -20,7 +20,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器变量的钩子
         /// </summary>
-        private ulong serverVarHook;
+        private ulong syncVarHook;
 
         /// <summary>
         /// 网络对象组件
@@ -91,7 +91,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsDirty()
         {
-            return serverVarDirty  != 0UL && NetworkTime.localTime - lastSyncTime >= syncInterval;
+            return syncVarDirty  != 0UL && NetworkTime.localTime - lastSyncTime >= syncInterval;
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetDirty()
         {
-            SetServerVarDirty(ulong.MaxValue);
+            SetSyncVarDirty(ulong.MaxValue);
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="dirty"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetServerVarDirty(ulong dirty) => serverVarDirty |= dirty;
+        private void SetSyncVarDirty(ulong dirty) => syncVarDirty |= dirty;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetServerObjectDirty(ulong dirty) => serverObjectDirty |= dirty;
@@ -118,16 +118,16 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="dirty"></param>
         /// <returns></returns>
-        private bool GetServerVarHook(ulong dirty) => (serverVarHook & dirty) != 0UL;
+        private bool GetSyncVarHook(ulong dirty) => (syncVarHook & dirty) != 0UL;
 
         /// <summary>
         /// 设置服务器变量的钩子
         /// </summary>
         /// <param name="dirty"></param>
         /// <param name="value"></param>
-        private void SetServerVarHook(ulong dirty, bool value)
+        private void SetSyncVarHook(ulong dirty, bool value)
         {
-            serverVarHook = value ? serverVarHook | dirty : serverVarHook & ~dirty;
+            syncVarHook = value ? syncVarHook | dirty : syncVarHook & ~dirty;
         }
 
         protected void InitSyncObject(SyncObject syncObject)

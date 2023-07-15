@@ -233,7 +233,7 @@ namespace JFramework.Editor
             if (elementWriteFunc == null)
             {
                 logger.Error($"无法为 {variable} 生成 Writer", variable);
-                Process.failed = true;
+                Injection.failed = true;
                 return writerFunc;
             }
 

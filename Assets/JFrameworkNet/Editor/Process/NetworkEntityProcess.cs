@@ -82,14 +82,14 @@ namespace JFramework.Editor
 
         private static bool WasProcessed(TypeDefinition td)
         {
-            return td.GetMethod(CONST.PROCESS_FUNCTION) != null;
+            return td.GetMethod(CONST.PROCESS_FUNC) != null;
         }
 
         private void MarkAsProcessed(TypeDefinition td)
         {
             if (!WasProcessed(td))
             {
-                MethodDefinition versionMethod = new MethodDefinition(CONST.PROCESS_FUNCTION, MethodAttributes.Private, processor.Import(typeof(void)));
+                MethodDefinition versionMethod = new MethodDefinition(CONST.PROCESS_FUNC, MethodAttributes.Private, processor.Import(typeof(void)));
                 ILProcessor worker = versionMethod.Body.GetILProcessor();
                 worker.Emit(OpCodes.Ret);
                 td.Methods.Add(versionMethod);
@@ -140,7 +140,7 @@ namespace JFramework.Editor
                 if (writeFunc == null)
                 {
                     logger.Error($"{method.Name} 有无效的参数 {param}。不支持类型 {param.ParameterType}。", method);
-                    Editor.Process.failed = true;
+                    Editor.Injection.failed = true;
                     return false;
                 }
                 
@@ -175,7 +175,7 @@ namespace JFramework.Editor
                 if (readFunc == null)
                 {
                     logger.Error($"{method.Name} 有无效的参数 {param}。不支持类型 {param.ParameterType}。", method);
-                    Editor.Process.failed = true;
+                    Editor.Injection.failed = true;
                     return false;
                 }
 

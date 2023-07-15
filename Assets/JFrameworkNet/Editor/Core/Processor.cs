@@ -78,18 +78,18 @@ namespace JFramework.Editor
             TypeReference NetworkEntityType = Import<NetworkEntity>();
             NetworkEntityDirtyReference = Resolvers.ResolveProperty(NetworkEntityType, assembly, "serverVarDirty");
             
-            generalSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GeneralServerVarSetter");
-            generalSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GeneralServerVarGetter");
-            gameObjectSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GameObjectServerVarSetter");
-            gameObjectSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GameObjectServerVarGetter");
-            networkObjectSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkObjectServerVarSetter");
-            networkObjectSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkObjectServerVarGetter");
-            networkEntitySyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkEntityServerVarSetter");
-            networkEntitySyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkEntityServerVarGetter");
+            generalSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GeneralSyncVarSetter");
+            generalSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GeneralSyncVarGetter");
+            gameObjectSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GameObjectSyncVarSetter");
+            gameObjectSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GameObjectSyncVarGetter");
+            networkObjectSyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkObjectSyncVarSetter");
+            networkObjectSyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkObjectSyncVarGetter");
+            networkEntitySyncVarSetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkEntitySyncVarSetter");
+            networkEntitySyncVarGetter = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "NetworkEntitySyncVarGetter");
             
-            getSyncVarGameObjectReference = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GetGameObjectServerVar");
-            getSyncVarNetworkIdentityReference = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GetNetworkObjectServerVar");
-            getSyncVarNetworkBehaviourReference = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GetNetworkEntityServerVar");
+            getSyncVarGameObjectReference = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GetGameObjectSyncVar");
+            getSyncVarNetworkIdentityReference = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GetNetworkObjectSyncVar");
+            getSyncVarNetworkBehaviourReference = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "GetNetworkEntitySyncVar");
             
             sendServerRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendServerRpcInternal");
             sendClientRpcInternal = Resolvers.ResolveMethod(NetworkEntityType, assembly, logger, "SendClientRpcInternal");

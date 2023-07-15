@@ -21,9 +21,8 @@ namespace JFramework.Editor
         /// <param name="logger"></param>
         /// <param name="writers"></param>
         /// <param name="readers"></param>
-        /// <param name="isFailed"></param>
         /// <returns></returns>
-        public static bool Process(AssemblyDefinition currentAssembly, IAssemblyResolver resolver, Logger logger, Writers writers, Readers readers, ref bool isFailed)
+        public static bool Process(AssemblyDefinition currentAssembly, IAssemblyResolver resolver, Logger logger, Writers writers, Readers readers)
         {
             ProcessNetworkCode(currentAssembly, resolver, logger, writers, readers);
             return ProcessCustomCode(currentAssembly, currentAssembly, writers, readers);

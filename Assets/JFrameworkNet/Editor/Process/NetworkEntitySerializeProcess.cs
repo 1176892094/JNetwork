@@ -232,7 +232,7 @@ namespace JFramework.Editor
                 if (readFunc == null)
                 {
                     logger.Error($"不支持 {syncVar.Name} 的类型。", syncVar);
-                    Editor.Process.failed = true;
+                    Editor.Injection.failed = true;
                     return;
                 }
                 worker.Emit(OpCodes.Ldarg_1);

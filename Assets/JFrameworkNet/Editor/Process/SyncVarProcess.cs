@@ -47,7 +47,7 @@ namespace JFramework.Editor
 
         public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition serverVar)
         {
-            CustomAttribute attribute = serverVar.GetCustomAttribute<ServerVarAttribute>();
+            CustomAttribute attribute = serverVar.GetCustomAttribute<SyncVarAttribute>();
 
             string hookMethod = attribute?.GetField<string>(CONST.VALUE_CHANGED, null);
 
@@ -68,7 +68,7 @@ namespace JFramework.Editor
             if (fixMethods.Count == 0)
             {
                 logger.Error($"无法注册 {serverVar.Name} 请修改为 {HookMethod(hookMethod, serverVar.FieldType)}", serverVar);
-                Process.failed = true;
+                Injection.failed = true;
                 return null;
             }
 
@@ -78,7 +78,7 @@ namespace JFramework.Editor
             }
 
             logger.Error($"参数类型错误 {serverVar.Name} 请修改为 {HookMethod(hookMethod, serverVar.FieldType)}", serverVar);
-            Process.failed = true;
+            Injection.failed = true;
             return null;
         }
 
@@ -95,26 +95,26 @@ namespace JFramework.Editor
             Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>(); 
             int dirtyBitCounter = serverVars.GetServerVar(td.BaseType.FullName);
             
-            foreach (var fd in td.Fields.Where(fd => fd.HasCustomAttribute<ServerVarAttribute>()))
+            foreach (var fd in td.Fields.Where(fd => fd.HasCustomAttribute<SyncVarAttribute>()))
             {
                 if ((fd.Attributes & FieldAttributes.Static) != 0)
                 {
                     logger.Error($"{fd.Name} 不能是静态字段。", fd);
-                    Process.failed = true;
+                    Injection.failed = true;
                     continue;
                 }
 
                 if (fd.FieldType.IsGenericParameter)
                 {
                     logger.Error($"{fd.Name} 不能用泛型参数。", fd);
-                    Process.failed = true;
+                    Injection.failed = true;
                     continue;
                 }
 
                 if (fd.FieldType.IsArray)
                 {
                     logger.Error($"{fd.Name} 不能使用数组。", fd);
-                    Process.failed = true;
+                    Injection.failed = true;
                     continue;
                 }
 
@@ -132,7 +132,7 @@ namespace JFramework.Editor
                     if (dirtyBitCounter > CONST.SERVER_VAR_LIMIT)
                     {
                         logger.Error($"{td.Name} 网络变量数量大于{CONST.SERVER_VAR_LIMIT}。", td);
-                        Process.failed = true;
+                        Injection.failed = true;
                     }
                 }
             }

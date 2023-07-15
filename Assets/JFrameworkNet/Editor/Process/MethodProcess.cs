@@ -7,7 +7,7 @@ namespace JFramework.Editor
     {
         public static MethodDefinition SubstituteMethod(Logger logger, TypeDefinition td, MethodDefinition md)
         {
-            string newName = Process.GenerateMethodName(CONST.USER_RPC, md);
+            string newName = Injection.GenerateMethodName(CONST.USER_RPC, md);
             var cmd = new MethodDefinition(newName, md.Attributes, md.ReturnType)
             {
                 IsPublic = false,
@@ -49,7 +49,7 @@ namespace JFramework.Editor
             {
                 if (IsCallToMethod(instruction, out MethodDefinition calledMethod))
                 {
-                    string calledMethodName_Generated = Process.GenerateMethodName("", calledMethod);
+                    string calledMethodName_Generated = Injection.GenerateMethodName("", calledMethod);
                     if (calledMethodName_Generated == baseRemoteCallName)
                     {
                         TypeDefinition baseType = type.BaseType.Resolve();
@@ -58,14 +58,14 @@ namespace JFramework.Editor
                         if (baseMethod == null)
                         {
                             logger.Error($"找不到 base 方法{methodName}", method);
-                            Process.failed = true;
+                            Injection.failed = true;
                             return;
                         }
 
                         if (!baseMethod.IsVirtual)
                         {
                             logger.Error($"找不到 virtual 的 base 方法{methodName}", method);
-                            Process.failed = true;
+                            Injection.failed = true;
                             return;
                         }
 

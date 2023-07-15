@@ -57,7 +57,7 @@ namespace JFramework.Editor
                 if (variableReference.IsMultidimensionalArray())
                 {
                     logger.Error($"无法为多维数组 {variableReference.Name} 生成 Reader", variableReference);
-                    Process.failed = true;
+                    Injection.failed = true;
                     return null;
                 }
 
@@ -68,14 +68,14 @@ namespace JFramework.Editor
             if (variableDefinition == null)
             {
                 logger.Error($"无法为Null {variableReference.Name} 生成 Reader", variableReference); 
-                Process.failed = true;
+                Injection.failed = true;
                 return null;
             }
             
             if (variableReference.IsByReference)
             {
                 logger.Error($"无法为反射 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                Injection.failed = true;
                 return null;
             }
             
@@ -105,42 +105,42 @@ namespace JFramework.Editor
             if (variableDefinition.IsDerivedFrom<Component>())
             {
                 logger.Error($"无法为组件 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                Injection.failed = true;
                 return null;
             }
             
             if (variableReference.Is<Object>())
             {
                 logger.Error($"无法为对象 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                Injection.failed = true;
                 return null;
             }
             
             if (variableReference.Is<ScriptableObject>())
             {
                 logger.Error($"无法为可视化脚本 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                Injection.failed = true;
                 return null;
             }
             
             if (variableDefinition.HasGenericParameters)
             {
                 logger.Error($"无法为通用变量 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                Injection.failed = true;
                 return null;
             }
             
             if (variableDefinition.IsInterface)
             {
                 logger.Error($"无法为接口 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                Injection.failed = true;
                 return null;
             }
             
             if (variableDefinition.IsAbstract)
             { 
                 logger.Error($"无法为抽象类 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                Injection.failed = true;
                 return null;
             }
 
@@ -261,7 +261,7 @@ namespace JFramework.Editor
                 if (ctor == null)
                 {
                     logger.Error($"{variable.Name} 不能被反序列化，因为它没有默认的构造函数", variable);
-                    Process.failed = true;
+                    Injection.failed = true;
                     return;
                 }
 
@@ -287,7 +287,7 @@ namespace JFramework.Editor
                 else
                 {
                     logger.Error($"{field.Name} 有不受支持的类型", field);
-                    Process.failed = true;
+                    Injection.failed = true;
                 }
                 FieldReference fieldRef = assembly.MainModule.ImportReference(field);
 
