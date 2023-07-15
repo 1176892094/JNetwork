@@ -25,8 +25,8 @@ namespace JFramework.Editor
         /// <returns></returns>
         public static bool Process(AssemblyDefinition currentAssembly, IAssemblyResolver resolver, Logger logger, Writers writers, Readers readers, ref bool isFailed)
         {
-            ProcessNetworkCode(currentAssembly, resolver, logger, writers, readers, ref isFailed);
-            return ProcessCustomCode(currentAssembly, currentAssembly, writers, readers, ref isFailed);
+            ProcessNetworkCode(currentAssembly, resolver, logger, writers, readers);
+            return ProcessCustomCode(currentAssembly, currentAssembly, writers, readers);
         }
 
         /// <summary>
@@ -37,8 +37,7 @@ namespace JFramework.Editor
         /// <param name="logger"></param>
         /// <param name="writers"></param>
         /// <param name="readers"></param>
-        /// <param name="isFailed"></param>
-        private static void ProcessNetworkCode(AssemblyDefinition currentAssembly, IAssemblyResolver resolver,Logger logger, Writers writers, Readers readers, ref bool isFailed)
+        private static void ProcessNetworkCode(AssemblyDefinition currentAssembly, IAssemblyResolver resolver,Logger logger, Writers writers, Readers readers)
         {
             AssemblyNameReference assemblyReference = currentAssembly.MainModule.FindReference(CONST.ASSEMBLY_NAME);
             if (assemblyReference != null)
@@ -46,7 +45,7 @@ namespace JFramework.Editor
                 AssemblyDefinition networkAssembly = resolver.Resolve(assemblyReference);
                 if (networkAssembly != null)
                 {
-                    ProcessCustomCode(currentAssembly, networkAssembly, writers, readers, ref isFailed);
+                    ProcessCustomCode(currentAssembly, networkAssembly, writers, readers);
                 }
                 else
                 {
@@ -66,9 +65,8 @@ namespace JFramework.Editor
         /// <param name="assembly"></param>
         /// <param name="writers"></param>
         /// <param name="readers"></param>
-        /// <param name="isFailed"></param>
         /// <returns></returns>
-        private static bool ProcessCustomCode(AssemblyDefinition CurrentAssembly, AssemblyDefinition assembly,Writers writers, Readers readers, ref bool isFailed)
+        private static bool ProcessCustomCode(AssemblyDefinition CurrentAssembly, AssemblyDefinition assembly,Writers writers, Readers readers)
         {
             bool modified = false;
             foreach (var definition in assembly.MainModule.Types.Where(definition => definition.IsAbstract && definition.IsSealed))
@@ -79,7 +77,7 @@ namespace JFramework.Editor
 
             foreach (TypeDefinition type in assembly.MainModule.Types)
             {
-                modified |= LoadStreamingMessage(CurrentAssembly.MainModule, writers, readers, type, ref isFailed);
+                modified |= LoadStreamingMessage(CurrentAssembly.MainModule, writers, readers, type);
             }
             return modified;
         }
@@ -159,19 +157,19 @@ namespace JFramework.Editor
         /// <param name="type"></param>
         /// <param name="isFailed"></param>
         /// <returns></returns>
-        private static bool LoadStreamingMessage(ModuleDefinition module, Writers writers, Readers readers, TypeDefinition type, ref bool isFailed)
+        private static bool LoadStreamingMessage(ModuleDefinition module, Writers writers, Readers readers, TypeDefinition type)
         {
             bool modified = false;
             if (!type.IsAbstract && !type.IsInterface && type.ImplementsInterface<IEvent>())
             {
-                readers.GetReadFunc(module.ImportReference(type), ref isFailed);
-                writers.GetWriteFunc(module.ImportReference(type), ref isFailed);
+                readers.GetReadFunc(module.ImportReference(type));
+                writers.GetWriteFunc(module.ImportReference(type));
                 modified = true;
             }
 
             foreach (TypeDefinition nested in type.NestedTypes)
             {
-                modified |= LoadStreamingMessage(module, writers, readers, nested, ref isFailed);
+                modified |= LoadStreamingMessage(module, writers, readers, nested);
             }
 
             return modified;

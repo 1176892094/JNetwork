@@ -5,7 +5,7 @@ namespace JFramework.Editor
 {
     internal static class MethodProcess
     {
-        public static MethodDefinition SubstituteMethod(Logger logger, TypeDefinition td, MethodDefinition md, ref bool isFailed)
+        public static MethodDefinition SubstituteMethod(Logger logger, TypeDefinition td, MethodDefinition md)
         {
             string newName = Process.GenerateMethodName(CONST.USER_RPC, md);
             var cmd = new MethodDefinition(newName, md.Attributes, md.ReturnType)
@@ -35,11 +35,11 @@ namespace JFramework.Editor
 
             (md.DebugInformation.Scope, cmd.DebugInformation.Scope) = (cmd.DebugInformation.Scope, md.DebugInformation.Scope);
             td.Methods.Add(cmd);
-            FixRemoteCallToBaseMethod(logger, td, cmd, ref isFailed);
+            FixRemoteCallToBaseMethod(logger, td, cmd);
             return cmd;
         }
 
-        private static void FixRemoteCallToBaseMethod(Logger logger, TypeDefinition type, MethodDefinition method, ref bool isFailed)
+        private static void FixRemoteCallToBaseMethod(Logger logger, TypeDefinition type, MethodDefinition method)
         {
             string methodName = method.Name;
             if (!methodName.StartsWith(CONST.USER_RPC)) return;
@@ -58,14 +58,14 @@ namespace JFramework.Editor
                         if (baseMethod == null)
                         {
                             logger.Error($"找不到 base 方法{methodName}", method);
-                            isFailed = true;
+                            Process.failed = true;
                             return;
                         }
 
                         if (!baseMethod.IsVirtual)
                         {
                             logger.Error($"找不到 virtual 的 base 方法{methodName}", method);
-                            isFailed = true;
+                            Process.failed = true;
                             return;
                         }
 

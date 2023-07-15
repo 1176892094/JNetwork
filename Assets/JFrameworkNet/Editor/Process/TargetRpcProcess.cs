@@ -6,7 +6,7 @@ namespace JFramework.Editor
 {
     internal static class TargetRpcProcess
     {
-        public static MethodDefinition ProcessTargetRpc(Processor processor, Readers readers, Logger logger, TypeDefinition type, MethodDefinition md, MethodDefinition func, ref bool isFailed)
+        public static MethodDefinition ProcessTargetRpc(Processor processor, Readers readers, Logger logger, TypeDefinition type, MethodDefinition md, MethodDefinition func)
         {
             string rpcName = Process.GenerateMethodName(CONST.INVOKE_RPC, md);
             MethodDefinition rpc = new MethodDefinition(rpcName, CONST.METHOD_RPC, processor.Import(typeof(void)));
@@ -22,7 +22,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldnull);
             }
             
-            if (!NetworkEntityProcess.ReadArguments(md, readers, logger, worker, RpcType.TargetRpc, ref isFailed))
+            if (!NetworkEntityProcess.ReadArguments(md, readers, logger, worker, RpcType.TargetRpc))
             {
                 return null;
             }
@@ -34,14 +34,14 @@ namespace JFramework.Editor
             return rpc;
         }
 
-        public static MethodDefinition ProcessTargetRpcInvoke(Processor processor, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute targetRpcAttr, ref bool isFailed)
+        public static MethodDefinition ProcessTargetRpcInvoke(Processor processor, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute targetRpcAttr)
         {
-            MethodDefinition rpc = MethodProcess.SubstituteMethod(logger, td, md, ref isFailed);
+            MethodDefinition rpc = MethodProcess.SubstituteMethod(logger, td, md);
             ILProcessor worker = md.Body.GetILProcessor();
             NetworkEntityProcess.WriteSetupLocals(worker, processor);
             NetworkEntityProcess.WriteGetWriter(worker, processor);
             
-            if (!NetworkEntityProcess.WriteArguments(worker, writers, logger, md, RpcType.TargetRpc, ref isFailed))
+            if (!NetworkEntityProcess.WriteArguments(worker, writers, logger, md, RpcType.TargetRpc))
             {
                 return null;
             }

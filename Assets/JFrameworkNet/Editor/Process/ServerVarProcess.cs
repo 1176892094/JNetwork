@@ -45,7 +45,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Newobj, processor.ActionDoubleReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
         }
 
-        public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition serverVar, ref bool isFailed)
+        public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition serverVar)
         {
             CustomAttribute attribute = serverVar.GetCustomAttribute<ServerVarAttribute>();
 
@@ -56,10 +56,10 @@ namespace JFramework.Editor
                 return null;
             }
 
-            return FindHookMethod(td, serverVar, hookMethod, ref isFailed);
+            return FindHookMethod(td, serverVar, hookMethod);
         }
 
-        private MethodDefinition FindHookMethod(TypeDefinition td, FieldDefinition serverVar, string hookMethod, ref bool isFailed)
+        private MethodDefinition FindHookMethod(TypeDefinition td, FieldDefinition serverVar, string hookMethod)
         {
             List<MethodDefinition> methods = td.GetMethods(hookMethod);
 
@@ -68,7 +68,7 @@ namespace JFramework.Editor
             if (fixMethods.Count == 0)
             {
                 logger.Error($"无法注册 {serverVar.Name} 请修改为 {HookMethod(hookMethod, serverVar.FieldType)}", serverVar);
-                isFailed = true;
+                Process.failed = true;
                 return null;
             }
 
@@ -78,7 +78,7 @@ namespace JFramework.Editor
             }
 
             logger.Error($"参数类型错误 {serverVar.Name} 请修改为 {HookMethod(hookMethod, serverVar.FieldType)}", serverVar);
-            isFailed = true;
+            Process.failed = true;
             return null;
         }
 
@@ -89,7 +89,7 @@ namespace JFramework.Editor
             return method.Parameters[0].ParameterType.FullName == serverVar.FieldType.FullName && method.Parameters[1].ParameterType.FullName == serverVar.FieldType.FullName;
         }
 
-        public (List<FieldDefinition> syncVars, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds) ProcessSyncVars(TypeDefinition td, ref bool isFailed)
+        public (List<FieldDefinition> syncVars, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds) ProcessSyncVars(TypeDefinition td)
         {
             List<FieldDefinition> syncVars = new List<FieldDefinition>();
             Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>(); 
@@ -100,21 +100,21 @@ namespace JFramework.Editor
                 if ((fd.Attributes & FieldAttributes.Static) != 0)
                 {
                     logger.Error($"{fd.Name} 不能是静态字段。", fd);
-                    isFailed = true;
+                    Process.failed = true;
                     continue;
                 }
 
                 if (fd.FieldType.IsGenericParameter)
                 {
                     logger.Error($"{fd.Name} 不能用泛型参数。", fd);
-                    isFailed = true;
+                    Process.failed = true;
                     continue;
                 }
 
                 if (fd.FieldType.IsArray)
                 {
                     logger.Error($"{fd.Name} 不能使用数组。", fd);
-                    isFailed = true;
+                    Process.failed = true;
                     continue;
                 }
 
@@ -126,14 +126,13 @@ namespace JFramework.Editor
                 {
                     syncVars.Add(fd);
                 
-                    ProcessSyncVar(td, fd, syncVarNetIds, 1L << dirtyBitCounter, ref isFailed);
+                    ProcessSyncVar(td, fd, syncVarNetIds, 1L << dirtyBitCounter);
                     dirtyBitCounter += 1;
                 
                     if (dirtyBitCounter > CONST.SERVER_VAR_LIMIT)
                     {
                         logger.Error($"{td.Name} 网络变量数量大于{CONST.SERVER_VAR_LIMIT}。", td);
-                        isFailed = true;
-                        continue;
+                        Process.failed = true;
                     }
                 }
             }
@@ -148,7 +147,7 @@ namespace JFramework.Editor
             return (syncVars, syncVarNetIds);
         }
         
-        public void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds, long dirtyBit, ref bool WeavingFailed)
+        public void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds, long dirtyBit)
         {
             string originalName = fd.Name;
             
@@ -169,7 +168,7 @@ namespace JFramework.Editor
             }
 
             MethodDefinition get = GenerateSyncVarGetter(fd, originalName, netIdField);
-            MethodDefinition set = GenerateSyncVarSetter(td, fd, originalName, dirtyBit, netIdField, ref WeavingFailed);
+            MethodDefinition set = GenerateSyncVarSetter(td, fd, originalName, dirtyBit, netIdField);
 
        
             PropertyDefinition propertyDefinition = new PropertyDefinition($"Network{originalName}", PropertyAttributes.None, fd.FieldType)
@@ -249,7 +248,7 @@ namespace JFramework.Editor
             return get;
         }
 
-        private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string originalName, long dirtyBit, FieldDefinition netFieldId, ref bool WeavingFailed)
+        private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string originalName, long dirtyBit, FieldDefinition netFieldId)
         {
             MethodDefinition set = new MethodDefinition($"set_Network{originalName}", CONST.SERVER_VALUE, processor.Import(typeof(void)));
 
@@ -270,7 +269,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldflda, fr);
             worker.Emit(OpCodes.Ldc_I8, dirtyBit);
             
-            MethodDefinition hookMethod = GetHookMethod(td, fd, ref WeavingFailed);
+            MethodDefinition hookMethod = GetHookMethod(td, fd);
             if (hookMethod != null)
             {
                 GenerateNewActionFromHookMethod(fd, worker, hookMethod);

@@ -45,11 +45,11 @@ namespace JFramework.Editor
                 MethodReference writeFunc;
                 if (syncVar.FieldType.IsDerivedFrom<NetworkEntity>())
                 {
-                    writeFunc = writers.GetWriteFunc(processor.Import<NetworkEntity>(), ref isFailed);
+                    writeFunc = writers.GetWriteFunc(processor.Import<NetworkEntity>());
                 }
                 else
                 {
-                    writeFunc = writers.GetWriteFunc(syncVar.FieldType, ref isFailed);
+                    writeFunc = writers.GetWriteFunc(syncVar.FieldType);
                 }
 
                 if (writeFunc != null)
@@ -69,7 +69,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Call, processor.NetworkEntityDirtyReference);
-            MethodReference writeUint64Func = writers.GetWriteFunc(processor.Import<ulong>(), ref isFailed);
+            MethodReference writeUint64Func = writers.GetWriteFunc(processor.Import<ulong>());
             worker.Emit(OpCodes.Call, writeUint64Func);
             int dirty = serverVars.GetServerVar(generateCode.BaseType.FullName);
             foreach (FieldDefinition syncVarDef in syncVars)
@@ -92,11 +92,11 @@ namespace JFramework.Editor
                 MethodReference writeFunc;
                 if (syncVar.FieldType.IsDerivedFrom<NetworkEntity>())
                 {
-                    writeFunc = writers.GetWriteFunc(processor.Import<NetworkEntity>(), ref isFailed);
+                    writeFunc = writers.GetWriteFunc(processor.Import<NetworkEntity>());
                 }
                 else
                 {
-                    writeFunc = writers.GetWriteFunc(syncVar.FieldType, ref isFailed);
+                    writeFunc = writers.GetWriteFunc(syncVar.FieldType);
                 }
                 
                 if (writeFunc != null)
@@ -148,13 +148,13 @@ namespace JFramework.Editor
 
             foreach (FieldDefinition syncVar in syncVars)
             {
-                DeserializeField(syncVar, serWorker, ref WeavingFailed);
+                DeserializeField(syncVar, serWorker);
             }
 
             serWorker.Append(serWorker.Create(OpCodes.Ret));
             serWorker.Append(initialStateLabel);
             serWorker.Append(serWorker.Create(OpCodes.Ldarg_1));
-            serWorker.Append(serWorker.Create(OpCodes.Call, readers.GetReadFunc(processor.Import<ulong>(), ref WeavingFailed)));
+            serWorker.Append(serWorker.Create(OpCodes.Call, readers.GetReadFunc(processor.Import<ulong>())));
             serWorker.Append(serWorker.Create(OpCodes.Stloc_0));
             
             int dirty = serverVars.GetServerVar(generateCode.BaseType.FullName);
@@ -167,7 +167,7 @@ namespace JFramework.Editor
                 serWorker.Append(serWorker.Create(OpCodes.And));
                 serWorker.Append(serWorker.Create(OpCodes.Brfalse, varLabel));
 
-                DeserializeField(syncVar, serWorker, ref WeavingFailed);
+                DeserializeField(syncVar, serWorker);
 
                 serWorker.Append(varLabel);
                 dirty += 1;
@@ -177,7 +177,7 @@ namespace JFramework.Editor
             generateCode.Methods.Add(serialize);
         }
 
-        private void DeserializeField(FieldDefinition syncVar, ILProcessor worker, ref bool WeavingFailed)
+        private void DeserializeField(FieldDefinition syncVar, ILProcessor worker)
         {
             worker.Append(worker.Create(OpCodes.Ldarg_0));
             
@@ -191,7 +191,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldflda, syncVar);
             }
             
-            MethodDefinition hookMethod = serverVarProcess.GetHookMethod(generateCode, syncVar, ref WeavingFailed);
+            MethodDefinition hookMethod = serverVarProcess.GetHookMethod(generateCode, syncVar);
             if (hookMethod != null)
             {
                 serverVarProcess.GenerateNewActionFromHookMethod(syncVar, worker, hookMethod);
@@ -228,11 +228,11 @@ namespace JFramework.Editor
             }
             else
             {
-                MethodReference readFunc = readers.GetReadFunc(syncVar.FieldType, ref WeavingFailed);
+                MethodReference readFunc = readers.GetReadFunc(syncVar.FieldType);
                 if (readFunc == null)
                 {
                     logger.Error($"不支持 {syncVar.Name} 的类型。", syncVar);
-                    WeavingFailed = true;
+                    Editor.Process.failed = true;
                     return;
                 }
                 worker.Emit(OpCodes.Ldarg_1);

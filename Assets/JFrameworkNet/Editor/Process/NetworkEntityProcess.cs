@@ -59,9 +59,9 @@ namespace JFramework.Editor
 
             MarkAsProcessed(type);
             
-            (syncVars, syncVarNetIds) = serverVarProcess.ProcessSyncVars(type, ref isFailed);
+            (syncVars, syncVarNetIds) = serverVarProcess.ProcessSyncVars(type);
             
-            ProcessMethods(ref isFailed);
+            ProcessMethods();
             
             if (isFailed)
             {
@@ -118,7 +118,7 @@ namespace JFramework.Editor
         }
 
 
-        public static bool WriteArguments(ILProcessor worker, Writers writers, Logger logger, MethodDefinition method, RpcType rpcType, ref bool isFailed)
+        public static bool WriteArguments(ILProcessor worker, Writers writers, Logger logger, MethodDefinition method, RpcType rpcType)
         {
             bool skipFirst = rpcType == RpcType.TargetRpc && TargetRpcProcess.HasNetworkConnectionParameter(method);
             
@@ -136,11 +136,11 @@ namespace JFramework.Editor
                     continue;
                 }
 
-                MethodReference writeFunc = writers.GetWriteFunc(param.ParameterType, ref isFailed);
+                MethodReference writeFunc = writers.GetWriteFunc(param.ParameterType);
                 if (writeFunc == null)
                 {
                     logger.Error($"{method.Name} 有无效的参数 {param}。不支持类型 {param.ParameterType}。", method);
-                    isFailed = true;
+                    Editor.Process.failed = true;
                     return false;
                 }
                 
@@ -152,7 +152,7 @@ namespace JFramework.Editor
             return true;
         }
         
-        public static bool ReadArguments(MethodDefinition method, Readers readers, Logger logger, ILProcessor worker, RpcType rpcType, ref bool isFailed)
+        public static bool ReadArguments(MethodDefinition method, Readers readers, Logger logger, ILProcessor worker, RpcType rpcType)
         {
             bool skipFirst = rpcType == RpcType.TargetRpc && TargetRpcProcess.HasNetworkConnectionParameter(method);
             int argNum = 1;
@@ -170,12 +170,12 @@ namespace JFramework.Editor
                     continue;
                 }
                 
-                MethodReference readFunc = readers.GetReadFunc(param.ParameterType, ref isFailed);
+                MethodReference readFunc = readers.GetReadFunc(param.ParameterType);
 
                 if (readFunc == null)
                 {
                     logger.Error($"{method.Name} 有无效的参数 {param}。不支持类型 {param.ParameterType}。", method);
-                    isFailed = true;
+                    Editor.Process.failed = true;
                     return false;
                 }
 

@@ -9,24 +9,25 @@ namespace JFramework.Editor
 {
     internal class Process
     {
-        private bool isFailed;
+        public static bool failed;
+        public static bool change;
         private Writers writers;
         private Readers readers;
         private Processor processor;
         private TypeDefinition generate;
+        private ServerVarList serverVarList;
         private AssemblyDefinition currentAssembly;
         private readonly Logger logger;
-        private ServerVarList syncVarAccessLists;
         
         public Process(Logger logger)
         {
             this.logger = logger;
         }
 
-        public bool Execute(AssemblyDefinition assembly, IAssemblyResolver resolver, out bool isChange)
+        public bool Execute(AssemblyDefinition assembly, IAssemblyResolver resolver)
         {
-            isFailed = false;
-            isChange = false;
+            failed = false;
+            change = failed;
             try
             {
                 currentAssembly = assembly;
@@ -35,25 +36,25 @@ namespace JFramework.Editor
                     return true;
                 }
 
-                processor = new Processor(currentAssembly, logger, ref isFailed);
+                processor = new Processor(currentAssembly, logger);
 
-                syncVarAccessLists = new ServerVarList();
+                serverVarList = new ServerVarList();
                 generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE, CONST.ATTRIBUTES, processor.Import<object>());
                 
                 writers = new Writers(currentAssembly, processor, generate, logger);
                 readers = new Readers(currentAssembly, processor, generate, logger);
                 
-                isChange = StreamingProcess.Process(currentAssembly, resolver, logger, writers, readers, ref isFailed);
+                change = StreamingProcess.Process(currentAssembly, resolver, logger, writers, readers, ref failed);
 
                 ModuleDefinition moduleDefinition = currentAssembly.MainModule;
 
-                isChange |= WeaveModule(moduleDefinition);
-                if (isFailed)
+                change |= WeaveModule(moduleDefinition);
+                if (failed)
                 {
                     return false;
                 }
                 
-                if (isChange)
+                if (change)
                 {
                     moduleDefinition.Types.Add(generate);
                     StreamingProcess.StreamingInitialize(currentAssembly, processor, writers,readers,generate);
@@ -63,7 +64,7 @@ namespace JFramework.Editor
             }
             catch (Exception e)
             {
-                isFailed = true;
+                failed = true;
                 logger.Error(e.ToString());
                 return false;
             }
@@ -76,7 +77,7 @@ namespace JFramework.Editor
             {
                 if (td.IsDerivedFrom<MonoBehaviour>())
                 {
-                    MonoBehaviourProcess.Process(logger, td, ref isFailed);
+                    MonoBehaviourProcess.Process(logger, td, ref failed);
                 }
                 return false;
             }
@@ -105,7 +106,7 @@ namespace JFramework.Editor
             bool changed = false;
             foreach (TypeDefinition behaviour in behaviourClasses)
             {
-                changed |= new NetworkEntityProcess(currentAssembly, processor, syncVarAccessLists, writers, readers, logger, behaviour).Process(ref isFailed);
+                changed |= new NetworkEntityProcess(currentAssembly, processor, serverVarList, writers, readers, logger, behaviour).Process(ref failed);
             }
             return changed;
         }

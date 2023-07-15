@@ -38,7 +38,7 @@ namespace JFramework.Editor
             generate.Methods.Add(newWriterFunc);
         }
         
-        public MethodReference GetWriteFunc(TypeReference variable, ref bool isFailed)
+        public MethodReference GetWriteFunc(TypeReference variable)
         {
             if (writeFuncList.TryGetValue(variable, out MethodReference foundFunc))
             {
@@ -46,10 +46,10 @@ namespace JFramework.Editor
             }
             
             TypeReference importedVariable = assembly.MainModule.ImportReference(variable);
-            return GenerateWriter(importedVariable, ref isFailed);
+            return GenerateWriter(importedVariable);
         }
 
-        private MethodReference GenerateWriter(TypeReference variableReference, ref bool isFailed)
+        private MethodReference GenerateWriter(TypeReference variableReference)
         {
             if (variableReference.IsArray)
             {
@@ -58,7 +58,7 @@ namespace JFramework.Editor
                     logger.Error($"无法为多维数组 {variableReference.Name} 生成 Writer", variableReference);
                 }
                 TypeReference elementType = variableReference.GetElementType();
-                return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteArray), ref isFailed);
+                return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteArray));
             }
             
             if (variableReference.IsByReference)
@@ -68,7 +68,7 @@ namespace JFramework.Editor
 
             if (variableReference.Resolve()?.IsEnum ?? false)
             {
-                return GenerateEnumWriteFunc(variableReference, ref isFailed);
+                return GenerateEnumWriteFunc(variableReference);
             }
             
             if (variableReference.Is(typeof(ArraySegment<>)))
@@ -76,14 +76,14 @@ namespace JFramework.Editor
                 GenericInstanceType genericInstance = (GenericInstanceType)variableReference;
                 TypeReference elementType = genericInstance.GenericArguments[0];
 
-                return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteArraySegment), ref isFailed);
+                return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteArraySegment));
             }
             if (variableReference.Is(typeof(List<>)))
             {
                 GenericInstanceType genericInstance = (GenericInstanceType)variableReference;
                 TypeReference elementType = genericInstance.GenericArguments[0];
 
-                return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteList), ref isFailed);
+                return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteList));
             }
             
             if (variableReference.IsDerivedFrom<NetworkEntity>() || variableReference.Is<NetworkEntity>())
@@ -128,7 +128,7 @@ namespace JFramework.Editor
                 return null;
             }
             
-            return GenerateClassOrStructWriterFunction(variableReference, ref isFailed);
+            return GenerateClassOrStructWriterFunction(variableReference);
         }
 
         private MethodReference GetNetworkBehaviourWriter(TypeReference variableReference)
@@ -141,13 +141,13 @@ namespace JFramework.Editor
             throw new MissingMethodException($"无法从 NetworkEntity 获取 Writer");
         }
 
-        private MethodDefinition GenerateEnumWriteFunc(TypeReference variable, ref bool isFailed)
+        private MethodDefinition GenerateEnumWriteFunc(TypeReference variable)
         {
             MethodDefinition writerFunc = GenerateWriterFunc(variable);
 
             ILProcessor worker = writerFunc.Body.GetILProcessor();
 
-            MethodReference underlyingWriter = GetWriteFunc(variable.Resolve().GetEnumUnderlyingType(), ref isFailed);
+            MethodReference underlyingWriter = GetWriteFunc(variable.Resolve().GetEnumUnderlyingType());
 
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldarg_1);
@@ -169,7 +169,7 @@ namespace JFramework.Editor
             return writerFunc;
         }
 
-        private MethodDefinition GenerateClassOrStructWriterFunction(TypeReference variable, ref bool isFailed)
+        private MethodDefinition GenerateClassOrStructWriterFunction(TypeReference variable)
         {
             MethodDefinition writerFunc = GenerateWriterFunc(variable);
 
@@ -177,10 +177,10 @@ namespace JFramework.Editor
 
             if (!variable.Resolve().IsValueType)
             {
-                WriteNullCheck(worker, ref isFailed);
+                WriteNullCheck(worker);
             }
 
-            if (!WriteAllFields(variable, worker, ref isFailed))
+            if (!WriteAllFields(variable, worker))
             {
                 return null;
             }
@@ -189,27 +189,27 @@ namespace JFramework.Editor
             return writerFunc;
         }
 
-        private void WriteNullCheck(ILProcessor worker, ref bool isFailed)
+        private void WriteNullCheck(ILProcessor worker)
         {
             Instruction labelNotNull = worker.Create(OpCodes.Nop);
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Brtrue, labelNotNull);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldc_I4_0);
-            worker.Emit(OpCodes.Call, GetWriteFunc(processor.Import<bool>(), ref isFailed));
+            worker.Emit(OpCodes.Call, GetWriteFunc(processor.Import<bool>()));
             worker.Emit(OpCodes.Ret);
             worker.Append(labelNotNull);
             
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldc_I4_1);
-            worker.Emit(OpCodes.Call, GetWriteFunc(processor.Import<bool>(), ref isFailed));
+            worker.Emit(OpCodes.Call, GetWriteFunc(processor.Import<bool>()));
         }
         
-        private bool WriteAllFields(TypeReference variable, ILProcessor worker, ref bool isFailed)
+        private bool WriteAllFields(TypeReference variable, ILProcessor worker)
         {
             foreach (FieldDefinition field in variable.FindAllPublicFields())
             {
-                MethodReference writeFunc = GetWriteFunc(field.FieldType, ref isFailed);
+                MethodReference writeFunc = GetWriteFunc(field.FieldType);
                 if (writeFunc == null)
                 {
                     return false;
@@ -225,21 +225,21 @@ namespace JFramework.Editor
             return true;
         }
 
-        private MethodDefinition GenerateCollectionWriter(TypeReference variable, TypeReference elementType, string writerFunction, ref bool isFailed)
+        private MethodDefinition GenerateCollectionWriter(TypeReference variable, TypeReference elementType, string writerFunction)
         {
             MethodDefinition writerFunc = GenerateWriterFunc(variable);
-            MethodReference elementWriteFunc = GetWriteFunc(elementType, ref isFailed);
+            MethodReference elementWriteFunc = GetWriteFunc(elementType);
 
             if (elementWriteFunc == null)
             {
                 logger.Error($"无法为 {variable} 生成 Writer", variable);
-                isFailed = true;
+                Process.failed = true;
                 return writerFunc;
             }
 
             ModuleDefinition module = assembly.MainModule;
             TypeReference readerExtensions = module.ImportReference(typeof(StreamExtensions));
-            MethodReference collectionWriter = Resolvers.ResolveMethod(readerExtensions, assembly, logger, writerFunction, ref isFailed);
+            MethodReference collectionWriter = Resolvers.ResolveMethod(readerExtensions, assembly, logger, writerFunction);
 
             GenericInstanceMethod methodRef = new GenericInstanceMethod(collectionWriter);
             methodRef.GenericArguments.Add(elementType);
