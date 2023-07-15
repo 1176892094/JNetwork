@@ -18,11 +18,11 @@ namespace JFramework.Net
         [ReadOnly, ShowInInspector] internal NetworkClientEntity client;
         private bool isStartClient;
         private bool hasAuthority;
-        internal NetworkEntity[] entities;
+        internal NetworkBehaviour[] entities;
 
         private void Awake()
         {
-            entities = GetComponentsInChildren<NetworkEntity>(true);
+            entities = GetComponentsInChildren<NetworkBehaviour>(true);
             if (IsValid())
             {
                 for (int i = 0; i < entities.Length; ++i)
@@ -67,7 +67,7 @@ namespace JFramework.Net
                 return;
             }
 
-            NetworkEntity invokeComponent = entities[index];
+            NetworkBehaviour invokeComponent = entities[index];
             if (!NetworkRpc.Invoke(function, rpcType, reader, invokeComponent, client))
             {
                 Debug.LogError($"无法调用{rpcType} [{function}] 网络对象：{gameObject.name} 网络Id：{objectId}");
@@ -94,10 +94,10 @@ namespace JFramework.Net
             ulong ownerMask = 0;
             ulong observerMask = 0;
 
-            NetworkEntity[] components = entities;
+            NetworkBehaviour[] components = entities;
             for (int i = 0; i < components.Length; ++i)
             {
-                NetworkEntity component = components[i];
+                NetworkBehaviour component = components[i];
 
                 bool dirty = component.IsDirty();
                 ulong nthBit = 1U << i;

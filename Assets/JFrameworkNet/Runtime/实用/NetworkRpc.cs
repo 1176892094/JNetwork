@@ -96,11 +96,11 @@ namespace JFramework.Net
         /// 调用远程函数
         /// </summary>
         /// <returns>返回是否调用成功</returns>
-        internal static bool Invoke(ushort hash, RpcType rpcType, NetworkReader reader, NetworkEntity entity, NetworkClientEntity client = null)
+        internal static bool Invoke(ushort hash, RpcType rpcType, NetworkReader reader, NetworkBehaviour behaviour, NetworkClientEntity client = null)
         {
             if (!TryGetInvoker(hash, rpcType, out var @event)) return false;
-            if (!@event.component.IsInstanceOfType(entity)) return false; // 判断是否是NetworkBehaviour的实例或派生类型的实例
-            @event.function(entity, reader, client);
+            if (!@event.component.IsInstanceOfType(behaviour)) return false; // 判断是否是NetworkBehaviour的实例或派生类型的实例
+            @event.function(behaviour, reader, client);
             return true;
         }
 

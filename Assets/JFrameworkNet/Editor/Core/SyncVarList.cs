@@ -3,7 +3,7 @@ using Mono.Cecil;
 
 namespace JFramework.Editor
 {
-    public class ServerVarList
+    public class SyncVarList
     {
         /// <summary>
         /// 取代的 Setter 属性

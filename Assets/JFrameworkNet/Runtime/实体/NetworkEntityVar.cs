@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public abstract partial class NetworkEntity
+    public abstract partial class NetworkBehaviour
     {
 #region General
 
@@ -19,12 +19,12 @@ namespace JFramework.Net
         /// <param name="OnChanged"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void GeneralSyncVarSetter<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged)
+        public void SyncVarSetterGeneral<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged)
         {
-            if (!GeneralSyncVarEqual(value, ref field))
+            if (!SyncVarEqualGeneral(value, ref field))
             {
                 T oldValue = field;
-                SetGeneralSyncVar(value, ref field, dirty);
+                SetSyncVarGeneral(value, ref field, dirty);
                 if (OnChanged != null)
                 {
                     if (NetworkManager.mode == NetworkMode.Host && !GetSyncVarHook(dirty))
@@ -45,11 +45,11 @@ namespace JFramework.Net
         /// <param name="value"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void GeneralSyncVarGetter<T>(ref T field, Action<T, T> OnChanged, T value)
+        public void SyncVarGetterGeneral<T>(ref T field, Action<T, T> OnChanged, T value)
         {
             T oldValue = field;
             field = value;
-            if (OnChanged != null && !GeneralSyncVarEqual(oldValue, ref field))
+            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref field))
             {
                 OnChanged(oldValue, field);
             }
@@ -62,7 +62,7 @@ namespace JFramework.Net
         /// <param name="field"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        private static bool GeneralSyncVarEqual<T>(T value, ref T field)
+        private static bool SyncVarEqualGeneral<T>(T value, ref T field)
         {
             return EqualityComparer<T>.Default.Equals(value, field);
         }
@@ -75,7 +75,7 @@ namespace JFramework.Net
         /// <param name="dirty"></param>
         /// <typeparam name="T"></typeparam>
         // ReSharper disable once RedundantAssignment
-        private void SetGeneralSyncVar<T>(T value, ref T field, ulong dirty)
+        private void SetSyncVarGeneral<T>(T value, ref T field, ulong dirty)
         {
             SetSyncVarDirty(dirty);
             field = value;
@@ -94,12 +94,12 @@ namespace JFramework.Net
         /// <param name="OnChanged"></param>
         /// <param name="objectId"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void GameObjectSyncVarSetter(GameObject value, ref GameObject field, ulong dirty, Action<GameObject, GameObject> OnChanged, ref uint objectId)
+        public void SyncVarSetterGameObject(GameObject value, ref GameObject field, ulong dirty, Action<GameObject, GameObject> OnChanged, ref uint objectId)
         {
-            if (!GameObjectSyncVarEqual(value, objectId))
+            if (!SyncVarEqualGameObject(value, objectId))
             {
                 GameObject oldValue = field;
-                SetGameObjectSyncVar(value, ref field, dirty, ref objectId);
+                SetSyncVarGameObject(value, ref field, dirty, ref objectId);
                 if (OnChanged != null)
                 {
                     if (NetworkManager.mode == NetworkMode.Host && !GetSyncVarHook(dirty))
@@ -120,13 +120,13 @@ namespace JFramework.Net
         /// <param name="reader"></param>
         /// <param name="objectId"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void GameObjectSyncVarGetter(ref GameObject field, Action<GameObject, GameObject> OnChanged, NetworkReader reader, ref uint objectId)
+        public void SyncVarGetterGameObject(ref GameObject field, Action<GameObject, GameObject> OnChanged, NetworkReader reader, ref uint objectId)
         {
             uint oldId = objectId;
             GameObject oldObject = field;
             objectId = reader.ReadUInt();
-            field = GetGameObjectSyncVar(objectId, ref field);
-            if (OnChanged != null && !GeneralSyncVarEqual(oldId, ref objectId))
+            field = GetSyncVarGameObject(objectId, ref field);
+            if (OnChanged != null && !SyncVarEqualGeneral(oldId, ref objectId))
             {
                 OnChanged(oldObject, field);
             }
@@ -139,7 +139,7 @@ namespace JFramework.Net
         /// <param name="objectId"></param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        private static bool GameObjectSyncVarEqual(GameObject newObject, uint objectId)
+        private static bool SyncVarEqualGameObject(GameObject newObject, uint objectId)
         {
             uint newId = 0;
             if (newObject != null)
@@ -163,7 +163,7 @@ namespace JFramework.Net
         /// <param name="objectId"></param>
         /// <param name="field"></param>
         /// <returns></returns>
-        private GameObject GetGameObjectSyncVar(uint objectId, ref GameObject field)
+        private GameObject GetSyncVarGameObject(uint objectId, ref GameObject field)
         {
             if (isServer || !isClient)
             {
@@ -184,7 +184,7 @@ namespace JFramework.Net
         /// <param name="objectField"></param>
         /// <param name="dirty"></param>
         /// <param name="objectId"></param>
-        private void SetGameObjectSyncVar(GameObject newObject, ref GameObject objectField, ulong dirty, ref uint objectId)
+        private void SetSyncVarGameObject(GameObject newObject, ref GameObject objectField, ulong dirty, ref uint objectId)
         {
             if (GetSyncVarHook(dirty)) return;
             uint newId = 0;
@@ -218,12 +218,12 @@ namespace JFramework.Net
         /// <param name="OnChanged"></param>
         /// <param name="objectId"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NetworkObjectSyncVarSetter(NetworkObject value, ref NetworkObject field, ulong dirty, Action<NetworkObject, NetworkObject> OnChanged, ref uint objectId)
+        public void SyncVarSetterNetworkObject(NetworkObject value, ref NetworkObject field, ulong dirty, Action<NetworkObject, NetworkObject> OnChanged, ref uint objectId)
         {
-            if (!NetworkObjectSyncVarEqual(value, objectId))
+            if (!SyncVarEqualNetworkObject(value, objectId))
             {
                 NetworkObject oldValue = field;
-                SetNetworkObjectSyncVar(value, ref field, dirty, ref objectId);
+                SetSyncVarNetworkObject(value, ref field, dirty, ref objectId);
                 if (OnChanged != null)
                 {
                     if (NetworkManager.mode == NetworkMode.Host  && !GetSyncVarHook(dirty))
@@ -244,13 +244,13 @@ namespace JFramework.Net
         /// <param name="reader"></param>
         /// <param name="objectId"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NetworkObjectSyncVarGetter(ref NetworkObject field, Action<NetworkObject, NetworkObject> OnChanged, NetworkReader reader, ref uint objectId)
+        public void SyncVarGetterNetworkObject(ref NetworkObject field, Action<NetworkObject, NetworkObject> OnChanged, NetworkReader reader, ref uint objectId)
         {
             uint oldId = objectId;
             NetworkObject oldObject = field;
             objectId = reader.ReadUInt();
-            field = GetNetworkObjectSyncVar(objectId, ref field);
-            if (OnChanged != null && !GeneralSyncVarEqual(oldId, ref objectId))
+            field = GetSyncVarNetworkObject(objectId, ref field);
+            if (OnChanged != null && !SyncVarEqualGeneral(oldId, ref objectId))
             {
                 OnChanged(oldObject, field);
             }
@@ -263,7 +263,7 @@ namespace JFramework.Net
         /// <param name="objectId"></param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        private static bool NetworkObjectSyncVarEqual(NetworkObject @object, uint objectId)
+        private static bool SyncVarEqualNetworkObject(NetworkObject @object, uint objectId)
         {
             uint newId = 0;
             if (@object != null)
@@ -284,7 +284,7 @@ namespace JFramework.Net
         /// <param name="objectId"></param>
         /// <param name="object"></param>
         /// <returns></returns>
-        private NetworkObject GetNetworkObjectSyncVar(uint objectId, ref NetworkObject @object)
+        private NetworkObject GetSyncVarNetworkObject(uint objectId, ref NetworkObject @object)
         {
             if (isServer || !isClient) return @object;
             NetworkClient.spawns.TryGetValue(objectId, out @object);
@@ -299,7 +299,7 @@ namespace JFramework.Net
         /// <param name="field"></param>
         /// <param name="dirty"></param>
         /// <param name="objectId"></param>
-        private void SetNetworkObjectSyncVar(NetworkObject @object, ref NetworkObject field, ulong dirty, ref uint objectId)
+        private void SetSyncVarNetworkObject(NetworkObject @object, ref NetworkObject field, ulong dirty, ref uint objectId)
         {
             if (GetSyncVarHook(dirty)) return;
             uint newId = 0;
@@ -331,12 +331,12 @@ namespace JFramework.Net
         /// <param name="objectId"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NetworkEntitySyncVarSetter<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkVariable objectId) where T : NetworkEntity
+        public void SyncVarSetterNetworkBehaviour<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkVariable objectId) where T : NetworkBehaviour
         {
-            if (!NetworkEntitySyncVarEqual(value, objectId))
+            if (!SyncVarEqualNetworkBehaviour(value, objectId))
             {
                 T oldValue = field;
-                SetNetworkEntitySyncVar(value, ref field, dirty, ref objectId);
+                SetSyncVarNetworkBehaviour(value, ref field, dirty, ref objectId);
                 if (OnChanged != null)
                 {
                     if (NetworkManager.mode == NetworkMode.Host && !GetSyncVarHook(dirty))
@@ -358,13 +358,13 @@ namespace JFramework.Net
         /// <param name="objectId"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NetworkEntitySyncVarGetter<T>(ref T field, Action<T, T> OnChanged, NetworkReader reader, ref NetworkVariable objectId) where T : NetworkEntity
+        public void SyncVarGetterNetworkBehaviour<T>(ref T field, Action<T, T> OnChanged, NetworkReader reader, ref NetworkVariable objectId) where T : NetworkBehaviour
         {
             NetworkVariable oldId = objectId;
             T oldObject = field;
             objectId = reader.ReadNetworkValue();
-            field = GetNetworkEntitySyncVar(objectId, ref field);
-            if (OnChanged != null && !GeneralSyncVarEqual(oldId, ref objectId))
+            field = GetSyncVarNetworkBehaviour(objectId, ref field);
+            if (OnChanged != null && !SyncVarEqualGeneral(oldId, ref objectId))
             {
                 OnChanged(oldObject, field);
             }
@@ -377,7 +377,7 @@ namespace JFramework.Net
         /// <param name="objectId"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        private static bool NetworkEntitySyncVarEqual<T>(T @object, NetworkVariable objectId) where T : NetworkEntity
+        private static bool SyncVarEqualNetworkBehaviour<T>(T @object, NetworkVariable objectId) where T : NetworkBehaviour
         {
             uint newId = 0;
             byte index = 0;
@@ -401,7 +401,7 @@ namespace JFramework.Net
         /// <param name="field"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        private T GetNetworkEntitySyncVar<T>(NetworkVariable value, ref T field) where T : NetworkEntity
+        private T GetSyncVarNetworkBehaviour<T>(NetworkVariable value, ref T field) where T : NetworkBehaviour
         {
             if (isServer || !isClient)
             {
@@ -425,7 +425,7 @@ namespace JFramework.Net
         /// <param name="dirty"></param>
         /// <param name="netId"></param>
         /// <typeparam name="T"></typeparam>
-        private void SetNetworkEntitySyncVar<T>(T @object, ref T field, ulong dirty, ref NetworkVariable netId) where T : NetworkEntity
+        private void SetSyncVarNetworkBehaviour<T>(T @object, ref T field, ulong dirty, ref NetworkVariable netId) where T : NetworkBehaviour
         {
             if (GetSyncVarHook(dirty)) return;
 

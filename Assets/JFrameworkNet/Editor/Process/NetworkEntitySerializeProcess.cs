@@ -43,9 +43,9 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
                 MethodReference writeFunc;
-                if (syncVar.FieldType.IsDerivedFrom<NetworkEntity>())
+                if (syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>())
                 {
-                    writeFunc = writers.GetWriteFunc(processor.Import<NetworkEntity>());
+                    writeFunc = writers.GetWriteFunc(processor.Import<NetworkBehaviour>());
                 }
                 else
                 {
@@ -68,10 +68,10 @@ namespace JFramework.Editor
             worker.Append(initialStateLabel);
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Call, processor.NetworkEntityDirtyReference);
+            worker.Emit(OpCodes.Call, processor.NetworkBehaviourDirtyReference);
             MethodReference writeUint64Func = writers.GetWriteFunc(processor.Import<ulong>());
             worker.Emit(OpCodes.Call, writeUint64Func);
-            int dirty = serverVars.GetServerVar(generateCode.BaseType.FullName);
+            int dirty = syncVarList.GetServerVar(generateCode.BaseType.FullName);
             foreach (FieldDefinition syncVarDef in syncVars)
             {
                 FieldReference syncVar = syncVarDef;
@@ -81,7 +81,7 @@ namespace JFramework.Editor
                 }
                 Instruction varLabel = worker.Create(OpCodes.Nop);
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Call, processor.NetworkEntityDirtyReference);
+                worker.Emit(OpCodes.Call, processor.NetworkBehaviourDirtyReference);
                 worker.Emit(OpCodes.Ldc_I8, 1L << dirty);
                 worker.Emit(OpCodes.And);
                 worker.Emit(OpCodes.Brfalse, varLabel);
@@ -90,9 +90,9 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldfld, syncVar);
 
                 MethodReference writeFunc;
-                if (syncVar.FieldType.IsDerivedFrom<NetworkEntity>())
+                if (syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>())
                 {
-                    writeFunc = writers.GetWriteFunc(processor.Import<NetworkEntity>());
+                    writeFunc = writers.GetWriteFunc(processor.Import<NetworkBehaviour>());
                 }
                 else
                 {
@@ -157,7 +157,7 @@ namespace JFramework.Editor
             serWorker.Append(serWorker.Create(OpCodes.Call, readers.GetReadFunc(processor.Import<ulong>())));
             serWorker.Append(serWorker.Create(OpCodes.Stloc_0));
             
-            int dirty = serverVars.GetServerVar(generateCode.BaseType.FullName);
+            int dirty = syncVarList.GetServerVar(generateCode.BaseType.FullName);
             foreach (FieldDefinition syncVar in syncVars)
             {
                 Instruction varLabel = serWorker.Create(OpCodes.Nop);
@@ -217,13 +217,13 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldflda, netIdField);
                 worker.Emit(OpCodes.Call, processor.networkObjectSyncVarGetter);
             }
-            else if (syncVar.FieldType.IsDerivedFrom<NetworkEntity>() || syncVar.FieldType.Is<NetworkEntity>())
+            else if (syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() || syncVar.FieldType.Is<NetworkBehaviour>())
             {
                 worker.Emit(OpCodes.Ldarg_1);
                 FieldDefinition netIdField = syncVarNetIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdField);
-                MethodReference getFunc = processor.networkEntitySyncVarGetter.MakeGeneric(assembly.MainModule, syncVar.FieldType);
+                MethodReference getFunc = processor.networkBehaviourSyncVarGetter.MakeGeneric(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else

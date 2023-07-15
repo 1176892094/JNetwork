@@ -10,7 +10,7 @@ namespace JFramework.Editor
         private readonly Writers writers;
         private readonly Readers readers;
         private readonly Processor processor;
-        private readonly ServerVarList serverVars;
+        private readonly SyncVarList syncVarList;
         private readonly ServerVarProcess serverVarProcess;
         private readonly AssemblyDefinition assembly;
         private readonly Logger logger;
@@ -38,7 +38,7 @@ namespace JFramework.Editor
             public ClientRpcResult(MethodDefinition method) => this.method = method;
         }
         
-        public NetworkEntityProcess(AssemblyDefinition assembly, Processor processor, ServerVarList serverVars, Writers writers, Readers readers, Logger logger, TypeDefinition type)
+        public NetworkEntityProcess(AssemblyDefinition assembly, Processor processor, SyncVarList syncVars, Writers writers, Readers readers, Logger logger, TypeDefinition type)
         {
             this.type = type;
             this.logger = logger;
@@ -46,8 +46,8 @@ namespace JFramework.Editor
             this.readers = readers;
             this.assembly = assembly;
             this.processor = processor;
-            this.serverVars = serverVars;
-            serverVarProcess = new ServerVarProcess(assembly, processor, serverVars, logger);
+            this.syncVarList = syncVars;
+            serverVarProcess = new ServerVarProcess(assembly, processor, syncVars, logger);
         }
 
         public bool Process(ref bool isFailed)
@@ -214,20 +214,20 @@ namespace JFramework.Editor
 
         public static void WriteGetWriter(ILProcessor worker, Processor processor)
         {
-            worker.Emit(OpCodes.Call, processor.GetWriterReference);
+            worker.Emit(OpCodes.Call, processor.PopWriterReference);
             worker.Emit(OpCodes.Stloc_0);
         }
 
         public static void WriteReturnWriter(ILProcessor worker, Processor processor)
         {
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Call, processor.ReturnWriterReference);
+            worker.Emit(OpCodes.Call, processor.PushWriterReference);
         }
 
 
         public static void AddInvokeParameters(Processor processor, ICollection<ParameterDefinition> collection)
         {
-            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, processor.Import<NetworkEntity>()));
+            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, processor.Import<NetworkBehaviour>()));
             collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, processor.Import<NetworkReader>()));
             collection.Add(new ParameterDefinition("target", ParameterAttributes.None, processor.Import<NetworkClientEntity>()));
         }

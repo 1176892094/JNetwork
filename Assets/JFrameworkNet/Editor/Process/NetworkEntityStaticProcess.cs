@@ -75,7 +75,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldstr, functionFullName);
             worker.Emit(OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldftn, func);
-            worker.Emit(OpCodes.Newobj, processor.RemoteCallDelegateConstructor);
+            worker.Emit(OpCodes.Newobj, processor.RpcDelegateConstructor);
             worker.Emit(OpCodes.Call, registerMethod);
         }
 
@@ -88,7 +88,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldstr, cmdName);
             worker.Emit(OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldftn, func);
-            worker.Emit(OpCodes.Newobj, processor.RemoteCallDelegateConstructor);
+            worker.Emit(OpCodes.Newobj, processor.RpcDelegateConstructor);
             worker.Emit(OpCodes.Call, registerMethod);
         }
     }

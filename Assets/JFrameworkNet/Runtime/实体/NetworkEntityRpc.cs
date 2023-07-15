@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public abstract partial class NetworkEntity
+    public abstract partial class NetworkBehaviour
     {
         /// <summary>
         /// 服务器Rpc调用

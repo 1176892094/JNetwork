@@ -210,7 +210,7 @@ namespace JFramework.Net
             writer.WriteUInt(value.objectId);
         }
 
-        public static void WriteNetworkBehaviour(this NetworkWriter writer, NetworkEntity value)
+        public static void WriteNetworkBehaviour(this NetworkWriter writer, NetworkBehaviour value)
         {
             if (value == null)
             {

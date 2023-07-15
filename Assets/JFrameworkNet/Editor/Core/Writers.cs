@@ -86,7 +86,7 @@ namespace JFramework.Editor
                 return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteList));
             }
             
-            if (variableReference.IsDerivedFrom<NetworkEntity>() || variableReference.Is<NetworkEntity>())
+            if (variableReference.IsDerivedFrom<NetworkBehaviour>() || variableReference.Is<NetworkBehaviour>())
             {
                 return GetNetworkBehaviourWriter(variableReference);
             }
@@ -133,7 +133,7 @@ namespace JFramework.Editor
 
         private MethodReference GetNetworkBehaviourWriter(TypeReference variableReference)
         {
-            if (writeFuncList.TryGetValue(processor.Import<NetworkEntity>(), out MethodReference func))
+            if (writeFuncList.TryGetValue(processor.Import<NetworkBehaviour>(), out MethodReference func))
             {
                 Register(variableReference, func);
                 return func;

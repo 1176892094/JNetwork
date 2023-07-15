@@ -14,8 +14,8 @@ namespace JFramework.Editor
         private Writers writers;
         private Readers readers;
         private Processor processor;
+        private SyncVarList syncVars;
         private TypeDefinition generate;
-        private ServerVarList serverVarList;
         private AssemblyDefinition currentAssembly;
         private readonly Logger logger;
         
@@ -36,8 +36,9 @@ namespace JFramework.Editor
                     return true;
                 }
 
-                serverVarList = new ServerVarList();
+                syncVars = new SyncVarList();
                 processor = new Processor(currentAssembly, logger);
+                
                 generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE, CONST.ATTRIBUTES, processor.Import<object>());
                 writers = new Writers(currentAssembly, processor, generate, logger);
                 readers = new Readers(currentAssembly, processor, generate, logger);
@@ -70,7 +71,7 @@ namespace JFramework.Editor
         private bool WeaveNetworkBehavior(TypeDefinition td)
         {
             if (!td.IsClass) return false;
-            if (!td.IsDerivedFrom<NetworkEntity>())
+            if (!td.IsDerivedFrom<NetworkBehaviour>())
             {
                 if (td.IsDerivedFrom<MonoBehaviour>())
                 {
@@ -84,7 +85,7 @@ namespace JFramework.Editor
             TypeDefinition parent = td;
             while (parent != null)
             {
-                if (parent.Is<NetworkEntity>())
+                if (parent.Is<NetworkBehaviour>())
                 {
                     break;
                 }
@@ -103,7 +104,7 @@ namespace JFramework.Editor
             bool changed = false;
             foreach (TypeDefinition behaviour in behaviourClasses)
             {
-                changed |= new NetworkEntityProcess(currentAssembly, processor, serverVarList, writers, readers, logger, behaviour).Process(ref failed);
+                changed |= new NetworkEntityProcess(currentAssembly, processor, syncVars, writers, readers, logger, behaviour).Process(ref failed);
             }
             return changed;
         }

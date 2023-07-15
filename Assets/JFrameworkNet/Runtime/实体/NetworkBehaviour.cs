@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public abstract partial class NetworkEntity : MonoBehaviour, INetworkEvent
+    public abstract partial class NetworkBehaviour : MonoBehaviour, INetworkEvent
     {
         /// <summary>
         /// 服务器变量的改变选项
@@ -91,7 +91,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsDirty()
         {
-            return syncVarDirty  != 0UL && NetworkTime.localTime - lastSyncTime >= syncInterval;
+            return syncVarDirty != 0UL && NetworkTime.localTime - lastSyncTime >= syncInterval;
         }
 
         /// <summary>

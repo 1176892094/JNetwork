@@ -182,7 +182,7 @@ namespace JFramework.Editor
         /// <param name="method"></param>
         private static void AddRuntimeInitializeOnLoadAttribute(AssemblyDefinition assembly, Processor process, MethodDefinition method)
         {
-            MethodDefinition definition = process.runtimeInitializeOnLoadMethodAttribute.GetConstructors().Last();
+            MethodDefinition definition = process.RuntimeInitializeOnLoadMethodAttribute.GetConstructors().Last();
             CustomAttribute attribute = new CustomAttribute(assembly.MainModule.ImportReference(definition));
             attribute.ConstructorArguments.Add(new CustomAttributeArgument(process.Import<RuntimeInitializeLoadType>(), RuntimeInitializeLoadType.BeforeSceneLoad));
             method.CustomAttributes.Add(attribute);
@@ -196,7 +196,7 @@ namespace JFramework.Editor
         /// <param name="method"></param>
         private static void AddInitializeOnLoadAttribute(AssemblyDefinition assembly, Processor process, MethodDefinition method)
         {
-            MethodDefinition ctor = process.initializeOnLoadMethodAttribute.GetConstructors().First();
+            MethodDefinition ctor = process.InitializeOnLoadMethodAttribute.GetConstructors().First();
             CustomAttribute attribute = new CustomAttribute(assembly.MainModule.ImportReference(ctor));
             method.CustomAttributes.Add(attribute);
         }

@@ -10,7 +10,7 @@ namespace JFramework.Net
     /// <summary>
     /// 远程呼叫的委托
     /// </summary>
-    public delegate void RpcDelegate(NetworkEntity entity, NetworkReader reader, NetworkClientEntity client);
+    public delegate void RpcDelegate(NetworkBehaviour behaviour, NetworkReader reader, NetworkClientEntity client);
     
     /// <summary>
     /// 网络消息的委托

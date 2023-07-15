@@ -12,14 +12,14 @@ namespace JFramework.Editor
     {
         private readonly Logger logger;
         private readonly Processor processor;
-        private readonly ServerVarList serverVars;
+        private readonly SyncVarList syncVarList;
         private readonly AssemblyDefinition assembly;
 
-        public ServerVarProcess(AssemblyDefinition assembly, Processor processor, ServerVarList serverVars, Logger logger)
+        public ServerVarProcess(AssemblyDefinition assembly, Processor processor, SyncVarList syncVars, Logger logger)
         {
             this.assembly = assembly;
             this.processor = processor;
-            this.serverVars = serverVars;
+            this.syncVarList = syncVars;
             this.logger = logger;
         }
         
@@ -42,7 +42,7 @@ namespace JFramework.Editor
             
             TypeReference actionRef = assembly.MainModule.ImportReference(typeof(Action<,>));
             GenericInstanceType genericInstance = actionRef.MakeGenericInstanceType(syncVar.FieldType, syncVar.FieldType);
-            worker.Emit(OpCodes.Newobj, processor.ActionDoubleReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
+            worker.Emit(OpCodes.Newobj, processor.HookMethodReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
         }
 
         public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition serverVar)
@@ -93,7 +93,7 @@ namespace JFramework.Editor
         {
             List<FieldDefinition> syncVars = new List<FieldDefinition>();
             Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>(); 
-            int dirtyBitCounter = serverVars.GetServerVar(td.BaseType.FullName);
+            int dirtyBitCounter = syncVarList.GetServerVar(td.BaseType.FullName);
             
             foreach (var fd in td.Fields.Where(fd => fd.HasCustomAttribute<SyncVarAttribute>()))
             {
@@ -142,8 +142,8 @@ namespace JFramework.Editor
                 td.Fields.Add(fd);
             }
             
-            int parentSyncVarCount = serverVars.GetServerVar(td.BaseType.FullName);
-            serverVars.SetServerVarCount(td.FullName, parentSyncVarCount + syncVars.Count);
+            int parentSyncVarCount = syncVarList.GetServerVar(td.BaseType.FullName);
+            syncVarList.SetServerVarCount(td.FullName, parentSyncVarCount + syncVars.Count);
             return (syncVars, syncVarNetIds);
         }
         
@@ -152,7 +152,7 @@ namespace JFramework.Editor
             string originalName = fd.Name;
             
             FieldDefinition netIdField = null;
-            if (fd.FieldType.IsDerivedFrom<NetworkEntity>() || fd.FieldType.Is<NetworkEntity>())
+            if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
             {
                 netIdField = new FieldDefinition($"_{fd.Name}NetId", FieldAttributes.Family, processor.Import<NetworkVariable>());
                 netIdField.DeclaringType = td;
@@ -181,11 +181,11 @@ namespace JFramework.Editor
             td.Methods.Add(get);
             td.Methods.Add(set);
             td.Properties.Add(propertyDefinition);
-            serverVars.setterProperties[fd] = set;
+            syncVarList.setterProperties[fd] = set;
 
             if (fd.FieldType.IsNetworkEntityField())
             {
-                serverVars.getterProperties[fd] = get;
+                syncVarList.getterProperties[fd] = get;
             }
         }
 
@@ -220,10 +220,10 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                worker.Emit(OpCodes.Call, processor.getSyncVarNetworkIdentityReference);
+                worker.Emit(OpCodes.Call, processor.getSyncVarNetworkObjectReference);
                 worker.Emit(OpCodes.Ret);
             }
-            else if (fd.FieldType.IsDerivedFrom<NetworkEntity>() || fd.FieldType.Is<NetworkEntity>())
+            else if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldarg_0);
@@ -291,11 +291,11 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
                 worker.Emit(OpCodes.Call, processor.networkObjectSyncVarSetter);
             }
-            else if (fd.FieldType.IsDerivedFrom<NetworkEntity>() || fd.FieldType.Is<NetworkEntity>())
+            else if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                MethodReference getFunc = processor.networkEntitySyncVarSetter.MakeGeneric(assembly.MainModule, fd.FieldType);
+                MethodReference getFunc = processor.networkBehaviourSyncVarSetter.MakeGeneric(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else
