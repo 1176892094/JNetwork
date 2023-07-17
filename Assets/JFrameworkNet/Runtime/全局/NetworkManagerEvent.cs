@@ -37,9 +37,6 @@ namespace JFramework.Net
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
         private Dictionary<ulong, NetworkObject> scenePrefabs => NetworkClient.scenes;
-
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private bool isAuthority => NetworkClient.isAuthority;
 #endif
 
         /// <summary>

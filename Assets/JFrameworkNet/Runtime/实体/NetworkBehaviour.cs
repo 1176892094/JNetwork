@@ -90,7 +90,7 @@ namespace JFramework.Net
             SetSyncVarDirty(ulong.MaxValue);
         }
         
-        public void ClearAllDirty()
+        public void ClearDirty()
         {
             lastSyncTime = NetworkTime.localTime;
             syncVarDirty= 0L;
@@ -171,7 +171,7 @@ namespace JFramework.Net
             byte sizeHash = (byte)(size & 0xFF);
             if (sizeHash != safety)
             {
-                Debug.LogWarning($"反序列化大小不匹配，请确保读取的数据量相同。读取字节：{size} bytes 哈希对比：{sizeHash:X2}/{safety:X2}");
+                Debug.LogWarning($"反序列化大小不匹配，请确保读取的数据量相同。读取字节：{size} bytes 哈希对比：{sizeHash}/{safety}");
                 int correctedSize = ErrorCorrection(size, safety);
                 reader.position = chunkStart + correctedSize;
                 result = false;

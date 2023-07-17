@@ -7,7 +7,7 @@ using UnityEditor;
 #endif
 
 namespace JFramework.Net
-{
+{   
     public sealed partial class NetworkManager : GlobalSingleton<NetworkManager>
     {
         /// <summary>
@@ -97,9 +97,10 @@ namespace JFramework.Net
         /// <summary>
         /// 自动查找所有的NetworkObject
         /// </summary>
-        private void OnValidate()
-        {
 #if UNITY_EDITOR
+        [InitializeOnLoadMethod]
+        private static void Initialize()
+        {
             prefabs.Clear();
             string[] guids = AssetDatabase.FindAssets("t:Prefab");
             foreach (string guid in guids)
@@ -111,8 +112,8 @@ namespace JFramework.Net
                     prefabs.Add(prefab);
                 }
             }
-#endif
         }
+#endif
 
         /// <summary>
         /// 开启服务器
@@ -232,7 +233,7 @@ namespace JFramework.Net
         /// </summary>
         private void OnApplicationQuit()
         {
-            if (NetworkClient.isAuthority)
+            if (NetworkClient.isConnect)
             {
                 StopClient();
             }

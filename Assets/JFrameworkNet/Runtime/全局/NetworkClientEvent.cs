@@ -182,7 +182,7 @@ namespace JFramework.Net
         /// <param name="event"></param>
         private static void OnSceneEvent(SceneEvent @event)
         {
-            if (isAuthority)
+            if (isConnect)
             {
                 NetworkManager.ClientLoadScene(@event.sceneName);
             }

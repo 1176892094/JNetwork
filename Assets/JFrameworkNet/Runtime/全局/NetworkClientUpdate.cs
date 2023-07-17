@@ -36,7 +36,7 @@ namespace JFramework.Net
                 }
                 else
                 {
-                    if (isActive && isAuthority)
+                    if (isActive && isConnect)
                     {
                         NetworkTime.Update();
                         connection.Update();
@@ -64,11 +64,11 @@ namespace JFramework.Net
                 if (writer.position > 0)
                 {
                     Send(new EntityEvent(@object.objectId, writer.ToArraySegment()));
-                    @object.ClearAllDirty();
+                    @object.ClearDirty();
                 }
             }
 
-            Send(new TimeEvent(), Channel.Unreliable);
+            //Send(new TimeEvent(), Channel.Unreliable);
         }
     }
 }

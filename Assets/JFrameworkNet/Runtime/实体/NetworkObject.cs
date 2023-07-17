@@ -5,9 +5,22 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
+    public struct NetworkIdentitySerialization
+    {
+        public int tick;
+        public NetworkWriter owner;
+        public NetworkWriter observer;
+    }
+    
     [DefaultExecutionOrder(-1)]
     public sealed partial class NetworkObject : MonoBehaviour
     {
+        private NetworkIdentitySerialization lastSerialization = new NetworkIdentitySerialization
+        {
+            owner = new NetworkWriter(),
+            observer = new NetworkWriter()
+        };
+        
         private static readonly Dictionary<ulong, NetworkObject> sceneIds = new Dictionary<ulong, NetworkObject>();
         
         [ReadOnly, SerializeField] internal uint assetId;
@@ -52,11 +65,31 @@ namespace JFramework.Net
             return true;
         }
         
-        internal void ClearAllDirty()
+        internal NetworkIdentitySerialization GetServerSerializationAtTick(int tick)
+        {
+            if (lastSerialization.tick != tick)
+            {
+                lastSerialization.owner.position = 0;
+                lastSerialization.observer.position = 0;
+
+                SerializeServer(false, lastSerialization.owner, lastSerialization.observer);
+                
+                ClearDirty(true);
+                lastSerialization.tick = tick;
+            }
+            
+            return lastSerialization;
+        }
+
+
+        internal void ClearDirty(bool isTotal = false)
         {
             foreach (NetworkBehaviour entity in entities)
             {
-                entity.ClearAllDirty();
+                if (entity.IsDirty() || isTotal)
+                {
+                    entity.ClearDirty();
+                }
             }
         }
 
@@ -219,6 +252,7 @@ namespace JFramework.Net
                 }
             }
         }
+        
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsDirty(ulong mask, int index) => (mask & (ulong)(1 << index)) != 0;

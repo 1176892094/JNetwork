@@ -76,8 +76,7 @@ namespace JFramework.Net
             {
                 return true;
             }
-
-            Debug.Log(@event.assetId+"___"+@event.sceneId);
+            
             if (@event is { assetId: 0, sceneId: 0 })
             {
                 Debug.LogError($"生成游戏对象 {@event.objectId} 需要保证 assetId 和 sceneId 其中一个不为零");

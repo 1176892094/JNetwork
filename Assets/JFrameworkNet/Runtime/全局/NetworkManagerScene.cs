@@ -98,7 +98,7 @@ namespace JFramework.Net
         /// </summary>
         private static void OnClientSceneLoadCompleted()
         {
-            if (!NetworkClient.isAuthority) return;
+            if (!NetworkClient.isConnect) return;
             Debug.Log("客户端加载场景完成");
             if (!NetworkClient.isReady)
             {

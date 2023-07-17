@@ -86,7 +86,7 @@ namespace JFramework.Net
         /// <summary>
         /// 是否已经连接成功
         /// </summary>
-        public static bool isAuthority => state == ConnectState.Connected;
+        public static bool isConnect => state == ConnectState.Connected;
 
         /// <summary>
         /// 心跳包

@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace JFramework.Net
 {
     public static partial class NetworkServer
@@ -43,8 +45,8 @@ namespace JFramework.Net
             {
                 if (client.isReady)
                 {
-                  //  client.Send(new SnapshotEvent(), Channel.Unreliable);
-                  //  BroadcastToClient(client);
+                   // client.Send(new TimeEvent(), Channel.Unreliable);
+                    BroadcastToClient(client);
                 }
 
                 client.Update();
@@ -57,6 +59,43 @@ namespace JFramework.Net
         /// <param name="client">指定的客户端</param>
         private static void BroadcastToClient(ClientEntity client)
         {
+            foreach (var @object in spawns.Values)
+            {
+                if (@object != null)
+                {
+                    NetworkWriter serialization = SerializeForConnection(@object, client);
+                    if (serialization != null)
+                    {
+                        client.Send(new EntityEvent(@object.objectId, serialization.ToArraySegment()));
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"在观察列表中为 {client.clientId} 找到了空对象。请用NetworkServer.Destroy");
+                }
+            }
+        }
+
+        private static NetworkWriter SerializeForConnection(NetworkObject @object, ClientEntity client)
+        {
+            NetworkIdentitySerialization serialization = @object.GetServerSerializationAtTick(Time.frameCount);
+            
+            if (@object.client == client)
+            {
+                if (serialization.owner.position > 0)
+                {
+                    return serialization.owner;
+                }
+            }
+            else
+            {
+                if (serialization.observer.position > 0)
+                {
+                    return serialization.observer;
+                }
+            }
+            
+            return null;
         }
     }
 }
