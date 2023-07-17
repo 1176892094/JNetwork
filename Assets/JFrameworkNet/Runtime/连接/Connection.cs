@@ -14,7 +14,7 @@ namespace JFramework.Net
         /// <summary>
         /// 存储不同传输通道写入的网络信息
         /// </summary>
-        private readonly Dictionary<Channel, NetworkWriterPack> writerDict = new Dictionary<Channel, NetworkWriterPack>();
+        private readonly Dictionary<Channel, NetworkWriterPack> writerPacks = new Dictionary<Channel, NetworkWriterPack>();
 
         /// <summary>
         /// 是否准备好可以接收信息
@@ -31,10 +31,10 @@ namespace JFramework.Net
         /// </summary>
         internal virtual void Update()
         {
-            foreach (var (channel, writers) in writerDict) // 遍历可靠和不可靠消息
+            foreach (var (channel, writerPack) in writerPacks) // 遍历可靠和不可靠消息
             {
                 using var writer = NetworkWriter.Pop(); // 取出 writer
-                while (writers.WriteDequeue(writer)) // 将数据拷贝到 writer
+                while (writerPack.WriteDequeue(writer)) // 将数据拷贝到 writer
                 {
                     var segment = writer.ToArraySegment(); // 将 writer 转化成数据分段
                     if (IsValid(segment, channel)) // 判断是否 writer 是否有效
@@ -92,9 +92,9 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected NetworkWriterPack GetWriters(Channel channel)
         {
-            if (writerDict.TryGetValue(channel, out var writers)) return writers;
+            if (writerPacks.TryGetValue(channel, out var writers)) return writers;
             var threshold = Transport.current.UnreliableSize();
-            return writerDict[channel] = new NetworkWriterPack(threshold);
+            return writerPacks[channel] = new NetworkWriterPack(threshold);
         }
 
         /// <summary>

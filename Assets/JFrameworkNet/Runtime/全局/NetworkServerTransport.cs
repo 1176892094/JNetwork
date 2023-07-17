@@ -74,14 +74,14 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!client.readers.ReadEnqueue(segment))
+            if (!client.readerPack.ReadEnqueue(segment))
             {
                 Debug.LogWarning($"网络消息应该有个开始的Id。断开客户端：{client}");
                 client.Disconnect();
                 return;
             }
 
-            while (!isLoadScene && client.readers.ReadDequeue(out var reader, out double timestamp))
+            while (!isLoadScene && client.readerPack.ReadDequeue(out var reader, out double timestamp))
             {
                 if (reader.Residue >= NetworkConst.EventSize)
                 {
@@ -101,9 +101,9 @@ namespace JFramework.Net
                 }
             }
 
-            if (!isLoadScene && client.readers.Count > 0)
+            if (!isLoadScene && client.readerPack.Count > 0)
             {
-                Debug.LogError($"读取器合批之后仍然还有次数残留！残留次数：{client.readers.Count}");
+                Debug.LogError($"读取器合批之后仍然还有次数残留！残留次数：{client.readerPack.Count}");
             }
         }
 

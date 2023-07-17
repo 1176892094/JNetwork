@@ -8,18 +8,17 @@ using UnityEngine;
 
 namespace JFramework.Editor
 {
-    internal class ServerVarProcess
+    internal class SyncVarProcess
     {
+        private readonly Dictionary<string, int> syncVarList = new Dictionary<string, int>();
         private readonly Logger logger;
         private readonly Process process;
-        private readonly SyncVarList syncVarList;
         private readonly AssemblyDefinition assembly;
 
-        public ServerVarProcess(AssemblyDefinition assembly, Process process, SyncVarList syncVarList, Logger logger)
+        public SyncVarProcess(AssemblyDefinition assembly, Process process, Logger logger)
         {
             this.assembly = assembly;
             this.process = process;
-            this.syncVarList = syncVarList;
             this.logger = logger;
         }
         
@@ -93,7 +92,7 @@ namespace JFramework.Editor
         { 
             List<FieldDefinition> syncVars = new List<FieldDefinition>();
             Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>(); 
-            int dirtyBitCounter = syncVarList.GetServerVar(td.BaseType.FullName);
+            int dirtyBitCounter = GetServerVar(td.BaseType.FullName);
            
             foreach (var fd in td.Fields.Where(fd => fd.HasCustomAttribute<SyncVarAttribute>()))
             {
@@ -135,10 +134,24 @@ namespace JFramework.Editor
                 td.Fields.Add(fd);
             }
             
-            int parentSyncVarCount = syncVarList.GetServerVar(td.BaseType.FullName);
-            syncVarList.SetServerVar(td.FullName, parentSyncVarCount + syncVars.Count);
+            int parentSyncVarCount = GetServerVar(td.BaseType.FullName);
+            SetServerVar(td.FullName, parentSyncVarCount + syncVars.Count);
             return (syncVars, syncVarNetIds);
         }
+        
+        /// <summary>
+        /// 从类中获取 ServerVar
+        /// </summary>
+        /// <param name="name">从类名中获取</param>
+        /// <returns></returns>
+        public int GetServerVar(string name) => syncVarList.TryGetValue(name, out var value) ? value : 0;
+        
+        /// <summary>
+        /// 设置 ServerVar 数量
+        /// </summary>
+        /// <param name="name">传入类名</param>
+        /// <param name="count">传入数值</param>
+        private void SetServerVar(string name, int count) => syncVarList[name] = count;
 
         private void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds, long dirtyBit)
         {

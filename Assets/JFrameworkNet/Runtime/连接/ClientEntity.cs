@@ -12,7 +12,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息读取
         /// </summary>
-        [ShowInInspector] internal readonly NetworkReaderPack readers = new NetworkReaderPack();
+        [ShowInInspector] internal readonly NetworkReaderPack readerPack = new NetworkReaderPack();
         
         /// <summary>
         /// 可靠Rpc列表
@@ -94,7 +94,7 @@ namespace JFramework.Net
         }
         
         /// <summary>
-        /// TODO:有NetworkEntity调用
+        /// 由NetworkBehaviour调用
         /// </summary>
         /// <param name="message"></param>
         /// <param name="channel"></param>

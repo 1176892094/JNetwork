@@ -9,16 +9,16 @@ namespace JFramework.Editor
 {
     internal class Command
     {
+        
         public static bool failed;
         public static bool change;
         private Writers writers;
         private Readers readers;
         private Process process;
-        private SyncVarList syncVars;
         private TypeDefinition generate;
         private AssemblyDefinition currentAssembly;
         private readonly Logger logger;
-        
+
         public Command(Logger logger)
         {
             this.logger = logger;
@@ -35,8 +35,7 @@ namespace JFramework.Editor
                 {
                     return true;
                 }
-
-                syncVars = new SyncVarList();
+                
                 process = new Process(currentAssembly, logger);
                 
                 generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE, CONST.TYPE_ATTRS, process.Import<object>());
@@ -105,7 +104,7 @@ namespace JFramework.Editor
             bool changed = false;
             foreach (TypeDefinition behaviour in behaviourClasses)
             {
-                changed |= new NetworkBehaviourProcess(currentAssembly, process, syncVars, writers, readers, logger, behaviour).Process();
+                changed |= new NetworkBehaviourProcess(currentAssembly, process,  writers, readers, logger, behaviour).Process();
             }
             return changed;
         }
@@ -114,7 +113,7 @@ namespace JFramework.Editor
         {
             return moduleDefinition.Types.Where(td => td.IsClass && td.BaseType.CanBeResolved()).Aggregate(false, (current, td) => current | WeaveNetworkBehavior(td));
         }
-        
+
         /// <summary>
         /// 处理方法中的参数
         /// </summary>

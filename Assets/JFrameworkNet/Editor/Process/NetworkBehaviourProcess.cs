@@ -11,9 +11,8 @@ namespace JFramework.Editor
         private readonly Writers writers;
         private readonly Readers readers;
         private readonly Process process;
-        private readonly SyncVarList syncVarList;
         private readonly TypeDefinition type;
-        private readonly ServerVarProcess serverVarProcess;
+        private readonly SyncVarProcess syncVarProcess;
         private readonly AssemblyDefinition assembly;
         private readonly List<ServerRpcResult> serverRpcList = new List<ServerRpcResult>();
         private readonly List<MethodDefinition> serverRpcFuncList = new List<MethodDefinition>();
@@ -38,7 +37,7 @@ namespace JFramework.Editor
             public ClientRpcResult(MethodDefinition method) => this.method = method;
         }
         
-        public NetworkBehaviourProcess(AssemblyDefinition assembly, Process process, SyncVarList syncVarList, Writers writers, Readers readers, Logger logger, TypeDefinition type)
+        public NetworkBehaviourProcess(AssemblyDefinition assembly, Process process, Writers writers, Readers readers, Logger logger, TypeDefinition type)
         {
             this.type = type;
             this.logger = logger;
@@ -46,8 +45,7 @@ namespace JFramework.Editor
             this.readers = readers;
             this.assembly = assembly;
             this.process = process;
-            this.syncVarList = syncVarList;
-            serverVarProcess = new ServerVarProcess(assembly, process, syncVarList, logger);
+            syncVarProcess = new SyncVarProcess(assembly, process, logger);
             generateCode = this.type;
         }
 
@@ -60,7 +58,7 @@ namespace JFramework.Editor
             
             MarkAsProcessed(type);
             
-            (syncVars, syncVarNetIds) = serverVarProcess.ProcessSyncVars(type);
+            (syncVars, syncVarNetIds) = syncVarProcess.ProcessSyncVars(type);
            
             ProcessMethods();
             

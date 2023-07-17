@@ -63,7 +63,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Call, process.NetworkBehaviourDirtyReference);
             MethodReference writeUint64Func = writers.GetWriteFunc(process.Import<ulong>());
             worker.Emit(OpCodes.Call, writeUint64Func);
-            int dirty = syncVarList.GetServerVar(generateCode.BaseType.FullName);
+            int dirty = syncVarProcess.GetServerVar(generateCode.BaseType.FullName);
             foreach (FieldDefinition syncVarDef in syncVars)
             {
                 FieldReference syncVar = syncVarDef;
@@ -141,7 +141,7 @@ namespace JFramework.Editor
             serWorker.Append(serWorker.Create(OpCodes.Call, readers.GetReadFunc(process.Import<ulong>())));
             serWorker.Append(serWorker.Create(OpCodes.Stloc_0));
             
-            int dirty = syncVarList.GetServerVar(generateCode.BaseType.FullName);
+            int dirty = syncVarProcess.GetServerVar(generateCode.BaseType.FullName);
             foreach (FieldDefinition syncVar in syncVars)
             {
                 Instruction varLabel = serWorker.Create(OpCodes.Nop);
@@ -168,10 +168,10 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldflda, generateCode.HasGenericParameters ? syncVar.MakeHostInstanceGeneric() : syncVar);
 
-            MethodDefinition hookMethod = serverVarProcess.GetHookMethod(generateCode, syncVar);
+            MethodDefinition hookMethod = syncVarProcess.GetHookMethod(generateCode, syncVar);
             if (hookMethod != null)
             {
-                serverVarProcess.GenerateNewActionFromHookMethod(syncVar, worker, hookMethod);
+                syncVarProcess.GenerateNewActionFromHookMethod(syncVar, worker, hookMethod);
             }
             else
             {
