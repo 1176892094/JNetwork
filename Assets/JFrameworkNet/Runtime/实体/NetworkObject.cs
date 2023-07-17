@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public struct NetworkIdentitySerialization
+    public struct NetworkObjectSerialize
     {
         public int tick;
         public NetworkWriter owner;
@@ -15,7 +15,7 @@ namespace JFramework.Net
     [DefaultExecutionOrder(-1)]
     public sealed partial class NetworkObject : MonoBehaviour
     {
-        private NetworkIdentitySerialization lastSerialization = new NetworkIdentitySerialization
+        private NetworkObjectSerialize lastSerialize = new NetworkObjectSerialize
         {
             owner = new NetworkWriter(),
             observer = new NetworkWriter()
@@ -65,20 +65,20 @@ namespace JFramework.Net
             return true;
         }
         
-        internal NetworkIdentitySerialization GetServerSerializationAtTick(int tick)
+        internal NetworkObjectSerialize GetServerSerializationAtTick(int tick)
         {
-            if (lastSerialization.tick != tick)
+            if (lastSerialize.tick != tick)
             {
-                lastSerialization.owner.position = 0;
-                lastSerialization.observer.position = 0;
+                lastSerialize.owner.position = 0;
+                lastSerialize.observer.position = 0;
 
-                SerializeServer(false, lastSerialization.owner, lastSerialization.observer);
+                SerializeServer(false, lastSerialize.owner, lastSerialize.observer);
                 
                 ClearDirty(true);
-                lastSerialization.tick = tick;
+                lastSerialize.tick = tick;
             }
             
-            return lastSerialization;
+            return lastSerialize;
         }
 
 

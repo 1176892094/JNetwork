@@ -68,19 +68,9 @@ namespace JFramework.Net
         public static event Action<ClientEntity> OnServerReady;
 
         /// <summary>
-        /// 心跳包
-        /// </summary>
-        private static int tickRate => NetworkManager.Instance.tickRate;
-
-        /// <summary>
         /// 最大连接数量
         /// </summary>
         private static uint maxConnection => NetworkManager.Instance.maxConnection;
-
-        /// <summary>
-        /// 信息传送率
-        /// </summary>
-        private static float sendRate => tickRate < int.MaxValue ? 1f / tickRate : 0;
 
         /// <summary>
         /// 开启服务器

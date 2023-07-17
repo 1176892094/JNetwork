@@ -11,14 +11,19 @@ namespace JFramework.Net
     public sealed partial class NetworkManager : GlobalSingleton<NetworkManager>
     {
         /// <summary>
-        /// 服务器场景
-        /// </summary>
-        internal static string sceneName;
-
-        /// <summary>
         /// 预置体列表
         /// </summary>
         internal static readonly List<GameObject> prefabs = new List<GameObject>();
+        
+        /// <summary>
+        /// 消息发送率
+        /// </summary>
+        internal static float sendRate => Instance.tickRate < int.MaxValue ? 1f / Instance.tickRate : 0;
+        
+        /// <summary>
+        /// 服务器场景
+        /// </summary>
+        internal static string sceneName;
 
         /// <summary>
         /// 网络传输组件
@@ -30,7 +35,7 @@ namespace JFramework.Net
         /// 心跳传输率
         /// </summary>
         [FoldoutGroup("网络管理器"), SerializeField]
-        internal int tickRate = 30;
+        private int tickRate = 30;
 
         /// <summary>
         /// 客户端最大连接数量

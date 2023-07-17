@@ -22,7 +22,7 @@ namespace JFramework.Net
         {
             if (isActive)
             {
-                if (NetworkUtils.TimeTick(NetworkTime.localTime, sendRate, ref lastSendTime))
+                if (NetworkUtils.TimeTick(NetworkTime.localTime, NetworkManager.sendRate, ref lastSendTime))
                 {
                     Broadcast();
                 }
@@ -78,7 +78,7 @@ namespace JFramework.Net
 
         private static NetworkWriter SerializeForConnection(NetworkObject @object, ClientEntity client)
         {
-            NetworkIdentitySerialization serialization = @object.GetServerSerializationAtTick(Time.frameCount);
+            NetworkObjectSerialize serialization = @object.GetServerSerializationAtTick(Time.frameCount);
             
             if (@object.client == client)
             {

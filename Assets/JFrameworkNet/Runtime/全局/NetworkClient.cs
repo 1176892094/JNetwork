@@ -89,16 +89,6 @@ namespace JFramework.Net
         public static bool isConnect => state == ConnectState.Connected;
 
         /// <summary>
-        /// 心跳包
-        /// </summary>
-        private static int tickRate => NetworkManager.Instance.tickRate;
-
-        /// <summary>
-        /// 消息发送率
-        /// </summary>
-        private static float sendRate => tickRate < int.MaxValue ? 1f / tickRate : 0;
-
-        /// <summary>
         /// 开启客户端
         /// </summary>
         /// <param name="address">传入连接地址</param>

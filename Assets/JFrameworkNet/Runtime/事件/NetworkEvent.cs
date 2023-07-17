@@ -81,12 +81,20 @@ namespace JFramework.Net
             {
                 try
                 {
-                    var message = reader.Read<T2>();
-                    handle?.Invoke((T1)connection, message, channel);
+                    var @event = reader.Read<T2>();
+                    handle?.Invoke((T1)connection, @event, channel);
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"断开连接。客户端：{((ClientEntity)connection)?.clientId}\n{e}");
+                    if (connection is ClientEntity client)
+                    {
+                        Debug.LogError($"断开连接。客户端：{client.clientId}\n{e}");
+                    }
+                    else
+                    {
+                        Debug.LogError(e.ToString());
+                    }
+
                     connection?.Disconnect();
                 }
             };
@@ -101,11 +109,11 @@ namespace JFramework.Net
         /// <returns>返回一个消息委托</returns>
         internal static EventDelegate Register<T1, T2>(Action<T1, T2> handle) where T1 : Connection where T2 : struct, IEvent
         {
-            return Register((Action<T1, T2, Channel>)Wrapped);
+            return Register((Action<T1, T2, Channel>)Handle);
 
-            void Wrapped(T1 connection, T2 reader, Channel channel)
+            void Handle(T1 connection, T2 @event, Channel channel)
             {
-                handle?.Invoke(connection, reader);
+                handle?.Invoke(connection, @event);
             }
         }
 
@@ -117,11 +125,11 @@ namespace JFramework.Net
         /// <returns>返回一个消息委托</returns>
         internal static EventDelegate Register<T1>(Action<T1> handle) where T1 : struct, IEvent
         {
-            return Register((Action<Connection, T1>)Wrapped);
+            return Register((Action<Connection, T1>)Handle);
 
-            void Wrapped(Connection connection, T1 reader)
+            void Handle(Connection connection, T1 @event)
             {
-                handle?.Invoke(reader);
+                handle?.Invoke(@event);
             }
         }
     }
