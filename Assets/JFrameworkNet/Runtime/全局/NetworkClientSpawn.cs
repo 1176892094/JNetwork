@@ -77,7 +77,7 @@ namespace JFramework.Net
 
             if (@object == null)
             {
-                Debug.LogError($"不能成 {@object}。 assetId：{@event.assetId} sceneId：{@event.sceneId}");
+                Debug.LogError($"不能生成 {@object}。 assetId：{@event.assetId} sceneId：{@event.sceneId}");
                 return false;
             }
 

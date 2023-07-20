@@ -142,8 +142,8 @@ namespace JFramework.Net
                         using var writer = NetworkWriter.Pop();
                         component.Serialize(writer, serialize);
                         var segment = writer.ToArraySegment();
-                        if (ownerDirty) owner.WriteBytes(segment.Array, segment.Offset, segment.Count);
-                        if (observersDirty) observer.WriteBytes(segment.Array, segment.Offset, segment.Count);
+                        if (ownerDirty) owner.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
+                        if (observersDirty) observer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
                     }
                 }
             }
@@ -170,7 +170,7 @@ namespace JFramework.Net
                     observerMask |= nthBit;
                 }
             }
-
+            
             return (ownerMask, observerMask);
         }
         

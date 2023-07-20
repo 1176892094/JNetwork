@@ -35,7 +35,7 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 当发送一条命令到Transport
+        /// 当发送一条Rpc到Transport
         /// </summary>
         private static void OnServerRpcEvent(ClientEntity client, ServerRpcEvent @event, Channel channel)
         {

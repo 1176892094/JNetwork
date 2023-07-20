@@ -110,7 +110,8 @@ namespace JFramework.Net
                 localScale = transform.localScale,
                 segment = SerializeNetworkObject(@object, isOwner, owner, observer)
             };
-          
+            Debug.LogError(owner.ToString());
+            Debug.LogError(observer.ToString());
             client.Send(@event);
         }
 
@@ -144,11 +145,18 @@ namespace JFramework.Net
                 @object.OnStopClient();
                 @object.OnNotifyAuthority();
                 NetworkClient.spawns.Remove(@object.objectId);
+                NetworkClient.owners.Remove(@object);
             }
 
             @object.OnStopServer();
             @object.Reset();
             DespawnForClient(@object);
+        }
+
+        public static void Destroy(NetworkObject @object)
+        {
+            spawns.Remove(@object.objectId);
+            @object.client?.observers.Remove(@object);
         }
 
         /// <summary>

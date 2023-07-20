@@ -59,7 +59,7 @@ namespace JFramework.Net
         /// <param name="client">指定的客户端</param>
         private static void BroadcastToClient(ClientEntity client)
         {
-            foreach (var @object in connection.observers)
+            foreach (var @object in client.observers)
             {
                 if (@object != null)
                 {
