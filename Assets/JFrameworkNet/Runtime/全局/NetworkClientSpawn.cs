@@ -12,56 +12,46 @@ namespace JFramework.Net
         /// 注册预置体
         /// </summary>
         /// <param name="objects">传入预置体</param>
-        private static void RegisterPrefab(List<GameObject> objects)
+        private static void RegisterPrefab(IEnumerable<GameObject> objects)
         {
-            foreach (var gameObject in objects.Where(@object => @object != null))
+            foreach (var prefab in objects.Where(@object => @object != null))
             {
-                if (gameObject == null)
+                if (prefab == null)
                 {
                     Debug.LogError("不能注册预置体，因为它是空的。");
                     return;
                 }
 
-                if (!gameObject.TryGetComponent(out NetworkObject @object))
+                if (!prefab.TryGetComponent(out NetworkObject @object))
                 {
-                    Debug.LogError($"预置体 {gameObject.name} 没有 NetworkObject 组件");
+                    Debug.LogError($"预置体 {prefab.name} 没有 NetworkObject 组件");
                     return;
                 }
 
-                RegisterPrefab(@object);
-            }
-        }
+                if (@object.assetId == 0)
+                {
+                    Debug.LogError($"不能注册预置体 {@object.name} 因为 assetId 为零！");
+                    return;
+                }
 
-        /// <summary>
-        /// 注册预置体
-        /// </summary>
-        /// <param name="object">传入网络对象</param>
-        private static void RegisterPrefab(NetworkObject @object)
-        {
-            if (@object.assetId == 0)
-            {
-                Debug.LogError($"不能注册预置体 {@object.name} 因为 assetId 为零！");
-                return;
-            }
+                if (@object.sceneId != 0)
+                {
+                    Debug.LogError($"不能注册预置体 {@object.name} 因为 sceneId 不为零");
+                    return;
+                }
+                
+                if (@object.GetComponentsInChildren<NetworkObject>().Length > 1)
+                {
+                    Debug.LogError($"不能注册预置体 {@object.name} 因为它拥有多个 NetworkObject 组件");
+                }
 
-            if (@object.sceneId != 0)
-            {
-                Debug.LogError($"不能注册预置体 {@object.name} 因为 sceneId 不为零");
-                return;
-            }
+                if (prefabs.TryGetValue(@object.assetId, out var gameObject))
+                {
+                    Debug.LogWarning($"旧的预置体 {gameObject.name} 被新的预置体 {@object.name} 所取代。");
+                }
 
-            NetworkObject[] identities = @object.GetComponentsInChildren<NetworkObject>();
-            if (identities.Length > 1)
-            {
-                Debug.LogError($"不能注册预置体 {@object.name} 因为它拥有多个 NetworkObject 组件");
+                prefabs[@object.assetId] = @object.gameObject;
             }
-
-            if (prefabs.TryGetValue(@object.assetId, out var gameObject))
-            {
-                Debug.LogWarning($"旧的预置体 {gameObject.name} 被新的预置体 {@object.name} 所取代。");
-            }
-
-            prefabs[@object.assetId] = @object.gameObject;
         }
 
         /// <summary>
@@ -135,19 +125,19 @@ namespace JFramework.Net
         {
             scenes.Clear();
             var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
-            foreach (var current in objects)
+            foreach (var @object in objects)
             {
-                if (NetworkUtils.IsSceneObject(current) && !current.gameObject.activeSelf)
+                if (NetworkUtils.IsSceneObject(@object) && !@object.gameObject.activeSelf)
                 {
-                    if (scenes.TryGetValue(current.sceneId, out var @object))
+                    if (scenes.TryGetValue(@object.sceneId, out var newObject))
                     {
-                        var gameObject = current.gameObject;
-                        var message = $"复制 {gameObject.name} 到 {@object.gameObject.name} 上检测到sceneId";
+                        var gameObject = @object.gameObject;
+                        var message = $"复制 {gameObject.name} 到 {newObject.gameObject.name} 上检测到 sceneId";
                         Debug.LogWarning(message, gameObject);
                     }
                     else
                     {
-                        scenes.Add(current.sceneId, current);
+                        scenes.Add(@object.sceneId, @object);
                     }
                 }
             }
@@ -186,7 +176,10 @@ namespace JFramework.Net
             }
             
             spawns[@event.objectId] = @object;
-
+            if (@event.isOwner)
+            {
+                owners.Add(@object);
+            }
             if (isSpawn)
             {
                 @object.OnNotifyAuthority();
@@ -245,6 +238,7 @@ namespace JFramework.Net
             finally
             {
                 spawns.Clear();
+                owners.Clear();
             }
         }
     }

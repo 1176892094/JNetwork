@@ -24,9 +24,14 @@ namespace JFramework.Net
         internal static readonly Dictionary<ulong, NetworkObject> scenes = new Dictionary<ulong, NetworkObject>();
 
         /// <summary>
-        /// 客户端生成的物体数量
+        /// 客户端生成的网络对象
         /// </summary>
-        internal static Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
+        internal static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
+
+        /// <summary>
+        /// 拥有权限的网络对象
+        /// </summary>
+        internal static readonly HashSet<NetworkObject> owners = new HashSet<NetworkObject>();
 
         /// <summary>
         /// 连接到的服务器
@@ -157,7 +162,6 @@ namespace JFramework.Net
                 isReady = true;
                 connection.isReady = true;
                 connection.Send(new SetReadyEvent());
-                spawns = spawns.Where(pair => pair.Value != null).ToDictionary(pair => pair.Key, pair => pair.Value);
             }
         }
 

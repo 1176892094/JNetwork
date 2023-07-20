@@ -72,6 +72,10 @@ namespace JFramework.Net
             if (NetworkServer.spawns.TryGetValue(@event.objectId, out var @object))
             {
                 spawns[@event.objectId] = @object;
+                if (@event.isOwner)
+                {
+                    owners.Add(@object);
+                }
                 @object.isOwner = @event.isOwner;
                 @object.isClient = true;
                 @object.OnNotifyAuthority();
@@ -91,6 +95,10 @@ namespace JFramework.Net
                 @object.gameObject.SetActive(false);
                 @object.Reset();
                 spawns.Remove(@event.objectId);
+                if (@object.isOwner)
+                {
+                    owners.Remove(@object);
+                }
             }
         }
 
@@ -105,6 +113,10 @@ namespace JFramework.Net
                 @object.OnStopClient();
                 Object.Destroy(@object.gameObject);
                 spawns.Remove(@event.objectId);
+                if (@object.isOwner)
+                {
+                    owners.Remove(@object);
+                }
             }
         }
 

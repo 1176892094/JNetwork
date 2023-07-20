@@ -134,13 +134,13 @@ namespace JFramework.Net
             {
                 for (int i = 0; i < components.Length; ++i)
                 {
-                    NetworkBehaviour comp = components[i];
+                    NetworkBehaviour component = components[i];
                     bool ownerDirty = IsDirty(ownerMask, i);
                     bool observersDirty = IsDirty(observerMask, i);
                     if (ownerDirty || observersDirty)
                     {
                         using var writer = NetworkWriter.Pop();
-                        comp.Serialize(writer, serialize);
+                        component.Serialize(writer, serialize);
                         var segment = writer.ToArraySegment();
                         if (ownerDirty) owner.WriteBytes(segment.Array, segment.Offset, segment.Count);
                         if (observersDirty) observer.WriteBytes(segment.Array, segment.Offset, segment.Count);

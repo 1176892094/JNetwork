@@ -31,6 +31,9 @@ namespace JFramework.Net
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
         private Dictionary<uint, NetworkObject> clientSpawns => NetworkClient.spawns;
+        
+        [FoldoutGroup("客户端设置"), ShowInInspector]
+        private HashSet<NetworkObject> clientOwners => NetworkClient.owners;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
         private Dictionary<uint, GameObject> assetPrefabs => NetworkClient.prefabs;

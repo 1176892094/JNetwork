@@ -13,7 +13,7 @@ namespace JFramework.Net
         /// <summary>
         /// 观察的网络对象
         /// </summary>
-        internal readonly Dictionary<uint, NetworkObject> observers = new Dictionary<uint, NetworkObject>();
+        internal readonly HashSet<NetworkObject> observers = new HashSet<NetworkObject>();
 
         /// <summary>
         /// 网络消息读取
@@ -153,24 +153,6 @@ namespace JFramework.Net
         {
             isReady = false;
             Transport.current.ServerDisconnect(clientId);
-        }
-
-        /// <summary>
-        /// 添加到观察字典
-        /// </summary>
-        /// <param name="object"></param>
-        public void AddObservers(NetworkObject @object)
-        {
-            observers.Add(@object.objectId, @object);
-        }
-
-        /// <summary>
-        /// 从观察字典中移除
-        /// </summary>
-        /// <param name="object"></param>
-        public void RemoveObserver(NetworkObject @object)
-        {
-            observers.Remove(@object.objectId);
         }
     }
 }

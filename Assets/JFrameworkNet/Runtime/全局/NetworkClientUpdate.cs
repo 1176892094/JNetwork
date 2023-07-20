@@ -57,7 +57,7 @@ namespace JFramework.Net
         {
             if (!connection.isReady) return;
             if (NetworkServer.isActive) return;
-            foreach (var @object in spawns.Values.Where(@object => @object.isOwner))
+            foreach (var @object in owners)
             {
                 using var writer = NetworkWriter.Pop();
                 @object.ClientSpawn(writer);

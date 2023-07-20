@@ -16,16 +16,16 @@ namespace JFramework.Net
         /// 连接的的客户端字典
         /// </summary>
         internal static readonly Dictionary<int, ClientEntity> clients = new Dictionary<int, ClientEntity>();
+        
+        /// <summary>
+        /// 服务器生成的游戏对象字典
+        /// </summary>
+        internal static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
 
         /// <summary>
         /// 用来拷贝当前连接的所有客户端
         /// </summary>
         private static readonly List<ClientEntity> copies = new List<ClientEntity>();
-        
-        /// <summary>
-        /// 服务器生成的游戏对象字典
-        /// </summary>
-        internal static Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
 
         /// <summary>
         /// 上一次发送消息的时间
@@ -119,7 +119,6 @@ namespace JFramework.Net
         {
             Debug.Log($"设置客户端 {client.clientId} 准备就绪。");
             client.isReady = true;
-            spawns = spawns.Where(pair => pair.Value != null).ToDictionary(pair => pair.Key, pair => pair.Value);
             foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
             {
                 SendSpawnEvent(client, @object);

@@ -58,7 +58,7 @@ namespace JFramework.Net
             }
             
             @object.client = client;
-            client?.AddObservers(@object);
+            client?.observers.Add(@object);
             if (NetworkManager.mode == NetworkMode.Host)
             {
                 @object.isOwner = true;
@@ -136,6 +136,7 @@ namespace JFramework.Net
         public static void Despawn(NetworkObject @object)
         {
             spawns.Remove(@object.objectId);
+            @object.client?.observers.Remove(@object);
 
             if (NetworkManager.mode == NetworkMode.Host)
             {
