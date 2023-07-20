@@ -10,6 +10,11 @@ namespace JFramework.Net
     public class ServerEntity : Connection
     {
         /// <summary>
+        /// 持有的游戏对象
+        /// </summary>
+        internal readonly Dictionary<uint, NetworkObject> objects = new Dictionary<uint, NetworkObject>();
+
+        /// <summary>
         /// 存储写入队列的字典
         /// </summary>
         internal readonly Queue<NetworkWriter> writeQueue = new Queue<NetworkWriter>();

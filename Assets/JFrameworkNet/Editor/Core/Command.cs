@@ -9,7 +9,6 @@ namespace JFramework.Editor
 {
     internal class Command
     {
-        
         public static bool failed;
         public static bool change;
         private Writers writers;

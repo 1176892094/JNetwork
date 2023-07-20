@@ -60,7 +60,7 @@ namespace JFramework.Net
             foreach (var @object in spawns.Values.Where(@object => @object.isOwner))
             {
                 using var writer = NetworkWriter.Pop();
-                @object.SerializeClient(writer);
+                @object.ClientSpawn(writer);
                 if (writer.position > 0)
                 {
                     Send(new EntityEvent(@object.objectId, writer.ToArraySegment()));

@@ -63,10 +63,10 @@ namespace JFramework.Net
             {
                 if (@object != null)
                 {
-                    NetworkWriter serialization = SerializeForConnection(@object, client);
-                    if (serialization != null)
+                    NetworkWriter writer = SerializeForClient(@object, client);
+                    if (writer != null)
                     {
-                        client.Send(new EntityEvent(@object.objectId, serialization.ToArraySegment()));
+                        client.Send(new EntityEvent(@object.objectId, writer.ToArraySegment()));
                     }
                 }
                 else
@@ -76,22 +76,22 @@ namespace JFramework.Net
             }
         }
 
-        private static NetworkWriter SerializeForConnection(NetworkObject @object, ClientEntity client)
+        private static NetworkWriter SerializeForClient(NetworkObject @object, ClientEntity client)
         {
-            NetworkObjectSerialize serialization = @object.GetServerSerializationAtTick(Time.frameCount);
+            var serialize = @object.GetServerSerializationAtTick(Time.frameCount);
             
             if (@object.client == client)
             {
-                if (serialization.owner.position > 0)
+                if (serialize.owner.position > 0)
                 {
-                    return serialization.owner;
+                    return serialize.owner;
                 }
             }
             else
             {
-                if (serialization.observer.position > 0)
+                if (serialize.observer.position > 0)
                 {
-                    return serialization.observer;
+                    return serialize.observer;
                 }
             }
             

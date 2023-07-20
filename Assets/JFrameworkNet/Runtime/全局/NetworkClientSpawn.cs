@@ -182,7 +182,7 @@ namespace JFramework.Net
             if (@event.segment.Count > 0)
             {
                 using var reader = NetworkReader.Pop(@event.segment);
-                @object.DeserializeClient(reader, true);
+                @object.ClientDespawn(reader, true);
             }
             
             spawns[@event.objectId] = @object;

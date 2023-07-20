@@ -168,7 +168,7 @@ namespace JFramework.Net
             if (spawns.TryGetValue(@event.objectId, out var @object) && @object != null)
             {
                 using var reader = NetworkReader.Pop(@event.segment);
-                @object.DeserializeClient(reader, false);
+                @object.ClientDespawn(reader, false);
             }
             else
             {

@@ -58,7 +58,7 @@ namespace JFramework.Net
             }
             
             @object.client = client;
-            
+            client?.AddObservers(@object);
             if (NetworkManager.mode == NetworkMode.Host)
             {
                 @object.isOwner = true;
@@ -110,6 +110,7 @@ namespace JFramework.Net
                 localScale = transform.localScale,
                 segment = SerializeNetworkObject(@object, isOwner, owner, observer)
             };
+          
             client.Send(@event);
         }
 
@@ -124,7 +125,7 @@ namespace JFramework.Net
         private static ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observer)
         {
             if (@object.entities.Length == 0) return default;
-            @object.SerializeServer(true, owner, observer);
+            @object.ServerSpawn(true, owner, observer);
             return isOwner ? owner.ToArraySegment() : observer.ToArraySegment();
         }
 

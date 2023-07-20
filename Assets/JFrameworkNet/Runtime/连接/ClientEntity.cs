@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -10,20 +11,25 @@ namespace JFramework.Net
     public sealed class ClientEntity : Connection
     {
         /// <summary>
+        /// 观察的网络对象
+        /// </summary>
+        internal readonly Dictionary<uint, NetworkObject> observers = new Dictionary<uint, NetworkObject>();
+
+        /// <summary>
         /// 网络消息读取
         /// </summary>
-        [ShowInInspector] internal readonly NetworkReaderPack readerPack = new NetworkReaderPack();
-        
+        internal readonly NetworkReaderPack readerPack = new NetworkReaderPack();
+
         /// <summary>
         /// 可靠Rpc列表
         /// </summary>
         private readonly NetworkWriter reliableRpc = new NetworkWriter();
-        
+
         /// <summary>
         /// 不可靠Rpc列表
         /// </summary>
         private readonly NetworkWriter unreliableRpc = new NetworkWriter();
-        
+
         /// <summary>
         /// 客户端的Id
         /// </summary>
@@ -49,8 +55,8 @@ namespace JFramework.Net
         /// </summary>
         internal override void Update()
         {
-            FlushRpc(reliableRpc, Channel.Reliable);
-            FlushRpc(unreliableRpc, Channel.Unreliable);
+            SendRpc(reliableRpc, Channel.Reliable);
+            SendRpc(unreliableRpc, Channel.Unreliable);
             base.Update();
         }
 
@@ -59,13 +65,13 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="writer">Rpc信息</param>
         /// <param name="channel">传输通道</param>
-        private void FlushRpc(NetworkWriter writer, Channel channel)
+        private void SendRpc(NetworkWriter writer, Channel channel)
         {
             if (writer.position <= 0) return;
-            Send(new InvokeRpcEvent((ArraySegment<byte>)writer), channel);
+            Send(new InvokeRpcEvent(writer), channel);
             writer.position = 0;
         }
-        
+
         /// <summary>
         /// 对Rpc的缓存
         /// </summary>
@@ -84,15 +90,15 @@ namespace JFramework.Net
                 Debug.LogWarning($"远程调用 {@event.objectId} 消息大小不能超过 {bufferLimit}。消息大小：{messageSize}");
                 return;
             }
-            
+
             if (buffer.position > bufferLimit)
             {
                 buffer.position = before;
-                FlushRpc(buffer, channel);
+                SendRpc(buffer, channel);
                 buffer.Write(@event);
             }
         }
-        
+
         /// <summary>
         /// 由NetworkBehaviour调用
         /// </summary>
@@ -111,7 +117,7 @@ namespace JFramework.Net
                     break;
             }
         }
-        
+
         /// <summary>
         /// 客户端向服务器发送消息
         /// </summary>
@@ -147,6 +153,24 @@ namespace JFramework.Net
         {
             isReady = false;
             Transport.current.ServerDisconnect(clientId);
+        }
+
+        /// <summary>
+        /// 添加到观察字典
+        /// </summary>
+        /// <param name="object"></param>
+        public void AddObservers(NetworkObject @object)
+        {
+            observers.Add(@object.objectId, @object);
+        }
+
+        /// <summary>
+        /// 从观察字典中移除
+        /// </summary>
+        /// <param name="object"></param>
+        public void RemoveObserver(NetworkObject @object)
+        {
+            observers.Remove(@object.objectId);
         }
     }
 }

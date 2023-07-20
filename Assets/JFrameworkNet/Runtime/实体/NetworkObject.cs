@@ -72,7 +72,7 @@ namespace JFramework.Net
                 lastSerialize.owner.position = 0;
                 lastSerialize.observer.position = 0;
 
-                SerializeServer(false, lastSerialize.owner, lastSerialize.observer);
+                ServerSpawn(false, lastSerialize.owner, lastSerialize.observer);
                 
                 ClearDirty(true);
                 lastSerialize.tick = tick;
@@ -123,7 +123,7 @@ namespace JFramework.Net
         /// <param name="serialize"></param>
         /// <param name="owner"></param>
         /// <param name="observer"></param>
-        internal void SerializeServer(bool serialize, NetworkWriter owner,NetworkWriter observer)
+        internal void ServerSpawn(bool serialize, NetworkWriter owner,NetworkWriter observer)
         {
             IsValid();
             NetworkBehaviour[] components = entities;
@@ -174,7 +174,7 @@ namespace JFramework.Net
             return (ownerMask, observerMask);
         }
         
-        internal void SerializeClient(NetworkWriter writer)
+        internal void ClientSpawn(NetworkWriter writer)
         {
             IsValid();
             NetworkBehaviour[] components = entities;
@@ -211,7 +211,7 @@ namespace JFramework.Net
             return mask;
         }
 
-        internal bool DeserializeServer(NetworkReader reader)
+        internal bool ServerDespawn(NetworkReader reader)
         {
             IsValid();
             NetworkBehaviour[] components = entities;
@@ -236,7 +236,7 @@ namespace JFramework.Net
             return true;
         }
 
-        internal void DeserializeClient(NetworkReader reader, bool initialState)
+        internal void ClientDespawn(NetworkReader reader, bool initialState)
         {
             IsValid();
             NetworkBehaviour[] components = entities;
