@@ -63,7 +63,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Call, process.NetworkBehaviourDirtyReference);
             MethodReference writeUint64Func = writers.GetWriteFunc(process.Import<ulong>());
             worker.Emit(OpCodes.Call, writeUint64Func);
-            int dirty = syncVarProcess.GetServerVar(generateCode.BaseType.FullName);
+            int dirty = SyncVarUtils.GetSyncVar(generateCode.BaseType.FullName);
             foreach (FieldDefinition syncVarDef in syncVars)
             {
                 FieldReference syncVar = syncVarDef;
@@ -141,7 +141,7 @@ namespace JFramework.Editor
             serWorker.Append(serWorker.Create(OpCodes.Call, readers.GetReadFunc(process.Import<ulong>())));
             serWorker.Append(serWorker.Create(OpCodes.Stloc_0));
             
-            int dirty = syncVarProcess.GetServerVar(generateCode.BaseType.FullName);
+            int dirty = SyncVarUtils.GetSyncVar(generateCode.BaseType.FullName);
             foreach (FieldDefinition syncVar in syncVars)
             {
                 Instruction varLabel = serWorker.Create(OpCodes.Nop);

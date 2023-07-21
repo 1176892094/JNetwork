@@ -140,7 +140,6 @@ namespace JFramework.Net
             byte safety = (byte)(size & 0xFF);
             writer.WriteByte(safety);
             writer.position = endPosition;
-            Debug.Log(writer.ToString());
         }
 
         /// <summary>

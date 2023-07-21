@@ -300,6 +300,6 @@ namespace JFramework.Editor
             return new FieldReference(self.Name, self.FieldType, declaringType);
         }
         
-        public static bool IsNetworkEntityField(this TypeReference tr) => tr.Is<GameObject>() || tr.Is<NetworkObject>() || tr.IsDerivedFrom<NetworkBehaviour>() || tr.Is<NetworkBehaviour>();
+        public static bool IsNetworkObjectField(this TypeReference tr) => tr.Is<GameObject>() || tr.Is<NetworkObject>() || tr.IsDerivedFrom<NetworkBehaviour>() || tr.Is<NetworkBehaviour>();
     }
 }

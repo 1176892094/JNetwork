@@ -186,7 +186,7 @@ namespace JFramework.Editor
             {
                 return null;
             }
-            
+         
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
             NetworkBehaviourProcess.AddInvokeParameters(process, rpc.Parameters);

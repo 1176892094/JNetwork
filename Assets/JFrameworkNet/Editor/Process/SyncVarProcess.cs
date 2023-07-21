@@ -10,7 +10,6 @@ namespace JFramework.Editor
 {
     internal class SyncVarProcess
     {
-        private readonly Dictionary<string, int> syncVarList = new Dictionary<string, int>();
         private readonly Logger logger;
         private readonly Process process;
         private readonly AssemblyDefinition assembly;
@@ -92,7 +91,7 @@ namespace JFramework.Editor
         { 
             List<FieldDefinition> syncVars = new List<FieldDefinition>();
             Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>(); 
-            int dirtyBitCounter = GetServerVar(td.BaseType.FullName);
+            int dirtyBitCounter = SyncVarUtils.GetSyncVar(td.BaseType.FullName);
            
             foreach (var fd in td.Fields.Where(fd => fd.HasCustomAttribute<SyncVarAttribute>()))
             {
@@ -134,24 +133,10 @@ namespace JFramework.Editor
                 td.Fields.Add(fd);
             }
             
-            int parentSyncVarCount = GetServerVar(td.BaseType.FullName);
-            SetServerVar(td.FullName, parentSyncVarCount + syncVars.Count);
+            int parentSyncVarCount = SyncVarUtils.GetSyncVar(td.BaseType.FullName);
+            SyncVarUtils.SetSyncVar(td.FullName, parentSyncVarCount + syncVars.Count);
             return (syncVars, syncVarNetIds);
         }
-        
-        /// <summary>
-        /// 从类中获取 ServerVar
-        /// </summary>
-        /// <param name="name">从类名中获取</param>
-        /// <returns></returns>
-        public int GetServerVar(string name) => syncVarList.TryGetValue(name, out var value) ? value : 0;
-        
-        /// <summary>
-        /// 设置 ServerVar 数量
-        /// </summary>
-        /// <param name="name">传入类名</param>
-        /// <param name="count">传入数值</param>
-        private void SetServerVar(string name, int count) => syncVarList[name] = count;
 
         private void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds, long dirtyBit)
         {
@@ -160,13 +145,13 @@ namespace JFramework.Editor
             FieldDefinition netIdField = null;
             if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
             { 
-                netIdField = new FieldDefinition($"m_{fd.Name}NetId", FieldAttributes.Family, process.Import<NetworkVariable>());
+                netIdField = new FieldDefinition($"{fd.Name}Id", FieldAttributes.Family, process.Import<NetworkVariable>());
                 netIdField.DeclaringType = td;
                 syncVarNetIds[fd] = netIdField;
             }
-            else if (fd.FieldType.IsNetworkEntityField())
+            else if (fd.FieldType.IsNetworkObjectField())
             {  
-                netIdField = new FieldDefinition($"m_{fd.Name}NetId", FieldAttributes.Family, process.Import<uint>());
+                netIdField = new FieldDefinition($"{fd.Name}Id", FieldAttributes.Family, process.Import<uint>());
                 netIdField.DeclaringType = td;
 
                 syncVarNetIds[fd] = netIdField;
@@ -176,7 +161,7 @@ namespace JFramework.Editor
             MethodDefinition set = GenerateSyncVarSetter(td, fd, originalName, dirtyBit, netIdField);
 
        
-            PropertyDefinition propertyDefinition = new PropertyDefinition($"m_{originalName}", PropertyAttributes.None, fd.FieldType)
+            PropertyDefinition propertyDefinition = new PropertyDefinition($"Network{originalName}", PropertyAttributes.None, fd.FieldType)
             {
                 GetMethod = get,
                 SetMethod = set
@@ -186,11 +171,18 @@ namespace JFramework.Editor
             td.Methods.Add(get);
             td.Methods.Add(set);
             td.Properties.Add(propertyDefinition);
+            
+            SyncVarUtils.setter[fd] = set;
+
+            if (fd.FieldType.IsNetworkObjectField())
+            {
+                SyncVarUtils.getter[fd] = get;
+            }
         }
 
         private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string originalName, FieldDefinition netFieldId)
         {
-            MethodDefinition get = new MethodDefinition($"get_m_{originalName}", CONST.VAR_ATTRS, fd.FieldType);
+            MethodDefinition get = new MethodDefinition($"get_Network{originalName}", CONST.VAR_ATTRS, fd.FieldType);
 
             ILProcessor worker = get.Body.GetILProcessor();
 
@@ -248,7 +240,7 @@ namespace JFramework.Editor
 
         private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string originalName, long dirtyBit, FieldDefinition netFieldId)
         {
-            MethodDefinition set = new MethodDefinition($"set_m_{originalName}", CONST.VAR_ATTRS, process.Import(typeof(void)));
+            MethodDefinition set = new MethodDefinition($"set_Network{originalName}", CONST.VAR_ATTRS, process.Import(typeof(void)));
             
             ILProcessor worker = set.Body.GetILProcessor();
             FieldReference fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;

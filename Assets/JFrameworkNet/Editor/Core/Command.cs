@@ -36,7 +36,6 @@ namespace JFramework.Editor
                 }
                 
                 process = new Process(currentAssembly, logger);
-                
                 generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE, CONST.TYPE_ATTRS, process.Import<object>());
                 writers = new Writers(currentAssembly, process, generate, logger);
                 readers = new Readers(currentAssembly, process, generate, logger);
@@ -52,6 +51,7 @@ namespace JFramework.Editor
                 
                 if (change)
                 {
+                    SyncVarProcessReplace.Process(moduleDefinition);
                     moduleDefinition.Types.Add(generate);
                     StreamingProcess.StreamingInitialize(currentAssembly, process, writers,readers,generate);
                 }
@@ -61,6 +61,7 @@ namespace JFramework.Editor
             catch (Exception e)
             {
                 failed = true;
+                SyncVarUtils.Clear();
                 logger.Error(e.ToString());
                 return false;
             }

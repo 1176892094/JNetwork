@@ -110,8 +110,7 @@ namespace JFramework.Net
                 localScale = transform.localScale,
                 segment = SerializeNetworkObject(@object, isOwner, owner, observer)
             };
-            Debug.LogError(owner.ToString());
-            Debug.LogError(observer.ToString());
+
             client.Send(@event);
         }
 

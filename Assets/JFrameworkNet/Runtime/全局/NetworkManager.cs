@@ -13,7 +13,7 @@ namespace JFramework.Net
         /// <summary>
         /// 预置体列表
         /// </summary>
-        internal static readonly List<GameObject> prefabs = new List<GameObject>();
+        [ShowInInspector] internal static readonly List<GameObject> prefabs = new List<GameObject>();
         
         /// <summary>
         /// 消息发送率

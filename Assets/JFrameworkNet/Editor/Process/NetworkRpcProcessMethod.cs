@@ -8,7 +8,7 @@ namespace JFramework.Editor
         private static MethodDefinition TemplateMethod(Logger logger, TypeDefinition td, MethodDefinition md)
         {
             string newName = Command.GenerateMethodName(CONST.RPC_METHOD, md);
-            var cmd = new MethodDefinition(newName, md.Attributes, md.ReturnType)
+            var rpc = new MethodDefinition(newName, md.Attributes, md.ReturnType)
             {
                 IsPublic = false,
                 IsFamily = true
@@ -16,27 +16,27 @@ namespace JFramework.Editor
             
             foreach (ParameterDefinition pd in md.Parameters)
             {
-                cmd.Parameters.Add(new ParameterDefinition(pd.Name, ParameterAttributes.None, pd.ParameterType));
+                rpc.Parameters.Add(new ParameterDefinition(pd.Name, ParameterAttributes.None, pd.ParameterType));
             }
             
-            (cmd.Body, md.Body) = (md.Body, cmd.Body);
+            (rpc.Body, md.Body) = (md.Body, rpc.Body);
 
             foreach (SequencePoint sequencePoint in md.DebugInformation.SequencePoints)
             {
-                cmd.DebugInformation.SequencePoints.Add(sequencePoint);
+                rpc.DebugInformation.SequencePoints.Add(sequencePoint);
             }
             md.DebugInformation.SequencePoints.Clear();
 
             foreach (CustomDebugInformation customInfo in md.CustomDebugInformations)
             {
-                cmd.CustomDebugInformations.Add(customInfo);
+                rpc.CustomDebugInformations.Add(customInfo);
             }
             md.CustomDebugInformations.Clear();
 
-            (md.DebugInformation.Scope, cmd.DebugInformation.Scope) = (cmd.DebugInformation.Scope, md.DebugInformation.Scope);
-            td.Methods.Add(cmd);
-            FixBaseRpcMethod(logger, td, cmd);
-            return cmd;
+            (md.DebugInformation.Scope, rpc.DebugInformation.Scope) = (rpc.DebugInformation.Scope, md.DebugInformation.Scope);
+            td.Methods.Add(rpc);
+            FixBaseRpcMethod(logger, td, rpc);
+            return rpc;
         }
 
         private static void FixBaseRpcMethod(Logger logger, TypeDefinition type, MethodDefinition md)
