@@ -147,7 +147,7 @@ namespace JFramework.Net
         /// <param name="event"></param>
         private static void OnTimeEvent(TimeEvent @event)
         {
-            NetworkSnapshot.OnTimeSnapshot(new TimeSnapshot(connection.timestamp, NetworkTime.localTime));
+            NetworkSnapshot.OnTimeSnapshot(new TimeSnapshot(server.timestamp, NetworkTime.localTime));
         }
 
         /// <summary>

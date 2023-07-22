@@ -26,6 +26,11 @@ namespace JFramework.Net
         /// 用来拷贝当前连接的所有客户端
         /// </summary>
         private static readonly List<ClientEntity> copies = new List<ClientEntity>();
+        
+        /// <summary>
+        /// 最大连接数量
+        /// </summary>
+        private static uint maxConnection => NetworkManager.Instance.maxConnection;
 
         /// <summary>
         /// 上一次发送消息的时间
@@ -38,6 +43,11 @@ namespace JFramework.Net
         private static uint objectId;
 
         /// <summary>
+        /// 连接客户端数量
+        /// </summary>
+        public static int connections => clients.Count;
+
+        /// <summary>
         /// 是否是启动的
         /// </summary>
         public static bool isActive { get; private set; }
@@ -45,12 +55,12 @@ namespace JFramework.Net
         /// <summary>
         /// 是否在加载场景
         /// </summary>
-        public static bool isLoadScene;
+        public static bool isLoadScene { get; internal set; }
 
         /// <summary>
         /// 连接到的主机客户端
         /// </summary>
-        public static ClientEntity connection;
+        public static ClientEntity connection { get; internal set; }
 
         /// <summary>
         /// 有客户端连接到服务器的事件
@@ -66,11 +76,6 @@ namespace JFramework.Net
         /// 客户端在服务器准备就绪的事件
         /// </summary>
         public static event Action<ClientEntity> OnServerReady;
-
-        /// <summary>
-        /// 最大连接数量
-        /// </summary>
-        private static uint maxConnection => NetworkManager.Instance.maxConnection;
 
         /// <summary>
         /// 开启服务器

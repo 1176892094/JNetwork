@@ -32,7 +32,7 @@ namespace JFramework.Net
                 return;
             }
 
-            if (NetworkClient.connection == null)
+            if (NetworkClient.server == null)
             {
                 Debug.LogError($"调用 {methodName} 但是客户端的连接为空。对象名称：{name}", gameObject);
                 return;
@@ -46,7 +46,7 @@ namespace JFramework.Net
                 segment = writer.ToArraySegment()
             };
 
-            NetworkClient.connection.Send(@event, (Channel)channel);
+            NetworkClient.server.Send(@event, (Channel)channel);
         }
 
 

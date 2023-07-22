@@ -13,6 +13,11 @@ namespace JFramework.Net
         /// 存储写入队列的字典
         /// </summary>
         internal readonly Queue<NetworkWriter> writeQueue = new Queue<NetworkWriter>();
+
+        /// <summary>
+        /// 网络消息读取并分包
+        /// </summary>
+        internal readonly NetworkReaderPack readers = new NetworkReaderPack();
         
         /// <summary>
         /// 客户端发送到传输

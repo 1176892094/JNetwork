@@ -26,12 +26,47 @@ namespace JFramework.Net
         /// 客户端生成的网络对象
         /// </summary>
         internal static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
+        
+        /// <summary>
+        /// 上一次发送信息的时间
+        /// </summary>
+        private static double lastSendTime;
 
+        /// <summary>
+        /// 是否在生成物体中
+        /// </summary>
+        private static bool isSpawn;
+
+        /// <summary>
+        /// 连接的状态
+        /// </summary>
+        private static ConnectState state;
+        
+        /// <summary>
+        /// 是否活跃
+        /// </summary>
+        public static bool isActive => state is ConnectState.Connected or ConnectState.Connecting;
+
+        /// <summary>
+        /// 是否已经连接成功
+        /// </summary>
+        public static bool isConnect => state == ConnectState.Connected;
+
+        /// <summary>
+        /// 是否已经准备完成(能进行和Server的信息传输)
+        /// </summary>
+        public static bool isReady { get; internal set; }
+
+        /// <summary>
+        /// 是否正在加载场景
+        /// </summary>
+        public static bool isLoadScene { get; internal set; }
+        
         /// <summary>
         /// 连接到的服务器
         /// </summary>
-        public static ServerEntity connection;
-        
+        public static ServerEntity server { get; private set; }
+
         /// <summary>
         /// 客户端连接的事件(包含主机)
         /// </summary>
@@ -48,46 +83,6 @@ namespace JFramework.Net
         public static event Action OnClientNotReady;
 
         /// <summary>
-        /// 是否已经准备完成(能进行和Server的信息传输)
-        /// </summary>
-        public static bool isReady;
-
-        /// <summary>
-        /// 是否在生成物体中
-        /// </summary>
-        private static bool isSpawn;
-
-        /// <summary>
-        /// 是否正在加载场景
-        /// </summary>
-        public static bool isLoadScene;
-
-        /// <summary>
-        /// 上一次发送信息的时间
-        /// </summary>
-        private static double lastSendTime;
-
-        /// <summary>
-        /// 连接的状态
-        /// </summary>
-        private static ConnectState state;
-
-        /// <summary>
-        /// 网络消息读取并分包
-        /// </summary>
-        internal static NetworkReaderPack readers = new NetworkReaderPack();
-
-        /// <summary>
-        /// 是否活跃
-        /// </summary>
-        public static bool isActive => state is ConnectState.Connected or ConnectState.Connecting;
-
-        /// <summary>
-        /// 是否已经连接成功
-        /// </summary>
-        public static bool isConnect => state == ConnectState.Connected;
-
-        /// <summary>
         /// 开启客户端
         /// </summary>
         /// <param name="address">传入连接地址</param>
@@ -97,10 +92,9 @@ namespace JFramework.Net
             Debug.Log("开启客户端。");
             RegisterTransport();
             RegisterEvent(false);
-            readers = new NetworkReaderPack();
             state = ConnectState.Connecting;
             Transport.current.ClientConnect(address, port);
-            connection = new ServerEntity();
+            server = new ServerEntity();
         }
 
         /// <summary>
@@ -112,10 +106,9 @@ namespace JFramework.Net
             Debug.Log("开启客户端。");
             RegisterTransport();
             RegisterEvent(false);
-            readers = new NetworkReaderPack();
             state = ConnectState.Connecting;
             Transport.current.ClientConnect(uri);
-            connection = new ServerEntity();
+            server = new ServerEntity();
         }
 
         /// <summary>
@@ -125,9 +118,8 @@ namespace JFramework.Net
         {
             Debug.Log("开启客户端。");
             RegisterEvent(true);
-            readers = new NetworkReaderPack();
             state = ConnectState.Connected;
-            connection = new ServerEntity();
+            server = new ServerEntity();
             var client = new ClientEntity(NetworkConst.HostId);
             NetworkServer.connection = client;
             NetworkServer.OnClientConnect(client);
@@ -143,7 +135,7 @@ namespace JFramework.Net
             {
                 Debug.LogError("客户端已经准备就绪！");
             }
-            else if (connection == null)
+            else if (server == null)
             {
                 Debug.LogError("没有有效的服务器连接！");
             }
@@ -151,8 +143,8 @@ namespace JFramework.Net
             {
                 Debug.Log($"客户端准备。");
                 isReady = true;
-                connection.isReady = true;
-                connection.Send(new SetReadyEvent());
+                server.isReady = true;
+                server.Send(new SetReadyEvent());
             }
         }
 
@@ -164,11 +156,11 @@ namespace JFramework.Net
         /// <typeparam name="T"></typeparam>
         internal static void Send<T>(T @event, Channel channel = Channel.Reliable) where T : struct, IEvent
         {
-            if (connection != null)
+            if (server != null)
             {
                 if (state == ConnectState.Connected)
                 {
-                    connection.Send(@event, channel);
+                    server.Send(@event, channel);
                 }
                 else
                 {
@@ -195,13 +187,12 @@ namespace JFramework.Net
 
             DestroyForClient();
             state = ConnectState.Disconnected;
-            readers = new NetworkReaderPack();
             lastSendTime = 0;
             scenes.Clear();
             events.Clear();
             prefabs.Clear();
             isReady = false;
-            connection = null;
+            server = null;
             isLoadScene = false;
             OnClientConnect = null;
             OnClientDisconnect = null;

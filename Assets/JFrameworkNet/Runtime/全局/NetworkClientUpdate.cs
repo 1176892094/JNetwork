@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace JFramework.Net
 {
     public static partial class NetworkClient
@@ -28,18 +26,18 @@ namespace JFramework.Net
                 }
             }
         
-            if (connection != null)
+            if (server != null)
             {
                 if (NetworkManager.mode == NetworkMode.Host)
                 {
-                    connection.Update();
+                    server.Update();
                 }
                 else
                 {
                     if (isActive && isConnect)
                     {
                         NetworkTime.Update();
-                        connection.Update();
+                        server.Update();
                     }
                 }
             }
@@ -55,7 +53,7 @@ namespace JFramework.Net
         /// </summary>
         private static void Broadcast()
         {
-            if (!connection.isReady) return;
+            if (!server.isReady) return;
             if (NetworkServer.isActive) return;
             foreach (var @object in spawns.Values)
             {
