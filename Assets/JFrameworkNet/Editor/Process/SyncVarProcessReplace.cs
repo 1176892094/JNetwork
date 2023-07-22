@@ -87,24 +87,24 @@ namespace JFramework.Editor
             
             return 1;
         }
-        
+
         /// <summary>
         /// 设置指令
         /// </summary>
         /// <param name="md"></param>
         /// <param name="i"></param>
         /// <param name="opField"></param>
-        private static void ProcessSetInstruction( MethodDefinition md, Instruction i, FieldDefinition opField)
+        private static void ProcessSetInstruction(MethodDefinition md, Instruction i, FieldDefinition opField)
         {
             if (md.Name == ".ctor") return;
-            
+
             if (SyncVarUtils.setter.TryGetValue(opField, out MethodDefinition replacement))
             {
                 i.OpCode = OpCodes.Call;
                 i.Operand = replacement;
             }
         }
-        
+
         /// <summary>
         /// 获取指令
         /// </summary>

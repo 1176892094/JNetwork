@@ -6,6 +6,9 @@ using Unity.CompilationPipeline.Common.ILPostProcessing;
 
 namespace JFramework.Editor
 {
+    /// <summary>
+    /// 网络代码注入器
+    /// </summary>
     internal sealed class NetPostProcessor : ILPostProcessor
     {
         /// <summary>

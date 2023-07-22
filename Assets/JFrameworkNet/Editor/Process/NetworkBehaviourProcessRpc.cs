@@ -72,7 +72,7 @@ namespace JFramework.Editor
         }
         
         /// <summary>
-        /// 处理SerevrRpc
+        /// 处理ServerRpc
         /// </summary>
         /// <param name="names"></param>
         /// <param name="md"></param>

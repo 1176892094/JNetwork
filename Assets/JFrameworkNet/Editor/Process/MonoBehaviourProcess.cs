@@ -1,3 +1,4 @@
+using System.Linq;
 using JFramework.Net;
 using Mono.Cecil;
 
@@ -13,13 +14,10 @@ namespace JFramework.Editor
 
         private static void ProcessVar(Logger logger, TypeDefinition td)
         {
-            foreach (FieldDefinition fd in td.Fields)
+            foreach (var fd in td.Fields.Where(fd => fd.HasCustomAttribute<SyncVarAttribute>()))
             {
-                if (fd.HasCustomAttribute<SyncVarAttribute>())
-                {
-                    logger.Error($"网络变量 {fd.Name} 必须在 NetworkEntity 中使用。", fd);
-                    Editor.Process.failed = true;
-                }
+                logger.Error($"网络变量 {fd.Name} 必须在 NetworkEntity 中使用。", fd);
+                Editor.Process.failed = true;
             }
         }
 

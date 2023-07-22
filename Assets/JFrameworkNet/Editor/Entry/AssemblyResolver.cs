@@ -8,6 +8,9 @@ using Unity.CompilationPipeline.Common.ILPostProcessing;
 
 namespace JFramework.Editor
 {
+    /// <summary>
+    /// 程序集解析器
+    /// </summary>
     internal sealed class AssemblyResolver : IAssemblyResolver
     {
         private readonly Logger logger;

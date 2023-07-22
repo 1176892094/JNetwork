@@ -4,6 +4,9 @@ using Unity.CompilationPipeline.Common.Diagnostics;
 
 namespace JFramework.Editor
 {
+    /// <summary>
+    /// 网络代码注入日志
+    /// </summary>
     internal class LogPostProcessor : Logger
     {
         /// <summary>
