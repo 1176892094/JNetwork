@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace JFramework.Net
 {
@@ -137,7 +138,7 @@ namespace JFramework.Net
         {
             spawns.Remove(@object.objectId);
             @object.client?.observers.Remove(@object);
-
+            
             if (NetworkManager.mode == NetworkMode.Host)
             {
                 @object.isOwner = false;
@@ -148,37 +149,39 @@ namespace JFramework.Net
             }
 
             @object.OnStopServer();
+            @object.gameObject.SetActive(false);
             @object.Reset();
-            DespawnForClient(@object);
+            foreach (var client in clients.Values)
+            {
+                Debug.Log($"服务器为客户端 {client.clientId} 重置 {@object}");
+                client.Send(new DespawnEvent(@object.objectId));
+            }
         }
 
+        /// <summary>
+        /// 将网络对象销毁
+        /// </summary>
+        /// <param name="object"></param>
         public static void Destroy(NetworkObject @object)
         {
             spawns.Remove(@object.objectId);
             @object.client?.observers.Remove(@object);
-        }
-
-        /// <summary>
-        /// 向所有客户端发送对象重置的消息
-        /// </summary>
-        /// <param name="object"></param>
-        private static void DespawnForClient(NetworkObject @object)
-        {
+            if (NetworkManager.mode == NetworkMode.Host)
+            {
+                @object.isOwner = false;
+                @object.OnStopClient();
+                @object.OnNotifyAuthority();
+                NetworkClient.spawns.Remove(@object.objectId);
+                NetworkClient.owners.Remove(@object);
+            }
+            
+            @object.OnStopServer();
+            Object.Destroy(@object.gameObject);
             foreach (var client in clients.Values)
             {
-                SendDespawnEvent(client, @object);
+                Debug.Log($"服务器为客户端 {client.clientId} 销毁 {@object}");
+                client.Send(new DestroyEvent(@object.objectId));
             }
-        }
-        
-        /// <summary>
-        /// 服务器给指定客户端移除游戏对象
-        /// </summary>
-        /// <param name="client">传入指定客户端</param>
-        /// <param name="object">传入指定对象</param>
-        private static void SendDespawnEvent(ClientEntity client, NetworkObject @object)
-        {
-            Debug.Log($"服务器为客户端 {client.clientId} 重置 {@object}");
-            client.Send(new DespawnEvent(@object.objectId));
         }
     }
 }

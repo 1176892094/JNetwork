@@ -11,8 +11,8 @@ namespace JFramework.Net
         [FoldoutGroup("服务器设置"), ShowInInspector]
         private ClientEntity serverConnection => NetworkServer.connection;
 
-        [FoldoutGroup("服务器设置"), ShowInInspector]
-        private Dictionary<ushort, EventDelegate> serverEvent => NetworkServer.events;
+        // [FoldoutGroup("服务器设置"), ShowInInspector]
+        // private Dictionary<ushort, EventDelegate> serverEvent => NetworkServer.events;
 
         [FoldoutGroup("服务器设置"), ShowInInspector]
         private Dictionary<uint, NetworkObject> serverSpawns => NetworkServer.spawns;
@@ -26,8 +26,8 @@ namespace JFramework.Net
         [FoldoutGroup("客户端设置"), ShowInInspector]
         private NetworkReaderPack readers => NetworkClient.readers;
 
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private Dictionary<ushort, EventDelegate> clientEvent => NetworkClient.events;
+        // [FoldoutGroup("客户端设置"), ShowInInspector]
+        // private Dictionary<ushort, EventDelegate> clientEvent => NetworkClient.events;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
         private Dictionary<uint, NetworkObject> clientSpawns => NetworkClient.spawns;

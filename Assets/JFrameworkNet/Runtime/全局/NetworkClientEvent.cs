@@ -17,7 +17,7 @@ namespace JFramework.Net
             if (isHost)
             {
                 RegisterEvent<SpawnEvent>(OnSpawnByHost);
-                RegisterEvent<DestroyEvent>(OnDestroyByHost);
+                RegisterEvent<DestroyEvent>(OnEmptyEventByHost);
                 RegisterEvent<DespawnEvent>(OnEmptyEventByHost);
                 RegisterEvent<PongEvent>(OnEmptyEventByHost);
                 RegisterEvent<EntityEvent>(OnEmptyEventByHost);
@@ -52,15 +52,6 @@ namespace JFramework.Net
         /// <typeparam name="T"></typeparam>
         private static void OnEmptyEventByHost<T>(T message) where T : IEvent
         {
-        }
-
-        /// <summary>
-        /// 主机模式下销毁游戏对象
-        /// </summary>
-        /// <param name="event"></param>
-        private static void OnDestroyByHost(DestroyEvent @event)
-        {
-            spawns.Remove(@event.objectId);
         }
 
         /// <summary>

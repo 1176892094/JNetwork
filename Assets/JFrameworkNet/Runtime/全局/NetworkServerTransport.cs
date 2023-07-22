@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -59,6 +61,12 @@ namespace JFramework.Net
             if (clients.TryGetValue(clientId, out var client))
             {
                 OnServerDisconnect?.Invoke(client);
+                
+                foreach (var @object in client.observers.ToArray())
+                {
+                    Destroy(@object);
+                }
+
                 clients.Remove(clientId);
             }
         }

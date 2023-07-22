@@ -15,12 +15,7 @@ namespace JFramework.Net
         /// 消息发送率
         /// </summary>
         internal static float sendRate => Instance.tickRate < int.MaxValue ? 1f / Instance.tickRate : 0;
-        
-        /// <summary>
-        /// 预置体列表
-        /// </summary>
-        private static NetworkPrefab prefabData => NetworkPrefab.Instance;
-        
+
         /// <summary>
         /// 服务器场景
         /// </summary>
@@ -63,6 +58,12 @@ namespace JFramework.Net
             get => transport ? transport.port : NetworkConst.Port;
             set => transport.port = transport ? value : NetworkConst.Port;
         }
+        
+        /// <summary>
+        /// 预置体列表
+        /// </summary>
+        [FoldoutGroup("网络管理器"), ShowInInspector]
+        private static NetworkPrefab prefabData => NetworkPrefab.Instance;
 
         /// <summary>
         /// 网络运行模式

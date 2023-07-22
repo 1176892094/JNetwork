@@ -13,7 +13,7 @@ namespace JFramework.Net
         /// <summary>
         /// 观察的网络对象
         /// </summary>
-        [ShowInInspector]internal readonly HashSet<NetworkObject> observers = new HashSet<NetworkObject>();
+        [ShowInInspector] internal readonly HashSet<NetworkObject> observers = new HashSet<NetworkObject>();
 
         /// <summary>
         /// 网络消息读取
