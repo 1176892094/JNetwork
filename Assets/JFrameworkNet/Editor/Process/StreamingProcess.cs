@@ -65,33 +65,34 @@ namespace JFramework.Editor
         /// <param name="writers"></param>
         /// <param name="readers"></param>
         /// <returns></returns>
-        private static bool ProcessCustomCode(AssemblyDefinition CurrentAssembly, AssemblyDefinition assembly,Writers writers, Readers readers)
+        private static bool ProcessCustomCode(AssemblyDefinition CurrentAssembly, AssemblyDefinition assembly, Writers writers, Readers readers)
         {
-            bool modified = false;
+            bool changed = false;
             foreach (var definition in assembly.MainModule.Types.Where(definition => definition.IsAbstract && definition.IsSealed))
             {
-                modified |= LoadDeclaredWriters(CurrentAssembly, definition, writers);
-                modified |= LoadDeclaredReaders(CurrentAssembly, definition, readers);
+                changed |= LoadDeclaredWriters(CurrentAssembly, definition, writers);
+                changed |= LoadDeclaredReaders(CurrentAssembly, definition, readers);
             }
 
             foreach (TypeDefinition type in assembly.MainModule.Types)
             {
-                modified |= LoadStreamingMessage(CurrentAssembly.MainModule, writers, readers, type);
+                changed |= LoadStreamingMessage(CurrentAssembly.MainModule, writers, readers, type);
             }
-            return modified;
+
+            return changed;
         }
-        
+
         /// <summary>
         /// 加载声明的写入器
         /// </summary>
         /// <param name="currentAssembly"></param>
-        /// <param name="type"></param>
+        /// <param name="td"></param>
         /// <param name="writers"></param>
         /// <returns></returns>
-        private static bool LoadDeclaredWriters(AssemblyDefinition currentAssembly, TypeDefinition type, Writers writers)
+        private static bool LoadDeclaredWriters(AssemblyDefinition currentAssembly, TypeDefinition td, Writers writers)
         {
             bool modified = false;
-            foreach (MethodDefinition method in type.Methods)
+            foreach (MethodDefinition method in td.Methods)
             {
                 if (method.Parameters.Count != 2)
                     continue;
@@ -107,10 +108,11 @@ namespace JFramework.Editor
 
                 if (method.HasGenericParameters)
                     continue;
-                
+
                 writers.Register(method.Parameters[1].ParameterType, currentAssembly.MainModule.ImportReference(method));
                 modified = true;
             }
+
             return modified;
         }
 
@@ -118,13 +120,13 @@ namespace JFramework.Editor
         /// 加载声明的读取器
         /// </summary>
         /// <param name="currentAssembly"></param>
-        /// <param name="type"></param>
+        /// <param name="td"></param>
         /// <param name="readers"></param>
         /// <returns></returns>
-        private static bool LoadDeclaredReaders(AssemblyDefinition currentAssembly, TypeDefinition type, Readers readers)
+        private static bool LoadDeclaredReaders(AssemblyDefinition currentAssembly, TypeDefinition td, Readers readers)
         {
-            bool modified = false;
-            foreach (MethodDefinition method in type.Methods)
+            bool changed = false;
+            foreach (MethodDefinition method in td.Methods)
             {
                 if (method.Parameters.Count != 1)
                     continue;
@@ -142,9 +144,10 @@ namespace JFramework.Editor
                     continue;
 
                 readers.Register(method.ReturnType, currentAssembly.MainModule.ImportReference(method));
-                modified = true;
+                changed = true;
             }
-            return modified;
+
+            return changed;
         }
 
         /// <summary>

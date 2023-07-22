@@ -194,7 +194,7 @@ namespace JFramework.Editor
             ArrayType arrayType = new ArrayType(elementType);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Call, GetReadFunc(arrayType));
-            worker.Emit(OpCodes.Newobj, process.ArraySegmentConstructorReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
+            worker.Emit(OpCodes.Newobj, process.ArraySegmentReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
             worker.Emit(OpCodes.Ret);
             return readerFunc;
         }

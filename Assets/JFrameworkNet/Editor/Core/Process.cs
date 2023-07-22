@@ -26,7 +26,7 @@ namespace JFramework.Editor
         /// <summary>
         /// Rpc委托的构造函数
         /// </summary>
-        public readonly MethodReference RpcDelegateConstructor;
+        public readonly MethodReference RpcDelegateRef;
 
         /// <summary>
         /// 日志出现错误
@@ -36,17 +36,17 @@ namespace JFramework.Editor
         /// <summary>
         /// 获取NetworkClient.isActive
         /// </summary>
-        public readonly MethodReference NetworkClientGetActive;
+        public readonly MethodReference NetworkClientActiveRef;
         
         /// <summary>
         /// 获取NetworkServer.isActive
         /// </summary>
-        public readonly MethodReference NetworkServerGetActive;
+        public readonly MethodReference NetworkServerActiveRef;
         
         /// <summary>
         /// 对ArraySegment的构造函数的注入
         /// </summary>
-        public readonly MethodReference ArraySegmentConstructorReference;
+        public readonly MethodReference ArraySegmentReference;
         
         /// <summary>
         /// 创建SO方法
@@ -131,12 +131,12 @@ namespace JFramework.Editor
         /// <summary>
         /// NetworkUtilsRpc.RegisterServerRpc
         /// </summary>
-        public readonly MethodReference registerServerRpcReference;
+        public readonly MethodReference registerServerRpcRef;
         
         /// <summary>
         /// NetworkUtilsRpc.RegisterClientRpc
         /// </summary>
-        public readonly MethodReference registerClientRpcReference;
+        public readonly MethodReference registerClientRpcRef;
         
         /// <summary>
         /// NetworkWriter.Pop
@@ -170,16 +170,16 @@ namespace JFramework.Editor
         {
             this.assembly = assembly;
 
-            TypeReference ArraySegmentType = Import(typeof(ArraySegment<>));
-            ArraySegmentConstructorReference = Utils.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CTOR);
+            TypeReference HookMethodType = Import(typeof(Action<,>));
+            HookMethodReference = Utils.ResolveMethod(HookMethodType, assembly, logger, ".ctor");
             
-            TypeReference ActionType = Import(typeof(Action<,>));
-            HookMethodReference = Utils.ResolveMethod(ActionType, assembly, logger, ".ctor");
+            TypeReference ArraySegmentType = Import(typeof(ArraySegment<>));
+            ArraySegmentReference = Utils.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CTOR);
             
             TypeReference NetworkClientType = Import(typeof(NetworkClient));
-            NetworkClientGetActive = Utils.ResolveMethod(NetworkClientType, assembly, logger, "get_isActive");
+            NetworkClientActiveRef = Utils.ResolveMethod(NetworkClientType, assembly, logger, "get_isActive");
             TypeReference NetworkServerType = Import(typeof(NetworkServer));
-            NetworkServerGetActive = Utils.ResolveMethod(NetworkServerType, assembly, logger, "get_isActive");
+            NetworkServerActiveRef = Utils.ResolveMethod(NetworkServerType, assembly, logger, "get_isActive");
             
             TypeReference readerExtensions = Import(typeof(StreamExtensions));
             readNetworkBehaviourGeneric = Utils.ResolveMethod(readerExtensions, assembly, logger, method => method.Name == nameof(StreamExtensions.ReadNetworkBehaviour) && method.HasGenericParameters);
@@ -206,16 +206,15 @@ namespace JFramework.Editor
             sendTargetRpcInternal = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SendTargetRpcInternal");
 
             TypeReference RegisterRpcType = Import(typeof(NetworkRpc));
-            registerServerRpcReference = Utils.ResolveMethod(RegisterRpcType, assembly, logger, "RegisterServerRpc");
-            registerClientRpcReference = Utils.ResolveMethod(RegisterRpcType, assembly, logger, "RegisterClientRpc");
+            registerServerRpcRef = Utils.ResolveMethod(RegisterRpcType, assembly, logger, "RegisterServerRpc");
+            registerClientRpcRef = Utils.ResolveMethod(RegisterRpcType, assembly, logger, "RegisterClientRpc");
             
-            TypeReference RemoteCallDelegateType = Import<RpcDelegate>();
-            RpcDelegateConstructor = Utils.ResolveMethod(RemoteCallDelegateType, assembly, logger, ".ctor");
+            TypeReference RpcDelegateType = Import<RpcDelegate>();
+            RpcDelegateRef = Utils.ResolveMethod(RpcDelegateType, assembly, logger, ".ctor");
             
             TypeReference ScriptableObjectType = Import<ScriptableObject>();
             ScriptableObjectCreateInstanceMethod = Utils.ResolveMethod(ScriptableObjectType, assembly, logger, method => method.Name == "CreateInstance" && method.HasGenericParameters);
 
-            
             TypeReference DebugType = Import(typeof(Debug));
             logErrorReference = Utils.ResolveMethod(DebugType, assembly, logger, method => method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName);
            

@@ -18,4 +18,20 @@ namespace JFramework.Editor
 
         public int GetHashCode(TypeReference obj) => obj.FullName.GetHashCode();
     }
+    
+    public static class SyncVarUtils
+    {
+        private static readonly Dictionary<string, int> syncVars = new Dictionary<string, int>();
+        public static readonly Dictionary<FieldDefinition, MethodDefinition> setter = new Dictionary<FieldDefinition, MethodDefinition>();
+        public static readonly Dictionary<FieldDefinition, MethodDefinition> getter = new Dictionary<FieldDefinition, MethodDefinition>();
+        public static int GetSyncVar(string className) => syncVars.TryGetValue(className, out int value) ? value : 0;
+        public static void SetSyncVar(string className, int index) => syncVars[className] = index;
+
+        public static void Clear()
+        {
+            setter.Clear();
+            getter.Clear();
+            syncVars.Clear();
+        }
+    }
 }

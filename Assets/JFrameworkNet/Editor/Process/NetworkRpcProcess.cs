@@ -51,7 +51,7 @@ namespace JFramework.Editor
         /// <returns></returns>
         public static MethodDefinition ProcessClientRpcInvoke(Process process, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute attribute)
         {
-            MethodDefinition rpc = TemplateMethod(logger, td, md);
+            MethodDefinition rpc = BaseRpcMethod(logger, td, md);
             ILProcessor worker = md.Body.GetILProcessor();
             NetworkBehaviourProcess.WriteSetupLocals(worker, process);
             NetworkBehaviourProcess.WriteGetWriter(worker, process);
@@ -118,7 +118,7 @@ namespace JFramework.Editor
         /// <returns></returns>
         public static MethodDefinition ProcessServerRpcInvoke(Process process, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute commandAttr)
         {
-            MethodDefinition rpc = TemplateMethod(logger, td, md);
+            MethodDefinition rpc = BaseRpcMethod(logger, td, md);
             ILProcessor worker = md.Body.GetILProcessor();
             NetworkBehaviourProcess.WriteSetupLocals(worker, process);
             NetworkBehaviourProcess.WriteGetWriter(worker, process);
@@ -206,7 +206,7 @@ namespace JFramework.Editor
         /// <returns></returns>
         public static MethodDefinition ProcessTargetRpcInvoke(Process process, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute attr)
         {
-            MethodDefinition rpc = TemplateMethod(logger, td, md);
+            MethodDefinition rpc = BaseRpcMethod(logger, td, md);
             ILProcessor worker = md.Body.GetILProcessor();
             NetworkBehaviourProcess.WriteSetupLocals(worker, process);
             NetworkBehaviourProcess.WriteGetWriter(worker, process);
@@ -362,7 +362,7 @@ namespace JFramework.Editor
         /// <param name="error"></param>
         private static void NetworkClientActive(ILProcessor worker, Process process, string mdName, Instruction label, string error)
         {
-            worker.Emit(OpCodes.Call, process.NetworkClientGetActive);
+            worker.Emit(OpCodes.Call, process.NetworkClientActiveRef);
             worker.Emit(OpCodes.Brtrue, label);
             worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是客户端不是活跃的。");
             worker.Emit(OpCodes.Call, process.logErrorReference);
@@ -380,7 +380,7 @@ namespace JFramework.Editor
         /// <param name="error"></param>
         private static void NetworkServerActive(ILProcessor worker, Process process, string mdName, Instruction label, string error)
         {
-            worker.Emit(OpCodes.Call, process.NetworkServerGetActive);
+            worker.Emit(OpCodes.Call, process.NetworkServerActiveRef);
             worker.Emit(OpCodes.Brtrue, label);
 
             worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是服务器不是活跃的。");

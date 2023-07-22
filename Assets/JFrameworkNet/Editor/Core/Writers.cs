@@ -26,109 +26,109 @@ namespace JFramework.Editor
             this.logger = logger;
         }
 
-        public void Register(TypeReference dataType, MethodReference methodReference)
+        public void Register(TypeReference dataType, MethodReference md)
         {
             TypeReference imported = assembly.MainModule.ImportReference(dataType);
-            writeFuncList[imported] = methodReference;
+            writeFuncList[imported] = md;
         }
 
-        private void RegisterWriteFunc(TypeReference typeReference, MethodDefinition newWriterFunc)
+        private void RegisterWriteFunc(TypeReference tr, MethodDefinition func)
         {
-            Register(typeReference, newWriterFunc);
-            generate.Methods.Add(newWriterFunc);
+            Register(tr, func);
+            generate.Methods.Add(func);
         }
         
         public MethodReference GetWriteFunc(TypeReference variable)
         {
-            if (writeFuncList.TryGetValue(variable, out MethodReference foundFunc))
+            if (writeFuncList.TryGetValue(variable, out MethodReference func))
             {
-                return foundFunc;
+                return func;
             }
             
             TypeReference importedVariable = assembly.MainModule.ImportReference(variable);
             return GenerateWriter(importedVariable);
         }
 
-        private MethodReference GenerateWriter(TypeReference variableReference)
+        private MethodReference GenerateWriter(TypeReference variableRef)
         {
-            if (variableReference.IsArray)
+            if (variableRef.IsArray)
             {
-                if (variableReference.IsMultidimensionalArray())
+                if (variableRef.IsMultidimensionalArray())
                 {
-                    logger.Error($"无法为多维数组 {variableReference.Name} 生成 Writer", variableReference);
+                    logger.Error($"无法为多维数组 {variableRef.Name} 生成 Writer", variableRef);
                 }
-                TypeReference elementType = variableReference.GetElementType();
-                return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteArray));
+                TypeReference elementType = variableRef.GetElementType();
+                return GenerateCollectionWriter(variableRef, elementType, nameof(StreamExtensions.WriteArray));
             }
             
-            if (variableReference.IsByReference)
+            if (variableRef.IsByReference)
             {
-                logger.Error($"无法为反射 {variableReference.Name} 生成 Writer", variableReference);
+                logger.Error($"无法为反射 {variableRef.Name} 生成 Writer", variableRef);
             }
 
-            if (variableReference.Resolve()?.IsEnum ?? false)
+            if (variableRef.Resolve()?.IsEnum ?? false)
             {
-                return GenerateEnumWriteFunc(variableReference);
+                return GenerateEnumWriteFunc(variableRef);
             }
             
-            if (variableReference.Is(typeof(ArraySegment<>)))
+            if (variableRef.Is(typeof(ArraySegment<>)))
             {
-                GenericInstanceType genericInstance = (GenericInstanceType)variableReference;
+                GenericInstanceType genericInstance = (GenericInstanceType)variableRef;
                 TypeReference elementType = genericInstance.GenericArguments[0];
 
-                return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteArraySegment));
+                return GenerateCollectionWriter(variableRef, elementType, nameof(StreamExtensions.WriteArraySegment));
             }
-            if (variableReference.Is(typeof(List<>)))
+            if (variableRef.Is(typeof(List<>)))
             {
-                GenericInstanceType genericInstance = (GenericInstanceType)variableReference;
+                GenericInstanceType genericInstance = (GenericInstanceType)variableRef;
                 TypeReference elementType = genericInstance.GenericArguments[0];
 
-                return GenerateCollectionWriter(variableReference, elementType, nameof(StreamExtensions.WriteList));
+                return GenerateCollectionWriter(variableRef, elementType, nameof(StreamExtensions.WriteList));
             }
             
-            if (variableReference.IsDerivedFrom<NetworkBehaviour>() || variableReference.Is<NetworkBehaviour>())
+            if (variableRef.IsDerivedFrom<NetworkBehaviour>() || variableRef.Is<NetworkBehaviour>())
             {
-                return GetNetworkBehaviourWriter(variableReference);
+                return GetNetworkBehaviourWriter(variableRef);
             }
             
-            TypeDefinition variableDefinition = variableReference.Resolve();
+            TypeDefinition variableDefinition = variableRef.Resolve();
             if (variableDefinition == null)
             {
-                logger.Error($"无法为Null {variableReference.Name} 生成 Writer", variableReference);
+                logger.Error($"无法为Null {variableRef.Name} 生成 Writer", variableRef);
                 return null;
             }
             if (variableDefinition.IsDerivedFrom<Component>())
             {
-                logger.Error($"无法为组件 {variableReference.Name} 生成 Writer", variableReference);
+                logger.Error($"无法为组件 {variableRef.Name} 生成 Writer", variableRef);
                 return null;
             }
-            if (variableReference.Is<Object>())
+            if (variableRef.Is<Object>())
             {
-                logger.Error($"无法为对象 {variableReference.Name} 生成 Writer", variableReference);
+                logger.Error($"无法为对象 {variableRef.Name} 生成 Writer", variableRef);
                 return null;
             }
-            if (variableReference.Is<ScriptableObject>())
+            if (variableRef.Is<ScriptableObject>())
             {
-                logger.Error($"无法为可视化脚本 {variableReference.Name} 生成 Writer", variableReference);
+                logger.Error($"无法为可视化脚本 {variableRef.Name} 生成 Writer", variableRef);
                 return null;
             }
             if (variableDefinition.HasGenericParameters)
             {
-                logger.Error($"无法为通用变量 {variableReference.Name} 生成 Writer", variableReference);
+                logger.Error($"无法为通用变量 {variableRef.Name} 生成 Writer", variableRef);
                 return null;
             }
             if (variableDefinition.IsInterface)
             {
-                logger.Error($"无法为接口 {variableReference.Name} 生成 Writer", variableReference);
+                logger.Error($"无法为接口 {variableRef.Name} 生成 Writer", variableRef);
                 return null;
             }
             if (variableDefinition.IsAbstract)
             {
-                logger.Error($"无法为抽象类 {variableReference.Name} 生成 Writer", variableReference);
+                logger.Error($"无法为抽象类 {variableRef.Name} 生成 Writer", variableRef);
                 return null;
             }
             
-            return GenerateClassOrStructWriterFunction(variableReference);
+            return GenerateClassOrStructWriterFunction(variableRef);
         }
 
         private MethodReference GetNetworkBehaviourWriter(TypeReference variableReference)

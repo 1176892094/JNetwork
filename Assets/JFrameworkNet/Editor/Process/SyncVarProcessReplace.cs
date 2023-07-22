@@ -1,32 +1,14 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
 namespace JFramework.Editor
 {
-    public static class SyncVarUtils
-    {
-        private static readonly Dictionary<string, int> syncVars = new Dictionary<string, int>();
-        public static readonly Dictionary<FieldDefinition, MethodDefinition> setter = new Dictionary<FieldDefinition, MethodDefinition>();
-        public static readonly Dictionary<FieldDefinition, MethodDefinition> getter = new Dictionary<FieldDefinition, MethodDefinition>();
-        public static int GetSyncVar(string className) => syncVars.TryGetValue(className, out int value) ? value : 0;
-        public static void SetSyncVar(string className, int index) => syncVars[className] = index;
-
-        public static void Clear()
-        {
-            setter.Clear();
-            getter.Clear();
-            syncVars.Clear();
-        }
-    }
-    
     public static class SyncVarProcessReplace
     {
-        public static void Process(ModuleDefinition moduleDef)
+        public static void Process(ModuleDefinition md)
         {
-            foreach (var td in moduleDef.Types.Where(td => td.IsClass))
+            foreach (var td in md.Types.Where(td => td.IsClass))
             {
                 ProcessClass(td);
             }
@@ -62,26 +44,26 @@ namespace JFramework.Editor
                 for (int i = 0; i < md.Body.Instructions.Count;)
                 {
                     Instruction instr = md.Body.Instructions[i];
-                    i += ProcessInstruction( md, instr, i);
+                    i += ProcessInstruction(md, instr, i);
                 }
             }
         }
 
-        private static int ProcessInstruction(MethodDefinition md, Instruction instr, int iCount)
+        private static int ProcessInstruction(MethodDefinition md, Instruction instr, int index)
         {
-            if (instr.OpCode == OpCodes.Stfld && instr.Operand is FieldDefinition opFieldSt)
+            if (instr.OpCode == OpCodes.Stfld && instr.Operand is FieldDefinition OpStfLd)
             {
-                ProcessSetInstruction(md, instr, opFieldSt);
+                ProcessSetInstruction(md, instr, OpStfLd);
             }
             
-            if (instr.OpCode == OpCodes.Ldfld && instr.Operand is FieldDefinition opFieldLd)
+            if (instr.OpCode == OpCodes.Ldfld && instr.Operand is FieldDefinition OpLdfLd)
             {
-                ProcessGetInstruction(md, instr, opFieldLd);
+                ProcessGetInstruction(md, instr, OpLdfLd);
             }
             
-            if (instr.OpCode == OpCodes.Ldflda && instr.Operand is FieldDefinition opFieldLa)
+            if (instr.OpCode == OpCodes.Ldflda && instr.Operand is FieldDefinition OpLdfLda)
             {
-                return ProcessLoadAddressInstruction( md, instr, opFieldLa, iCount);
+                return ProcessLoadAddressInstruction( md, instr, OpLdfLda, index);
             }
             
             return 1;
@@ -109,13 +91,13 @@ namespace JFramework.Editor
             }
         }
 
-        private static int ProcessLoadAddressInstruction(MethodDefinition md, Instruction instr, FieldDefinition opField, int iCount)
+        private static int ProcessLoadAddressInstruction(MethodDefinition md, Instruction instr, FieldDefinition opField, int index)
         {
             if (md.Name == ".ctor") return 1;
             
             if (SyncVarUtils.setter.TryGetValue(opField, out MethodDefinition replacement))
             {
-                Instruction nextInstr = md.Body.Instructions[iCount + 1];
+                Instruction nextInstr = md.Body.Instructions[index + 1];
 
                 if (nextInstr.OpCode == OpCodes.Initobj)
                 {

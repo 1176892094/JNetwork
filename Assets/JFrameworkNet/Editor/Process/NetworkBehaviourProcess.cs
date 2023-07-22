@@ -60,7 +60,7 @@ namespace JFramework.Editor
             
             (syncVars, syncVarNetIds) = syncVarProcess.ProcessSyncVars(type);
            
-            ProcessMethods();
+            ProcessRpcMethods();
             
             if (Command.failed)
             {

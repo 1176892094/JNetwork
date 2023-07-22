@@ -6,7 +6,10 @@ namespace JFramework.Editor
 {
     internal partial class NetworkBehaviourProcess
     {
-        private void ProcessMethods()
+        /// <summary>
+        /// 处理Rpc方法
+        /// </summary>
+        private void ProcessRpcMethods()
         {
             HashSet<string> names = new HashSet<string>();
             List<MethodDefinition> methods = new List<MethodDefinition>(generateCode.Methods);
@@ -36,6 +39,12 @@ namespace JFramework.Editor
             }
         }
         
+        /// <summary>
+        /// 处理ClientRpc
+        /// </summary>
+        /// <param name="names"></param>
+        /// <param name="md"></param>
+        /// <param name="rpc"></param>
         private void ProcessClientRpc(HashSet<string> names, MethodDefinition md, CustomAttribute rpc)
         {
             if (md.IsAbstract)
@@ -62,6 +71,12 @@ namespace JFramework.Editor
             }
         }
         
+        /// <summary>
+        /// 处理SerevrRpc
+        /// </summary>
+        /// <param name="names"></param>
+        /// <param name="md"></param>
+        /// <param name="rpc"></param>
         private void ProcessServerRpc(HashSet<string> names, MethodDefinition md, CustomAttribute rpc)
         {
             if (md.IsAbstract)
@@ -87,6 +102,12 @@ namespace JFramework.Editor
             }
         }
         
+        /// <summary>
+        /// 处理TargetRpc
+        /// </summary>
+        /// <param name="names"></param>
+        /// <param name="md"></param>
+        /// <param name="rpc"></param>
         private void ProcessTargetRpc(HashSet<string> names, MethodDefinition md, CustomAttribute rpc)
         {
             if (md.IsAbstract)
@@ -111,6 +132,12 @@ namespace JFramework.Editor
             }
         }
 
+        /// <summary>
+        /// 判断是否为非静态方法
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="rpcType"></param>
+        /// <returns></returns>
         private bool IsValidMethod(MethodDefinition method, RpcType rpcType)
         {
             if (method.IsStatic)
@@ -123,6 +150,11 @@ namespace JFramework.Editor
             return IsValidFunc(method) && IsValidParams(method, rpcType);
         }
 
+        /// <summary>
+        /// 判断是否为有效Rpc
+        /// </summary>
+        /// <param name="md"></param>
+        /// <returns></returns>
         private bool IsValidFunc(MethodReference md)
         {
             if (!md.ReturnType.Is(typeof(void)))
@@ -141,6 +173,12 @@ namespace JFramework.Editor
             return true;
         }
 
+        /// <summary>
+        /// 判断Rpc携带的参数
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="rpcType"></param>
+        /// <returns></returns>
         private bool IsValidParams(MethodReference method, RpcType rpcType)
         {
             for (int i = 0; i < method.Parameters.Count; ++i)
@@ -154,6 +192,14 @@ namespace JFramework.Editor
             return true;
         }
         
+        /// <summary>
+        /// 判断Rpc是否为有效参数
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="param"></param>
+        /// <param name="rpcType"></param>
+        /// <param name="firstParam"></param>
+        /// <returns></returns>
         private bool IsValidParam(MethodReference method, ParameterDefinition param, RpcType rpcType, bool firstParam)
         {
             if (param.ParameterType.IsGenericParameter)

@@ -43,16 +43,16 @@ namespace JFramework.Editor
             {
                 return null;
             }
-            foreach (MethodDefinition methodDef in tr.Resolve().Methods)
+            foreach (var md in tr.Resolve().Methods)
             {
-                if (methodDef.Name == name)
+                if (md.Name == name)
                 {
-                    MethodReference methodRef = methodDef;
+                    MethodReference mr = md;
                     if (tr.IsGenericInstance)
                     {
-                        methodRef = methodRef.MakeHostInstanceGeneric(tr.Module, (GenericInstanceType)tr);
+                        mr = mr.MakeHostInstanceGeneric(tr.Module, (GenericInstanceType)tr);
                     }
-                    return assembly.MainModule.ImportReference(methodRef);
+                    return assembly.MainModule.ImportReference(mr);
                 }
             }
             
@@ -61,26 +61,12 @@ namespace JFramework.Editor
         
         public static MethodDefinition ResolveDefaultPublicCtor(TypeReference variable)
         {
-            foreach (MethodDefinition methodRef in variable.Resolve().Methods)
-            {
-                if (methodRef.Name == CONST.CTOR && methodRef.Resolve().IsPublic && methodRef.Parameters.Count == 0)
-                {
-                    return methodRef;
-                }
-            }
-            return null;
+            return variable.Resolve().Methods.FirstOrDefault(md => md.Name == CONST.CTOR && md.Resolve().IsPublic && md.Parameters.Count == 0);
         }
 
         public static MethodReference ResolveProperty(TypeReference tr, AssemblyDefinition assembly, string name)
         {
-            foreach (PropertyDefinition pd in tr.Resolve().Properties)
-            {
-                if (pd.Name == name)
-                {
-                    return assembly.MainModule.ImportReference(pd.GetMethod);
-                }
-            }
-            return null;
+            return (from pd in tr.Resolve().Properties where pd.Name == name select assembly.MainModule.ImportReference(pd.GetMethod)).FirstOrDefault();
         }
     }
 }

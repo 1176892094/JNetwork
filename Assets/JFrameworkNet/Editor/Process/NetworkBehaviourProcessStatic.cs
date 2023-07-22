@@ -28,18 +28,18 @@ namespace JFramework.Editor
             for (int i = 0; i < serverRpcList.Count; ++i)
             {
                 ServerRpcResult cmdResult = serverRpcList[i];
-                GenerateRegisterServerRpcDelegate(cctorWorker, process.registerServerRpcReference, serverRpcFuncList[i], cmdResult);
+                GenerateRegisterServerRpcDelegate(cctorWorker, process.registerServerRpcRef, serverRpcFuncList[i], cmdResult);
             }
             
             for (int i = 0; i < clientRpcList.Count; ++i)
             {
                 ClientRpcResult clientRpcResult = clientRpcList[i];
-                GenerateRegisterClientRpcDelegate(cctorWorker, process.registerClientRpcReference, clientRpcFuncList[i], clientRpcResult.method.FullName);
+                GenerateRegisterClientRpcDelegate(cctorWorker, process.registerClientRpcRef, clientRpcFuncList[i], clientRpcResult.method.FullName);
             }
             
             for (int i = 0; i < targetRpcList.Count; ++i)
             {
-                GenerateRegisterClientRpcDelegate(cctorWorker, process.registerClientRpcReference, targetRpcFuncList[i], targetRpcList[i].FullName);
+                GenerateRegisterClientRpcDelegate(cctorWorker, process.registerClientRpcRef, targetRpcFuncList[i], targetRpcList[i].FullName);
             }
             
             cctorWorker.Append(cctorWorker.Create(OpCodes.Ret));
@@ -75,7 +75,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldstr, functionFullName);
             worker.Emit(OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldftn, func);
-            worker.Emit(OpCodes.Newobj, process.RpcDelegateConstructor);
+            worker.Emit(OpCodes.Newobj, process.RpcDelegateRef);
             worker.Emit(OpCodes.Call, registerMethod);
         }
 
@@ -88,7 +88,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldstr, cmdName);
             worker.Emit(OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldftn, func);
-            worker.Emit(OpCodes.Newobj, process.RpcDelegateConstructor);
+            worker.Emit(OpCodes.Newobj, process.RpcDelegateRef);
             worker.Emit(OpCodes.Call, registerMethod);
         }
     }

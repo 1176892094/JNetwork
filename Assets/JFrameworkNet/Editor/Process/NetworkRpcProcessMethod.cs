@@ -5,7 +5,7 @@ namespace JFramework.Editor
 {
     internal static partial class NetworkRpcProcess
     {
-        private static MethodDefinition TemplateMethod(Logger logger, TypeDefinition td, MethodDefinition md)
+        private static MethodDefinition BaseRpcMethod(Logger logger, TypeDefinition td, MethodDefinition md)
         {
             string newName = Command.GenerateMethodName(CONST.RPC_METHOD, md);
             var rpc = new MethodDefinition(newName, md.Attributes, md.ReturnType)
@@ -39,7 +39,7 @@ namespace JFramework.Editor
             return rpc;
         }
 
-        private static void FixBaseRpcMethod(Logger logger, TypeDefinition type, MethodDefinition md)
+        private static void FixBaseRpcMethod(Logger logger, TypeDefinition td, MethodDefinition md)
         {
             string methodName = md.Name;
             if (!methodName.StartsWith(CONST.RPC_METHOD)) return;
@@ -52,7 +52,7 @@ namespace JFramework.Editor
                     string methodNameGenerated = Command.GenerateMethodName("", method);
                     if (methodNameGenerated == baseRemoteCallName)
                     {
-                        TypeDefinition baseType = type.BaseType.Resolve();
+                        TypeDefinition baseType = td.BaseType.Resolve();
                         MethodDefinition baseMethod = baseType.GetMethodInBaseType(methodName);
 
                         if (baseMethod == null)
@@ -75,15 +75,15 @@ namespace JFramework.Editor
             }
         }
         
-        private static bool IsInvokeToMethod(Instruction instruction, out MethodDefinition invokeMethod)
+        private static bool IsInvokeToMethod(Instruction instr, out MethodDefinition md)
         {
-            if (instruction.OpCode == OpCodes.Call && instruction.Operand is MethodDefinition method)
+            if (instr.OpCode == OpCodes.Call && instr.Operand is MethodDefinition method)
             {
-                invokeMethod = method;
+                md = method;
                 return true;
             }
 
-            invokeMethod = null;
+            md = null;
             return false;
         }
     }
