@@ -10,20 +10,20 @@ namespace JFramework.Net
     public class NetworkPrefab : ScriptableObject
     {
         /// <summary>
-        /// 单例自身
-        /// </summary>
-        private static NetworkPrefab instance;
-
-        /// <summary>
         /// 预置体列表
         /// </summary>
         [SerializeField] internal List<GameObject> prefabs = new List<GameObject>();
 
 #if UNITY_EDITOR
         /// <summary>
+        /// 单例自身
+        /// </summary>
+        private static NetworkPrefab instance;
+        
+        /// <summary>
         /// 获取创建或寻找单例
         /// </summary>
-        public static NetworkPrefab Instance
+        private static NetworkPrefab Instance
         {
             get
             {
@@ -63,7 +63,7 @@ namespace JFramework.Net
                     prefabs.Add(prefab);
                 }
             }
-#endif
         }
+#endif
     }
 }

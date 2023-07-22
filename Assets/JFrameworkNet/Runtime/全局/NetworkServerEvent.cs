@@ -70,7 +70,7 @@ namespace JFramework.Net
                 if (@object.client == client)
                 {
                     using var reader = NetworkReader.Pop(@event.segment);
-                    if (!@object.ServerDespawn(reader))
+                    if (!@object.ServerDeserialize(reader))
                     {
                         Debug.LogWarning($"无法反序列化对象：{@object.name}。对象Id：{@object.objectId}");
                         client.Disconnect();

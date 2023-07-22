@@ -57,10 +57,10 @@ namespace JFramework.Net
         {
             if (!connection.isReady) return;
             if (NetworkServer.isActive) return;
-            foreach (var @object in owners)
+            foreach (var @object in spawns.Values)
             {
                 using var writer = NetworkWriter.Pop();
-                @object.ClientSpawn(writer);
+                @object.ClientSerialize(writer);
                 if (writer.position > 0)
                 {
                     Send(new EntityEvent(@object.objectId, writer.ToArraySegment()));

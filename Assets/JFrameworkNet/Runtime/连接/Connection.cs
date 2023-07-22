@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using JFramework.Interface;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -19,7 +20,7 @@ namespace JFramework.Net
         /// <summary>
         /// 是否准备好可以接收信息
         /// </summary>
-        internal bool isReady;
+        [ShowInInspector] internal bool isReady;
 
         /// <summary>
         /// 远端时间戳

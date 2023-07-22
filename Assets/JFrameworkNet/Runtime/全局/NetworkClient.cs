@@ -28,11 +28,6 @@ namespace JFramework.Net
         internal static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
 
         /// <summary>
-        /// 拥有权限的网络对象
-        /// </summary>
-        internal static readonly HashSet<NetworkObject> owners = new HashSet<NetworkObject>();
-
-        /// <summary>
         /// 连接到的服务器
         /// </summary>
         public static ServerEntity connection;

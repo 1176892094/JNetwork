@@ -126,7 +126,7 @@ namespace JFramework.Net
         private static ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observer)
         {
             if (@object.entities.Length == 0) return default;
-            @object.ServerSpawn(true, owner, observer);
+            @object.ServerSerialize(true, owner, observer);
             return isOwner ? owner.ToArraySegment() : observer.ToArraySegment();
         }
 
@@ -145,7 +145,6 @@ namespace JFramework.Net
                 @object.OnStopClient();
                 @object.OnNotifyAuthority();
                 NetworkClient.spawns.Remove(@object.objectId);
-                NetworkClient.owners.Remove(@object);
             }
 
             @object.OnStopServer();
@@ -172,7 +171,6 @@ namespace JFramework.Net
                 @object.OnStopClient();
                 @object.OnNotifyAuthority();
                 NetworkClient.spawns.Remove(@object.objectId);
-                NetworkClient.owners.Remove(@object);
             }
             
             @object.OnStopServer();

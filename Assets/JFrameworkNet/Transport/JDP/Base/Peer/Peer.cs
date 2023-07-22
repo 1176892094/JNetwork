@@ -88,7 +88,6 @@ namespace JFramework.Udp
             }
             
             int sent = jdp.Send(jdpSendBuffer, 0, segment.Count + 1);
-            Log.Info("P2P发送消息类型：" + header);
             if (sent < 0)
             {
                 Log.Error($"P2P发送可靠消息失败。消息大小：{segment.Count}。消息类型：{sent}");
@@ -159,7 +158,6 @@ namespace JFramework.Udp
             header = (Header)messageBuffer[0];
             segment = new ArraySegment<byte>(messageBuffer, 1, messageSize - 1);
             lastReceiveTime = (uint)watch.ElapsedMilliseconds;
-            Log.Info("P2P接收消息成功: " + header);
             return true;
         }
 

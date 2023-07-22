@@ -172,14 +172,10 @@ namespace JFramework.Net
             if (@event.segment.Count > 0)
             {
                 using var reader = NetworkReader.Pop(@event.segment);
-                @object.ClientDespawn(reader, true);
+                @object.ClientDeserialize(reader, true);
             }
             
             spawns[@event.objectId] = @object;
-            if (@event.isOwner)
-            {
-                owners.Add(@object);
-            }
             if (isSpawn)
             {
                 @object.OnNotifyAuthority();
@@ -217,7 +213,7 @@ namespace JFramework.Net
                 foreach (var @object in spawns.Values.Where(@object => @object != null && @object.gameObject != null))
                 {
                     @object.OnStopClient();
-                    if (NetworkManager.mode is NetworkMode.Host or NetworkMode.Client)
+                    if (NetworkManager.mode is NetworkMode.Client)
                     {
                         if (@object.sceneId != 0)
                         {
@@ -238,7 +234,6 @@ namespace JFramework.Net
             finally
             {
                 spawns.Clear();
-                owners.Clear();
             }
         }
     }

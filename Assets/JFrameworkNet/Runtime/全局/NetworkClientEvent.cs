@@ -53,7 +53,7 @@ namespace JFramework.Net
         private static void OnEmptyEventByHost<T>(T message) where T : IEvent
         {
         }
-
+        
         /// <summary>
         /// 主机模式下生成物体的事件
         /// </summary>
@@ -63,10 +63,6 @@ namespace JFramework.Net
             if (NetworkServer.spawns.TryGetValue(@event.objectId, out var @object))
             {
                 spawns[@event.objectId] = @object;
-                if (@event.isOwner)
-                {
-                    owners.Add(@object);
-                }
                 @object.isOwner = @event.isOwner;
                 @object.isClient = true;
                 @object.OnNotifyAuthority();
@@ -86,10 +82,6 @@ namespace JFramework.Net
                 @object.gameObject.SetActive(false);
                 @object.Reset();
                 spawns.Remove(@event.objectId);
-                if (@object.isOwner)
-                {
-                    owners.Remove(@object);
-                }
             }
         }
 
@@ -104,10 +96,6 @@ namespace JFramework.Net
                 @object.OnStopClient();
                 Object.Destroy(@object.gameObject);
                 spawns.Remove(@event.objectId);
-                if (@object.isOwner)
-                {
-                    owners.Remove(@object);
-                }
             }
         }
 
@@ -171,11 +159,11 @@ namespace JFramework.Net
             if (spawns.TryGetValue(@event.objectId, out var @object) && @object != null)
             {
                 using var reader = NetworkReader.Pop(@event.segment);
-                @object.ClientDespawn(reader, false);
+                @object.ClientDeserialize(reader, false);
             }
             else
             {
-                Debug.LogWarning($"没有为 {@event.objectId} 的同步消息找到目。");
+                Debug.LogWarning($"没有为 {@event.objectId} 的同步消息找到目标。");
             }
         }
 

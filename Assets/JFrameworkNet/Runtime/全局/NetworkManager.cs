@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -26,6 +27,12 @@ namespace JFramework.Net
         /// </summary>
         [FoldoutGroup("网络管理器"), SerializeField]
         private Transport transport;
+        
+        /// <summary>
+        /// 预置体列表
+        /// </summary>
+        [FoldoutGroup("网络管理器"), SerializeField]
+        private NetworkPrefab prefabData;
 
         /// <summary>
         /// 心跳传输率
@@ -58,12 +65,6 @@ namespace JFramework.Net
             get => transport ? transport.port : NetworkConst.Port;
             set => transport.port = transport ? value : NetworkConst.Port;
         }
-        
-        /// <summary>
-        /// 预置体列表
-        /// </summary>
-        [FoldoutGroup("网络管理器"), ShowInInspector]
-        private static NetworkPrefab prefabData => NetworkPrefab.Instance;
 
         /// <summary>
         /// 网络运行模式
@@ -183,6 +184,10 @@ namespace JFramework.Net
             if (mode == NetworkMode.Host)
             {
                 NetworkServer.clients.Remove(NetworkServer.connection.clientId);
+                foreach (var @object in NetworkServer.connection.observers.ToArray())
+                {
+                    NetworkServer.Destroy(@object);
+                }
                 NetworkServer.connection = null;
             }
 

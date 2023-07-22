@@ -369,6 +369,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   transport: {fileID: 890354966}
+  prefabData: {fileID: 11400000, guid: 4f9fa20c2c45c440490fbb1beb5e328d, type: 2}
   tickRate: 30
   maxConnection: 100
 --- !u!1 &1805832351

@@ -8,9 +8,9 @@ namespace JFramework.Net
     public sealed partial class NetworkManager
     {
 #if UNITY_EDITOR
-        [FoldoutGroup("服务器设置"), ShowInInspector]
-        private ClientEntity serverConnection => NetworkServer.connection;
-
+        // [FoldoutGroup("服务器设置"), ShowInInspector]
+        // private ClientEntity serverConnection => NetworkServer.connection;
+        //
         // [FoldoutGroup("服务器设置"), ShowInInspector]
         // private Dictionary<ushort, EventDelegate> serverEvent => NetworkServer.events;
 
@@ -19,21 +19,18 @@ namespace JFramework.Net
 
         [FoldoutGroup("服务器设置"), ShowInInspector]
         private Dictionary<int, ClientEntity> connections => NetworkServer.clients;
-
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private ServerEntity clientConnection => NetworkClient.connection;
-
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private NetworkReaderPack readers => NetworkClient.readers;
-
+        
         // [FoldoutGroup("客户端设置"), ShowInInspector]
-        // private Dictionary<ushort, EventDelegate> clientEvent => NetworkClient.events;
+        // private ServerEntity clientConnection => NetworkClient.connection;
+        //
+        // [FoldoutGroup("客户端设置"), ShowInInspector]
+        // private NetworkReaderPack readers => NetworkClient.readers;
+        
+        [FoldoutGroup("客户端设置"), ShowInInspector]
+        private Dictionary<ushort, EventDelegate> clientEvent => NetworkClient.events;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
         private Dictionary<uint, NetworkObject> clientSpawns => NetworkClient.spawns;
-        
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private HashSet<NetworkObject> clientOwners => NetworkClient.owners;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
         private Dictionary<uint, GameObject> assetPrefabs => NetworkClient.prefabs;
