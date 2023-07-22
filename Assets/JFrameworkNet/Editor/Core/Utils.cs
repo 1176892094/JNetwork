@@ -11,7 +11,7 @@ namespace JFramework.Editor
             if (type == null)
             {
                 logger.Error($"没有无法解析方法: {name}");
-                Command.failed = true;
+                Process.failed = true;
                 return null;
             }
 
@@ -19,7 +19,7 @@ namespace JFramework.Editor
             if (method == null)
             {
                 logger.Error($"在类型 {type.Name} 中没有找到名称 {name} 的方法", type);
-                Command.failed = true;
+                Process.failed = true;
             }
 
             return method;
@@ -33,7 +33,7 @@ namespace JFramework.Editor
             }
 
             logger.Error($"在类型 {type.Name} 中没有找到方法", type);
-            Command.failed = true;
+            Process.failed = true;
             return null;
         }
         

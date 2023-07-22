@@ -180,13 +180,13 @@ namespace JFramework.Editor
         /// 添加 RuntimeInitializeLoad 属性类型
         /// </summary>
         /// <param name="assembly"></param>
-        /// <param name="process"></param>
+        /// <param name="model"></param>
         /// <param name="method"></param>
-        private static void AddRuntimeInitializeOnLoadAttribute(AssemblyDefinition assembly, Process process, MethodDefinition method)
+        private static void AddRuntimeInitializeOnLoadAttribute(AssemblyDefinition assembly, Model model, MethodDefinition method)
         {
-            MethodDefinition definition = process.RuntimeInitializeOnLoadMethodAttribute.GetConstructors().Last();
+            MethodDefinition definition = model.RuntimeInitializeOnLoadMethodAttribute.GetConstructors().Last();
             CustomAttribute attribute = new CustomAttribute(assembly.MainModule.ImportReference(definition));
-            attribute.ConstructorArguments.Add(new CustomAttributeArgument(process.Import<RuntimeInitializeLoadType>(), RuntimeInitializeLoadType.BeforeSceneLoad));
+            attribute.ConstructorArguments.Add(new CustomAttributeArgument(model.Import<RuntimeInitializeLoadType>(), RuntimeInitializeLoadType.BeforeSceneLoad));
             method.CustomAttributes.Add(attribute);
         }
         
@@ -194,11 +194,11 @@ namespace JFramework.Editor
         /// 添加 RuntimeInitializeLoad 属性标记
         /// </summary>
         /// <param name="assembly"></param>
-        /// <param name="process"></param>
+        /// <param name="model"></param>
         /// <param name="method"></param>
-        private static void AddInitializeOnLoadAttribute(AssemblyDefinition assembly, Process process, MethodDefinition method)
+        private static void AddInitializeOnLoadAttribute(AssemblyDefinition assembly, Model model, MethodDefinition method)
         {
-            MethodDefinition ctor = process.InitializeOnLoadMethodAttribute.GetConstructors().First();
+            MethodDefinition ctor = model.InitializeOnLoadMethodAttribute.GetConstructors().First();
             CustomAttribute attribute = new CustomAttribute(assembly.MainModule.ImportReference(ctor));
             method.CustomAttributes.Add(attribute);
         }
@@ -207,19 +207,19 @@ namespace JFramework.Editor
         /// 初始化读写流
         /// </summary>
         /// <param name="currentAssembly"></param>
-        /// <param name="process"></param>
+        /// <param name="model"></param>
         /// <param name="writers"></param>
         /// <param name="readers"></param>
         /// <param name="generatedClass"></param>
-        public static void StreamingInitialize(AssemblyDefinition currentAssembly, Process process, Writers writers, Readers readers, TypeDefinition generatedClass)
+        public static void StreamingInitialize(AssemblyDefinition currentAssembly, Model model, Writers writers, Readers readers, TypeDefinition generatedClass)
         {
-            MethodDefinition initReadWriters = new MethodDefinition("RuntimeInitializeOnLoad", MethodAttributes.Public | MethodAttributes.Static, process.Import(typeof(void)));
+            MethodDefinition initReadWriters = new MethodDefinition("RuntimeInitializeOnLoad", MethodAttributes.Public | MethodAttributes.Static, model.Import(typeof(void)));
             
-            AddRuntimeInitializeOnLoadAttribute(currentAssembly, process, initReadWriters);
+            AddRuntimeInitializeOnLoadAttribute(currentAssembly, model, initReadWriters);
             
             if (Helpers.IsEditorAssembly(currentAssembly))
             {
-                AddInitializeOnLoadAttribute(currentAssembly, process, initReadWriters);
+                AddInitializeOnLoadAttribute(currentAssembly, model, initReadWriters);
             }
             
             ILProcessor worker = initReadWriters.Body.GetILProcessor();

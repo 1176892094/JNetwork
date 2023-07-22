@@ -15,13 +15,13 @@ namespace JFramework.Editor
         private readonly Dictionary<TypeReference, MethodReference> writeFuncList = new Dictionary<TypeReference, MethodReference>(new Comparer());
         private readonly AssemblyDefinition assembly;
         private readonly Logger logger;
-        private readonly Process process;
+        private readonly Model model;
         private readonly TypeDefinition generate;
 
-        public Writers(AssemblyDefinition assembly, Process process, TypeDefinition generate, Logger logger)
+        public Writers(AssemblyDefinition assembly, Model model, TypeDefinition generate, Logger logger)
         {
             this.assembly = assembly;
-            this.process = process;
+            this.model = model;
             this.generate = generate;
             this.logger = logger;
         }
@@ -133,7 +133,7 @@ namespace JFramework.Editor
 
         private MethodReference GetNetworkBehaviourWriter(TypeReference variableReference)
         {
-            if (writeFuncList.TryGetValue(process.Import<NetworkBehaviour>(), out MethodReference func))
+            if (writeFuncList.TryGetValue(model.Import<NetworkBehaviour>(), out MethodReference func))
             {
                 Register(variableReference, func);
                 return func;
@@ -160,8 +160,8 @@ namespace JFramework.Editor
         private MethodDefinition GenerateWriterFunc(TypeReference variable)
         {
             string functionName = $"Write{NetworkEvent.GetHashByName(variable.FullName)}";
-            MethodDefinition writerFunc = new MethodDefinition(functionName, CONST.RAW_ATTRS, process.Import(typeof(void)));
-            writerFunc.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, process.Import<NetworkWriter>()));
+            MethodDefinition writerFunc = new MethodDefinition(functionName, CONST.RAW_ATTRS, model.Import(typeof(void)));
+            writerFunc.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, model.Import<NetworkWriter>()));
             writerFunc.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, variable));
             writerFunc.Body.InitLocals = true;
 
@@ -196,13 +196,13 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Brtrue, labelNotNull);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldc_I4_0);
-            worker.Emit(OpCodes.Call, GetWriteFunc(process.Import<bool>()));
+            worker.Emit(OpCodes.Call, GetWriteFunc(model.Import<bool>()));
             worker.Emit(OpCodes.Ret);
             worker.Append(labelNotNull);
             
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldc_I4_1);
-            worker.Emit(OpCodes.Call, GetWriteFunc(process.Import<bool>()));
+            worker.Emit(OpCodes.Call, GetWriteFunc(model.Import<bool>()));
         }
         
         private bool WriteAllFields(TypeReference variable, ILProcessor worker)
@@ -233,7 +233,7 @@ namespace JFramework.Editor
             if (elementWriteFunc == null)
             {
                 logger.Error($"无法为 {variable} 生成 Writer", variable);
-                Command.failed = true;
+                Process.failed = true;
                 return writerFunc;
             }
 

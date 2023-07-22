@@ -9,20 +9,20 @@ namespace JFramework.Editor
         /// <summary>
         /// ClientRpc方法
         /// </summary>
-        /// <param name="process"></param>
+        /// <param name="model"></param>
         /// <param name="readers"></param>
         /// <param name="logger"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="func"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessClientRpc(Process process, Readers readers, Logger logger, TypeDefinition td, MethodDefinition md, MethodDefinition func)
+        public static MethodDefinition ProcessClientRpc(Model model, Readers readers, Logger logger, TypeDefinition td, MethodDefinition md, MethodDefinition func)
         {
-            string rpcName = Command.GenerateMethodName(CONST.INV_METHOD, md);
-            MethodDefinition rpc = new MethodDefinition(rpcName, CONST.RPC_ATTRS, process.Import(typeof(void)));
+            string rpcName = Process.GenerateMethodName(CONST.INV_METHOD, md);
+            MethodDefinition rpc = new MethodDefinition(rpcName, CONST.RPC_ATTRS, model.Import(typeof(void)));
             ILProcessor worker = rpc.Body.GetILProcessor();
             Instruction label = worker.Create(OpCodes.Nop);
-            NetworkClientActive(worker, process, md.Name, label,"ClientRpc");
+            NetworkClientActive(worker, model, md.Name, label,"ClientRpc");
             
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, td);
@@ -34,7 +34,7 @@ namespace JFramework.Editor
             
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-            NetworkBehaviourProcess.AddInvokeParameters(process, rpc.Parameters);
+            NetworkBehaviourProcess.AddInvokeParameters(model, rpc.Parameters);
             td.Methods.Add(rpc);
             return rpc;
         }
@@ -42,19 +42,19 @@ namespace JFramework.Editor
         /// <summary>
         /// ClientRpc方法体
         /// </summary>
-        /// <param name="process"></param>
+        /// <param name="model"></param>
         /// <param name="writers"></param>
         /// <param name="logger"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="attribute"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessClientRpcInvoke(Process process, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute attribute)
+        public static MethodDefinition ProcessClientRpcInvoke(Model model, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute attribute)
         {
             MethodDefinition rpc = BaseRpcMethod(logger, td, md);
             ILProcessor worker = md.Body.GetILProcessor();
-            NetworkBehaviourProcess.WriteSetupLocals(worker, process);
-            NetworkBehaviourProcess.WriteGetWriter(worker, process);
+            NetworkBehaviourProcess.WriteSetupLocals(worker, model);
+            NetworkBehaviourProcess.WriteGetWriter(worker, model);
             
             if (!WriteArguments(worker, writers, logger, md, RpcType.ClientRpc))
             {
@@ -66,8 +66,8 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkEvent.GetHashByName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4_S, attribute.GetField<sbyte>(1));
-            worker.Emit(OpCodes.Callvirt, process.sendClientRpcInternal);
-            NetworkBehaviourProcess.WriteReturnWriter(worker, process);
+            worker.Emit(OpCodes.Callvirt, model.sendClientRpcInternal);
+            NetworkBehaviourProcess.WriteReturnWriter(worker, model);
             worker.Emit(OpCodes.Ret);
             return rpc;
         }
@@ -75,20 +75,20 @@ namespace JFramework.Editor
         /// <summary>
         /// ServerRpc方法
         /// </summary>
-        /// <param name="process"></param>
+        /// <param name="model"></param>
         /// <param name="readers"></param>
         /// <param name="logger"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="func"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessServerRpc(Process process, Readers readers, Logger logger, TypeDefinition td, MethodDefinition md, MethodDefinition func)
+        public static MethodDefinition ProcessServerRpc(Model model, Readers readers, Logger logger, TypeDefinition td, MethodDefinition md, MethodDefinition func)
         {
-            string rpcName = Command.GenerateMethodName(CONST.INV_METHOD, md);
-            MethodDefinition cmd = new MethodDefinition(rpcName, CONST.RPC_ATTRS, process.Import(typeof(void)));
+            string rpcName = Process.GenerateMethodName(CONST.INV_METHOD, md);
+            MethodDefinition cmd = new MethodDefinition(rpcName, CONST.RPC_ATTRS, model.Import(typeof(void)));
             ILProcessor worker = cmd.Body.GetILProcessor();
             Instruction label = worker.Create(OpCodes.Nop);
-            NetworkServerActive(worker, process, md.Name, label, "ServerRpc");
+            NetworkServerActive(worker, model, md.Name, label, "ServerRpc");
             
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, td);
@@ -101,7 +101,7 @@ namespace JFramework.Editor
             AddSenderConnection(md, worker);
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-            NetworkBehaviourProcess.AddInvokeParameters(process, cmd.Parameters);
+            NetworkBehaviourProcess.AddInvokeParameters(model, cmd.Parameters);
             td.Methods.Add(cmd);
             return cmd;
         }
@@ -109,19 +109,19 @@ namespace JFramework.Editor
         /// <summary>
         /// ServerRpc方法体
         /// </summary>
-        /// <param name="process"></param>
+        /// <param name="model"></param>
         /// <param name="writers"></param>
         /// <param name="logger"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="commandAttr"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessServerRpcInvoke(Process process, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute commandAttr)
+        public static MethodDefinition ProcessServerRpcInvoke(Model model, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute commandAttr)
         {
             MethodDefinition rpc = BaseRpcMethod(logger, td, md);
             ILProcessor worker = md.Body.GetILProcessor();
-            NetworkBehaviourProcess.WriteSetupLocals(worker, process);
-            NetworkBehaviourProcess.WriteGetWriter(worker, process);
+            NetworkBehaviourProcess.WriteSetupLocals(worker, model);
+            NetworkBehaviourProcess.WriteGetWriter(worker, model);
 
             if (!WriteArguments(worker, writers, logger, md, RpcType.ServerRpc))
             {
@@ -133,8 +133,8 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkEvent.GetHashByName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4_S, commandAttr.GetField<sbyte>( 1));
-            worker.Emit(OpCodes.Call, process.sendServerRpcInternal);
-            NetworkBehaviourProcess.WriteReturnWriter(worker, process);
+            worker.Emit(OpCodes.Call, model.sendServerRpcInternal);
+            NetworkBehaviourProcess.WriteReturnWriter(worker, model);
             worker.Emit(OpCodes.Ret);
            
             return rpc;
@@ -159,20 +159,20 @@ namespace JFramework.Editor
         /// <summary>
         /// TargetRpc方法
         /// </summary>
-        /// <param name="process"></param>
+        /// <param name="model"></param>
         /// <param name="readers"></param>
         /// <param name="logger"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="func"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessTargetRpc(Process process, Readers readers, Logger logger, TypeDefinition td, MethodDefinition md, MethodDefinition func)
+        public static MethodDefinition ProcessTargetRpc(Model model, Readers readers, Logger logger, TypeDefinition td, MethodDefinition md, MethodDefinition func)
         {
-            string rpcName = Command.GenerateMethodName(CONST.INV_METHOD, md);
-            MethodDefinition rpc = new MethodDefinition(rpcName, CONST.RPC_ATTRS, process.Import(typeof(void)));
+            string rpcName = Process.GenerateMethodName(CONST.INV_METHOD, md);
+            MethodDefinition rpc = new MethodDefinition(rpcName, CONST.RPC_ATTRS, model.Import(typeof(void)));
             ILProcessor worker = rpc.Body.GetILProcessor();
             Instruction label = worker.Create(OpCodes.Nop);
-            NetworkClientActive(worker, process, md.Name, label, "TargetRpc");
+            NetworkClientActive(worker, model, md.Name, label, "TargetRpc");
             
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, td);
@@ -189,7 +189,7 @@ namespace JFramework.Editor
          
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-            NetworkBehaviourProcess.AddInvokeParameters(process, rpc.Parameters);
+            NetworkBehaviourProcess.AddInvokeParameters(model, rpc.Parameters);
             td.Methods.Add(rpc);
             return rpc;
         }
@@ -197,19 +197,19 @@ namespace JFramework.Editor
         /// <summary>
         /// TargetRpc方法体
         /// </summary>
-        /// <param name="process"></param>
+        /// <param name="model"></param>
         /// <param name="writers"></param>
         /// <param name="logger"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="attr"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessTargetRpcInvoke(Process process, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute attr)
+        public static MethodDefinition ProcessTargetRpcInvoke(Model model, Writers writers, Logger logger, TypeDefinition td, MethodDefinition md, CustomAttribute attr)
         {
             MethodDefinition rpc = BaseRpcMethod(logger, td, md);
             ILProcessor worker = md.Body.GetILProcessor();
-            NetworkBehaviourProcess.WriteSetupLocals(worker, process);
-            NetworkBehaviourProcess.WriteGetWriter(worker, process);
+            NetworkBehaviourProcess.WriteSetupLocals(worker, model);
+            NetworkBehaviourProcess.WriteGetWriter(worker, model);
             
             if (!WriteArguments(worker, writers, logger, md, RpcType.TargetRpc))
             {
@@ -222,8 +222,8 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkEvent.GetHashByName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4_S, attr.GetField<sbyte>( 1));
-            worker.Emit(OpCodes.Callvirt, process.sendTargetRpcInternal);
-            NetworkBehaviourProcess.WriteReturnWriter(worker, process);
+            worker.Emit(OpCodes.Callvirt, model.sendTargetRpcInternal);
+            NetworkBehaviourProcess.WriteReturnWriter(worker, model);
             worker.Emit(OpCodes.Ret);
             return rpc;
         }
@@ -271,7 +271,7 @@ namespace JFramework.Editor
                 if (writeFunc == null)
                 {
                     logger.Error($"{method.Name} 有无效的参数 {param}。不支持类型 {param.ParameterType}。", method);
-                    Command.failed = true;
+                    Process.failed = true;
                     return false;
                 }
                 
@@ -315,7 +315,7 @@ namespace JFramework.Editor
                 if (readFunc == null)
                 {
                     logger.Error($"{method.Name} 有无效的参数 {param}。不支持类型 {param.ParameterType}。", method);
-                    Command.failed = true;
+                    Process.failed = true;
                     return false;
                 }
 
@@ -356,16 +356,16 @@ namespace JFramework.Editor
         /// 注入网络客户端是否活跃
         /// </summary>
         /// <param name="worker"></param>
-        /// <param name="process"></param>
+        /// <param name="model"></param>
         /// <param name="mdName"></param>
         /// <param name="label"></param>
         /// <param name="error"></param>
-        private static void NetworkClientActive(ILProcessor worker, Process process, string mdName, Instruction label, string error)
+        private static void NetworkClientActive(ILProcessor worker, Model model, string mdName, Instruction label, string error)
         {
-            worker.Emit(OpCodes.Call, process.NetworkClientActiveRef);
+            worker.Emit(OpCodes.Call, model.NetworkClientActiveRef);
             worker.Emit(OpCodes.Brtrue, label);
             worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是客户端不是活跃的。");
-            worker.Emit(OpCodes.Call, process.logErrorReference);
+            worker.Emit(OpCodes.Call, model.logErrorReference);
             worker.Emit(OpCodes.Ret);
             worker.Append(label);
         }
@@ -374,17 +374,17 @@ namespace JFramework.Editor
         /// 注入网络服务器是否活跃
         /// </summary>
         /// <param name="worker"></param>
-        /// <param name="process"></param>
+        /// <param name="model"></param>
         /// <param name="mdName"></param>
         /// <param name="label"></param>
         /// <param name="error"></param>
-        private static void NetworkServerActive(ILProcessor worker, Process process, string mdName, Instruction label, string error)
+        private static void NetworkServerActive(ILProcessor worker, Model model, string mdName, Instruction label, string error)
         {
-            worker.Emit(OpCodes.Call, process.NetworkServerActiveRef);
+            worker.Emit(OpCodes.Call, model.NetworkServerActiveRef);
             worker.Emit(OpCodes.Brtrue, label);
 
             worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是服务器不是活跃的。");
-            worker.Emit(OpCodes.Call, process.logErrorReference);
+            worker.Emit(OpCodes.Call, model.logErrorReference);
             worker.Emit(OpCodes.Ret);
             worker.Append(label);
         }

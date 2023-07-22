@@ -10,7 +10,7 @@ namespace JFramework.Editor
         private readonly Logger logger;
         private readonly Writers writers;
         private readonly Readers readers;
-        private readonly Process process;
+        private readonly Model model;
         private readonly TypeDefinition type;
         private readonly SyncVarProcess syncVarProcess;
         private readonly AssemblyDefinition assembly;
@@ -37,15 +37,15 @@ namespace JFramework.Editor
             public ClientRpcResult(MethodDefinition method) => this.method = method;
         }
         
-        public NetworkBehaviourProcess(AssemblyDefinition assembly, Process process, Writers writers, Readers readers, Logger logger, TypeDefinition type)
+        public NetworkBehaviourProcess(AssemblyDefinition assembly, Model model, Writers writers, Readers readers, Logger logger, TypeDefinition type)
         {
             this.type = type;
             this.logger = logger;
             this.writers = writers;
             this.readers = readers;
             this.assembly = assembly;
-            this.process = process;
-            syncVarProcess = new SyncVarProcess(assembly, process, logger);
+            this.model = model;
+            syncVarProcess = new SyncVarProcess(assembly, model, logger);
             generateCode = this.type;
         }
 
@@ -62,7 +62,7 @@ namespace JFramework.Editor
            
             ProcessRpcMethods();
             
-            if (Command.failed)
+            if (Editor.Process.failed)
             {
                 return true;
             }
@@ -71,7 +71,7 @@ namespace JFramework.Editor
             
             GenerateSerialize();
         
-            if (Command.failed)
+            if (Editor.Process.failed)
             {
                 return true;
             }
@@ -89,37 +89,37 @@ namespace JFramework.Editor
         {
             if (!WasProcessed(td))
             {
-                MethodDefinition versionMethod = new MethodDefinition(CONST.GEN_FUNC, MethodAttributes.Private, process.Import(typeof(void)));
+                MethodDefinition versionMethod = new MethodDefinition(CONST.GEN_FUNC, MethodAttributes.Private, model.Import(typeof(void)));
                 ILProcessor worker = versionMethod.Body.GetILProcessor();
                 worker.Emit(OpCodes.Ret);
                 td.Methods.Add(versionMethod);
             }
         }
 
-        public static void WriteSetupLocals(ILProcessor worker, Process process)
+        public static void WriteSetupLocals(ILProcessor worker, Model model)
         {
             worker.Body.InitLocals = true;
-            worker.Body.Variables.Add(new VariableDefinition(process.Import<NetworkWriter>()));
+            worker.Body.Variables.Add(new VariableDefinition(model.Import<NetworkWriter>()));
         }
 
-        public static void WriteGetWriter(ILProcessor worker, Process process)
+        public static void WriteGetWriter(ILProcessor worker, Model model)
         {
-            worker.Emit(OpCodes.Call, process.PopWriterReference);
+            worker.Emit(OpCodes.Call, model.PopWriterReference);
             worker.Emit(OpCodes.Stloc_0);
         }
 
-        public static void WriteReturnWriter(ILProcessor worker, Process process)
+        public static void WriteReturnWriter(ILProcessor worker, Model model)
         {
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Call, process.PushWriterReference);
+            worker.Emit(OpCodes.Call, model.PushWriterReference);
         }
 
 
-        public static void AddInvokeParameters(Process process, ICollection<ParameterDefinition> collection)
+        public static void AddInvokeParameters(Model model, ICollection<ParameterDefinition> collection)
         {
-            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, process.Import<NetworkBehaviour>()));
-            collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, process.Import<NetworkReader>()));
-            collection.Add(new ParameterDefinition("target", ParameterAttributes.None, process.Import<ClientEntity>()));
+            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, model.Import<NetworkBehaviour>()));
+            collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, model.Import<NetworkReader>()));
+            collection.Add(new ParameterDefinition("target", ParameterAttributes.None, model.Import<ClientEntity>()));
         }
     }
 }

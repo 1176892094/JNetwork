@@ -14,7 +14,7 @@ namespace JFramework.Editor
         /// <returns></returns>
         private static MethodDefinition BaseRpcMethod(Logger logger, TypeDefinition td, MethodDefinition md)
         {
-            string newName = Command.GenerateMethodName(CONST.RPC_METHOD, md);
+            string newName = Process.GenerateMethodName(CONST.RPC_METHOD, md);
             var rpc = new MethodDefinition(newName, md.Attributes, md.ReturnType)
             {
                 IsPublic = false,
@@ -62,7 +62,7 @@ namespace JFramework.Editor
             {
                 if (IsInvokeToMethod(instruction, out MethodDefinition method))
                 {
-                    string methodNameGenerated = Command.GenerateMethodName("", method);
+                    string methodNameGenerated = Process.GenerateMethodName("", method);
                     if (methodNameGenerated == baseRemoteCallName)
                     {
                         TypeDefinition baseType = td.BaseType.Resolve();
@@ -71,14 +71,14 @@ namespace JFramework.Editor
                         if (baseMethod == null)
                         {
                             logger.Error($"找不到基本方法{methodName}", md);
-                            Command.failed = true;
+                            Process.failed = true;
                             return;
                         }
 
                         if (!baseMethod.IsVirtual)
                         {
                             logger.Error($"找不到 virtual 的基本方法{methodName}", md);
-                            Command.failed = true;
+                            Process.failed = true;
                             return;
                         }
 
