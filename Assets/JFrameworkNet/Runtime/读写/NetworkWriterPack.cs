@@ -10,7 +10,7 @@ namespace JFramework.Net
         /// <summary>
         /// 批处理队列
         /// </summary>
-        [ShowInInspector]private readonly Queue<NetworkWriter> writers = new Queue<NetworkWriter>();
+        [ShowInInspector] private readonly Queue<NetworkWriter> writers = new Queue<NetworkWriter>();
 
         /// <summary>
         /// 阈值

@@ -129,24 +129,13 @@ namespace JFramework.Net
         /// 设置客户端未准备(不能进行消息接收)
         /// </summary>
         /// <param name="client"></param>
-        private static void NotReadyForClient(ClientEntity client)
+        internal static void NotReadyForClient(ClientEntity client)
         {
             Debug.Log($"设置客户端 {client.clientId} 取消准备");
             client.isReady = false;
             client.Send(new NotReadyEvent());
         }
-
-        /// <summary>
-        /// 设置所有客户端取消准备
-        /// </summary>
-        internal static void SetClientNotReadyAll()
-        {
-            foreach (var client in clients.Values)
-            {
-                NotReadyForClient(client);
-            }
-        }
-
+        
         /// <summary>
         /// 停止服务器
         /// </summary>

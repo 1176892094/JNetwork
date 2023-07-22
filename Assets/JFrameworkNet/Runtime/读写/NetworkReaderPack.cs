@@ -92,7 +92,7 @@ namespace JFramework.Net
             reader = this.reader;
             return true;
         }
-        
+
         /// <summary>
         /// 开始读取批处理数据
         /// </summary>

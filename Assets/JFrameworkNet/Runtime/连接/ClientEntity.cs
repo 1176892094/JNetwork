@@ -79,7 +79,7 @@ namespace JFramework.Net
         /// <param name="buffer"></param>
         /// <param name="channel"></param>
         /// <param name="maxMessageSize"></param>
-        private void InvokeRpc(ClientRpcEvent @event, NetworkWriter buffer, Channel channel, int maxMessageSize)
+        private void SendRpc(ClientRpcEvent @event, NetworkWriter buffer, Channel channel, int maxMessageSize)
         {
             int bufferLimit = maxMessageSize - NetworkConst.EventSize - sizeof(int) - NetworkConst.HeaderSize;
             int before = buffer.position;
@@ -110,10 +110,10 @@ namespace JFramework.Net
             switch (channel)
             {
                 case Channel.Reliable:
-                    InvokeRpc(message, reliableRpc, Channel.Reliable, maxSize);
+                    SendRpc(message, reliableRpc, Channel.Reliable, maxSize);
                     break;
                 case Channel.Unreliable:
-                    InvokeRpc(message, unreliableRpc, Channel.Unreliable, maxSize);
+                    SendRpc(message, unreliableRpc, Channel.Unreliable, maxSize);
                     break;
             }
         }

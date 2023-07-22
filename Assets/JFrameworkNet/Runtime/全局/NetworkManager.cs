@@ -1,24 +1,25 @@
 using System;
-using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace JFramework.Net
 {   
-    public sealed partial class NetworkManager : GlobalSingleton<NetworkManager>
+    public sealed partial class NetworkManager : MonoBehaviour
     {
         /// <summary>
-        /// 预置体列表
+        /// NetworkManager 单例
         /// </summary>
-        [ShowInInspector] internal static readonly List<GameObject> prefabs = new List<GameObject>();
-        
+        public static NetworkManager Instance;
+
         /// <summary>
         /// 消息发送率
         /// </summary>
         internal static float sendRate => Instance.tickRate < int.MaxValue ? 1f / Instance.tickRate : 0;
+        
+        /// <summary>
+        /// 预置体列表
+        /// </summary>
+        private static NetworkPrefab prefabData => NetworkPrefab.Instance;
         
         /// <summary>
         /// 服务器场景
@@ -83,9 +84,11 @@ namespace JFramework.Net
         /// <summary>
         /// 初始化配置传输
         /// </summary>
-        protected override void Awake()
+        private void Awake()
         {
-            base.Awake();
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            
             if (transport == null)
             {
                 Debug.LogError("NetworkManager 没有 Transport 组件。");
@@ -98,27 +101,6 @@ namespace JFramework.Net
 #endif
             Transport.current = transport;
         }
-
-        /// <summary>
-        /// 自动查找所有的NetworkObject
-        /// </summary>
-#if UNITY_EDITOR
-        [InitializeOnLoadMethod]
-        private static void Initialize()
-        {
-            prefabs.Clear();
-            string[] guids = AssetDatabase.FindAssets("t:Prefab");
-            foreach (string guid in guids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-                if (prefab != null && prefab.GetComponent<NetworkObject>() != null)
-                {
-                    prefabs.Add(prefab);
-                }
-            }
-        }
-#endif
 
         /// <summary>
         /// 开启服务器
@@ -165,6 +147,7 @@ namespace JFramework.Net
             }
 
             NetworkClient.StartClient(address, port);
+            NetworkClient.RegisterPrefab(prefabData.prefabs);
             OnStartClient?.Invoke();
         }
 
@@ -181,6 +164,7 @@ namespace JFramework.Net
             }
 
             NetworkClient.StartClient(uri);
+            NetworkClient.RegisterPrefab(prefabData.prefabs);
             OnStartClient?.Invoke();
         }
 
@@ -220,6 +204,7 @@ namespace JFramework.Net
             Debug.Log("开启主机。");
             NetworkServer.StartServer(isListen);
             NetworkClient.StartClient();
+            NetworkClient.RegisterPrefab(prefabData.prefabs);
             OnStartHost?.Invoke();
         }
 

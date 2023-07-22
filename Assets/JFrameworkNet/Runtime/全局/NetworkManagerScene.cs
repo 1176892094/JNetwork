@@ -9,7 +9,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器加载场景
         /// </summary>
-        public async void ServerLoadScene(string newSceneName)
+        public static async void LoadScene(string newSceneName)
         {
             if (string.IsNullOrWhiteSpace(newSceneName))
             {
@@ -24,7 +24,11 @@ namespace JFramework.Net
             }
 
             Debug.Log("服务器开始加载场景");
-            NetworkServer.SetClientNotReadyAll();
+            foreach (var client in NetworkServer.clients.Values)
+            {
+                NetworkServer.NotReadyForClient(client);
+            }
+
             OnServerLoadScene?.Invoke(newSceneName);
             sceneName = newSceneName;
             NetworkServer.isLoadScene = true;

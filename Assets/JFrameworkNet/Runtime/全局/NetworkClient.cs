@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using JFramework.Interface;
 using UnityEngine;
 
@@ -105,7 +104,6 @@ namespace JFramework.Net
             RegisterEvent(false);
             readers = new NetworkReaderPack();
             state = ConnectState.Connecting;
-            RegisterPrefab(NetworkManager.prefabs);
             Transport.current.ClientConnect(address, port);
             connection = new ServerEntity();
         }
@@ -121,7 +119,6 @@ namespace JFramework.Net
             RegisterEvent(false);
             readers = new NetworkReaderPack();
             state = ConnectState.Connecting;
-            RegisterPrefab(NetworkManager.prefabs);
             Transport.current.ClientConnect(uri);
             connection = new ServerEntity();
         }
@@ -135,7 +132,6 @@ namespace JFramework.Net
             RegisterEvent(true);
             readers = new NetworkReaderPack();
             state = ConnectState.Connected;
-            RegisterPrefab(NetworkManager.prefabs);
             connection = new ServerEntity();
             var client = new ClientEntity(NetworkConst.HostId);
             NetworkServer.connection = client;
