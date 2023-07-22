@@ -29,8 +29,7 @@ namespace JFramework.Net
         [ReadOnly, ShowInInspector] internal bool isOwner;
         [ReadOnly, ShowInInspector] internal bool isServer;
         [ReadOnly, ShowInInspector] internal bool isClient;
-        [ReadOnly, ShowInInspector] internal ServerEntity server;
-        [ReadOnly, ShowInInspector] internal ClientEntity client;
+        [ReadOnly, ShowInInspector] internal ClientEntity connection;
         private bool isStartClient;
         private bool hasAuthority;
         internal NetworkBehaviour[] entities;
@@ -265,8 +264,7 @@ namespace JFramework.Net
             isServer = false;
             isStartClient = false;
             hasAuthority = false;
-            client = null;
-            server = null;
+            connection = null;
             sceneIds.Clear();
         }
     }

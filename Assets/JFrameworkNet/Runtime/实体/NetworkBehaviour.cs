@@ -47,14 +47,9 @@ namespace JFramework.Net
         public bool isClient => @object.isClient;
 
         /// <summary>
-        /// 网络对象连接的服务器(客户端不为空，服务器为空)
-        /// </summary>
-        public ServerEntity server => @object.server;
-
-        /// <summary>
         /// 网络对象连接的客户端(服务器不为空，客户端为空)
         /// </summary>
-        public ClientEntity connection => @object.client;
+        public ClientEntity connection => @object.connection;
 
         /// <summary>
         /// 当前实体在网络对象中的位置

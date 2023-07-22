@@ -80,7 +80,7 @@ namespace JFramework.Net
         {
             var serialize = @object.GetServerSerializationAtTick(Time.frameCount);
             
-            if (@object.client == client)
+            if (@object.connection == client)
             {
                 if (serialize.owner.position > 0)
                 {

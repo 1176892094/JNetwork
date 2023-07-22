@@ -27,7 +27,7 @@ namespace JFramework.Net
                     @object.gameObject.SetActive(true);
                     if (NetworkUtils.IsValidParent(@object))
                     {
-                        Spawn(@object.gameObject, @object.client);
+                        Spawn(@object.gameObject, @object.connection);
                     }
                 }
             }
@@ -58,7 +58,7 @@ namespace JFramework.Net
                 return;
             }
             
-            @object.client = client;
+            @object.connection = client;
             client?.observers.Add(@object);
             if (NetworkManager.mode == NetworkMode.Host)
             {
@@ -98,7 +98,7 @@ namespace JFramework.Net
         {
             Debug.Log($"服务器为客户端 {client.clientId} 生成 {@object}");
             using NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
-            var isOwner = @object.client == client;
+            var isOwner = @object.connection == client;
             var transform = @object.transform;
             var @event = new SpawnEvent
             {
@@ -137,7 +137,7 @@ namespace JFramework.Net
         public static void Despawn(NetworkObject @object)
         {
             spawns.Remove(@object.objectId);
-            @object.client?.observers.Remove(@object);
+            @object.connection?.observers.Remove(@object);
             
             if (NetworkManager.mode == NetworkMode.Host)
             {
@@ -164,7 +164,7 @@ namespace JFramework.Net
         public static void Destroy(NetworkObject @object)
         {
             spawns.Remove(@object.objectId);
-            @object.client?.observers.Remove(@object);
+            @object.connection?.observers.Remove(@object);
             if (NetworkManager.mode == NetworkMode.Host)
             {
                 @object.isOwner = false;

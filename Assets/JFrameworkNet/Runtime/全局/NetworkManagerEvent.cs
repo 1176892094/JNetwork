@@ -25,15 +25,15 @@ namespace JFramework.Net
         //
         // [FoldoutGroup("客户端设置"), ShowInInspector]
         // private NetworkReaderPack readers => NetworkClient.readers;
-        
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private Dictionary<ushort, EventDelegate> clientEvent => NetworkClient.events;
+        //
+        // [FoldoutGroup("客户端设置"), ShowInInspector]
+        // private Dictionary<ushort, EventDelegate> clientEvent => NetworkClient.events;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
         private Dictionary<uint, NetworkObject> clientSpawns => NetworkClient.spawns;
-
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private Dictionary<uint, GameObject> assetPrefabs => NetworkClient.prefabs;
+        //
+        // [FoldoutGroup("客户端设置"), ShowInInspector]
+        // private Dictionary<uint, GameObject> assetPrefabs => NetworkClient.prefabs;
 
         [FoldoutGroup("客户端设置"), ShowInInspector]
         private Dictionary<ulong, NetworkObject> scenePrefabs => NetworkClient.scenes;

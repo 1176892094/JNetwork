@@ -11,16 +11,16 @@ namespace JFramework.Net
         /// NetworkManager 单例
         /// </summary>
         public static NetworkManager Instance;
+        
+        /// <summary>
+        /// 服务器场景
+        /// </summary>
+        internal static string sceneName;
 
         /// <summary>
         /// 消息发送率
         /// </summary>
         internal static float sendRate => Instance.tickRate < int.MaxValue ? 1f / Instance.tickRate : 0;
-
-        /// <summary>
-        /// 服务器场景
-        /// </summary>
-        internal static string sceneName;
 
         /// <summary>
         /// 网络传输组件

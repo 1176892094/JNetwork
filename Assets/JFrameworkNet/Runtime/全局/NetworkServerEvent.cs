@@ -47,7 +47,7 @@ namespace JFramework.Net
             {
                 Debug.LogWarning($"没有找到发送 ServerRpc 的对象。对象网络Id：{@event.objectId}");
             }
-            else if (NetworkRpc.HasAuthority(@event.methodHash) && @object.client != client)
+            else if (NetworkRpc.HasAuthority(@event.methodHash) && @object.connection != client)
             {
                 Debug.LogWarning($"接收到 ServerRpc 但对象没有通过验证。对象网络Id：{@event.objectId}");
             }
@@ -67,7 +67,7 @@ namespace JFramework.Net
         {
             if (spawns.TryGetValue(@event.objectId, out var @object) && @object != null)
             {
-                if (@object.client == client)
+                if (@object.connection == client)
                 {
                     using var reader = NetworkReader.Pop(@event.segment);
                     if (!@object.ServerDeserialize(reader))
