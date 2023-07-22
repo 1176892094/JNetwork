@@ -6,6 +6,10 @@ namespace JFramework.Editor
 {
     public static class SyncVarProcessReplace
     {
+        /// <summary>
+        /// 用于NetworkBehaviour注入后，修正SyncVar
+        /// </summary>
+        /// <param name="md"></param>
         public static void Process(ModuleDefinition md)
         {
             foreach (var td in md.Types.Where(td => td.IsClass))
@@ -13,7 +17,11 @@ namespace JFramework.Editor
                 ProcessClass(td);
             }
         }
-
+        
+        /// <summary>
+        /// 处理类
+        /// </summary>
+        /// <param name="td"></param>
         private static void ProcessClass(TypeDefinition td)
         {
             foreach (MethodDefinition md in td.Methods)
@@ -27,6 +35,10 @@ namespace JFramework.Editor
             }
         }
 
+        /// <summary>
+        /// 处理方法
+        /// </summary>
+        /// <param name="md"></param>
         private static void ProcessMethod(MethodDefinition md)
         {
             if (md.Name == ".cctor" || md.Name == CONST.GEN_FUNC || md.Name.StartsWith(CONST.INV_METHOD))
@@ -49,6 +61,13 @@ namespace JFramework.Editor
             }
         }
 
+        /// <summary>
+        /// 处理指令
+        /// </summary>
+        /// <param name="md"></param>
+        /// <param name="instr"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
         private static int ProcessInstruction(MethodDefinition md, Instruction instr, int index)
         {
             if (instr.OpCode == OpCodes.Stfld && instr.Operand is FieldDefinition OpStfLd)
@@ -69,6 +88,12 @@ namespace JFramework.Editor
             return 1;
         }
         
+        /// <summary>
+        /// 设置指令
+        /// </summary>
+        /// <param name="md"></param>
+        /// <param name="i"></param>
+        /// <param name="opField"></param>
         private static void ProcessSetInstruction( MethodDefinition md, Instruction i, FieldDefinition opField)
         {
             if (md.Name == ".ctor") return;
@@ -80,6 +105,12 @@ namespace JFramework.Editor
             }
         }
         
+        /// <summary>
+        /// 获取指令
+        /// </summary>
+        /// <param name="md"></param>
+        /// <param name="i"></param>
+        /// <param name="opField"></param>
         private static void ProcessGetInstruction(MethodDefinition md, Instruction i, FieldDefinition opField)
         {
             if (md.Name == ".ctor") return;
@@ -91,6 +122,14 @@ namespace JFramework.Editor
             }
         }
 
+        /// <summary>
+        /// 处理加载地址指令
+        /// </summary>
+        /// <param name="md"></param>
+        /// <param name="instr"></param>
+        /// <param name="opField"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
         private static int ProcessLoadAddressInstruction(MethodDefinition md, Instruction instr, FieldDefinition opField, int index)
         {
             if (md.Name == ".ctor") return 1;

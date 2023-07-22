@@ -5,7 +5,10 @@ namespace JFramework.Editor
 {
     internal partial class NetworkBehaviourProcess
     {
-        private void InjectIntoStaticConstructor()
+        /// <summary>
+        /// 注入静态构造函数
+        /// </summary>
+        private void InjectStaticConstructor()
         {
             if (serverRpcList.Count == 0 && clientRpcList.Count == 0 && targetRpcList.Count == 0) return;
             MethodDefinition cctor = generateCode.GetMethod(".cctor");
@@ -51,6 +54,11 @@ namespace JFramework.Editor
             generateCode.Attributes &= ~TypeAttributes.BeforeFieldInit;
         }
         
+        /// <summary>
+        /// 判断自身静态构造函数是否被创建
+        /// </summary>
+        /// <param name="method"></param>
+        /// <returns></returns>
         private static bool RemoveFinalRetInstruction(MethodDefinition method)
         {
             if (method.Body.Instructions.Count != 0)
@@ -67,7 +75,13 @@ namespace JFramework.Editor
             return true;
         }
         
-        
+        /// <summary>
+        /// 在静态构造函数中注入ClientRpc委托
+        /// </summary>
+        /// <param name="worker"></param>
+        /// <param name="registerMethod"></param>
+        /// <param name="func"></param>
+        /// <param name="functionFullName"></param>
         private void GenerateRegisterClientRpcDelegate(ILProcessor worker, MethodReference registerMethod, MethodDefinition func, string functionFullName)
         {
             worker.Emit(OpCodes.Ldtoken, generateCode);
@@ -79,10 +93,16 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Call, registerMethod);
         }
 
+        /// <summary>
+        /// 在静态构造函数中注入ServerRpc委托
+        /// </summary>
+        /// <param name="worker"></param>
+        /// <param name="registerMethod"></param>
+        /// <param name="func"></param>
+        /// <param name="cmdResult"></param>
         private void GenerateRegisterServerRpcDelegate(ILProcessor worker, MethodReference registerMethod, MethodDefinition func, ServerRpcResult cmdResult)
         {
             string cmdName = cmdResult.method.FullName;
-
             worker.Emit(OpCodes.Ldtoken, generateCode);
             worker.Emit(OpCodes.Call, process.getTypeFromHandleReference);
             worker.Emit(OpCodes.Ldstr, cmdName);

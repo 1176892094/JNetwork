@@ -7,7 +7,10 @@ namespace JFramework.Editor
 {
     internal partial class NetworkBehaviourProcess
     {
-        private void GenerateSerialization()
+        /// <summary>
+        /// 生成SyncVar的序列化方法
+        /// </summary>
+        private void GenerateSerialize()
         {   
             if (generateCode.GetMethod(CONST.SER_METHOD) != null) return;
             if (syncVars.Count == 0) return;
@@ -15,7 +18,7 @@ namespace JFramework.Editor
             MethodDefinition serialize = new MethodDefinition(CONST.SER_METHOD, CONST.SER_ATTRS, process.Import(typeof(void)));
 
             serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, process.Import<NetworkWriter>()));
-            serialize.Parameters.Add(new ParameterDefinition("serialize", ParameterAttributes.None, process.Import<bool>()));
+            serialize.Parameters.Add(new ParameterDefinition("start", ParameterAttributes.None, process.Import<bool>()));
             ILProcessor worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
@@ -28,9 +31,9 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Call, baseSerialize);
             }
             
-            Instruction initialStateLabel = worker.Create(OpCodes.Nop);
+            Instruction isStart = worker.Create(OpCodes.Nop);
             worker.Emit(OpCodes.Ldarg_2);           
-            worker.Emit(OpCodes.Brfalse, initialStateLabel);
+            worker.Emit(OpCodes.Brfalse, isStart);
             foreach (FieldDefinition syncVarDef in syncVars)
             {
                 FieldReference syncVar = syncVarDef;
@@ -57,7 +60,7 @@ namespace JFramework.Editor
             }
             
             worker.Emit(OpCodes.Ret);
-            worker.Append(initialStateLabel);
+            worker.Append(isStart);
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Call, process.NetworkBehaviourDirtyReference);
@@ -102,7 +105,10 @@ namespace JFramework.Editor
             generateCode.Methods.Add(serialize);
         }
 
-        private void GenerateDeserialization()
+        /// <summary>
+        /// 生成SyncVar的反序列化方法
+        /// </summary>
+        private void GenerateDeserialize()
         {
             if (generateCode.GetMethod(CONST.DES_METHOD) != null) return;
             if (syncVars.Count == 0) return;
@@ -110,7 +116,7 @@ namespace JFramework.Editor
             MethodDefinition serialize = new MethodDefinition(CONST.DES_METHOD, CONST.SER_ATTRS, process.Import(typeof(void)));
 
             serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, process.Import<NetworkReader>()));
-            serialize.Parameters.Add(new ParameterDefinition("serialize", ParameterAttributes.None, process.Import<bool>()));
+            serialize.Parameters.Add(new ParameterDefinition("start", ParameterAttributes.None, process.Import<bool>()));
             ILProcessor serWorker = serialize.Body.GetILProcessor();
             serialize.Body.InitLocals = true;
             VariableDefinition dirtyBitsLocal = new VariableDefinition(process.Import<long>());
@@ -125,10 +131,10 @@ namespace JFramework.Editor
                 serWorker.Append(serWorker.Create(OpCodes.Call, baseDeserialize));
             }
             
-            Instruction initialStateLabel = serWorker.Create(OpCodes.Nop);
+            Instruction isStart = serWorker.Create(OpCodes.Nop);
 
             serWorker.Append(serWorker.Create(OpCodes.Ldarg_2));
-            serWorker.Append(serWorker.Create(OpCodes.Brfalse, initialStateLabel));
+            serWorker.Append(serWorker.Create(OpCodes.Brfalse, isStart));
 
             foreach (FieldDefinition syncVar in syncVars)
             {
@@ -136,7 +142,7 @@ namespace JFramework.Editor
             }
 
             serWorker.Append(serWorker.Create(OpCodes.Ret));
-            serWorker.Append(initialStateLabel);
+            serWorker.Append(isStart);
             serWorker.Append(serWorker.Create(OpCodes.Ldarg_1));
             serWorker.Append(serWorker.Create(OpCodes.Call, readers.GetReadFunc(process.Import<ulong>())));
             serWorker.Append(serWorker.Create(OpCodes.Stloc_0));
@@ -161,6 +167,11 @@ namespace JFramework.Editor
             generateCode.Methods.Add(serialize);
         }
 
+        /// <summary>
+        /// 反序列化字段
+        /// </summary>
+        /// <param name="syncVar"></param>
+        /// <param name="worker"></param>
         private void DeserializeField(FieldDefinition syncVar, ILProcessor worker)
         {
             worker.Append(worker.Create(OpCodes.Ldarg_0));

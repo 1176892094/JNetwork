@@ -21,28 +21,34 @@ namespace JFramework.Editor
             this.logger = logger;
         }
         
+        /// <summary>
+        /// 从挂钩方法中生成新的方法
+        /// </summary>
+        /// <param name="syncVar"></param>
+        /// <param name="worker"></param>
+        /// <param name="hookMethod"></param>
         public void GenerateNewActionFromHookMethod(FieldDefinition syncVar, ILProcessor worker, MethodDefinition hookMethod)
         {
             worker.Emit(hookMethod.IsStatic ? OpCodes.Ldnull : OpCodes.Ldarg_0);
-            MethodReference hookMethodReference;
+            MethodReference hookMethodRef;
             if (hookMethod.DeclaringType.HasGenericParameters)
             {
-                var genericInstanceType = hookMethod.DeclaringType.MakeGenericInstanceType(hookMethod.DeclaringType.GenericParameters.Cast<TypeReference>().ToArray());
-                hookMethodReference = hookMethod.MakeHostInstanceGeneric(hookMethod.Module, genericInstanceType);
+                var instanceType = hookMethod.DeclaringType.MakeGenericInstanceType(hookMethod.DeclaringType.GenericParameters.Cast<TypeReference>().ToArray());
+                hookMethodRef = hookMethod.MakeHostInstanceGeneric(hookMethod.Module, instanceType);
             }
             else
             {
-                hookMethodReference = hookMethod;
+                hookMethodRef = hookMethod;
             }
 
             if (hookMethod.IsVirtual)
             {
                 worker.Emit(OpCodes.Dup);
-                worker.Emit(OpCodes.Ldvirtftn, hookMethodReference);
+                worker.Emit(OpCodes.Ldvirtftn, hookMethodRef);
             }
             else
             {
-                worker.Emit(OpCodes.Ldftn, hookMethodReference);
+                worker.Emit(OpCodes.Ldftn, hookMethodRef);
             }
             
             TypeReference actionRef = assembly.MainModule.ImportReference(typeof(Action<,>));
@@ -50,6 +56,12 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Newobj, process.HookMethodReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
         }
 
+        /// <summary>
+        /// 获取挂钩方法
+        /// </summary>
+        /// <param name="td"></param>
+        /// <param name="syncVar"></param>
+        /// <returns></returns>
         public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition syncVar)
         {
             CustomAttribute attribute = syncVar.GetCustomAttribute<SyncVarAttribute>();
@@ -57,6 +69,13 @@ namespace JFramework.Editor
             return hookMethod == null ? null : FindHookMethod(td, syncVar, hookMethod);
         }
 
+        /// <summary>
+        /// 寻找挂钩方法
+        /// </summary>
+        /// <param name="td"></param>
+        /// <param name="serverVar"></param>
+        /// <param name="hookMethod"></param>
+        /// <returns></returns>
         private MethodDefinition FindHookMethod(TypeDefinition td, FieldDefinition serverVar, string hookMethod)
         {
             List<MethodDefinition> methods = td.GetMethods(hookMethod);
@@ -80,13 +99,30 @@ namespace JFramework.Editor
             return null;
         }
 
+        /// <summary>
+        /// 钩子方法的模版
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="valueType"></param>
+        /// <returns></returns>
         private static string HookMethod(string name, TypeReference valueType) => $"void {name}({valueType} oldValue, {valueType} newValue)";
         
+        /// <summary>
+        /// 参数配对
+        /// </summary>
+        /// <param name="serverVar"></param>
+        /// <param name="method"></param>
+        /// <returns></returns>
         private static bool MatchesParameters(FieldDefinition serverVar, MethodDefinition method)
         {
             return method.Parameters[0].ParameterType.FullName == serverVar.FieldType.FullName && method.Parameters[1].ParameterType.FullName == serverVar.FieldType.FullName;
         }
 
+        /// <summary>
+        /// 处理每个NetworkBehaviour的SyncVar
+        /// </summary>
+        /// <param name="td"></param>
+        /// <returns></returns>
         public (List<FieldDefinition> syncVars, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds) ProcessSyncVars(TypeDefinition td)
         { 
             List<FieldDefinition> syncVars = new List<FieldDefinition>();
@@ -138,6 +174,13 @@ namespace JFramework.Editor
             return (syncVars, syncVarNetIds);
         }
 
+        /// <summary>
+        /// 处理SyncVar
+        /// </summary>
+        /// <param name="td"></param>
+        /// <param name="fd"></param>
+        /// <param name="syncVarNetIds"></param>
+        /// <param name="dirtyBit"></param>
         private void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds, long dirtyBit)
         {
             string originalName = fd.Name;
@@ -180,6 +223,13 @@ namespace JFramework.Editor
             }
         }
 
+        /// <summary>
+        /// 生成SyncVer的Getter
+        /// </summary>
+        /// <param name="fd"></param>
+        /// <param name="originalName"></param>
+        /// <param name="netFieldId"></param>
+        /// <returns></returns>
         private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string originalName, FieldDefinition netFieldId)
         {
             MethodDefinition get = new MethodDefinition($"get_Network{originalName}", CONST.VAR_ATTRS, fd.FieldType);
@@ -238,6 +288,15 @@ namespace JFramework.Editor
             return get;
         }
 
+        /// <summary>
+        /// 生成SyncVar的Setter
+        /// </summary>
+        /// <param name="td"></param>
+        /// <param name="fd"></param>
+        /// <param name="originalName"></param>
+        /// <param name="dirtyBit"></param>
+        /// <param name="netFieldId"></param>
+        /// <returns></returns>
         private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string originalName, long dirtyBit, FieldDefinition netFieldId)
         {
             MethodDefinition set = new MethodDefinition($"set_Network{originalName}", CONST.VAR_ATTRS, process.Import(typeof(void)));

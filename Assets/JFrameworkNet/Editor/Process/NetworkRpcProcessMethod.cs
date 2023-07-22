@@ -5,6 +5,13 @@ namespace JFramework.Editor
 {
     internal static partial class NetworkRpcProcess
     {
+        /// <summary>
+        /// 处理基本的Rpc方法
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="td"></param>
+        /// <param name="md"></param>
+        /// <returns></returns>
         private static MethodDefinition BaseRpcMethod(Logger logger, TypeDefinition td, MethodDefinition md)
         {
             string newName = Command.GenerateMethodName(CONST.RPC_METHOD, md);
@@ -39,6 +46,12 @@ namespace JFramework.Editor
             return rpc;
         }
 
+        /// <summary>
+        /// 处理修正的Rpc方法
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="td"></param>
+        /// <param name="md"></param>
         private static void FixBaseRpcMethod(Logger logger, TypeDefinition td, MethodDefinition md)
         {
             string methodName = md.Name;

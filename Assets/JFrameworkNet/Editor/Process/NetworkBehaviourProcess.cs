@@ -67,16 +67,16 @@ namespace JFramework.Editor
                 return true;
             }
             
-            InjectIntoStaticConstructor();
+            InjectStaticConstructor();
             
-            GenerateSerialization();
+            GenerateSerialize();
         
             if (Command.failed)
             {
                 return true;
             }
 
-            GenerateDeserialization();
+            GenerateDeserialize();
             return true;
         }
 
