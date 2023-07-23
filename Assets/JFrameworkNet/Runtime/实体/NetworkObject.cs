@@ -31,7 +31,7 @@ namespace JFramework.Net
         [ReadOnly, ShowInInspector] internal bool isClient;
         [ReadOnly, ShowInInspector] internal ClientEntity connection;
         private bool isStartClient;
-        private bool hasAuthority;
+        private bool isAuthority;
         internal NetworkBehaviour[] entities;
 
         private void Awake()
@@ -263,7 +263,7 @@ namespace JFramework.Net
             isClient = false;
             isServer = false;
             isStartClient = false;
-            hasAuthority = false;
+            isAuthority = false;
             connection = null;
             sceneIds.Clear();
         }

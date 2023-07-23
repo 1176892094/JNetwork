@@ -141,8 +141,8 @@ namespace JFramework.Net
         /// 序列化网络变量
         /// </summary>
         /// <param name="writer"></param>
-        /// <param name="serialize"></param>
-        protected virtual void SerializeSyncVars(NetworkWriter writer, bool serialize)
+        /// <param name="start"></param>
+        protected virtual void SerializeSyncVars(NetworkWriter writer, bool start)
         {
             //TODO：通过自动生成
         }
@@ -186,8 +186,8 @@ namespace JFramework.Net
         /// 反序列化网络变量
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="serialize"></param>
-        protected virtual void DeserializeSyncVars(NetworkReader reader, bool serialize)
+        /// <param name="start"></param>
+        protected virtual void DeserializeSyncVars(NetworkReader reader, bool start)
         {
             //TODO：通过自动生成
         }

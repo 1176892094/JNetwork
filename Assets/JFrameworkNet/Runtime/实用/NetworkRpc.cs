@@ -9,7 +9,7 @@ namespace JFramework.Net
         /// <summary>
         /// 远程调用事件字典
         /// </summary>
-        private static readonly Dictionary<ushort, NetworkEvent> rpcEvents = new Dictionary<ushort, NetworkEvent>();
+        private static readonly Dictionary<ushort, RpcMessage> messages = new Dictionary<ushort, RpcMessage>();
 
         /// <summary>
         /// TODO:自动生成代码注册服务器远程调用
@@ -19,7 +19,7 @@ namespace JFramework.Net
         /// <param name="func"></param>
         public static void RegisterServerRpc(Type component, string methodName, RpcDelegate func)
         {
-            RegisterRpcEvent(component, methodName, RpcType.ServerRpc, func);
+            RegisterRpc(component, methodName, RpcType.ServerRpc, func);
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace JFramework.Net
         /// <param name="func"></param>
         public static void RegisterClientRpc(Type component, string methodName, RpcDelegate func)
         {
-            RegisterRpcEvent(component, methodName, RpcType.ClientRpc, func);
+            RegisterRpc(component, methodName, RpcType.ClientRpc, func);
         }
 
         /// <summary>
@@ -40,16 +40,16 @@ namespace JFramework.Net
         /// <param name="methodName"></param>
         /// <param name="rpcType"></param>
         /// <param name="func"></param>
-        private static void RegisterRpcEvent(Type component, string methodName, RpcType rpcType, RpcDelegate func)
+        private static void RegisterRpc(Type component, string methodName, RpcType rpcType, RpcDelegate func)
         {
-            ushort hash = (ushort)(Net.NetworkMessage.GetHashByName(methodName) & 0xFFFF);
+            ushort hash = (ushort)(NetworkMessage.GetHashByName(methodName) & 0xFFFF);
 
-            if (IsValidRpcEvent(component, hash, rpcType, func))
+            if (IsValidRpc(component, hash, rpcType, func))
             {
                 return;
             }
 
-            rpcEvents[hash] = new NetworkEvent
+            messages[hash] = new RpcMessage
             {
                 rpcType = rpcType,
                 component = component,
@@ -65,16 +65,16 @@ namespace JFramework.Net
         /// <param name="rpcType"></param>
         /// <param name="func"></param>
         /// <returns></returns>
-        private static bool IsValidRpcEvent(Type component, ushort methodHash, RpcType rpcType, RpcDelegate func)
+        private static bool IsValidRpc(Type component, ushort methodHash, RpcType rpcType, RpcDelegate func)
         {
-            if (rpcEvents.TryGetValue(methodHash, out var @event))
+            if (messages.TryGetValue(methodHash, out var message))
             {
-                if (@event.Compare(component, rpcType, func))
+                if (message.Compare(component, rpcType, func))
                 {
                     return true;
                 }
 
-                Debug.LogError($"{@event.component} {@event.function.Method.Name} 与 {component} {func.Method.Name} 具有相同的哈希值。请重新命名方法。");
+                Debug.LogError($"{message.component} {message.function.Method.Name} 与 {component} {func.Method.Name} 具有相同的哈希值。请重新命名方法。");
             }
 
             return false;
@@ -88,37 +88,34 @@ namespace JFramework.Net
         /// <returns>返回是否需要权限</returns>
         internal static bool HasAuthority(ushort hash)
         {
-            return rpcEvents.TryGetValue(hash, out var @event) && @event is { rpcType: RpcType.ServerRpc };
+            return messages.TryGetValue(hash, out var message) && message is { rpcType: RpcType.ServerRpc };
         }
 
-        
         /// <summary>
         /// 调用远程函数
         /// </summary>
         /// <returns>返回是否调用成功</returns>
         internal static bool Invoke(ushort hash, RpcType rpcType, NetworkReader reader, NetworkBehaviour behaviour, ClientEntity client = null)
         {
-            if (!TryGetInvoker(hash, rpcType, out var @event)) return false;
-            if (!@event.component.IsInstanceOfType(behaviour)) return false; // 判断是否是NetworkBehaviour的实例或派生类型的实例
-            @event.function(behaviour, reader, client);
-            return true;
-        }
+            if (!messages.TryGetValue(hash, out var message) || message == null || message.rpcType != rpcType) // 没有注册进字典
+            {
+                return false;
+            }
 
-        /// <summary>
-        /// 判断是否包含调用方法
-        /// </summary>
-        /// <returns>返回得到方法并且是相同的Rpc类型</returns>
-        private static bool TryGetInvoker(ushort hash, RpcType rpc, out NetworkEvent @event)
-        {
-            return rpcEvents.TryGetValue(hash, out @event) && @event != null && @event.rpcType == rpc;
+            if (!message.component.IsInstanceOfType(behaviour)) // 判断是否是NetworkBehaviour的实例或派生类型的实例
+            {
+                return false;
+            }
+
+            message.function(behaviour, reader, client);
+            return true;
         }
 
         /// <summary>
         /// 网络事件
         /// </summary>
-        private sealed class NetworkEvent
+        private sealed class RpcMessage
         {
-            public bool authority;
             public Type component;
             public RpcType rpcType;
             public RpcDelegate function;

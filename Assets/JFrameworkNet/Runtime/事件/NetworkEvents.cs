@@ -1,7 +1,5 @@
 using System;
-using JFramework.Interface;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace JFramework.Net
 {

@@ -138,6 +138,5 @@ namespace JFramework.Net
             byte a8 = reader.ReadByte();
             return a1 + ((ulong)a2 << 8) + ((ulong)a3 << 16) + ((ulong)a4 << 24) + ((ulong)a5 << 32) + ((ulong)a6 << 40) + ((ulong)a7 << 48)  + ((ulong)a8 << 56);
         }
-        
     }
 }

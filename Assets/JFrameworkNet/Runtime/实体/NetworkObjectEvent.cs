@@ -87,16 +87,16 @@ namespace JFramework.Net
         /// </summary>
         internal void OnNotifyAuthority()
         {
-            if (!hasAuthority && isOwner)
+            if (!isAuthority && isOwner)
             {
                 OnStartAuthority();
             }
-            else if (hasAuthority && !isOwner)
+            else if (isAuthority && !isOwner)
             {
                 OnStopAuthority();
             }
 
-            hasAuthority = isOwner;
+            isAuthority = isOwner;
         }
 
         /// <summary>
