@@ -165,7 +165,7 @@ namespace JFramework.Editor
 
         private MethodDefinition GenerateReaderFunction(TypeReference variable)
         {
-            string functionName = $"Read{NetworkEvent.GetHashByName(variable.FullName)}";
+            string functionName = $"Read{NetworkMessage.GetHashByName(variable.FullName)}";
             MethodDefinition readerFunc = new MethodDefinition(functionName, CONST.RAW_ATTRS, variable);
             readerFunc.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, model.Import<NetworkReader>()));
             readerFunc.Body.InitLocals = true;

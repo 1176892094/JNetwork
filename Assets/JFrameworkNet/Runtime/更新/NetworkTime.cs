@@ -31,8 +31,8 @@ namespace JFramework.Net
         {
             if (localTime - lastSendTime >= NetworkConst.PingInterval)
             {
-                PingEvent @event = new PingEvent(localTime); // 传入客户端时间到服务器
-                NetworkClient.Send(@event, Channel.Unreliable);
+                PingMessage message = new PingMessage(localTime); // 传入客户端时间到服务器
+                NetworkClient.Send(message, Channel.Unreliable);
                 lastSendTime = localTime;
             }
         }
@@ -40,17 +40,17 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器发送Pong消息给指定客户端
         /// </summary>
-        public static void OnPingEvent(ClientEntity client, PingEvent @event)
+        public static void OnPingByServer(ClientEntity client, PingMessage message)
         {
-            PongEvent pongEvent = new PongEvent(@event.clientTime); //服务器将客户端时间传回到客户端
-            client.Send(pongEvent, Channel.Unreliable);
+            PongMessage pongMessage = new PongMessage(message.clientTime); //服务器将客户端时间传回到客户端
+            client.Send(pongMessage, Channel.Unreliable);
         }
 
         /// <summary>
         /// 客户端从服务器接收的回传信息
         /// </summary>
-        /// <param name="event"></param>
-        public static void OnPongEvent(PongEvent @event)
+        /// <param name="message"></param>
+        public static void OnPongEvent(PongMessage message)
         {
             //TODO:进行平滑计算
             //smooth.Calculate( localTime - @event.clientTime);

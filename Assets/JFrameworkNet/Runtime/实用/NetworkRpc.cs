@@ -42,7 +42,7 @@ namespace JFramework.Net
         /// <param name="func"></param>
         private static void RegisterRpcEvent(Type component, string methodName, RpcType rpcType, RpcDelegate func)
         {
-            ushort hash = (ushort)(Net.NetworkEvent.GetHashByName(methodName) & 0xFFFF);
+            ushort hash = (ushort)(Net.NetworkMessage.GetHashByName(methodName) & 0xFFFF);
 
             if (IsValidRpcEvent(component, hash, rpcType, func))
             {

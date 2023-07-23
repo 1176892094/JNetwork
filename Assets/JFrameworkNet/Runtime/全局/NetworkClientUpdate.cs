@@ -26,18 +26,18 @@ namespace JFramework.Net
                 }
             }
         
-            if (server != null)
+            if (connection != null)
             {
                 if (NetworkManager.mode == NetworkMode.Host)
                 {
-                    server.Update();
+                    connection.Update();
                 }
                 else
                 {
                     if (isActive && isConnect)
                     {
                         NetworkTime.Update();
-                        server.Update();
+                        connection.Update();
                     }
                 }
             }
@@ -53,7 +53,7 @@ namespace JFramework.Net
         /// </summary>
         private static void Broadcast()
         {
-            if (!server.isReady) return;
+            if (!connection.isReady) return;
             if (NetworkServer.isActive) return;
             foreach (var @object in spawns.Values)
             {
@@ -61,7 +61,7 @@ namespace JFramework.Net
                 @object.ClientSerialize(writer);
                 if (writer.position > 0)
                 {
-                    Send(new EntityEvent(@object.objectId, writer.ToArraySegment()));
+                    Send(new EntityMessage(@object.objectId, writer.ToArraySegment()));
                     @object.ClearDirty();
                 }
             }

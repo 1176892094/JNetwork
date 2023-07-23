@@ -78,14 +78,14 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 遍历所有客户端，发送生成物体的事件
+        /// 遍历所有客户端，发送生成物体的消息
         /// </summary>
         /// <param name="object">传入对象</param>
         private static void SpawnForClient(NetworkObject @object)
         {
             foreach (var client in clients.Values.Where(client => client.isReady))
             {
-                SendSpawnEvent(client, @object);
+                SendSpawnMessage(client, @object);
             }
         }
 
@@ -94,13 +94,13 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="client">指定的客户端</param>
         /// <param name="object">生成的游戏对象</param>
-        private static void SendSpawnEvent(ClientEntity client, NetworkObject @object)
+        private static void SendSpawnMessage(ClientEntity client, NetworkObject @object)
         {
             Debug.Log($"服务器为客户端 {client.clientId} 生成 {@object}");
             using NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
             var isOwner = @object.connection == client;
             var transform = @object.transform;
-            var @event = new SpawnEvent
+            var message = new SpawnMessage
             {
                 isOwner = isOwner,
                 sceneId = @object.sceneId,
@@ -112,7 +112,7 @@ namespace JFramework.Net
                 segment = SerializeNetworkObject(@object, isOwner, owner, observer)
             };
 
-            client.Send(@event);
+            client.Send(message);
         }
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace JFramework.Net
             foreach (var client in clients.Values)
             {
                 Debug.Log($"服务器为客户端 {client.clientId} 重置 {@object}");
-                client.Send(new DespawnEvent(@object.objectId));
+                client.Send(new DespawnMessage(@object.objectId));
             }
         }
 
@@ -178,7 +178,7 @@ namespace JFramework.Net
             foreach (var client in clients.Values)
             {
                 Debug.Log($"服务器为客户端 {client.clientId} 销毁 {@object}");
-                client.Send(new DestroyEvent(@object.objectId));
+                client.Send(new DestroyMessage(@object.objectId));
             }
         }
     }

@@ -15,12 +15,12 @@ namespace JFramework.Net
     /// <summary>
     /// 网络消息的委托
     /// </summary>
-    internal delegate void EventDelegate(Connection connection, NetworkReader reader, Channel channel);
+    internal delegate void MessageDelegate(Connection connection, NetworkReader reader, Channel channel);
 
     /// <summary>
     /// 生成处理的委托
     /// </summary>
-    internal delegate GameObject SpawnDelegate(SpawnEvent @event);
+    internal delegate GameObject SpawnDelegate(SpawnMessage message);
     
     /// <summary>
     /// 销毁处理的委托

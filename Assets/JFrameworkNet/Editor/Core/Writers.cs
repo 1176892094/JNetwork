@@ -159,7 +159,7 @@ namespace JFramework.Editor
 
         private MethodDefinition GenerateWriterFunc(TypeReference variable)
         {
-            string functionName = $"Write{NetworkEvent.GetHashByName(variable.FullName)}";
+            string functionName = $"Write{NetworkMessage.GetHashByName(variable.FullName)}";
             MethodDefinition writerFunc = new MethodDefinition(functionName, CONST.RAW_ATTRS, model.Import(typeof(void)));
             writerFunc.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, model.Import<NetworkWriter>()));
             writerFunc.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, variable));

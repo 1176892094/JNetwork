@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using JFramework.Interface;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -10,7 +9,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息委托字典
         /// </summary>
-        internal static readonly Dictionary<ushort, EventDelegate> events = new Dictionary<ushort, EventDelegate>();
+        internal static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
         
         /// <summary>
         /// 注册的预置体
@@ -65,7 +64,7 @@ namespace JFramework.Net
         /// <summary>
         /// 连接到的服务器
         /// </summary>
-        public static ServerEntity server { get; private set; }
+        public static ServerEntity connection { get; private set; }
 
         /// <summary>
         /// 客户端连接的事件(包含主机)
@@ -91,10 +90,10 @@ namespace JFramework.Net
         {
             Debug.Log("开启客户端。");
             RegisterTransport();
-            RegisterEvent(false);
+            RegisterMessage(false);
             state = ConnectState.Connecting;
             Transport.current.ClientConnect(address, port);
-            server = new ServerEntity();
+            connection = new ServerEntity();
         }
 
         /// <summary>
@@ -105,10 +104,10 @@ namespace JFramework.Net
         {
             Debug.Log("开启客户端。");
             RegisterTransport();
-            RegisterEvent(false);
+            RegisterMessage(false);
             state = ConnectState.Connecting;
             Transport.current.ClientConnect(uri);
-            server = new ServerEntity();
+            connection = new ServerEntity();
         }
 
         /// <summary>
@@ -117,9 +116,9 @@ namespace JFramework.Net
         internal static void StartClient()
         {
             Debug.Log("开启客户端。");
-            RegisterEvent(true);
+            RegisterMessage(true);
             state = ConnectState.Connected;
-            server = new ServerEntity();
+            connection = new ServerEntity();
             var client = new ClientEntity(NetworkConst.HostId);
             NetworkServer.connection = client;
             NetworkServer.OnClientConnect(client);
@@ -135,7 +134,7 @@ namespace JFramework.Net
             {
                 Debug.LogError("客户端已经准备就绪！");
             }
-            else if (server == null)
+            else if (connection == null)
             {
                 Debug.LogError("没有有效的服务器连接！");
             }
@@ -143,24 +142,24 @@ namespace JFramework.Net
             {
                 Debug.Log($"客户端准备。");
                 isReady = true;
-                server.isReady = true;
-                server.Send(new SetReadyEvent());
+                connection.isReady = true;
+                connection.Send(new SetReadyMessage());
             }
         }
 
         /// <summary>
         /// 可毒案发送消息到服务器
         /// </summary>
-        /// <param name="event">网络事件</param>
+        /// <param name="message">网络事件</param>
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T"></typeparam>
-        internal static void Send<T>(T @event, Channel channel = Channel.Reliable) where T : struct, IEvent
+        internal static void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, IMessage
         {
-            if (server != null)
+            if (connection != null)
             {
                 if (state == ConnectState.Connected)
                 {
-                    server.Send(@event, channel);
+                    connection.Send(message, channel);
                 }
                 else
                 {
@@ -189,10 +188,10 @@ namespace JFramework.Net
             state = ConnectState.Disconnected;
             lastSendTime = 0;
             scenes.Clear();
-            events.Clear();
+            messages.Clear();
             prefabs.Clear();
             isReady = false;
-            server = null;
+            connection = null;
             isLoadScene = false;
             OnClientConnect = null;
             OnClientDisconnect = null;

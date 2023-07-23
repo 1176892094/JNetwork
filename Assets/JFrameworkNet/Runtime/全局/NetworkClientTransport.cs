@@ -30,7 +30,7 @@ namespace JFramework.Net
         /// </summary>
         private static void OnClientConnected()
         {
-            if (server == null)
+            if (connection == null)
             {
                 Debug.LogError("没有有效的服务器连接！");
                 return;
@@ -64,42 +64,42 @@ namespace JFramework.Net
         /// <param name="channel"></param>
         internal static void OnClientReceive(ArraySegment<byte> data, Channel channel)
         {
-            if (server == null)
+            if (connection == null)
             {
                 Debug.LogError("没有有效的服务器连接！");
                 return;
             }
 
-            if (!server.readers.ReadEnqueue(data))
+            if (!connection.readers.ReadEnqueue(data))
             {
                 Debug.LogError($"无法将读取消息合批!");
-                server.Disconnect();
+                connection.Disconnect();
                 return;
             }
 
-            while (!isLoadScene && server.readers.ReadDequeue(out var reader, out double timestamp))
+            while (!isLoadScene && connection.readers.ReadDequeue(out var reader, out double timestamp))
             {
-                if (reader.Residue >= NetworkConst.EventSize)
+                if (reader.Residue >= NetworkConst.MessageSize)
                 {
-                    server.timestamp = timestamp;
+                    connection.timestamp = timestamp;
                     if (!TryInvoke(reader, channel))
                     {
                         Debug.LogWarning($"无法解包调用网络信息。");
-                        server.Disconnect();
+                        connection.Disconnect();
                         return;
                     }
                 }
                 else
                 {
                     Debug.LogWarning($"网络消息应该有个开始的Id");
-                    server.Disconnect();
+                    connection.Disconnect();
                     return;
                 }
             }
 
-            if (!isLoadScene && server.readers.Count > 0)
+            if (!isLoadScene && connection.readers.Count > 0)
             {
-                Debug.LogError($"读取器合批之后仍然还有次数残留！残留次数：{server.readers.Count}\n");
+                Debug.LogError($"读取器合批之后仍然还有次数残留！残留次数：{connection.readers.Count}\n");
             }
         }
 
@@ -111,11 +111,11 @@ namespace JFramework.Net
         /// <returns>返回是否读取成功</returns>
         private static bool TryInvoke(NetworkReader reader, Channel channel)
         {
-            if (NetworkEvent.ReadEvent(reader, out ushort id))
+            if (NetworkMessage.ReadMessage(reader, out ushort id))
             {
-                if (events.TryGetValue(id, out EventDelegate handle))
+                if (messages.TryGetValue(id, out MessageDelegate handle))
                 {
-                    handle.Invoke(server, reader, channel);
+                    handle.Invoke(connection, reader, channel);
                     return true;
                 }
 

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -91,7 +90,7 @@ namespace JFramework.Net
 
             while (!isLoadScene && client.readerPack.ReadDequeue(out var reader, out double timestamp))
             {
-                if (reader.Residue >= NetworkConst.EventSize)
+                if (reader.Residue >= NetworkConst.MessageSize)
                 {
                     client.timestamp = timestamp;
                     if (!TryInvoke(client, reader, channel))
@@ -124,9 +123,9 @@ namespace JFramework.Net
         /// <returns>返回是否读取成功</returns>
         private static bool TryInvoke(ClientEntity client, NetworkReader reader, Channel channel)
         {
-            if (NetworkEvent.ReadEvent(reader, out ushort id))
+            if (NetworkMessage.ReadMessage(reader, out ushort id))
             {
-                if (events.TryGetValue(id, out EventDelegate handle))
+                if (messages.TryGetValue(id, out MessageDelegate handle))
                 {
                     handle.Invoke(client, reader, channel);
                     return true;

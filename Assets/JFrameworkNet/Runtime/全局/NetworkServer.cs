@@ -10,7 +10,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息委托字典
         /// </summary>
-        internal static readonly Dictionary<ushort, EventDelegate> events = new Dictionary<ushort, EventDelegate>();
+        internal static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
 
         /// <summary>
         /// 连接的的客户端字典
@@ -93,7 +93,7 @@ namespace JFramework.Net
                 Debug.Log("开启服务器。");
                 isActive = true;
                 clients.Clear();
-                RegisterEvent();
+                RegisterMessage();
                 RegisterTransport();
                 NetworkTime.ResetStatic();
             }
@@ -110,7 +110,7 @@ namespace JFramework.Net
             clients.TryAdd(client.clientId, client);
             if (!string.IsNullOrEmpty(NetworkManager.sceneName))
             {
-                client.Send(new SceneEvent(NetworkManager.sceneName));
+                client.Send(new SceneMessage(NetworkManager.sceneName));
             }
 
             OnServerConnect?.Invoke(client);
@@ -126,7 +126,7 @@ namespace JFramework.Net
             client.isReady = true;
             foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
             {
-                SendSpawnEvent(client, @object);
+                SendSpawnMessage(client, @object);
             }
         }
 
@@ -138,7 +138,7 @@ namespace JFramework.Net
         {
             Debug.Log($"设置客户端 {client.clientId} 取消准备");
             client.isReady = false;
-            client.Send(new NotReadyEvent());
+            client.Send(new NotReadyMessage());
         }
         
         /// <summary>
@@ -167,7 +167,7 @@ namespace JFramework.Net
             lastSendTime = 0;
             objectId = 0;
             spawns.Clear();
-            events.Clear();
+            messages.Clear();
             clients.Clear();
             connection = null;
             isLoadScene = false;

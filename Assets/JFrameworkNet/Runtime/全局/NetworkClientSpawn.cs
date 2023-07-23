@@ -57,27 +57,27 @@ namespace JFramework.Net
         /// <summary>
         /// 获取网络对象
         /// </summary>
-        /// <param name="event">传入网络事件</param>
+        /// <param name="message">传入网络消息</param>
         /// <param name="object">输出网络对象</param>
         /// <returns>返回是否能获取</returns>
-        private static bool TrySpawn(SpawnEvent @event, out NetworkObject @object)
+        private static bool TrySpawn(SpawnMessage message, out NetworkObject @object)
         {
-            if (spawns.TryGetValue(@event.objectId, out @object))
+            if (spawns.TryGetValue(message.objectId, out @object))
             {
                 return true;
             }
             
-            if (@event is { assetId: 0, sceneId: 0 })
+            if (message is { assetId: 0, sceneId: 0 })
             {
-                Debug.LogError($"生成游戏对象 {@event.objectId} 需要保证 assetId 和 sceneId 其中一个不为零");
+                Debug.LogError($"生成游戏对象 {message.objectId} 需要保证 assetId 和 sceneId 其中一个不为零");
                 return false;
             }
 
-            @object = @event.sceneId == 0 ? SpawnAssetPrefab(@event) : SpawnSceneObject(@event.sceneId);
+            @object = message.sceneId == 0 ? SpawnAssetPrefab(message) : SpawnSceneObject(message.sceneId);
 
             if (@object == null)
             {
-                Debug.LogError($"不能生成 {@object}。 assetId：{@event.assetId} sceneId：{@event.sceneId}");
+                Debug.LogError($"不能生成 {@object}。 assetId：{message.assetId} sceneId：{message.sceneId}");
                 return false;
             }
 
@@ -87,17 +87,17 @@ namespace JFramework.Net
         /// <summary>
         /// 生成资源预置体
         /// </summary>
-        /// <param name="event">传入网络事件</param>
+        /// <param name="message">传入网络消息</param>
         /// <returns>返回网络对象</returns>
-        private static NetworkObject SpawnAssetPrefab(SpawnEvent @event)
+        private static NetworkObject SpawnAssetPrefab(SpawnMessage message)
         {
-            if (prefabs.TryGetValue(@event.assetId, out GameObject prefab))
+            if (prefabs.TryGetValue(message.assetId, out GameObject prefab))
             {
-                var gameObject = Object.Instantiate(prefab, @event.position, @event.rotation);
+                var gameObject = Object.Instantiate(prefab, message.position, message.rotation);
                 return gameObject.GetComponent<NetworkObject>();
             }
 
-            Debug.LogError($"无法生成有效预置体。 assetId：{@event.assetId}  sceneId：{@event.sceneId}");
+            Debug.LogError($"无法生成有效预置体。 assetId：{message.assetId}  sceneId：{message.sceneId}");
             return null;
         }
 
@@ -147,12 +147,12 @@ namespace JFramework.Net
         /// 生成网络对象
         /// </summary>
         /// <param name="object"></param>
-        /// <param name="event"></param>
-        private static void Spawn(NetworkObject @object, SpawnEvent @event)
+        /// <param name="message"></param>
+        private static void Spawn(NetworkObject @object, SpawnMessage message)
         {
-            if (@event.assetId != 0)
+            if (message.assetId != 0)
             {
-                @object.assetId = @event.assetId;
+                @object.assetId = message.assetId;
             }
 
             if (!@object.gameObject.activeSelf)
@@ -160,22 +160,22 @@ namespace JFramework.Net
                 @object.gameObject.SetActive(true);
             }
 
-            @object.objectId = @event.objectId;
-            @object.isOwner = @event.isOwner;
+            @object.objectId = message.objectId;
+            @object.isOwner = message.isOwner;
             @object.isClient = true;
 
             var transform = @object.transform;
-            transform.localPosition = @event.position;
-            transform.localRotation = @event.rotation;
-            transform.localScale = @event.localScale;
+            transform.localPosition = message.position;
+            transform.localRotation = message.rotation;
+            transform.localScale = message.localScale;
             
-            if (@event.segment.Count > 0)
+            if (message.segment.Count > 0)
             {
-                using var reader = NetworkReader.Pop(@event.segment);
+                using var reader = NetworkReader.Pop(message.segment);
                 @object.ClientDeserialize(reader, true);
             }
             
-            spawns[@event.objectId] = @object;
+            spawns[message.objectId] = @object;
             if (isSpawn)
             {
                 @object.OnNotifyAuthority();

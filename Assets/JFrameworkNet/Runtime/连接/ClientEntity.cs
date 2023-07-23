@@ -68,26 +68,26 @@ namespace JFramework.Net
         private void SendRpc(NetworkWriter writer, Channel channel)
         {
             if (writer.position <= 0) return;
-            Send(new InvokeRpcEvent(writer), channel);
+            Send(new InvokeRpcMessage(writer), channel);
             writer.position = 0;
         }
 
         /// <summary>
         /// 对Rpc的缓存
         /// </summary>
-        /// <param name="event"></param>
+        /// <param name="message"></param>
         /// <param name="buffer"></param>
         /// <param name="channel"></param>
         /// <param name="maxMessageSize"></param>
-        private void SendRpc(ClientRpcEvent @event, NetworkWriter buffer, Channel channel, int maxMessageSize)
+        private void SendRpc(ClientRpcMessage message, NetworkWriter buffer, Channel channel, int maxMessageSize)
         {
-            int bufferLimit = maxMessageSize - NetworkConst.EventSize - sizeof(int) - NetworkConst.HeaderSize;
+            int bufferLimit = maxMessageSize - NetworkConst.MessageSize - sizeof(int) - NetworkConst.HeaderSize;
             int before = buffer.position;
-            buffer.Write(@event);
+            buffer.Write(message);
             int messageSize = buffer.position - before;
             if (messageSize > bufferLimit)
             {
-                Debug.LogWarning($"远程调用 {@event.objectId} 消息大小不能超过 {bufferLimit}。消息大小：{messageSize}");
+                Debug.LogWarning($"远程调用 {message.objectId} 消息大小不能超过 {bufferLimit}。消息大小：{messageSize}");
                 return;
             }
 
@@ -95,7 +95,7 @@ namespace JFramework.Net
             {
                 buffer.position = before;
                 SendRpc(buffer, channel);
-                buffer.Write(@event);
+                buffer.Write(message);
             }
         }
 
@@ -104,7 +104,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="message"></param>
         /// <param name="channel"></param>
-        internal void InvokeRpc(ClientRpcEvent message, Channel channel)
+        internal void InvokeRpc(ClientRpcMessage message, Channel channel)
         {
             int maxSize = Transport.current.GetMaxPacketSize(channel);
             switch (channel)
@@ -129,7 +129,7 @@ namespace JFramework.Net
             {
                 NetworkWriter writer = NetworkWriter.Pop();
                 writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
-                NetworkClient.server.writeQueue.Enqueue(writer);
+                NetworkClient.connection.writeQueue.Enqueue(writer);
                 return;
             }
 

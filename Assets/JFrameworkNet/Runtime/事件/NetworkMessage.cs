@@ -2,24 +2,23 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using JFramework.Interface;
 using UnityEngine;
 
 namespace JFramework.Net
 {
     /// <summary>
-    /// 静态泛型事件Id
+    /// 静态泛型消息Id
     /// </summary>
-    /// <typeparam name="T">网络事件类型</typeparam>
-    public static class NetworkEvent<T> where T : struct, IEvent
+    /// <typeparam name="T">网络消息类型</typeparam>
+    public static class NetworkMessage<T> where T : struct, IMessage
     {
         /// <summary>
         /// 根据泛型类型的名称来获取Hash的Id
         /// </summary>
-        public static readonly ushort Id = (ushort)NetworkEvent.GetHashByName(typeof(T).FullName);
+        public static readonly ushort Id = (ushort)NetworkMessage.GetHashByName(typeof(T).FullName);
     }
     
-    public static class NetworkEvent
+    public static class NetworkMessage
     {
         /// <summary>
         /// 根据名称获取Hash码
@@ -35,35 +34,35 @@ namespace JFramework.Net
         }
         
         /// <summary>
-        /// 写入事件Id
+        /// 写入消息Id
         /// </summary>
-        /// <param name="event"></param>
+        /// <param name="message"></param>
         /// <param name="writer"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteEvent<T>(NetworkWriter writer, T @event) where T : struct, IEvent
+        public static void WriteMessage<T>(NetworkWriter writer, T message) where T : struct, IMessage
         {
-            writer.WriteUShort(NetworkEvent<T>.Id);
-            writer.Write(@event);
+            writer.WriteUShort(NetworkMessage<T>.Id);
+            writer.Write(message);
         }
 
         /// <summary>
         /// 读取消息Id
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="eventId"></param>
+        /// <param name="messageId"></param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool ReadEvent(NetworkReader reader, out ushort eventId)
+        public static bool ReadMessage(NetworkReader reader, out ushort messageId)
         {
             try
             {
-                eventId = reader.ReadUShort();
+                messageId = reader.ReadUShort();
                 return true;
             }
             catch (EndOfStreamException)
             {
-                eventId = 0;
+                messageId = 0;
                 return false;
             }
         }
@@ -75,14 +74,14 @@ namespace JFramework.Net
         /// <typeparam name="T1">网络连接(Server or Client)</typeparam>
         /// <typeparam name="T2">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static EventDelegate Register<T1, T2>(Action<T1, T2, Channel> handle) where T1 : Connection where T2 : struct, IEvent
+        internal static MessageDelegate Register<T1, T2>(Action<T1, T2, Channel> handle) where T1 : Connection where T2 : struct, IMessage
         {
             return (connection, reader, channel) =>
             {
                 try
                 {
-                    var @event = reader.Read<T2>();
-                    handle?.Invoke((T1)connection, @event, channel);
+                    var message = reader.Read<T2>();
+                    handle?.Invoke((T1)connection, message, channel);
                 }
                 catch (Exception e)
                 {
@@ -107,7 +106,7 @@ namespace JFramework.Net
         /// <typeparam name="T1">网络连接(Server or Client)</typeparam>
         /// <typeparam name="T2">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static EventDelegate Register<T1, T2>(Action<T1, T2> handle) where T1 : Connection where T2 : struct, IEvent
+        internal static MessageDelegate Register<T1, T2>(Action<T1, T2> handle) where T1 : Connection where T2 : struct, IMessage
         {
             return Register((Action<T1, T2, Channel>)Handle);
 
@@ -123,7 +122,7 @@ namespace JFramework.Net
         /// <param name="handle">传入网络消息</param>
         /// <typeparam name="T1">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static EventDelegate Register<T1>(Action<T1> handle) where T1 : struct, IEvent
+        internal static MessageDelegate Register<T1>(Action<T1> handle) where T1 : struct, IMessage
         {
             return Register((Action<Connection, T1>)Handle);
 

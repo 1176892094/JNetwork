@@ -35,7 +35,7 @@ namespace JFramework.Net
             if (NetworkServer.isActive)
             {
                 using var writer = NetworkWriter.Pop();
-                NetworkEvent.WriteEvent(writer, new SceneEvent(newSceneName));
+                NetworkMessage.WriteMessage(writer, new SceneMessage(newSceneName));
                 foreach (var client in NetworkServer.clients.Values)
                 {
                     client.Send(writer.ToArraySegment());

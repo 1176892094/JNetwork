@@ -63,7 +63,7 @@ namespace JFramework.Editor
             
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldstr, md.FullName);
-            worker.Emit(OpCodes.Ldc_I4, (int)NetworkEvent.GetHashByName(md.FullName));
+            worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.GetHashByName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4_S, attribute.GetField<sbyte>(1));
             worker.Emit(OpCodes.Callvirt, model.sendClientRpcInternal);
@@ -130,7 +130,7 @@ namespace JFramework.Editor
             
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldstr, md.FullName);
-            worker.Emit(OpCodes.Ldc_I4, (int)NetworkEvent.GetHashByName(md.FullName));
+            worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.GetHashByName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4_S, commandAttr.GetField<sbyte>( 1));
             worker.Emit(OpCodes.Call, model.sendServerRpcInternal);
@@ -219,7 +219,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(HasNetworkConnectionParameter(md) ? OpCodes.Ldarg_1 : OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldstr, md.FullName);
-            worker.Emit(OpCodes.Ldc_I4, (int)NetworkEvent.GetHashByName(md.FullName));
+            worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.GetHashByName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4_S, attr.GetField<sbyte>( 1));
             worker.Emit(OpCodes.Callvirt, model.sendTargetRpcInternal);

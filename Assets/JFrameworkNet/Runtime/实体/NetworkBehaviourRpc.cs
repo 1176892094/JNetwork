@@ -32,13 +32,13 @@ namespace JFramework.Net
                 return;
             }
 
-            if (NetworkClient.server == null)
+            if (NetworkClient.connection == null)
             {
                 Debug.LogError($"调用 {methodName} 但是客户端的连接为空。对象名称：{name}", gameObject);
                 return;
             }
 
-            var @event = new ServerRpcEvent
+            var @event = new ServerRpcMessage
             {
                 objectId = objectId,
                 serialId = serialId,
@@ -46,7 +46,7 @@ namespace JFramework.Net
                 segment = writer.ToArraySegment()
             };
 
-            NetworkClient.server.Send(@event, (Channel)channel);
+            NetworkClient.connection.Send(@event, (Channel)channel);
         }
 
 
@@ -71,7 +71,7 @@ namespace JFramework.Net
                 return;
             }
 
-            var @event = new ClientRpcEvent
+            var @event = new ClientRpcMessage
             {
                 objectId = objectId,
                 serialId = serialId,
@@ -118,7 +118,7 @@ namespace JFramework.Net
                 return;
             }
 
-            var @event = new ClientRpcEvent
+            var @event = new ClientRpcMessage
             {
                 objectId = objectId,
                 serialId = serialId,

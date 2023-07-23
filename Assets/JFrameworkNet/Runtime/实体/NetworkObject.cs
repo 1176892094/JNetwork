@@ -95,7 +95,7 @@ namespace JFramework.Net
         /// <summary>
         /// 处理Rpc事件
         /// </summary>
-        internal void InvokeRpcEvent(byte index, ushort function, RpcType rpcType, NetworkReader reader, ClientEntity client = null)
+        internal void InvokeRpcMessage(byte index, ushort function, RpcType rpcType, NetworkReader reader, ClientEntity client = null)
         {
             if (this == null)
             {
