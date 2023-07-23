@@ -68,7 +68,7 @@ namespace JFramework.Net
         private void SendRpc(NetworkWriter writer, Channel channel)
         {
             if (writer.position <= 0) return;
-            Send(new InvokeRpcMessage(writer), channel);
+            SendMessage(new InvokeRpcMessage(writer), channel);
             writer.position = 0;
         }
 
@@ -123,7 +123,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="segment">消息分段</param>
         /// <param name="channel">传输通道</param>
-        internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
+        internal override void SendMessage(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             if (isHost)
             {
@@ -133,7 +133,7 @@ namespace JFramework.Net
                 return;
             }
 
-            GetWriters(channel).WriteEnqueue(segment, NetworkTime.localTime);
+            GetWriterPack(channel).WriteEnqueue(segment, NetworkTime.localTime);
         }
 
         /// <summary>

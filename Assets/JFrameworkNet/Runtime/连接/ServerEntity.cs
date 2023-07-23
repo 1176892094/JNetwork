@@ -48,7 +48,7 @@ namespace JFramework.Net
             {
                 using var writer = writeQueue.Dequeue(); // 从队列中取出
                 var segment = writer.ToArraySegment(); //转化成数据分段
-                var writers = GetWriters(Channel.Reliable); // 获取可靠传输
+                var writers = GetWriterPack(Channel.Reliable); // 获取可靠传输
                 writers.WriteEnqueue(segment, NetworkTime.localTime); // 将数据写入到队列
                 using var template = NetworkWriter.Pop(); // 取出新的 writer
                 if (writers.WriteDequeue(template)) // 将 writer 拷贝到 template
@@ -63,7 +63,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="segment">消息分段</param>
         /// <param name="channel">传输通道</param>
-        internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
+        internal override void SendMessage(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             if (NetworkManager.mode == NetworkMode.Host)
             {
@@ -73,7 +73,7 @@ namespace JFramework.Net
                     return;
                 }
 
-                var send = GetWriters(channel);
+                var send = GetWriterPack(channel);
                 send.WriteEnqueue(segment, NetworkTime.localTime); // 添加到队列末尾并写入数据
 
                 using var writer = NetworkWriter.Pop();
@@ -88,7 +88,7 @@ namespace JFramework.Net
             }
             else
             {
-                GetWriters(channel).WriteEnqueue(segment, NetworkTime.localTime);
+                GetWriterPack(channel).WriteEnqueue(segment, NetworkTime.localTime);
             }
         }
 

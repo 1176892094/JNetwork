@@ -78,12 +78,20 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T">传入NetworkMessage</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Send<T>(T @event, Channel channel = Channel.Reliable) where T : struct, IMessage
+        public void SendMessage<T>(T @event, Channel channel = Channel.Reliable) where T : struct, IMessage
         {
             using var writer = NetworkWriter.Pop();
             NetworkMessage.WriteMessage(writer, @event);
-            Send(writer.ToArraySegment(), channel);
+            SendMessage(writer.ToArraySegment(), channel);
         }
+        
+        /// <summary>
+        /// 获取网络消息并添加到发送队列中
+        /// </summary>
+        /// <param name="segment">数据分段</param>
+        /// <param name="channel">传输通道</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal abstract void SendMessage(ArraySegment<byte> segment, Channel channel = Channel.Reliable);
         
         /// <summary>
         /// 网络消息发送
@@ -91,21 +99,13 @@ namespace JFramework.Net
         /// <param name="channel"></param>
         /// <returns>返回一个发送类</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected NetworkWriterPack GetWriters(Channel channel)
+        protected NetworkWriterPack GetWriterPack(Channel channel)
         {
-            if (writerPacks.TryGetValue(channel, out var writers)) return writers;
+            if (writerPacks.TryGetValue(channel, out var writerPack)) return writerPack;
             var threshold = Transport.current.UnreliableSize();
             return writerPacks[channel] = new NetworkWriterPack(threshold);
         }
-
-        /// <summary>
-        /// 获取网络消息并添加到发送队列中
-        /// </summary>
-        /// <param name="segment">数据分段</param>
-        /// <param name="channel">传输通道</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal abstract void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable);
-
+        
         /// <summary>
         /// 发送消息到传输层
         /// </summary>

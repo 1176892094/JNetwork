@@ -143,7 +143,7 @@ namespace JFramework.Net
                 Debug.Log($"客户端准备。");
                 isReady = true;
                 connection.isReady = true;
-                connection.Send(new SetReadyMessage());
+                connection.SendMessage(new SetReadyMessage());
             }
         }
 
@@ -159,7 +159,7 @@ namespace JFramework.Net
             {
                 if (state == ConnectState.Connected)
                 {
-                    connection.Send(message, channel);
+                    connection.SendMessage(message, channel);
                 }
                 else
                 {

@@ -66,7 +66,7 @@ namespace JFramework.Net
                     NetworkWriter writer = SerializeForClient(@object, client);
                     if (writer != null)
                     {
-                        client.Send(new EntityMessage(@object.objectId, writer.ToArraySegment()));
+                        client.SendMessage(new EntityMessage(@object.objectId, writer.ToArraySegment()));
                     }
                 }
                 else

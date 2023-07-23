@@ -110,7 +110,7 @@ namespace JFramework.Net
             clients.TryAdd(client.clientId, client);
             if (!string.IsNullOrEmpty(NetworkManager.sceneName))
             {
-                client.Send(new SceneMessage(NetworkManager.sceneName));
+                client.SendMessage(new SceneMessage(NetworkManager.sceneName));
             }
 
             OnServerConnect?.Invoke(client);
@@ -138,7 +138,7 @@ namespace JFramework.Net
         {
             Debug.Log($"设置客户端 {client.clientId} 取消准备");
             client.isReady = false;
-            client.Send(new NotReadyMessage());
+            client.SendMessage(new NotReadyMessage());
         }
         
         /// <summary>

@@ -112,7 +112,7 @@ namespace JFramework.Net
                 segment = SerializeNetworkObject(@object, isOwner, owner, observer)
             };
 
-            client.Send(message);
+            client.SendMessage(message);
         }
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace JFramework.Net
             foreach (var client in clients.Values)
             {
                 Debug.Log($"服务器为客户端 {client.clientId} 重置 {@object}");
-                client.Send(new DespawnMessage(@object.objectId));
+                client.SendMessage(new DespawnMessage(@object.objectId));
             }
         }
 
@@ -178,7 +178,7 @@ namespace JFramework.Net
             foreach (var client in clients.Values)
             {
                 Debug.Log($"服务器为客户端 {client.clientId} 销毁 {@object}");
-                client.Send(new DestroyMessage(@object.objectId));
+                client.SendMessage(new DestroyMessage(@object.objectId));
             }
         }
     }

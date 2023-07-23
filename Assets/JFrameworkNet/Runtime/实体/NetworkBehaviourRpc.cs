@@ -38,7 +38,7 @@ namespace JFramework.Net
                 return;
             }
 
-            var @event = new ServerRpcMessage
+            var message = new ServerRpcMessage
             {
                 objectId = objectId,
                 serialId = serialId,
@@ -46,7 +46,7 @@ namespace JFramework.Net
                 segment = writer.ToArraySegment()
             };
 
-            NetworkClient.connection.Send(@event, (Channel)channel);
+            NetworkClient.connection.SendMessage(message, (Channel)channel);
         }
 
 
@@ -71,7 +71,7 @@ namespace JFramework.Net
                 return;
             }
 
-            var @event = new ClientRpcMessage
+            var message = new ClientRpcMessage
             {
                 objectId = objectId,
                 serialId = serialId,
@@ -80,11 +80,11 @@ namespace JFramework.Net
             };
 
             using var writerObject = NetworkWriter.Pop();
-            writerObject.Write(@event);
+            writerObject.Write(message);
 
             foreach (var client in NetworkServer.clients.Values.Where(client => client.isReady))
             {
-                client.InvokeRpc(@event, (Channel)channel);
+                client.InvokeRpc(message, (Channel)channel);
             }
         }
 
@@ -118,7 +118,7 @@ namespace JFramework.Net
                 return;
             }
 
-            var @event = new ClientRpcMessage
+            var message = new ClientRpcMessage
             {
                 objectId = objectId,
                 serialId = serialId,
@@ -126,7 +126,7 @@ namespace JFramework.Net
                 segment = writer.ToArraySegment()
             };
 
-            client.InvokeRpc(@event, (Channel)channel);
+            client.InvokeRpc(message, (Channel)channel);
         }
     }
 }

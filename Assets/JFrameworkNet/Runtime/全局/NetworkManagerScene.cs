@@ -38,7 +38,7 @@ namespace JFramework.Net
                 NetworkMessage.WriteMessage(writer, new SceneMessage(newSceneName));
                 foreach (var client in NetworkServer.clients.Values)
                 {
-                    client.Send(writer.ToArraySegment());
+                    client.SendMessage(writer.ToArraySegment());
                 }
             }
 
