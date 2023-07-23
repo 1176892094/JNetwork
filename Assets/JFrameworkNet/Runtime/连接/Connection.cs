@@ -25,7 +25,7 @@ namespace JFramework.Net
         /// <summary>
         /// 远端时间戳
         /// </summary>
-        internal double timestamp;
+        internal double remoteTime;
 
         /// <summary>
         /// 网络消息更新

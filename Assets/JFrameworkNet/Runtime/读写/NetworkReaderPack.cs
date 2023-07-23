@@ -24,7 +24,7 @@ namespace JFramework.Net
         /// <summary>
         /// 远端时间戳
         /// </summary>
-        private double timestamp;
+        private double remoteTime;
 
         /// <summary>
         /// 将数据写入到writer并读取
@@ -54,20 +54,20 @@ namespace JFramework.Net
         /// 读取队列中的数据并输出数据和时间戳
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="timestamp"></param>
+        /// <param name="remoteTime"></param>
         /// <returns></returns>
-        public bool ReadDequeue(out NetworkReader reader, out double timestamp)
+        public bool ReadDequeue(out NetworkReader reader, out double remoteTime)
         {
             reader = null;
             if (writers.Count == 0)
             {
-                timestamp = 0;
+                remoteTime = 0;
                 return false;
             }
 
             if (this.reader.Capacity == 0)
             {
-                timestamp = 0;
+                remoteTime = 0;
                 return false;
             }
 
@@ -83,12 +83,12 @@ namespace JFramework.Net
                 }
                 else
                 {
-                    timestamp = 0;
+                    remoteTime = 0;
                     return false;
                 }
             }
 
-            timestamp = this.timestamp;
+            remoteTime = this.remoteTime;
             reader = this.reader;
             return true;
         }
@@ -100,7 +100,7 @@ namespace JFramework.Net
         private void CopyToReader(NetworkWriter writer)
         {
             reader.SetBuffer(writer.ToArraySegment());
-            timestamp = reader.ReadDouble();
+            remoteTime = reader.ReadDouble();
         }
     }
 }

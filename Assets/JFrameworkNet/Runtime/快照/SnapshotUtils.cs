@@ -48,7 +48,7 @@ namespace JFramework.Net
                 localTimeline = TimelineClamp(localTimeline, bufferTime, latestRemoteTime);
                 double timeDiff = latestRemoteTime - localTimeline;
                 driftEma.Add(timeDiff);
-                double drift = driftEma.Value - bufferTime;
+                double drift = driftEma.value - bufferTime;
                 double absoluteNegativeThreshold = sendRate * NetworkSnapshot.snapshotSettings.catchupNegativeThreshold;
                 double absolutePositiveThreshold = sendRate * NetworkSnapshot.snapshotSettings.catchupPositiveThreshold;
                 localTimescale = Timescale(drift, NetworkSnapshot.snapshotSettings.catchupSpeed, NetworkSnapshot.snapshotSettings.slowdownSpeed, absoluteNegativeThreshold, absolutePositiveThreshold);
@@ -82,7 +82,7 @@ namespace JFramework.Net
         }
         
         /// <summary>
-        /// 
+        /// 动态调整时间缩放倍率
         /// </summary>
         /// <param name="drift"></param>
         /// <param name="catchupSpeed"></param>
@@ -93,6 +93,101 @@ namespace JFramework.Net
         private static double Timescale(double drift, double catchupSpeed, double slowdownSpeed, double negativeThreshold, double positiveThreshold)
         {
             return drift > positiveThreshold ? 1 + catchupSpeed : drift < negativeThreshold ? 1 - slowdownSpeed : 1;
+        }
+        
+        /// <summary>
+        /// 时间步长
+        /// </summary>
+        /// <param name="deltaTime"></param>
+        /// <param name="localTimeline"></param>
+        /// <param name="localTimescale"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void StepTime(double deltaTime, ref double localTimeline, double localTimescale)  
+        {
+            localTimeline += deltaTime * localTimescale;
+        }
+
+        /// <summary>
+        /// 差值步长
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="localTimeline"></param>
+        /// <param name="fromSnapshot"></param>
+        /// <param name="toSnapshot"></param>
+        /// <param name="t"></param>
+        /// <typeparam name="T"></typeparam>
+        public static void StepInterpolation<T>(SortedList<double, T> buffer, double localTimeline, out T fromSnapshot, out T toSnapshot, out double t) where T : ISnapshot
+        {
+            Sample(buffer, localTimeline, out int origin, out int target, out t);
+            fromSnapshot = buffer.Values[origin];
+            toSnapshot = buffer.Values[target];
+            for (int i = 0; i < origin && i < buffer.Count; ++i)
+            {
+                buffer.RemoveAt(0);
+            }
+        }
+
+        /// <summary>
+        /// 计算相邻两个远程时间差
+        /// </summary>
+        private static void Sample<T>(SortedList<double, T> buffer, double localTimeline, out int origin, out int target, out double t) where T : ISnapshot
+        {
+            for (int i = 0; i < buffer.Count - 1; ++i)
+            {
+                var first = buffer.Values[i];
+                var second = buffer.Values[i + 1];
+                if (localTimeline >= first.remoteTime && localTimeline <= second.remoteTime)
+                {
+                    origin = i;
+                    target = i + 1;
+                    t = InverseLerp(first.remoteTime, second.remoteTime, localTimeline);
+                    return;
+                }
+            }
+
+            origin = target = buffer.Values[0].remoteTime > localTimeline ? 0 : buffer.Count - 1;
+            t = 0;
+        }
+        
+        /// <summary>
+        /// 计算差值
+        /// </summary>
+        private static double InverseLerp(double origin, double target, double value)
+        {
+            return Math.Abs(origin - target) > 0 ? Math.Clamp((value - origin) / (target - origin), 0, 1) : 0;
+        }
+        
+        /// <summary>
+        /// 差值步长
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="localTimeline"></param>
+        /// <typeparam name="T"></typeparam>
+        public static void StepInterpolation<T>(SortedList<double, T> buffer, double localTimeline) where T : ISnapshot
+        {
+            int origin = Sample(buffer, localTimeline);
+            for (int i = 0; i < origin && i < buffer.Count; ++i)
+            {
+                buffer.RemoveAt(0);
+            }
+        }
+        
+        /// <summary>
+        /// 计算相邻两个远程时间差
+        /// </summary>
+        private static int Sample<T>(SortedList<double, T> buffer, double localTimeline) where T : ISnapshot
+        {
+            for (int i = 0; i < buffer.Count - 1; ++i)
+            {
+                var first = buffer.Values[i];
+                var second = buffer.Values[i + 1];
+                if (localTimeline >= first.remoteTime && localTimeline <= second.remoteTime)
+                {
+                    return i;
+                }
+            }
+
+            return buffer.Values[0].remoteTime > localTimeline ? 0 : buffer.Count - 1;
         }
     }
 }

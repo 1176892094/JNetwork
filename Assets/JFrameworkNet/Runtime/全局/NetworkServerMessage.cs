@@ -16,6 +16,7 @@ namespace JFramework.Net
             RegisterMessage<SetReadyMessage>(OnSetReadyByServer);
             RegisterMessage<ServerRpcMessage>(OnServerRpcByServer);
             RegisterMessage<PingMessage>(NetworkTime.OnPingByServer);
+            RegisterMessage<SnapshotMessage>(OnSnapshotByServer);
         }
 
         /// <summary>
@@ -35,7 +36,7 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 当发送一条Rpc到Transport
+        /// 当从Transport接收到一条ServerRpc消息
         /// </summary>
         private static void OnServerRpcByServer(ClientEntity client, ServerRpcMessage message, Channel channel)
         {
@@ -56,6 +57,16 @@ namespace JFramework.Net
                 using var reader = NetworkReader.Pop(message.segment);
                 @object.InvokeRpcMessage(message.serialId, message.methodHash, RpcType.ServerRpc, reader, client);
             }
+        }
+        
+        /// <summary>
+        /// 当接收一条快照消息
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="snapshot"></param>
+        private static void OnSnapshotByServer(ClientEntity client, SnapshotMessage snapshot)
+        {
+            
         }
         
         /// <summary>

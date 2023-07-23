@@ -13,7 +13,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端回传往返时间
         /// </summary>
-        private static Smooth smooth = new Smooth(NetworkConst.PingWindow);
+        private static NetworkEma smooth = new NetworkEma(NetworkConst.PingWindow);
 
         /// <summary>
         /// 当前网络时间
@@ -50,10 +50,9 @@ namespace JFramework.Net
         /// 客户端从服务器接收的回传信息
         /// </summary>
         /// <param name="message"></param>
-        public static void OnPongEvent(PongMessage message)
-        {
-            //TODO:进行平滑计算
-            //smooth.Calculate( localTime - @event.clientTime);
+        public static void OnPongByClient(PongMessage message)
+        { 
+            // TODO: smooth.Add( localTime - message.clientTime);
         }
 
         /// <summary>
@@ -62,7 +61,7 @@ namespace JFramework.Net
         public static void ResetStatic()
         {
             lastSendTime = 0;
-            smooth = new Smooth(NetworkConst.PingWindow);
+            smooth = new NetworkEma(NetworkConst.PingWindow);
         }
     }
 }

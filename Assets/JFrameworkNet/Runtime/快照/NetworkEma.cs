@@ -15,22 +15,22 @@ namespace JFramework.Net
         /// <summary>
         /// 是否初始化
         /// </summary>
-        private bool initialized;
+        private bool start;
         
         /// <summary>
         /// 偏差
         /// </summary>
-        private double Variance;
+        private double variance;
         
         /// <summary>
         /// 数值
         /// </summary>
-        public double Value;
+        public double value;
         
         /// <summary>
         /// 标准差
         /// </summary>
-        public double StandardDeviation;
+        public double deviation;
 
         /// <summary>
         /// 初始化平滑因子
@@ -39,10 +39,10 @@ namespace JFramework.Net
         public NetworkEma(int n)
         {
             alpha = 2.0 / (n + 1);
-            initialized = false;
-            Value = 0;
-            Variance = 0;
-            StandardDeviation = 0;
+            start = false;
+            value = 0;
+            variance = 0;
+            deviation = 0;
         }
 
         /// <summary>
@@ -51,17 +51,17 @@ namespace JFramework.Net
         /// <param name="newValue"></param>
         public void Add(double newValue)
         {
-            if (initialized)
+            if (start)
             {
-                double delta = newValue - Value;
-                Value += alpha * delta;
-                Variance = (1 - alpha) * (Variance + alpha * delta * delta);
-                StandardDeviation = Math.Sqrt(Variance);
+                double delta = newValue - value;
+                value += alpha * delta;
+                variance = (1 - alpha) * (variance + alpha * delta * delta);
+                deviation = Math.Sqrt(variance);
             }
             else
             {
-                Value = newValue;
-                initialized = true;
+                value = newValue;
+                start = true;
             }
         }
 
@@ -70,10 +70,10 @@ namespace JFramework.Net
         /// </summary>
         public void Reset()
         {
-            initialized = false;
-            Value = 0;
-            Variance = 0;
-            StandardDeviation = 0;
+            start = false;
+            value = 0;
+            variance = 0;
+            deviation = 0;
         }
     }
 }

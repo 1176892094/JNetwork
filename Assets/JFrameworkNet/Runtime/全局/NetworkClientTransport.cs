@@ -77,11 +77,11 @@ namespace JFramework.Net
                 return;
             }
 
-            while (!isLoadScene && connection.readers.ReadDequeue(out var reader, out double timestamp))
+            while (!isLoadScene && connection.readers.ReadDequeue(out var reader, out double remoteTime))
             {
                 if (reader.Residue >= NetworkConst.MessageSize)
                 {
-                    connection.timestamp = timestamp;
+                    connection.remoteTime = remoteTime;
                     if (!TryInvoke(reader, channel))
                     {
                         Debug.LogWarning($"无法解包调用网络信息。");

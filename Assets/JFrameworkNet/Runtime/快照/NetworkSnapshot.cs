@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace JFramework.Net
 {
@@ -55,14 +56,23 @@ namespace JFramework.Net
         /// 快照处理
         /// </summary>
         /// <param name="snapshot">新的快照</param>
-        public static void SnapshotTime(SnapshotTime snapshot)
+        public static void OnSnapshotMessage(SnapshotTime snapshot)
         {
             if (snapshotSettings.dynamicAdjustment)
             {
-                snapshotSettings.bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.sendRate, deliveryTimeEma.StandardDeviation, snapshotSettings.dynamicAdjustmentTolerance);
+                snapshotSettings.bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.sendRate, deliveryTimeEma.deviation, snapshotSettings.dynamicAdjustmentTolerance);
             }
             
             SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref localTimeline, ref localTimescale, NetworkManager.sendRate, bufferTime, ref driftEma, ref deliveryTimeEma);
+        }
+        
+        public static void UpdateInterpolation()
+        {
+            if (snapshots.Count > 0)
+            {
+                SnapshotUtils.StepTime(Time.unscaledDeltaTime, ref localTimeline, localTimescale);
+                SnapshotUtils.StepInterpolation(snapshots, localTimeline);
+            }
         }
     }
 }

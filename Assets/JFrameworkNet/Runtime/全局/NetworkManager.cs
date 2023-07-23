@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace JFramework.Net
 {   
@@ -32,7 +31,7 @@ namespace JFramework.Net
         /// <summary>
         /// 预置体列表
         /// </summary>
-        [FormerlySerializedAs("settingData")] [FoldoutGroup("网络管理器"), SerializeField]
+        [FoldoutGroup("网络管理器"), SerializeField]
         private NetworkPrefab prefabData;
 
         /// <summary>
@@ -91,7 +90,7 @@ namespace JFramework.Net
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            
+            NetworkSnapshot.snapshotSettings = new SnapshotData();
             if (transport == null)
             {
                 Debug.LogError("NetworkManager 没有 Transport 组件。");

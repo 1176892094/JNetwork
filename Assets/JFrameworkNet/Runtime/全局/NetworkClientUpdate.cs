@@ -11,6 +11,8 @@ namespace JFramework.Net
             {
                 Transport.current.ClientEarlyUpdate();
             }
+            
+            NetworkSnapshot.UpdateInterpolation();
         }
 
         /// <summary>

@@ -88,11 +88,11 @@ namespace JFramework.Net
                 return;
             }
 
-            while (!isLoadScene && client.readerPack.ReadDequeue(out var reader, out double timestamp))
+            while (!isLoadScene && client.readerPack.ReadDequeue(out var reader, out double remoteTime))
             {
                 if (reader.Residue >= NetworkConst.MessageSize)
                 {
-                    client.timestamp = timestamp;
+                    client.remoteTime = remoteTime;
                     if (!TryInvoke(client, reader, channel))
                     {
                         Debug.LogWarning($"无法解包调用网络信息。断开客户端：{client}");

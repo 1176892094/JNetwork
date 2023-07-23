@@ -27,7 +27,7 @@ namespace JFramework.Net
                 RegisterMessage<SpawnMessage>(OnSpawnByClient);
                 RegisterMessage<DestroyMessage>(OnDestroyByClient);
                 RegisterMessage<DespawnMessage>(OnDespawnByClient);
-                RegisterMessage<PongMessage>(NetworkTime.OnPongEvent);
+                RegisterMessage<PongMessage>(NetworkTime.OnPongByClient);
                 RegisterMessage<EntityMessage>(OnEntityEvent);
             }
 
@@ -147,7 +147,7 @@ namespace JFramework.Net
         /// <param name="message"></param>
         private static void OnSnapshotByClient(SnapshotMessage message)
         { 
-            NetworkSnapshot.SnapshotTime(new SnapshotTime(connection.timestamp, NetworkTime.localTime));
+            NetworkSnapshot.OnSnapshotMessage(new SnapshotTime(connection.remoteTime, NetworkTime.localTime));
         }
 
         /// <summary>
