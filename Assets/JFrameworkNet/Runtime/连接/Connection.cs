@@ -74,14 +74,14 @@ namespace JFramework.Net
         /// <summary>
         /// 发送网络消息
         /// </summary>
-        /// <param name="event">事件类型</param>
+        /// <param name="message">事件类型</param>
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T">传入NetworkMessage</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SendMessage<T>(T @event, Channel channel = Channel.Reliable) where T : struct, IMessage
+        public void SendMessage<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
         {
             using var writer = NetworkWriter.Pop();
-            NetworkMessage.WriteMessage(writer, @event);
+            NetworkMessage.WriteMessage(writer, message);
             SendMessage(writer.ToArraySegment(), channel);
         }
         

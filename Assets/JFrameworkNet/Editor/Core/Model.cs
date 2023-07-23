@@ -16,12 +16,12 @@ namespace JFramework.Editor
         /// <summary>
         /// 当网络变量值改变时调用的方法
         /// </summary>
-        public readonly MethodReference HookMethodReference;
+        public readonly MethodReference HookMethodRef;
         
         /// <summary>
         /// 网络行为被标记改变
         /// </summary>
-        public readonly MethodReference NetworkBehaviourDirtyReference;
+        public readonly MethodReference NetworkBehaviourDirtyRef;
         
         /// <summary>
         /// Rpc委托的构造函数
@@ -31,7 +31,7 @@ namespace JFramework.Editor
         /// <summary>
         /// 日志出现错误
         /// </summary>
-        public readonly MethodReference logErrorReference;
+        public readonly MethodReference logErrorRef;
         
         /// <summary>
         /// 获取NetworkClient.isActive
@@ -46,17 +46,17 @@ namespace JFramework.Editor
         /// <summary>
         /// 对ArraySegment的构造函数的注入
         /// </summary>
-        public readonly MethodReference ArraySegmentReference;
+        public readonly MethodReference ArraySegmentRef;
         
         /// <summary>
         /// 创建SO方法
         /// </summary>
-        public readonly MethodReference ScriptableObjectCreateInstanceMethod;
+        public readonly MethodReference CreateInstanceMethodRef;
         
         /// <summary>
         /// 读取泛型的 NetworkBehaviour
         /// </summary>
-        public readonly MethodReference readNetworkBehaviourGeneric;
+        public readonly MethodReference ReadNetworkBehaviourGeneric;
         
         /// <summary>
         /// NetworkBehaviour.SendServerRpcInternal
@@ -141,17 +141,17 @@ namespace JFramework.Editor
         /// <summary>
         /// NetworkWriter.Pop
         /// </summary>
-        public readonly MethodReference PopWriterReference;
+        public readonly MethodReference PopWriterRef;
         
         /// <summary>
         /// NetworkWriter.Push
         /// </summary>
-        public readonly MethodReference PushWriterReference;
+        public readonly MethodReference PushWriterRef;
         
         /// <summary>
         /// Type.GetTypeFromHandle
         /// </summary>
-        public readonly MethodReference getTypeFromHandleReference;
+        public readonly MethodReference getTypeFromHandleRef;
         
         /// <summary>
         /// InitializeOnLoadMethodAttribute
@@ -163,7 +163,18 @@ namespace JFramework.Editor
         /// </summary>
         public readonly TypeDefinition RuntimeInitializeOnLoadMethodAttribute;
 
+        /// <summary>
+        /// 导入类型
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public TypeReference Import<T>() => Import(typeof(T));
+        
+        /// <summary>
+        /// 导入类型反射器
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
         public TypeReference Import(Type t) => assembly.MainModule.ImportReference(t);
 
         public Model(AssemblyDefinition assembly, Logger logger)
@@ -171,21 +182,21 @@ namespace JFramework.Editor
             this.assembly = assembly;
 
             TypeReference HookMethodType = Import(typeof(Action<,>));
-            HookMethodReference = Utils.ResolveMethod(HookMethodType, assembly, logger, ".ctor");
+            HookMethodRef = Utils.ResolveMethod(HookMethodType, assembly, logger, ".ctor");
             
             TypeReference ArraySegmentType = Import(typeof(ArraySegment<>));
-            ArraySegmentReference = Utils.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CTOR);
+            ArraySegmentRef = Utils.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CTOR);
             
             TypeReference NetworkClientType = Import(typeof(NetworkClient));
             NetworkClientActiveRef = Utils.ResolveMethod(NetworkClientType, assembly, logger, "get_isActive");
             TypeReference NetworkServerType = Import(typeof(NetworkServer));
             NetworkServerActiveRef = Utils.ResolveMethod(NetworkServerType, assembly, logger, "get_isActive");
             
-            TypeReference readerExtensions = Import(typeof(StreamExtensions));
-            readNetworkBehaviourGeneric = Utils.ResolveMethod(readerExtensions, assembly, logger, method => method.Name == nameof(StreamExtensions.ReadNetworkBehaviour) && method.HasGenericParameters);
+            TypeReference ReaderExtensions = Import(typeof(StreamExtensions));
+            ReadNetworkBehaviourGeneric = Utils.ResolveMethod(ReaderExtensions, assembly, logger, method => method.Name == nameof(StreamExtensions.ReadNetworkBehaviour) && method.HasGenericParameters);
 
             TypeReference NetworkBehaviourType = Import<NetworkBehaviour>();
-            NetworkBehaviourDirtyReference = Utils.ResolveProperty(NetworkBehaviourType, assembly, "syncVarDirty");
+            NetworkBehaviourDirtyRef = Utils.ResolveProperty(NetworkBehaviourType, assembly, "syncVarDirty");
             
             syncVarSetterGeneral = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterGeneral");
             syncVarSetterGameObject = Utils.ResolveMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterGameObject");
@@ -213,17 +224,17 @@ namespace JFramework.Editor
             RpcDelegateRef = Utils.ResolveMethod(RpcDelegateType, assembly, logger, ".ctor");
             
             TypeReference ScriptableObjectType = Import<ScriptableObject>();
-            ScriptableObjectCreateInstanceMethod = Utils.ResolveMethod(ScriptableObjectType, assembly, logger, method => method.Name == "CreateInstance" && method.HasGenericParameters);
+            CreateInstanceMethodRef = Utils.ResolveMethod(ScriptableObjectType, assembly, logger, method => method.Name == "CreateInstance" && method.HasGenericParameters);
 
             TypeReference DebugType = Import(typeof(Debug));
-            logErrorReference = Utils.ResolveMethod(DebugType, assembly, logger, method => method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName);
+            logErrorRef = Utils.ResolveMethod(DebugType, assembly, logger, method => method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName);
            
             TypeReference TypeRef = Import(typeof(Type));
-            getTypeFromHandleReference = Utils.ResolveMethod(TypeRef, assembly, logger, "GetTypeFromHandle");
+            getTypeFromHandleRef = Utils.ResolveMethod(TypeRef, assembly, logger, "GetTypeFromHandle");
             
             TypeReference NetworkWriterType = Import(typeof(NetworkWriter));
-            PopWriterReference = Utils.ResolveMethod(NetworkWriterType, assembly, logger, "Pop"); 
-            PushWriterReference = Utils.ResolveMethod(NetworkWriterType, assembly, logger, "Push");
+            PopWriterRef = Utils.ResolveMethod(NetworkWriterType, assembly, logger, "Pop"); 
+            PushWriterRef = Utils.ResolveMethod(NetworkWriterType, assembly, logger, "Push");
          
             if (Helpers.IsEditorAssembly(assembly))
             {

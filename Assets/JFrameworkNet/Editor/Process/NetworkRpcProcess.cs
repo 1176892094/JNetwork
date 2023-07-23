@@ -365,7 +365,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Call, model.NetworkClientActiveRef);
             worker.Emit(OpCodes.Brtrue, label);
             worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是客户端不是活跃的。");
-            worker.Emit(OpCodes.Call, model.logErrorReference);
+            worker.Emit(OpCodes.Call, model.logErrorRef);
             worker.Emit(OpCodes.Ret);
             worker.Append(label);
         }
@@ -384,7 +384,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Brtrue, label);
 
             worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是服务器不是活跃的。");
-            worker.Emit(OpCodes.Call, model.logErrorReference);
+            worker.Emit(OpCodes.Call, model.logErrorRef);
             worker.Emit(OpCodes.Ret);
             worker.Append(label);
         }

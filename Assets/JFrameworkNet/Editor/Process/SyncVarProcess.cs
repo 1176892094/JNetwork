@@ -53,7 +53,7 @@ namespace JFramework.Editor
             
             TypeReference actionRef = assembly.MainModule.ImportReference(typeof(Action<,>));
             GenericInstanceType genericInstance = actionRef.MakeGenericInstanceType(syncVar.FieldType, syncVar.FieldType);
-            worker.Emit(OpCodes.Newobj, model.HookMethodReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
+            worker.Emit(OpCodes.Newobj, model.HookMethodRef.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
         }
 
         /// <summary>

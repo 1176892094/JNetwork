@@ -194,14 +194,14 @@ namespace JFramework.Editor
             ArrayType arrayType = new ArrayType(elementType);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Call, GetReadFunc(arrayType));
-            worker.Emit(OpCodes.Newobj, model.ArraySegmentReference.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
+            worker.Emit(OpCodes.Newobj, model.ArraySegmentRef.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
             worker.Emit(OpCodes.Ret);
             return readerFunc;
         }
 
         private MethodReference GetNetworkBehaviourReader(TypeReference variableReference)
         {
-            MethodReference generic = model.readNetworkBehaviourGeneric;
+            MethodReference generic = model.ReadNetworkBehaviourGeneric;
             MethodReference readFunc = generic.MakeGeneric(assembly.MainModule, variableReference);
             Register(variableReference, readFunc);
             return readFunc;
@@ -250,7 +250,7 @@ namespace JFramework.Editor
             }
             else if (td.IsDerivedFrom<ScriptableObject>())
             {
-                GenericInstanceMethod genericInstanceMethod = new GenericInstanceMethod(model.ScriptableObjectCreateInstanceMethod);
+                GenericInstanceMethod genericInstanceMethod = new GenericInstanceMethod(model.CreateInstanceMethodRef);
                 genericInstanceMethod.GenericArguments.Add(variable);
                 worker.Emit(OpCodes.Call, genericInstanceMethod);
                 worker.Emit(OpCodes.Stloc_0);

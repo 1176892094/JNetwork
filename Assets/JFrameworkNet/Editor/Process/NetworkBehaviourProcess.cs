@@ -7,12 +7,12 @@ namespace JFramework.Editor
 {
     internal partial class NetworkBehaviourProcess
     {
+        private readonly Model model;
         private readonly Logger logger;
         private readonly Writers writers;
         private readonly Readers readers;
-        private readonly Model model;
         private readonly TypeDefinition type;
-        private readonly SyncVarProcess syncVarProcess;
+        private readonly SyncVarProcess process;
         private readonly AssemblyDefinition assembly;
         private readonly List<ServerRpcResult> serverRpcList = new List<ServerRpcResult>();
         private readonly List<MethodDefinition> serverRpcFuncList = new List<MethodDefinition>();
@@ -40,12 +40,12 @@ namespace JFramework.Editor
         public NetworkBehaviourProcess(AssemblyDefinition assembly, Model model, Writers writers, Readers readers, Logger logger, TypeDefinition type)
         {
             this.type = type;
+            this.model = model;
             this.logger = logger;
             this.writers = writers;
             this.readers = readers;
             this.assembly = assembly;
-            this.model = model;
-            syncVarProcess = new SyncVarProcess(assembly, model, logger);
+            process = new SyncVarProcess(assembly, model, logger);
             generateCode = this.type;
         }
 
@@ -58,7 +58,7 @@ namespace JFramework.Editor
             
             MarkAsProcessed(type);
             
-            (syncVars, syncVarNetIds) = syncVarProcess.ProcessSyncVars(type);
+            (syncVars, syncVarNetIds) = process.ProcessSyncVars(type);
            
             ProcessRpcMethods();
             
@@ -104,14 +104,14 @@ namespace JFramework.Editor
 
         public static void WriteGetWriter(ILProcessor worker, Model model)
         {
-            worker.Emit(OpCodes.Call, model.PopWriterReference);
+            worker.Emit(OpCodes.Call, model.PopWriterRef);
             worker.Emit(OpCodes.Stloc_0);
         }
 
         public static void WriteReturnWriter(ILProcessor worker, Model model)
         {
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Call, model.PushWriterReference);
+            worker.Emit(OpCodes.Call, model.PushWriterRef);
         }
 
 

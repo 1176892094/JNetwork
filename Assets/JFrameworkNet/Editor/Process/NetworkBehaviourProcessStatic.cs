@@ -85,7 +85,7 @@ namespace JFramework.Editor
         private void GenerateRegisterClientRpcDelegate(ILProcessor worker, MethodReference registerMethod, MethodDefinition func, string functionFullName)
         {
             worker.Emit(OpCodes.Ldtoken, generateCode);
-            worker.Emit(OpCodes.Call, model.getTypeFromHandleReference);
+            worker.Emit(OpCodes.Call, model.getTypeFromHandleRef);
             worker.Emit(OpCodes.Ldstr, functionFullName);
             worker.Emit(OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldftn, func);
@@ -104,7 +104,7 @@ namespace JFramework.Editor
         {
             string cmdName = cmdResult.method.FullName;
             worker.Emit(OpCodes.Ldtoken, generateCode);
-            worker.Emit(OpCodes.Call, model.getTypeFromHandleReference);
+            worker.Emit(OpCodes.Call, model.getTypeFromHandleRef);
             worker.Emit(OpCodes.Ldstr, cmdName);
             worker.Emit(OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldftn, func);

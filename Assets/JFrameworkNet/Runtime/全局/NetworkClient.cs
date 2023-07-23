@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JFramework.Interface;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -153,7 +154,7 @@ namespace JFramework.Net
         /// <param name="message">网络事件</param>
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T"></typeparam>
-        internal static void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, IMessage
+        internal static void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
         {
             if (connection != null)
             {

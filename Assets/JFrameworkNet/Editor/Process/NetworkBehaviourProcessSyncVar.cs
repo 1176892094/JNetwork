@@ -63,7 +63,7 @@ namespace JFramework.Editor
             worker.Append(isStart);
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Call, model.NetworkBehaviourDirtyReference);
+            worker.Emit(OpCodes.Call, model.NetworkBehaviourDirtyRef);
             MethodReference writeUint64Func = writers.GetWriteFunc(model.Import<ulong>());
             worker.Emit(OpCodes.Call, writeUint64Func);
             int dirty = SyncVarUtils.GetSyncVar(generateCode.BaseType.FullName);
@@ -76,7 +76,7 @@ namespace JFramework.Editor
                 }
                 Instruction varLabel = worker.Create(OpCodes.Nop);
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Call, model.NetworkBehaviourDirtyReference);
+                worker.Emit(OpCodes.Call, model.NetworkBehaviourDirtyRef);
                 worker.Emit(OpCodes.Ldc_I8, 1L << dirty);
                 worker.Emit(OpCodes.And);
                 worker.Emit(OpCodes.Brfalse, varLabel);
@@ -179,10 +179,10 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldflda, generateCode.HasGenericParameters ? syncVar.MakeHostInstanceGeneric() : syncVar);
 
-            MethodDefinition hookMethod = syncVarProcess.GetHookMethod(generateCode, syncVar);
+            MethodDefinition hookMethod = process.GetHookMethod(generateCode, syncVar);
             if (hookMethod != null)
             {
-                syncVarProcess.GenerateNewActionFromHookMethod(syncVar, worker, hookMethod);
+                process.GenerateNewActionFromHookMethod(syncVar, worker, hookMethod);
             }
             else
             {
