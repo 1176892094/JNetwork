@@ -5,7 +5,7 @@ namespace JFramework.Net
     /// <summary>
     /// 网络移动指数平均值
     /// </summary>
-    public struct NetworkEma
+    internal struct NetworkEma
     {
         /// <summary>
         /// 平滑因子

@@ -49,9 +49,9 @@ namespace JFramework.Net
                 double timeDiff = latestRemoteTime - localTimeline;
                 driftEma.Add(timeDiff);
                 double drift = driftEma.value - bufferTime;
-                double absoluteNegativeThreshold = sendRate * NetworkManager.Instance.settingData.catchupNegativeThreshold;
-                double absolutePositiveThreshold = sendRate * NetworkManager.Instance.settingData.catchupPositiveThreshold;
-                localTimescale = Timescale(drift, NetworkManager.Instance.settingData.catchupSpeed, NetworkManager.Instance.settingData.slowdownSpeed, absoluteNegativeThreshold, absolutePositiveThreshold);
+                double absoluteNegativeThreshold = sendRate * NetworkManager.Instance.setting.catchupNegativeThreshold;
+                double absolutePositiveThreshold = sendRate * NetworkManager.Instance.setting.catchupPositiveThreshold;
+                localTimescale = Timescale(drift, NetworkManager.Instance.setting.catchupSpeed, NetworkManager.Instance.setting.slowdownSpeed, absoluteNegativeThreshold, absolutePositiveThreshold);
             }
         }
         

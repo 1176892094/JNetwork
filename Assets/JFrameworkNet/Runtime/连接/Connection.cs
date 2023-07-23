@@ -35,12 +35,12 @@ namespace JFramework.Net
         /// <summary>
         /// 移动指数平均值
         /// </summary>
-        protected NetworkEma driftEma;
+        internal NetworkEma driftEma;
         
         /// <summary>
         /// 发送时间移动指数平均值
         /// </summary>
-        protected NetworkEma deliveryTimeEma;
+        internal NetworkEma deliveryTimeEma;
 
         /// <summary>
         /// 网络消息更新

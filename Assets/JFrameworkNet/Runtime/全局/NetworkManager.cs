@@ -30,10 +30,10 @@ namespace JFramework.Net
         private Transport transport;
         
         /// <summary>
-        /// 预置体列表
+        /// 网络设置和预置体
         /// </summary>
         [FoldoutGroup("网络管理器"), SerializeField]
-        internal NetworkSetting settingData;
+        internal NetworkSetting setting;
 
         /// <summary>
         /// 心跳传输率
@@ -97,6 +97,12 @@ namespace JFramework.Net
                 return;
             }
 
+            if (setting == null)
+            {
+                Debug.LogError("NetworkManager 的 Setting 数据为空");
+                return;
+            }
+
             Application.runInBackground = true;
 #if UNITY_SERVER
             Application.targetFrameRate = tickRate;
@@ -149,7 +155,7 @@ namespace JFramework.Net
             }
 
             NetworkClient.StartClient(address, port);
-            NetworkClient.RegisterPrefab(settingData.prefabs);
+            NetworkClient.RegisterPrefab(setting.prefabs);
             OnStartClient?.Invoke();
         }
 
@@ -166,7 +172,7 @@ namespace JFramework.Net
             }
 
             NetworkClient.StartClient(uri);
-            NetworkClient.RegisterPrefab(settingData.prefabs);
+            NetworkClient.RegisterPrefab(setting.prefabs);
             OnStartClient?.Invoke();
         }
 
@@ -210,7 +216,7 @@ namespace JFramework.Net
             Debug.Log("开启主机。");
             NetworkServer.StartServer(isListen);
             NetworkClient.StartClient();
-            NetworkClient.RegisterPrefab(settingData.prefabs);
+            NetworkClient.RegisterPrefab(setting.prefabs);
             OnStartHost?.Invoke();
         }
 

@@ -73,9 +73,9 @@ namespace JFramework.Net
         {
             this.clientId = clientId;
             isHost = clientId == NetworkConst.HostId;
-            driftEma = new NetworkEma(NetworkManager.Instance.tickRate * NetworkManager.Instance.settingData.driftEmaDuration);
-            deliveryTimeEma = new NetworkEma(NetworkManager.Instance.tickRate * NetworkManager.Instance.settingData.deliveryTimeEmaDuration);
-            snapshotBufferSizeLimit = Mathf.Max((int)NetworkManager.Instance.settingData.bufferTimeMultiplier, snapshotBufferSizeLimit);
+            driftEma = new NetworkEma(NetworkManager.Instance.tickRate * NetworkManager.Instance.setting.driftEmaDuration);
+            deliveryTimeEma = new NetworkEma(NetworkManager.Instance.tickRate * NetworkManager.Instance.setting.deliveryTimeEmaDuration);
+            snapshotBufferSizeLimit = Mathf.Max((int)NetworkManager.Instance.setting.bufferTimeMultiplier, snapshotBufferSizeLimit);
         }
         
         /// <summary>
@@ -85,9 +85,9 @@ namespace JFramework.Net
         internal void OnSnapshotMessage(SnapshotTime snapshot)
         {
             if (snapshots.Count >= snapshotBufferSizeLimit) return;
-            if (NetworkManager.Instance.settingData.dynamicAdjustment)
+            if (NetworkManager.Instance.setting.dynamicAdjustment)
             {
-                bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.sendRate, deliveryTimeEma.deviation, NetworkManager.Instance.settingData.dynamicAdjustmentTolerance);
+                bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.sendRate, deliveryTimeEma.deviation, NetworkManager.Instance.setting.dynamicAdjustmentTolerance);
             }
 
             SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref remoteTimeline, ref remoteTimescale, NetworkManager.sendRate, bufferTime, ref driftEma, ref deliveryTimeEma);

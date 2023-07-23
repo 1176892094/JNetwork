@@ -23,16 +23,16 @@ namespace JFramework.Net
         /// 网络设置
         /// </summary>
         private readonly NetworkSetting settingData;
-
-        /// <summary>
-        /// 当前时间量程
-        /// </summary>
-        private double localTimescale;
         
         /// <summary>
         /// 当前时间线
         /// </summary>
         private double localTimeline;
+
+        /// <summary>
+        /// 当前时间量程
+        /// </summary>
+        private double localTimescale = 1;
 
         /// <summary>
         /// 缓存时间
@@ -44,10 +44,7 @@ namespace JFramework.Net
         /// </summary>
         public ServerEntity()
         {
-            snapshots.Clear();
-            localTimeline = 0;
-            localTimescale = 1;
-            settingData = NetworkManager.Instance.settingData;
+            settingData = NetworkManager.Instance.setting;
             driftEma = new NetworkEma(NetworkManager.Instance.tickRate * settingData.driftEmaDuration);
             deliveryTimeEma = new NetworkEma(NetworkManager.Instance.tickRate  * settingData.deliveryTimeEmaDuration);
         }
