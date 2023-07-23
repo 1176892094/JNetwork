@@ -1,7 +1,6 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using JFramework.Interface;
 using UnityEngine;
 using Random = UnityEngine.Random;
 // ReSharper disable All
@@ -115,7 +114,9 @@ namespace JFramework.Net
         /// </summary>
         private void StopDiscovery()
         {
+#if UNITY_ANDROID
             EndMulticastLock();
+#endif
             udpServer?.Close();
             udpServer = null;
             udpClient?.Close();
@@ -149,7 +150,9 @@ namespace JFramework.Net
         /// </summary>
         private async void ServerListenAsync()
         {
+#if UNITY_ANDROID
             BeginMulticastLock();
+#endif
             while (udpServer != null)
             {
                 try
@@ -335,21 +338,24 @@ namespace JFramework.Net
                 // ignored
             }
         }
-
-
+        
 #if UNITY_ANDROID
+        /// <summary>
+        /// 多播锁
+        /// </summary>
         private AndroidJavaObject multicastLock;
+        
+        /// <summary>
+        /// 是否启用多播锁
+        /// </summary>
         private bool hasMulticastLock;
-#endif
 
         /// <summary>
         /// 开启多播锁
         /// </summary>
         private void BeginMulticastLock()
         {
-#if UNITY_ANDROID
             if (hasMulticastLock) return;
-
             if (Application.platform == RuntimePlatform.Android)
             {
                 using (AndroidJavaObject activity = new AndroidJavaClass("com.unity3d.player.UnityPlayer").GetStatic<AndroidJavaObject>("currentActivity"))
@@ -362,7 +368,7 @@ namespace JFramework.Net
                     }
                 }
 			}
-#endif
+
         }
 
         /// <summary>
@@ -370,11 +376,11 @@ namespace JFramework.Net
         /// </summary>
         private void EndMulticastLock()
         {
-#if UNITY_ANDROID
+
             if (!hasMulticastLock) return;
             multicastLock?.Call("release");
             hasMulticastLock = false;
-#endif
         }
+#endif
     }
 }

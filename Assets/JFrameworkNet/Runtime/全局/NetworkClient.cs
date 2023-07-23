@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using JFramework.Interface;
 using UnityEngine;
 // ReSharper disable All
 
