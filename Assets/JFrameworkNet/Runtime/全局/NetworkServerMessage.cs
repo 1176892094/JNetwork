@@ -63,10 +63,10 @@ namespace JFramework.Net
         /// 当接收一条快照消息
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="snapshot"></param>
-        private static void OnSnapshotByServer(ClientEntity client, SnapshotMessage snapshot)
+        /// <param name="message"></param>
+        private static void OnSnapshotByServer(ClientEntity client, SnapshotMessage message)
         {
-            
+            client.OnSnapshotMessage(new SnapshotTime(connection.remoteTime, NetworkTime.localTime));
         }
         
         /// <summary>

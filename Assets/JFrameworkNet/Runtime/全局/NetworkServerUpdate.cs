@@ -13,6 +13,11 @@ namespace JFramework.Net
             {
                 Transport.current.ServerEarlyUpdate();
             }
+            
+            foreach (var client in clients.Values)
+            {
+                client.UpdateInterpolation();
+            }
         }
 
         /// <summary>

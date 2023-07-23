@@ -11,6 +11,11 @@ namespace JFramework.Net
     public sealed class ClientEntity : Connection
     {
         /// <summary>
+        /// 快照列表
+        /// </summary>
+        private readonly SortedList<double, SnapshotTime> snapshots = new SortedList<double, SnapshotTime>();
+        
+        /// <summary>
         /// 观察的网络对象
         /// </summary>
         [ShowInInspector] internal readonly HashSet<NetworkObject> observers = new HashSet<NetworkObject>();
@@ -39,6 +44,41 @@ namespace JFramework.Net
         /// 是主机客户端
         /// </summary>
         [ShowInInspector] private readonly bool isHost;
+        
+        /// <summary>
+        /// 计算时间偏差的指数移动平均值
+        /// </summary>
+        private NetworkEma driftMoveAverage;
+        
+        /// <summary>
+        /// 计算传递时间的指数移动平均值
+        /// </summary>
+        private NetworkEma deliveryTimeAverage;
+        
+        /// <summary>
+        /// 远端时间线
+        /// </summary>
+        private double remoteTimeline;
+        
+        /// <summary>
+        /// 远端时间量程
+        /// </summary>
+        private double remoteTimescale;
+        
+        /// <summary>
+        /// 缓存时间的倍率
+        /// </summary>
+        private double bufferTimeMultiplier = 2;
+        
+        /// <summary>
+        /// 快照缓存极限大小
+        /// </summary>
+        private readonly int snapshotBufferSizeLimit = 64;
+        
+        /// <summary>
+        /// 缓存时间
+        /// </summary>
+        private double bufferTime => NetworkManager.sendRate * bufferTimeMultiplier;
 
         /// <summary>
         /// 初始化设置客户端Id
@@ -48,8 +88,38 @@ namespace JFramework.Net
         {
             this.clientId = clientId;
             isHost = clientId == NetworkConst.HostId;
+            driftMoveAverage = new NetworkEma(NetworkManager.Instance.tickRate * NetworkSnapshot.snapshotSettings.driftEmaDuration);
+            deliveryTimeAverage = new NetworkEma(NetworkManager.Instance.tickRate * NetworkSnapshot.snapshotSettings.deliveryTimeEmaDuration);
+            snapshotBufferSizeLimit = Mathf.Max((int)NetworkSnapshot.snapshotSettings.bufferTimeMultiplier, snapshotBufferSizeLimit);
+        }
+        
+        /// <summary>
+        /// 接收到快照消息
+        /// </summary>
+        /// <param name="snapshot"></param>
+        internal void OnSnapshotMessage(SnapshotTime snapshot)
+        {
+            if (snapshots.Count >= snapshotBufferSizeLimit) return;
+            if (NetworkSnapshot.snapshotSettings.dynamicAdjustment)
+            {
+                bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.sendRate, deliveryTimeAverage.deviation, NetworkSnapshot.snapshotSettings.dynamicAdjustmentTolerance);
+            }
+
+            SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref remoteTimeline, ref remoteTimescale, NetworkManager.sendRate, bufferTime, ref driftMoveAverage, ref deliveryTimeAverage);
         }
 
+        /// <summary>
+        /// 差值更新
+        /// </summary>
+        public void UpdateInterpolation()
+        {
+            if (snapshots.Count > 0)
+            {
+                SnapshotUtils.StepTime(Time.unscaledDeltaTime, ref remoteTimeline, remoteTimescale);
+                SnapshotUtils.StepInterpolation(snapshots, remoteTimeline);
+            }
+        }
+        
         /// <summary>
         /// 服务器更新
         /// </summary>
