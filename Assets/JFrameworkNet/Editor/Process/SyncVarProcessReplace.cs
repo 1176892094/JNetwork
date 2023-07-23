@@ -98,7 +98,7 @@ namespace JFramework.Editor
         {
             if (md.Name == ".ctor") return;
 
-            if (SyncVarUtils.setter.TryGetValue(opField, out MethodDefinition replacement))
+            if (SyncVarHelpers.setter.TryGetValue(opField, out MethodDefinition replacement))
             {
                 i.OpCode = OpCodes.Call;
                 i.Operand = replacement;
@@ -115,7 +115,7 @@ namespace JFramework.Editor
         {
             if (md.Name == ".ctor") return;
             
-            if (SyncVarUtils.getter.TryGetValue(opField, out MethodDefinition replacement))
+            if (SyncVarHelpers.getter.TryGetValue(opField, out MethodDefinition replacement))
             {
                 i.OpCode = OpCodes.Call;
                 i.Operand = replacement;
@@ -134,7 +134,7 @@ namespace JFramework.Editor
         {
             if (md.Name == ".ctor") return 1;
             
-            if (SyncVarUtils.setter.TryGetValue(opField, out MethodDefinition replacement))
+            if (SyncVarHelpers.setter.TryGetValue(opField, out MethodDefinition replacement))
             {
                 Instruction nextInstr = md.Body.Instructions[index + 1];
 

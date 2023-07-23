@@ -11,15 +11,8 @@ namespace JFramework.Editor
             return currentAssembly.MainModule.AssemblyReferences.Any(assemblyReference => assemblyReference.Name.StartsWith(nameof(UnityEditor)));
         }
     }
-    
-    internal class Comparer : IEqualityComparer<TypeReference>
-    {
-        public bool Equals(TypeReference x, TypeReference y) => x?.FullName == y?.FullName;
 
-        public int GetHashCode(TypeReference obj) => obj.FullName.GetHashCode();
-    }
-    
-    public static class SyncVarUtils
+    public static class SyncVarHelpers
     {
         private static readonly Dictionary<string, int> syncVars = new Dictionary<string, int>();
         public static readonly Dictionary<FieldDefinition, MethodDefinition> setter = new Dictionary<FieldDefinition, MethodDefinition>();
@@ -33,5 +26,12 @@ namespace JFramework.Editor
             getter.Clear();
             syncVars.Clear();
         }
+    }
+    
+    internal class Comparer : IEqualityComparer<TypeReference>
+    {
+        public bool Equals(TypeReference x, TypeReference y) => x?.FullName == y?.FullName;
+
+        public int GetHashCode(TypeReference obj) => obj.FullName.GetHashCode();
     }
 }

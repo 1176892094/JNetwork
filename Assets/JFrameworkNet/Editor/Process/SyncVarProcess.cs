@@ -127,7 +127,7 @@ namespace JFramework.Editor
         { 
             List<FieldDefinition> syncVars = new List<FieldDefinition>();
             Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>(); 
-            int dirtyBitCounter = SyncVarUtils.GetSyncVar(td.BaseType.FullName);
+            int dirtyBitCounter = SyncVarHelpers.GetSyncVar(td.BaseType.FullName);
            
             foreach (var fd in td.Fields.Where(fd => fd.HasCustomAttribute<SyncVarAttribute>()))
             {
@@ -169,8 +169,8 @@ namespace JFramework.Editor
                 td.Fields.Add(fd);
             }
             
-            int parentSyncVarCount = SyncVarUtils.GetSyncVar(td.BaseType.FullName);
-            SyncVarUtils.SetSyncVar(td.FullName, parentSyncVarCount + syncVars.Count);
+            int parentSyncVarCount = SyncVarHelpers.GetSyncVar(td.BaseType.FullName);
+            SyncVarHelpers.SetSyncVar(td.FullName, parentSyncVarCount + syncVars.Count);
             return (syncVars, syncVarNetIds);
         }
 
@@ -215,11 +215,11 @@ namespace JFramework.Editor
             td.Methods.Add(set);
             td.Properties.Add(propertyDefinition);
             
-            SyncVarUtils.setter[fd] = set;
+            SyncVarHelpers.setter[fd] = set;
 
             if (fd.FieldType.IsNetworkObjectField())
             {
-                SyncVarUtils.getter[fd] = get;
+                SyncVarHelpers.getter[fd] = get;
             }
         }
 

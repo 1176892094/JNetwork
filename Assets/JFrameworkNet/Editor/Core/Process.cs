@@ -11,9 +11,9 @@ namespace JFramework.Editor
     {
         public static bool failed;
         public static bool change;
+        private Model model;
         private Writers writers;
         private Readers readers;
-        private Model model;
         private TypeDefinition generate;
         private AssemblyDefinition currentAssembly;
         private readonly Logger logger;
@@ -23,6 +23,12 @@ namespace JFramework.Editor
             this.logger = logger;
         }
 
+        /// <summary>
+        /// 执行程序集注入
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="resolver"></param>
+        /// <returns></returns>
         public bool Execute(AssemblyDefinition assembly, IAssemblyResolver resolver)
         {
             failed = false;
@@ -34,7 +40,7 @@ namespace JFramework.Editor
                 {
                     return true;
                 }
-                
+
                 model = new Model(currentAssembly, logger);
                 generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE, CONST.TYPE_ATTRS, model.Import<object>());
                 writers = new Writers(currentAssembly, model, generate, logger);
@@ -48,25 +54,33 @@ namespace JFramework.Editor
                 {
                     return false;
                 }
-                
+
                 if (change)
                 {
                     SyncVarProcessReplace.Process(moduleDefinition);
                     moduleDefinition.Types.Add(generate);
-                    StreamingProcess.StreamingInitialize(currentAssembly, model, writers,readers,generate);
+                    StreamingProcess.StreamingInitialize(currentAssembly, model, writers, readers, generate);
                 }
-                
+
                 return true;
             }
             catch (Exception e)
             {
                 failed = true;
-                SyncVarUtils.Clear();
                 logger.Error(e.ToString());
                 return false;
             }
+            finally
+            {
+                SyncVarHelpers.Clear();
+            }
         }
         
+        /// <summary>
+        /// 处理 NetworkBehaviour
+        /// </summary>
+        /// <param name="td"></param>
+        /// <returns></returns>
         private bool ProcessNetworkBehavior(TypeDefinition td)
         {
             
@@ -109,6 +123,11 @@ namespace JFramework.Editor
             return changed;
         }
         
+        /// <summary>
+        /// 处理功能
+        /// </summary>
+        /// <param name="moduleDefinition"></param>
+        /// <returns></returns>
         private bool ProcessModule(ModuleDefinition moduleDefinition)
         {
             return moduleDefinition.Types.Where(td => td.IsClass && td.BaseType.CanBeResolved()).Aggregate(false, (current, td) => current | ProcessNetworkBehavior(td));
