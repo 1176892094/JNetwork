@@ -64,7 +64,7 @@ namespace JFramework.Net
             return true;
         }
         
-        internal NetworkObjectSerialize GetServerSerializationAtTick(int tick)
+        internal NetworkObjectSerialize ServerSerializeTick(int tick)
         {
             if (lastSerialize.tick != tick)
             {
@@ -119,14 +119,14 @@ namespace JFramework.Net
         /// <summary>
         /// 在Server端中序列化
         /// </summary>
-        /// <param name="serialize"></param>
+        /// <param name="start"></param>
         /// <param name="owner"></param>
         /// <param name="observer"></param>
-        internal void ServerSerialize(bool serialize, NetworkWriter owner,NetworkWriter observer)
+        internal void ServerSerialize(bool start, NetworkWriter owner, NetworkWriter observer)
         {
             IsValid();
             NetworkBehaviour[] components = entities;
-            var (ownerMask, observerMask) = ServerDirtyMasks(serialize);
+            var (ownerMask, observerMask) = ServerDirtyMasks(start);
             if (ownerMask != 0) Compression.CompressVarUInt(owner, ownerMask);
             if (observerMask != 0) Compression.CompressVarUInt(observer, observerMask);
             if ((ownerMask | observerMask) != 0)
@@ -139,7 +139,7 @@ namespace JFramework.Net
                     if (ownerDirty || observersDirty)
                     {
                         using var writer = NetworkWriter.Pop();
-                        component.Serialize(writer, serialize);
+                        component.Serialize(writer, start);
                         var segment = writer.ToArraySegment();
                         if (ownerDirty) owner.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
                         if (observersDirty) observer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
@@ -148,7 +148,7 @@ namespace JFramework.Net
             }
         }
 
-        private (ulong, ulong) ServerDirtyMasks(bool initialState)
+        private (ulong, ulong) ServerDirtyMasks(bool start)
         {
             ulong ownerMask = 0;
             ulong observerMask = 0;
@@ -160,11 +160,11 @@ namespace JFramework.Net
 
                 bool dirty = component.IsDirty();
                 ulong nthBit = 1u << i;
-                if (initialState || (component.syncDirection == SyncDirection.ServerToClient && dirty))
+                if (start || (component.syncDirection == SyncDirection.ServerToClient && dirty))
                 {
                     ownerMask |= nthBit;
                 }
-                if (initialState || dirty)
+                if (start || dirty)
                 {
                     observerMask |= nthBit;
                 }

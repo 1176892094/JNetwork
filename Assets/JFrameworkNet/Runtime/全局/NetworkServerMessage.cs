@@ -66,7 +66,7 @@ namespace JFramework.Net
         /// <param name="message"></param>
         private static void OnSnapshotByServer(ClientEntity client, SnapshotMessage message)
         {
-            client.OnSnapshotMessage(new SnapshotTime(connection.remoteTime, NetworkTime.localTime));
+            client?.OnSnapshotMessage(new SnapshotTime(client.remoteTime, NetworkTime.localTime));
         }
         
         /// <summary>

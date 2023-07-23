@@ -50,7 +50,7 @@ namespace JFramework.Net
             {
                 if (client.isReady)
                 {
-                   // client.Send(new TimeEvent(), Channel.Unreliable);
+                    client.SendMessage(new SnapshotMessage(), Channel.Unreliable);
                     BroadcastToClient(client);
                 }
 
@@ -89,7 +89,7 @@ namespace JFramework.Net
         /// <returns></returns>
         private static NetworkWriter SerializeForClient(NetworkObject @object, ClientEntity client)
         {
-            var serialize = @object.GetServerSerializationAtTick(Time.frameCount);
+            var serialize = @object.ServerSerializeTick(Time.frameCount);
             
             if (@object.connection == client)
             {

@@ -30,7 +30,7 @@ namespace JFramework.Net
         /// <summary>
         /// 远端时间戳
         /// </summary>
-        internal double remoteTime;
+        [ShowInInspector] internal double remoteTime;
         
         /// <summary>
         /// 移动指数平均值

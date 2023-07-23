@@ -12,7 +12,7 @@ namespace JFramework.Net
                 Transport.current.ClientEarlyUpdate();
             }
             
-            connection.UpdateInterpolation();
+            connection?.UpdateInterpolation();
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace JFramework.Net
                 }
             }
 
-            //Send(new TimeEvent(), Channel.Unreliable);
+            SendMessage(new SnapshotMessage(), Channel.Unreliable);
         }
     }
 }

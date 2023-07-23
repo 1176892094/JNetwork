@@ -121,7 +121,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T value)
         {
-            // if (typeof(T) != typeof(PingEvent) && typeof(T) != typeof(PongEvent))
+            // if (typeof(T) != typeof(SnapshotMessage) && typeof(T) != typeof(PingMessage) && typeof(T) != typeof(PongMessage))
             // {
             //     Debug.LogWarning("Write----"+typeof(T).Name);
             // }

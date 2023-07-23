@@ -158,11 +158,11 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Read<T>()
         {
-            // if (typeof(T) != typeof(PingEvent) && typeof(T) != typeof(PongEvent))
+            // if (typeof(T) != typeof(SnapshotMessage) && typeof(T) != typeof(PingMessage) && typeof(T) != typeof(PongMessage))
             // {
-            //     Debug.LogWarning("Read----"+typeof(T).Name);
+            //     Debug.LogWarning("Read----" + typeof(T).Name);
             // }
-            
+
             Func<NetworkReader, T> readerDelegate = Reader<T>.read;
             if (readerDelegate == null)
             {

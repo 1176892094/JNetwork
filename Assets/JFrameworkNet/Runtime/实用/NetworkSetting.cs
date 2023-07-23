@@ -10,7 +10,6 @@ namespace JFramework.Net
 {
     internal class NetworkSetting : ScriptableObject
     {
-        [InfoBox("网络对象列表，预置体需要 NetworkObject 组件")]
         [SerializeField] internal List<GameObject> prefabs = new List<GameObject>();
         
         [InfoBox("本地模拟相对于发送间隔 * 缓冲时间乘数 的滞后时间")]
