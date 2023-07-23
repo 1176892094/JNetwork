@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public struct SnapshotTransform : ISnapshot
+    internal struct SnapshotTransform : ISnapshot
     {
         public double remoteTime { get; }
         public double localTime { get; }

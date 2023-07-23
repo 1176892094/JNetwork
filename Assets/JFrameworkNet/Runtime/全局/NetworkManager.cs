@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace JFramework.Net
 {   
@@ -31,14 +32,14 @@ namespace JFramework.Net
         /// <summary>
         /// 预置体列表
         /// </summary>
-        [FoldoutGroup("网络管理器"), SerializeField]
+        [FormerlySerializedAs("settingData")] [FoldoutGroup("网络管理器"), SerializeField]
         private NetworkPrefab prefabData;
 
         /// <summary>
         /// 心跳传输率
         /// </summary>
         [FoldoutGroup("网络管理器"), SerializeField]
-        private int tickRate = 30;
+        internal int tickRate = 30;
 
         /// <summary>
         /// 客户端最大连接数量
