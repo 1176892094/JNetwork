@@ -70,8 +70,6 @@ namespace JFramework.Net
         private static async Task LoadSceneAsync(string newSceneName)
         {
             await SceneManager.LoadSceneAsync(newSceneName);
-            NetworkServer.isLoadScene = false;
-            NetworkClient.isLoadScene = false;
             switch (mode)
             {
                 case NetworkMode.Host:
@@ -93,6 +91,7 @@ namespace JFramework.Net
         private static void OnServerSceneLoadCompleted()
         {
             Debug.Log("服务器加载场景完成");
+            NetworkServer.isLoadScene = false;
             NetworkServer.SpawnObjects();
             OnServerSceneChanged?.Invoke(sceneName);
         }
@@ -102,6 +101,7 @@ namespace JFramework.Net
         /// </summary>
         private static void OnClientSceneLoadCompleted()
         {
+            NetworkClient.isLoadScene = false;
             if (!NetworkClient.isConnect) return;
             Debug.Log("客户端加载场景完成");
             if (!NetworkClient.isReady)

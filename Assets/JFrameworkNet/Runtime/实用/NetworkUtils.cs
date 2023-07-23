@@ -10,40 +10,39 @@ namespace JFramework.Net
         /// <summary>
         /// 是场景物体
         /// </summary>
-        public static bool IsSceneObject(NetworkObject entity)
+        public static bool IsSceneObject(NetworkObject @object)
         {
-            var gameObject = entity.gameObject;
-            if (entity.sceneId == 0) return false;
-            return gameObject.hideFlags is not (HideFlags.HideAndDontSave or HideFlags.NotEditable);
+            if (@object.sceneId == 0) return false;
+            return @object.gameObject.hideFlags is not (HideFlags.HideAndDontSave or HideFlags.NotEditable);
         }
 
         /// <summary>
         /// 拥有有效的父物体
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsValidParent(NetworkObject entity)
+        public static bool IsValidParent(NetworkObject @object)
         {
-            var parent = entity.transform.parent;
+            var parent = @object.transform.parent;
             return parent == null || parent.gameObject.activeInHierarchy;
         }
 
         /// <summary>
         /// 获取网络对象
         /// </summary>
-        /// <param name="netId">传入网络Id</param>
+        /// <param name="objectId">传入网络Id</param>
         /// <returns>返回网络对象</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NetworkObject GetNetworkObject(uint netId)
+        public static NetworkObject GetNetworkObject(uint objectId)
         {
             if (NetworkServer.isActive)
             {
-                NetworkServer.spawns.TryGetValue(netId, out var @object);
+                NetworkServer.spawns.TryGetValue(objectId, out var @object);
                 return @object;
             }
             
             if (NetworkClient.isActive)
             {
-                NetworkClient.spawns.TryGetValue(netId, out var @object);
+                NetworkClient.spawns.TryGetValue(objectId, out var @object);
                 return @object;
             }
 

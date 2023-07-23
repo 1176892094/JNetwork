@@ -55,6 +55,30 @@ namespace JFramework.Net
         }
 
         /// <summary>
+        /// 网络对象生成开始 (标记场景中的NetworkObject)
+        /// </summary>
+        private static void SpawnStart()
+        {
+            scenes.Clear();
+            var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
+            foreach (var @object in objects)
+            {
+                if (NetworkUtils.IsSceneObject(@object) && !@object.gameObject.activeSelf)
+                {
+                    if (scenes.TryGetValue(@object.sceneId, out var sceneObject))
+                    {
+                        var gameObject = @object.gameObject;
+                        Debug.LogWarning($"复制 {gameObject.name} 到 {sceneObject.gameObject.name} 上检测到 sceneId", gameObject);
+                    }
+                    else
+                    {
+                        scenes.Add(@object.sceneId, @object);
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
         /// 获取网络对象
         /// </summary>
         /// <param name="message">传入网络消息</param>
@@ -77,13 +101,13 @@ namespace JFramework.Net
 
             if (@object == null)
             {
-                Debug.LogError($"不能生成 {@object}。 assetId：{message.assetId} sceneId：{message.sceneId}");
+                Debug.LogError($"无法生成 {@object}。 assetId：{message.assetId} sceneId：{message.sceneId}");
                 return false;
             }
 
             return true;
         }
-
+        
         /// <summary>
         /// 生成资源预置体
         /// </summary>
@@ -116,31 +140,6 @@ namespace JFramework.Net
 
             Debug.LogError($"无法生成有效场景对象。 sceneId：{sceneId}");
             return null;
-        }
-
-        /// <summary>
-        /// 网络对象生成开始
-        /// </summary>
-        private static void SpawnStart()
-        {
-            scenes.Clear();
-            var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
-            foreach (var @object in objects)
-            {
-                if (NetworkUtils.IsSceneObject(@object) && !@object.gameObject.activeSelf)
-                {
-                    if (scenes.TryGetValue(@object.sceneId, out var newObject))
-                    {
-                        var gameObject = @object.gameObject;
-                        var message = $"复制 {gameObject.name} 到 {newObject.gameObject.name} 上检测到 sceneId";
-                        Debug.LogWarning(message, gameObject);
-                    }
-                    else
-                    {
-                        scenes.Add(@object.sceneId, @object);
-                    }
-                }
-            }
         }
 
         /// <summary>
