@@ -1,7 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
 using JFramework.Interface;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -31,17 +30,17 @@ namespace JFramework.Net
         /// <summary>
         /// 同步模式
         /// </summary>
-        [SerializeField] internal SyncMode syncMode;
+        [SerializeField] internal SyncMode syncDirection;
 
         /// <summary>
         /// 同步间隔
         /// </summary>
-        [SerializeField, Range(0, 2)] private float syncTime;
+        [SerializeField, Range(0, 2)] internal float syncInterval;
 
         /// <summary>
         /// 网络对象组件
         /// </summary>
-        internal NetworkObject @object;
+        public NetworkObject @object { get; internal set; }
 
         /// <summary>
         /// 网络对象Id
@@ -75,7 +74,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsDirty()
         {
-            return syncVarDirty != 0UL && NetworkTime.localTime - lastSyncTime >= syncTime;
+            return syncVarDirty != 0UL && NetworkTime.localTime - lastSyncTime >= syncInterval;
         }
 
         /// <summary>
@@ -125,7 +124,7 @@ namespace JFramework.Net
             
             try
             {
-                SerializeSyncVars(writer, serialize);
+                OnSerialize(writer, serialize);
             }
             catch (Exception e)
             {
@@ -140,13 +139,19 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 序列化网络变量
+        /// 可以重写这个方法
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="start"></param>
+        protected virtual void OnSerialize(NetworkWriter writer, bool start) => SerializeSyncVars(writer, start);
+
+        /// <summary>
+        /// TODO：用于序列化SyncVar 自动生成
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="start"></param>
         protected virtual void SerializeSyncVars(NetworkWriter writer, bool start)
         {
-            //TODO：通过自动生成
         }
 
         internal bool Deserialize(NetworkReader reader, bool serialize)
@@ -156,7 +161,7 @@ namespace JFramework.Net
             int chunkStart = reader.position;
             try
             {
-                DeserializeSyncVars(reader, serialize);
+                OnDeserialize(reader, serialize);
             }
             catch (Exception e)
             {
@@ -183,15 +188,21 @@ namespace JFramework.Net
             uint cleared = (uint)size & 0xFFFFFF00;
             return (int)(cleared | safety);
         }
+        
+        /// <summary>
+        /// 可以重写这个方法
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="start"></param>
+        protected virtual void OnDeserialize(NetworkReader reader, bool start) => DeserializeSyncVars(reader, start);
 
         /// <summary>
-        /// 反序列化网络变量
+        /// TODO：用于序列化SyncVar 自动生成
         /// </summary>
         /// <param name="reader"></param>
         /// <param name="start"></param>
         protected virtual void DeserializeSyncVars(NetworkReader reader, bool start)
         {
-            //TODO：通过自动生成
         }
     }
 }

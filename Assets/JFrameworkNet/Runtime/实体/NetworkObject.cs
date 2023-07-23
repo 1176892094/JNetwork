@@ -5,17 +5,17 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    internal struct NetworkObjectSerialize
-    {
-        public int tick;
-        public NetworkWriter owner;
-        public NetworkWriter observer;
-    }
-    
     [DefaultExecutionOrder(-1)]
     public sealed partial class NetworkObject : MonoBehaviour
     {
-        private NetworkObjectSerialize lastSerialize = new NetworkObjectSerialize
+        internal struct NetworkSerialize
+        {
+            public int tick;
+            public NetworkWriter owner;
+            public NetworkWriter observer;
+        }
+        
+        private NetworkSerialize lastSerialize = new NetworkSerialize
         {
             owner = new NetworkWriter(),
             observer = new NetworkWriter()
@@ -64,7 +64,7 @@ namespace JFramework.Net
             return true;
         }
         
-        internal NetworkObjectSerialize ServerSerializeTick(int tick)
+        internal NetworkSerialize ServerSerializeTick(int tick)
         {
             if (lastSerialize.tick != tick)
             {
@@ -160,7 +160,7 @@ namespace JFramework.Net
 
                 bool dirty = component.IsDirty();
                 ulong nthBit = 1u << i;
-                if (start || (component.syncMode == SyncMode.ServerToClient && dirty))
+                if (start || (component.syncDirection == SyncMode.ServerToClient && dirty))
                 {
                     ownerMask |= nthBit;
                 }
@@ -201,7 +201,7 @@ namespace JFramework.Net
             for (int i = 0; i < components.Length; ++i)
             {
                 NetworkBehaviour component = components[i];
-                if (isOwner && component.syncMode == SyncMode.ClientToServer)
+                if (isOwner && component.syncDirection == SyncMode.ClientToServer)
                 {
                     if (component.IsDirty()) mask |= (1u << i);
                 }
@@ -223,7 +223,7 @@ namespace JFramework.Net
                 {
                     NetworkBehaviour component = components[i];
 
-                    if (component.syncMode == SyncMode.ClientToServer)
+                    if (component.syncDirection == SyncMode.ClientToServer)
                     {
                         if (!component.Deserialize(reader, false)) return false;
 

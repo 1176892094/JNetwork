@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -19,7 +20,7 @@ namespace JFramework.Net
         /// <summary>
         /// 是否拥有权限
         /// </summary>
-        private bool isAuthority => isClient ? syncMode == SyncMode.ClientToServer && isOwner : syncMode == SyncMode.ServerToClient;
+        private bool isAuthority => isClient ? syncDirection == SyncMode.ClientToServer && isOwner : syncDirection == SyncMode.ServerToClient;
         
         /// <summary>
         /// 时间戳调整
@@ -126,15 +127,6 @@ namespace JFramework.Net
         /// </summary>
         [TabGroup("Sensitivity"), SerializeField] private float scaleSensitivity = 0.01f;
 
-        private void Awake()
-        {
-            if (target == null)
-            {
-                target = transform;
-                Debug.LogWarning("NetworkTransform 没有设置同步目标！");
-            }
-        }
-
         private void Update()
         {
             if (isServer)
@@ -158,25 +150,39 @@ namespace JFramework.Net
                 UpdateClientBroadcast();
             }
         }
-        
-        protected override void SerializeSyncVars(NetworkWriter writer, bool initialState)
+
+        private void OnValidate()
         {
-            if (initialState)
+            if (target == null)
             {
-                if (positionSync) writer.WriteVector3(target.localPosition);
-                if (rotationSync) writer.WriteQuaternion(target.localRotation);
-                if (scaleSync) writer.WriteVector3(target.localScale);
+                target = transform;
             }
         }
 
-        protected override void DeserializeSyncVars(NetworkReader reader, bool initialState)
+        /// <summary>
+        /// 序列化 Transform
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="start"></param>
+        protected override void OnSerialize(NetworkWriter writer, bool start)
         {
-            if (initialState)
-            {
-                if (positionSync) target.localPosition = reader.ReadVector3();
-                if (rotationSync) target.localRotation = reader.ReadQuaternion();
-                if (scaleSync) target.localScale = reader.ReadVector3();
-            }
+            if (!start) return;
+            if (positionSync) writer.WriteVector3(target.localPosition);
+            if (rotationSync) writer.WriteQuaternion(target.localRotation);
+            if (scaleSync) writer.WriteVector3(target.localScale);
+        }
+
+        /// <summary>
+        /// 反序列化 Transform
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="start"></param>
+        protected override void OnDeserialize(NetworkReader reader, bool start)
+        {
+            if (!start) return;
+            if (positionSync) target.localPosition = reader.ReadVector3();
+            if (rotationSync) target.localRotation = reader.ReadQuaternion();
+            if (scaleSync) target.localScale = reader.ReadVector3();
         }
         
         /// <summary>
@@ -184,7 +190,7 @@ namespace JFramework.Net
         /// </summary>
         private void UpdateServerInterpolation()
         {
-            if (serverSnapshots.Count == 0 || syncMode != SyncMode.ClientToServer || connection == null || isOwner) return;
+            if (serverSnapshots.Count == 0 || syncDirection != SyncMode.ClientToServer || connection == null || isOwner) return;
             SnapshotUtils.StepInterpolation(serverSnapshots, connection.remoteTimeline, out SnapshotTransform start, out SnapshotTransform end, out double t);
             Apply(SnapshotTransform.Interpolate(start, end, t), end);
         }
@@ -230,7 +236,7 @@ namespace JFramework.Net
         {
             CheckSendTime();
 
-            if (sendIntervalCounter == sendIntervalMultiplier && (syncMode == SyncMode.ServerToClient || isAuthority))
+            if (sendIntervalCounter == sendIntervalMultiplier && (syncDirection == SyncMode.ServerToClient || isAuthority))
             {
                 var snapshot = Construct();
                 cachedSnapshotComparison = CompareSnapshots(snapshot);
@@ -330,7 +336,7 @@ namespace JFramework.Net
         private void ClientToServerSync(Vector3? position, Quaternion? rotation, Vector3? scale)
         {
             OnClientToServerSync(position, rotation, scale);
-            if (syncMode == SyncMode.ClientToServer)
+            if (syncDirection == SyncMode.ClientToServer)
             {
                 RpcServerToClientSync(position, rotation, scale);
             }
@@ -344,7 +350,7 @@ namespace JFramework.Net
         /// <param name="scale"></param>
         private void OnClientToServerSync(Vector3? position, Quaternion? rotation, Vector3? scale)
         {
-            if (syncMode != SyncMode.ClientToServer) return;
+            if (syncDirection != SyncMode.ClientToServer) return;
             if (serverSnapshots.Count >= connection.snapshotBufferSizeLimit) return;
             double remoteTime = connection.remoteTime;
             double timeIntervalCheck = bufferResetMultiplier * sendIntervalMultiplier * NetworkManager.sendRate;
