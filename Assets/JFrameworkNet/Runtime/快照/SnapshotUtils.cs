@@ -29,7 +29,7 @@ namespace JFramework.Net
         /// <param name="driftEma"></param>
         /// <param name="deliveryTimeEma"></param>
         /// <typeparam name="T"></typeparam>
-        public static void InsertAndAdjust<T>(SortedList<double, T> buffer, T snapshot, ref double localTimeline, ref double localTimescale, float sendRate, double bufferTime, ref NetworkEma driftEma, ref NetworkEma deliveryTimeEma) where T : ISnapshot
+        public static void InsertAndAdjust<T>(SortedList<double, T> buffer, T snapshot, ref double localTimeline, ref double localTimescale, float sendRate, double bufferTime, ref NetworkEma driftEma, ref NetworkEma deliveryTimeEma) where T : Snapshot
         {
             if (buffer.Count == 0)
             {
@@ -49,9 +49,9 @@ namespace JFramework.Net
                 double timeDiff = latestRemoteTime - localTimeline;
                 driftEma.Add(timeDiff);
                 double drift = driftEma.value - bufferTime;
-                double absoluteNegativeThreshold = sendRate * NetworkSnapshot.snapshotSettings.catchupNegativeThreshold;
-                double absolutePositiveThreshold = sendRate * NetworkSnapshot.snapshotSettings.catchupPositiveThreshold;
-                localTimescale = Timescale(drift, NetworkSnapshot.snapshotSettings.catchupSpeed, NetworkSnapshot.snapshotSettings.slowdownSpeed, absoluteNegativeThreshold, absolutePositiveThreshold);
+                double absoluteNegativeThreshold = sendRate * NetworkManager.Instance.settingData.catchupNegativeThreshold;
+                double absolutePositiveThreshold = sendRate * NetworkManager.Instance.settingData.catchupPositiveThreshold;
+                localTimescale = Timescale(drift, NetworkManager.Instance.settingData.catchupSpeed, NetworkManager.Instance.settingData.slowdownSpeed, absoluteNegativeThreshold, absolutePositiveThreshold);
             }
         }
         
@@ -60,7 +60,7 @@ namespace JFramework.Net
         /// </summary>
         /// <returns>根据长度返回是否插入成功</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool InsertIfNotExists<T>(SortedList<double, T> buffer, T snapshot) where T : ISnapshot
+        public static bool InsertIfNotExists<T>(SortedList<double, T> buffer, T snapshot) where T : Snapshot
         {
             int before = buffer.Count;
             buffer[snapshot.remoteTime] = snapshot;
@@ -116,7 +116,7 @@ namespace JFramework.Net
         /// <param name="toSnapshot"></param>
         /// <param name="t"></param>
         /// <typeparam name="T"></typeparam>
-        public static void StepInterpolation<T>(SortedList<double, T> buffer, double localTimeline, out T fromSnapshot, out T toSnapshot, out double t) where T : ISnapshot
+        public static void StepInterpolation<T>(SortedList<double, T> buffer, double localTimeline, out T fromSnapshot, out T toSnapshot, out double t) where T : Snapshot
         {
             Sample(buffer, localTimeline, out int origin, out int target, out t);
             fromSnapshot = buffer.Values[origin];
@@ -130,7 +130,7 @@ namespace JFramework.Net
         /// <summary>
         /// 计算相邻两个远程时间差
         /// </summary>
-        private static void Sample<T>(SortedList<double, T> buffer, double localTimeline, out int origin, out int target, out double t) where T : ISnapshot
+        private static void Sample<T>(SortedList<double, T> buffer, double localTimeline, out int origin, out int target, out double t) where T : Snapshot
         {
             for (int i = 0; i < buffer.Count - 1; ++i)
             {
@@ -163,7 +163,7 @@ namespace JFramework.Net
         /// <param name="buffer"></param>
         /// <param name="localTimeline"></param>
         /// <typeparam name="T"></typeparam>
-        public static void StepInterpolation<T>(SortedList<double, T> buffer, double localTimeline) where T : ISnapshot
+        public static void StepInterpolation<T>(SortedList<double, T> buffer, double localTimeline) where T : Snapshot
         {
             int origin = Sample(buffer, localTimeline);
             for (int i = 0; i < origin && i < buffer.Count; ++i)
@@ -175,7 +175,7 @@ namespace JFramework.Net
         /// <summary>
         /// 计算相邻两个远程时间差
         /// </summary>
-        private static int Sample<T>(SortedList<double, T> buffer, double localTimeline) where T : ISnapshot
+        private static int Sample<T>(SortedList<double, T> buffer, double localTimeline) where T : Snapshot
         {
             for (int i = 0; i < buffer.Count - 1; ++i)
             {

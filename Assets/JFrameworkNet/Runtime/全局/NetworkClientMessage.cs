@@ -147,7 +147,7 @@ namespace JFramework.Net
         /// <param name="message"></param>
         private static void OnSnapshotByClient(SnapshotMessage message)
         { 
-            NetworkSnapshot.OnSnapshotMessage(new SnapshotTime(connection.remoteTime, NetworkTime.localTime));
+            connection.OnSnapshotMessage(new SnapshotTime(connection.remoteTime, NetworkTime.localTime));
         }
 
         /// <summary>

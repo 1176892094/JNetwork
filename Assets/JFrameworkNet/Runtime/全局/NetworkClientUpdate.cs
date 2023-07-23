@@ -12,7 +12,7 @@ namespace JFramework.Net
                 Transport.current.ClientEarlyUpdate();
             }
             
-            NetworkSnapshot.UpdateInterpolation();
+            connection.UpdateInterpolation();
         }
 
         /// <summary>

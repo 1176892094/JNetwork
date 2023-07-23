@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace JFramework.Net
 {   
@@ -32,7 +33,7 @@ namespace JFramework.Net
         /// 预置体列表
         /// </summary>
         [FoldoutGroup("网络管理器"), SerializeField]
-        private NetworkPrefab prefabData;
+        internal NetworkSetting settingData;
 
         /// <summary>
         /// 心跳传输率
@@ -90,7 +91,6 @@ namespace JFramework.Net
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            NetworkSnapshot.snapshotSettings = new SnapshotData();
             if (transport == null)
             {
                 Debug.LogError("NetworkManager 没有 Transport 组件。");
@@ -149,7 +149,7 @@ namespace JFramework.Net
             }
 
             NetworkClient.StartClient(address, port);
-            NetworkClient.RegisterPrefab(prefabData.prefabs);
+            NetworkClient.RegisterPrefab(settingData.prefabs);
             OnStartClient?.Invoke();
         }
 
@@ -166,7 +166,7 @@ namespace JFramework.Net
             }
 
             NetworkClient.StartClient(uri);
-            NetworkClient.RegisterPrefab(prefabData.prefabs);
+            NetworkClient.RegisterPrefab(settingData.prefabs);
             OnStartClient?.Invoke();
         }
 
@@ -210,7 +210,7 @@ namespace JFramework.Net
             Debug.Log("开启主机。");
             NetworkServer.StartServer(isListen);
             NetworkClient.StartClient();
-            NetworkClient.RegisterPrefab(prefabData.prefabs);
+            NetworkClient.RegisterPrefab(settingData.prefabs);
             OnStartHost?.Invoke();
         }
 

@@ -92,7 +92,6 @@ namespace JFramework.Net
         {
             Debug.Log("开启客户端。");
             RegisterTransport();
-            NetworkSnapshot.InitInterpolation();
             RegisterMessage(false);
             state = ConnectState.Connecting;
             Transport.current.ClientConnect(address, port);
@@ -107,7 +106,6 @@ namespace JFramework.Net
         {
             Debug.Log("开启客户端。");
             RegisterTransport();
-            NetworkSnapshot.InitInterpolation();
             RegisterMessage(false);
             state = ConnectState.Connecting;
             Transport.current.ClientConnect(uri);
@@ -120,7 +118,6 @@ namespace JFramework.Net
         internal static void StartClient()
         {
             Debug.Log("开启客户端。");
-            NetworkSnapshot.InitInterpolation();
             RegisterMessage(true);
             state = ConnectState.Connected;
             connection = new ServerEntity();

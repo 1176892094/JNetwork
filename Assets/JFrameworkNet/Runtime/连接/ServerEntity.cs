@@ -18,6 +18,65 @@ namespace JFramework.Net
         /// 网络消息读取并分包
         /// </summary>
         internal readonly NetworkReaderPack readers = new NetworkReaderPack();
+
+        /// <summary>
+        /// 网络设置
+        /// </summary>
+        private readonly NetworkSetting settingData;
+
+        /// <summary>
+        /// 当前时间量程
+        /// </summary>
+        private double localTimescale;
+        
+        /// <summary>
+        /// 当前时间线
+        /// </summary>
+        private double localTimeline;
+
+        /// <summary>
+        /// 缓存时间
+        /// </summary>
+        private double bufferTime => NetworkManager.sendRate * settingData.bufferTimeMultiplier;
+
+        /// <summary>
+        /// 构造函数初始化
+        /// </summary>
+        public ServerEntity()
+        {
+            snapshots.Clear();
+            localTimeline = 0;
+            localTimescale = 1;
+            settingData = NetworkManager.Instance.settingData;
+            driftEma = new NetworkEma(NetworkManager.Instance.tickRate * settingData.driftEmaDuration);
+            deliveryTimeEma = new NetworkEma(NetworkManager.Instance.tickRate  * settingData.deliveryTimeEmaDuration);
+        }
+
+        /// <summary>
+        /// 快照处理
+        /// </summary>
+        /// <param name="snapshot">新的快照</param>
+        internal void OnSnapshotMessage(SnapshotTime snapshot)
+        {
+            if (settingData.dynamicAdjustment)
+            {
+                settingData.bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.sendRate, deliveryTimeEma.deviation, settingData.dynamicAdjustmentTolerance);
+            }
+            
+            SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref localTimeline, ref localTimescale, NetworkManager.sendRate, bufferTime, ref driftEma, ref deliveryTimeEma);
+        }
+        
+        /// <summary>
+        /// 快照更新
+        /// </summary>
+        public void UpdateInterpolation()
+        {
+            if (snapshots.Count > 0)
+            {
+                SnapshotUtils.StepTime(Time.unscaledDeltaTime, ref localTimeline, localTimescale);
+                SnapshotUtils.StepInterpolation(snapshots, localTimeline);
+            }
+        }
         
         /// <summary>
         /// 客户端发送到传输

@@ -16,6 +16,11 @@ namespace JFramework.Net
         /// 存储不同传输通道写入的网络信息
         /// </summary>
         private readonly Dictionary<Channel, NetworkWriterPack> writerPacks = new Dictionary<Channel, NetworkWriterPack>();
+        
+        /// <summary>
+        /// 快照存储字典
+        /// </summary>
+        internal readonly SortedList<double, SnapshotTime> snapshots = new SortedList<double, SnapshotTime>();
 
         /// <summary>
         /// 是否准备好可以接收信息
@@ -26,6 +31,16 @@ namespace JFramework.Net
         /// 远端时间戳
         /// </summary>
         internal double remoteTime;
+        
+        /// <summary>
+        /// 移动指数平均值
+        /// </summary>
+        protected NetworkEma driftEma;
+        
+        /// <summary>
+        /// 发送时间移动指数平均值
+        /// </summary>
+        protected NetworkEma deliveryTimeEma;
 
         /// <summary>
         /// 网络消息更新

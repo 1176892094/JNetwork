@@ -31,11 +31,6 @@ namespace JFramework.Net
         /// 最大网络行为数量
         /// </summary>
         public const int MaxEntityCount = 64;
-
-        /// <summary>
-        /// 最大快照缓存大小限制
-        /// </summary>
-        public const int MaxSnapshotBuffer = 64;
         
         /// <summary>
         /// 客户端连接Id

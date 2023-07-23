@@ -1,6 +1,6 @@
 namespace JFramework.Net
 {
-    internal interface ISnapshot
+    internal interface Snapshot
     {
         /// <summary>
         /// 本地时间
