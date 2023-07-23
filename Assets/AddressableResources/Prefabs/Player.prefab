@@ -113,6 +113,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0c0f4e6fd4c4ac9b4fdc921ca4b4fe1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncMode: 0
+  syncTime: 0
   hp: 0
   mp: 0
   target: {fileID: 0}
@@ -128,9 +130,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc932a72973441e2b86cc842140f2f36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncMode: 1
+  syncTime: 0
   target: {fileID: 7690018697310748998}
-  sendIntervalMultiplier: 1
-  bufferResetMultiplier: 3
   positionSync: 1
   rotationSync: 0
   scaleSync: 0

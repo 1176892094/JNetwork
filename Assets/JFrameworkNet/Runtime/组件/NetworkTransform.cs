@@ -65,22 +65,22 @@ namespace JFramework.Net
         /// 上一个快照
         /// </summary>
         private SnapshotTransform lastSnapshot;
+        
+        /// <summary>
+        /// 发送间隔乘数
+        /// </summary>
+        private readonly uint sendIntervalMultiplier = 1;
+        
+        /// <summary>
+        /// 缓存重置次数
+        /// </summary>
+        private readonly float bufferResetMultiplier = 3;
 
         /// <summary>
         /// 同步目标
         /// </summary>
         [SerializeField] private Transform target;
-        
-        /// <summary>
-        /// 发送间隔乘数
-        /// </summary>
-        [SerializeField] private uint sendIntervalMultiplier = 1;
-        
-        /// <summary>
-        /// 缓存重置次数
-        /// </summary>
-        [SerializeField] private float bufferResetMultiplier = 3;
-        
+
         /// <summary>
         /// 是否同步位置
         /// </summary>

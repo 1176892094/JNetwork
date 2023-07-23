@@ -31,12 +31,12 @@ namespace JFramework.Net
         /// <summary>
         /// 同步模式
         /// </summary>
-        [ShowInInspector] internal SyncMode syncMode;
-        
+        [SerializeField] internal SyncMode syncMode;
+
         /// <summary>
         /// 同步间隔
         /// </summary>
-        [ShowInInspector, Range(0, 2)] private float syncTime;
+        [SerializeField, Range(0, 2)] private float syncTime;
 
         /// <summary>
         /// 网络对象组件
