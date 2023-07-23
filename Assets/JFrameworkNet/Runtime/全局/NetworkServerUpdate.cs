@@ -76,6 +76,12 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 为客户端序列化 SyncVar
+        /// </summary>
+        /// <param name="object"></param>
+        /// <param name="client"></param>
+        /// <returns></returns>
         private static NetworkWriter SerializeForClient(NetworkObject @object, ClientEntity client)
         {
             var serialize = @object.GetServerSerializationAtTick(Time.frameCount);
