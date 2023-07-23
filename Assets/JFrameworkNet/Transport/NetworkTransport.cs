@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using JFramework.Udp;
 using UnityEngine;
 
@@ -85,6 +86,16 @@ namespace JFramework.Net
         }
 
         public override void ServerDisconnect(int clientId) => server.Disconnect(clientId);
+        public override Uri GetServerUri()
+        {
+            var builder = new UriBuilder
+            {
+                Scheme = "https",
+                Host = Dns.GetHostName(),
+                Port = port
+            };
+            return builder.Uri;
+        }
 
         public override int GetMaxPacketSize(Channel channel = Channel.Reliable)
         {

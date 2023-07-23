@@ -93,7 +93,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T">传入NetworkMessage</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SendMessage<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
+        public void SendMessage<T>(T message, Channel channel = Channel.Reliable) where T : struct, Message
         {
             using var writer = NetworkWriter.Pop();
             NetworkMessage.WriteMessage(writer, message);

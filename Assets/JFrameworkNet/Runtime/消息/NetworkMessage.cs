@@ -11,7 +11,7 @@ namespace JFramework.Net
     /// 静态泛型消息Id
     /// </summary>
     /// <typeparam name="T">网络消息类型</typeparam>
-    public static class NetworkMessage<T> where T : struct, IEvent
+    public static class NetworkMessage<T> where T : struct, Message
     {
         /// <summary>
         /// 根据泛型类型的名称来获取Hash的Id
@@ -41,7 +41,7 @@ namespace JFramework.Net
         /// <param name="writer"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteMessage<T>(NetworkWriter writer, T message) where T : struct, IEvent
+        public static void WriteMessage<T>(NetworkWriter writer, T message) where T : struct, Message
         {
             writer.WriteUShort(NetworkMessage<T>.Id);
             writer.Write(message);
@@ -75,7 +75,7 @@ namespace JFramework.Net
         /// <typeparam name="T1">网络连接(Server or Client)</typeparam>
         /// <typeparam name="T2">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static MessageDelegate Register<T1, T2>(Action<T1, T2, Channel> handle) where T1 : Connection where T2 : struct, IEvent
+        internal static MessageDelegate Register<T1, T2>(Action<T1, T2, Channel> handle) where T1 : Connection where T2 : struct, Message
         {
             return (connection, reader, channel) =>
             {
@@ -107,7 +107,7 @@ namespace JFramework.Net
         /// <typeparam name="T1">网络连接(Server or Client)</typeparam>
         /// <typeparam name="T2">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static MessageDelegate Register<T1, T2>(Action<T1, T2> handle) where T1 : Connection where T2 : struct, IEvent
+        internal static MessageDelegate Register<T1, T2>(Action<T1, T2> handle) where T1 : Connection where T2 : struct, Message
         {
             return Register((Action<T1, T2, Channel>)Handle);
 
@@ -123,7 +123,7 @@ namespace JFramework.Net
         /// <param name="handle">传入网络消息</param>
         /// <typeparam name="T1">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static MessageDelegate Register<T1>(Action<T1> handle) where T1 : struct, IEvent
+        internal static MessageDelegate Register<T1>(Action<T1> handle) where T1 : struct, Message
         {
             return Register((Action<Connection, T1>)Handle);
 

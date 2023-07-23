@@ -40,7 +40,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        private static void RegisterMessage<T>(Action<T> handle) where T : struct, IEvent
+        private static void RegisterMessage<T>(Action<T> handle) where T : struct, Message
         {
             messages[NetworkMessage<T>.Id] = NetworkMessage.Register(handle);
         }
@@ -50,7 +50,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="message"></param>
         /// <typeparam name="T"></typeparam>
-        private static void OnEmptyByHost<T>(T message) where T : IEvent
+        private static void OnEmptyByHost<T>(T message) where T : Message
         {
         }
         

@@ -155,7 +155,7 @@ namespace JFramework.Net
         /// <param name="message">网络事件</param>
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T"></typeparam>
-        internal static void SendMessage<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
+        internal static void SendMessage<T>(T message, Channel channel = Channel.Reliable) where T : struct, Message
         {
             if (connection != null)
             {

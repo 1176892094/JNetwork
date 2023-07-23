@@ -102,6 +102,12 @@ namespace JFramework.Net
         public abstract void ServerDisconnect(int clientId);
         
         /// <summary>
+        /// 获取服务器的Uri
+        /// </summary>
+        /// <returns></returns>
+        public abstract Uri GetServerUri();
+        
+        /// <summary>
         /// 当服务器停止
         /// </summary>
         public abstract void StopServer();

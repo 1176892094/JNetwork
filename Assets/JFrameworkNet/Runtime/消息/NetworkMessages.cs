@@ -1,34 +1,39 @@
 using System;
+using System.Net;
 using JFramework.Interface;
 using UnityEngine;
 
 namespace JFramework.Net
 {
+    public interface Message
+    {
+    }
+        
     /// <summary>
     /// 快照差值
     /// </summary>
-    internal struct SnapshotMessage : IEvent
+    internal struct SnapshotMessage : Message
     {
     }
     
     /// <summary>
     /// 客户端准备就绪
     /// </summary>
-    internal struct SetReadyMessage : IEvent
+    internal struct SetReadyMessage : Message
     {
     }
 
     /// <summary>
     /// 客户端取消准备
     /// </summary>
-    internal struct NotReadyMessage : IEvent
+    internal struct NotReadyMessage : Message
     {
     }
 
     /// <summary>
     /// 场景改变
     /// </summary>
-    internal struct SceneMessage : IEvent
+    internal struct SceneMessage : Message
     {
         public readonly string sceneName;
         public SceneMessage(string sceneName) => this.sceneName = sceneName;
@@ -37,7 +42,7 @@ namespace JFramework.Net
     /// <summary>
     /// 客户端到服务器的Ping
     /// </summary>
-    internal struct PingMessage : IEvent
+    internal struct PingMessage : Message
     {
         public readonly double clientTime;
         public PingMessage(double clientTime) => this.clientTime = clientTime;
@@ -46,7 +51,7 @@ namespace JFramework.Net
     /// <summary>
     /// 服务器到客户端的Pong
     /// </summary>
-    internal struct PongMessage : IEvent
+    internal struct PongMessage : Message
     {
         public readonly double clientTime;
         public PongMessage(double clientTime) => this.clientTime = clientTime;
@@ -55,7 +60,7 @@ namespace JFramework.Net
     /// <summary>
     /// 客户端远程调用服务器
     /// </summary>
-    internal struct ServerRpcMessage : IEvent
+    internal struct ServerRpcMessage : Message
     {
         public uint objectId;
         public byte serialId;
@@ -66,7 +71,7 @@ namespace JFramework.Net
     /// <summary>
     /// Rpc缓存事件
     /// </summary>
-    internal struct InvokeRpcMessage : IEvent
+    internal struct InvokeRpcMessage : Message
     {
         public readonly ArraySegment<byte> segment;
         public InvokeRpcMessage(ArraySegment<byte> segment) => this.segment = segment;
@@ -75,7 +80,7 @@ namespace JFramework.Net
     /// <summary>
     /// 服务器远程调用客户端
     /// </summary>
-    internal struct ClientRpcMessage : IEvent
+    internal struct ClientRpcMessage : Message
     {
         public uint objectId;
         public byte serialId;
@@ -86,7 +91,7 @@ namespace JFramework.Net
     /// <summary>
     /// 网络对象生成
     /// </summary>
-    internal struct SpawnMessage : IEvent
+    internal struct SpawnMessage : Message
     {
         public bool isOwner;
         public uint assetId;
@@ -101,7 +106,7 @@ namespace JFramework.Net
     /// <summary>
     /// 网络对象重置
     /// </summary>
-    internal struct DespawnMessage : IEvent
+    internal struct DespawnMessage : Message
     {
         public readonly uint objectId;
         public DespawnMessage(uint objectId) => this.objectId = objectId;
@@ -110,7 +115,7 @@ namespace JFramework.Net
     /// <summary>
     /// 网络对象销毁
     /// </summary>
-    internal struct DestroyMessage : IEvent
+    internal struct DestroyMessage : Message
     {
         public readonly uint objectId;
         public DestroyMessage(uint objectId) => this.objectId = objectId;
@@ -119,7 +124,7 @@ namespace JFramework.Net
     /// <summary>
     /// 对象事件
     /// </summary>
-    internal struct EntityMessage : IEvent
+    internal struct EntityMessage : Message
     {
         public readonly uint objectId;
         public readonly ArraySegment<byte> segment;

@@ -22,7 +22,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        private static void RegisterMessage<T>(Action<ClientEntity, T> handle) where T : struct, IEvent
+        private static void RegisterMessage<T>(Action<ClientEntity, T> handle) where T : struct, Message
         {
             messages[NetworkMessage<T>.Id] = NetworkMessage.Register(handle);
         }
@@ -30,7 +30,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        private static void RegisterMessage<T>(Action<ClientEntity, T, Channel> handle) where T : struct, IEvent
+        private static void RegisterMessage<T>(Action<ClientEntity, T, Channel> handle) where T : struct, Message
         {
             messages[NetworkMessage<T>.Id] = NetworkMessage.Register(handle);
         }
