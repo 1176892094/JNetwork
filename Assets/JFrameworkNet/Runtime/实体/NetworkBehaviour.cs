@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public abstract partial class NetworkBehaviour : MonoBehaviour, INetworkEvent
+    public abstract partial class NetworkBehaviour : MonoBehaviour, NetworkEvent
     {
         /// <summary>
         /// 服务器变量的改变选项

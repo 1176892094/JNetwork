@@ -1,35 +1,56 @@
 namespace JFramework.Interface
 {
-    public interface INetworkEvent
+    /// <summary>
+    /// 网络事件接口
+    /// </summary>
+    public interface NetworkEvent
     {
     }
 
-    public interface IStartClient : INetworkEvent
+    /// <summary>
+    /// 在客户端对象 初始化时调用 (服务器不调用)
+    /// </summary>
+    public interface IStartClient : NetworkEvent
     {
         void OnStartClient();
     }
 
-    public interface IStopClient : INetworkEvent
+    /// <summary>
+    /// 在客户端对象 停止或断开时调用 (服务器不调用)
+    /// </summary>
+    public interface IStopClient : NetworkEvent
     {
         void OnStopClient();
     }
 
-    public interface IStartServer : INetworkEvent
+    /// <summary>
+    /// 当客户端对象 从服务器初始化时调用 (客户端不调用)
+    /// </summary>
+    public interface IStartServer : NetworkEvent
     {
         void OnStartServer();
     }
 
-    public interface IStopServer : INetworkEvent
+    /// <summary>
+    /// 当客户端对象 从服务器停止或断开时调用 (客户端不调用)
+    /// </summary>
+    public interface IStopServer : NetworkEvent
     {
         void OnStopServer();
     }
 
-    public interface IStartAuthority : INetworkEvent
+    /// <summary>
+    /// 当玩家获得 客户端对象的权限 时调用 (服务器不调用)
+    /// </summary>
+    public interface IStartAuthority : NetworkEvent
     {
         void OnStartAuthority();
     }
 
-    public interface IStopAuthority : INetworkEvent
+    /// <summary>
+    /// 当玩家丢失 客户端对象的权限 时调用 (服务器不调用)
+    /// </summary>
+    public interface IStopAuthority : NetworkEvent
     {
         void OnStopAuthority();
     }
