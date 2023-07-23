@@ -1,8 +1,6 @@
 namespace JFramework.Net
 {
- 
-
-    internal struct TimeSnapshot : ISnapshot
+    internal struct SnapshotTime : ISnapshot
     {
         /// <summary>
         /// 本地时间
@@ -19,7 +17,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="remoteTime">远端时间</param>
         /// <param name="localTime">本地时间</param>
-        public TimeSnapshot(double remoteTime, double localTime)
+        public SnapshotTime(double remoteTime, double localTime)
         {
             this.localTime = localTime;
             this.remoteTime = remoteTime;

@@ -13,9 +13,9 @@ namespace JFramework.Editor
     /// </summary>
     internal sealed class AssemblyResolver : IAssemblyResolver
     {
+        private readonly Dictionary<string, AssemblyDefinition> assemblyCache = new Dictionary<string, AssemblyDefinition>();
         private readonly Logger logger;
         private readonly string[] assemblyReferences;
-        private readonly Dictionary<string, AssemblyDefinition> assemblyCache = new Dictionary<string, AssemblyDefinition>();
         private readonly ICompiledAssembly compiledAssembly;
         private AssemblyDefinition selfAssembly;
      

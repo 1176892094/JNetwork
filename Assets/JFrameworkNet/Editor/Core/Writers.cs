@@ -13,10 +13,10 @@ namespace JFramework.Editor
     internal class Writers
     {
         private readonly Dictionary<TypeReference, MethodReference> writeFuncList = new Dictionary<TypeReference, MethodReference>(new Comparer());
-        private readonly AssemblyDefinition assembly;
-        private readonly Logger logger;
         private readonly Model model;
+        private readonly Logger logger;
         private readonly TypeDefinition generate;
+        private readonly AssemblyDefinition assembly;
 
         public Writers(AssemblyDefinition assembly, Model model, TypeDefinition generate, Logger logger)
         {
