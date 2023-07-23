@@ -23,6 +23,12 @@ namespace JFramework.Net
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => Time.unscaledTimeAsDouble;
         }
+        
+        public static double fixedTime
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => NetworkServer.isActive ? localTime : NetworkClient.connection.localTimeline;
+        }
 
         /// <summary>
         /// 客户端发送Ping消息到服务器端

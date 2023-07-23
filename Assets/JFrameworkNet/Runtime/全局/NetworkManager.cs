@@ -103,6 +103,7 @@ namespace JFramework.Net
                 return;
             }
 
+            setting.bufferTimeMultiplier = 2f;
             Application.runInBackground = true;
 #if UNITY_SERVER
             Application.targetFrameRate = tickRate;

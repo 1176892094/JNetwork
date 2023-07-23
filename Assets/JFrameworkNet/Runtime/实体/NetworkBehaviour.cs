@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using JFramework.Interface;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -18,14 +19,29 @@ namespace JFramework.Net
         private ulong syncVarHook;
 
         /// <summary>
+        /// 当前实体在网络对象中的位置
+        /// </summary>
+        internal byte serialId;
+
+        /// <summary>
+        /// 上一次同步时间
+        /// </summary>
+        private double lastSyncTime;
+
+        /// <summary>
+        /// 同步模式
+        /// </summary>
+        [ShowInInspector] internal SyncMode syncMode;
+        
+        /// <summary>
+        /// 同步间隔
+        /// </summary>
+        [ShowInInspector, Range(0, 2)] private float syncTime;
+
+        /// <summary>
         /// 网络对象组件
         /// </summary>
         internal NetworkObject @object;
-
-        /// <summary>
-        /// 同步方向
-        /// </summary>
-        internal SyncDirection syncDirection;
 
         /// <summary>
         /// 网络对象Id
@@ -53,28 +69,13 @@ namespace JFramework.Net
         public ClientEntity connection => @object.connection;
 
         /// <summary>
-        /// 当前实体在网络对象中的位置
-        /// </summary>
-        internal byte serialId;
-
-        /// <summary>
-        /// 同步间隔
-        /// </summary>
-        private float syncInterval;
-
-        /// <summary>
-        /// 上一次同步时间
-        /// </summary>
-        private double lastSyncTime;
-
-        /// <summary>
         /// 是否能够改变网络值
         /// </summary>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsDirty()
         {
-            return syncVarDirty != 0UL && NetworkTime.localTime - lastSyncTime >= syncInterval;
+            return syncVarDirty != 0UL && NetworkTime.localTime - lastSyncTime >= syncTime;
         }
 
         /// <summary>

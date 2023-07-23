@@ -102,6 +102,16 @@ namespace JFramework.Net
             }
             position += size;
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void WriteBlittableNullable<T>(T? value) where T : unmanaged
+        {
+            WriteBlittable((byte)(value.HasValue ? 0x01 : 0x00));
+            if (value.HasValue)
+            {
+                WriteBlittable(value.Value);
+            }
+        }
 
         /// <summary>
         /// 写入Byte数组

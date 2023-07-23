@@ -112,15 +112,15 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="localTimeline"></param>
-        /// <param name="fromSnapshot"></param>
-        /// <param name="toSnapshot"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
         /// <param name="t"></param>
         /// <typeparam name="T"></typeparam>
-        public static void StepInterpolation<T>(SortedList<double, T> buffer, double localTimeline, out T fromSnapshot, out T toSnapshot, out double t) where T : Snapshot
+        public static void StepInterpolation<T>(SortedList<double, T> buffer, double localTimeline, out T start, out T end, out double t) where T : Snapshot
         {
             Sample(buffer, localTimeline, out int origin, out int target, out t);
-            fromSnapshot = buffer.Values[origin];
-            toSnapshot = buffer.Values[target];
+            start = buffer.Values[origin];
+            end = buffer.Values[target];
             for (int i = 0; i < origin && i < buffer.Count; ++i)
             {
                 buffer.RemoveAt(0);

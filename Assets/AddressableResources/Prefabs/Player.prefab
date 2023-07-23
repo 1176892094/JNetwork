@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 9114263469754335341}
   - component: {fileID: 605567151887746445}
   - component: {fileID: -6090009653810811392}
+  - component: {fileID: 1107045439881312710}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -98,6 +99,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1fdef98dc98404096343208cf1995f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  assetId: 918211610
+  sceneId: 0
 --- !u!114 &-6090009653810811392
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -113,3 +116,27 @@ MonoBehaviour:
   hp: 0
   mp: 0
   target: {fileID: 0}
+--- !u!114 &1107045439881312710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5053477900898413441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc932a72973441e2b86cc842140f2f36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 7690018697310748998}
+  sendIntervalMultiplier: 1
+  bufferResetMultiplier: 3
+  positionSync: 1
+  rotationSync: 0
+  scaleSync: 0
+  positionInterpolate: 1
+  rotationInterpolate: 0
+  scaleInterpolate: 0
+  positionSensitivity: 0.01
+  rotationSensitivity: 0.01
+  scaleSensitivity: 0.01

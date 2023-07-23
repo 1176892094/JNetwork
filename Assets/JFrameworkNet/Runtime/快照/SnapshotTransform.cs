@@ -20,11 +20,11 @@ namespace JFramework.Net
             this.localScale = localScale;
         }
 
-        public static SnapshotTransform Interpolate(SnapshotTransform origin, SnapshotTransform target, double time)
+        public static SnapshotTransform Interpolate(SnapshotTransform start, SnapshotTransform end, double time)
         {
-            var position = Vector3.LerpUnclamped(origin.position, target.position, (float)time);
-            var rotation = Quaternion.SlerpUnclamped(origin.rotation, target.rotation, (float)time);
-            var localScale = Vector3.LerpUnclamped(origin.localScale, target.localScale, (float)time);
+            var position = Vector3.LerpUnclamped(start.position, end.position, (float)time);
+            var rotation = Quaternion.SlerpUnclamped(start.rotation, end.rotation, (float)time);
+            var localScale = Vector3.LerpUnclamped(start.localScale, end.localScale, (float)time);
             return new SnapshotTransform(0, 0, position, rotation, localScale);
         }
     }

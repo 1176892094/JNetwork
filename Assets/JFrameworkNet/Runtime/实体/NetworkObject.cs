@@ -160,7 +160,7 @@ namespace JFramework.Net
 
                 bool dirty = component.IsDirty();
                 ulong nthBit = 1u << i;
-                if (start || (component.syncDirection == SyncDirection.ServerToClient && dirty))
+                if (start || (component.syncMode == SyncMode.ServerToClient && dirty))
                 {
                     ownerMask |= nthBit;
                 }
@@ -201,7 +201,7 @@ namespace JFramework.Net
             for (int i = 0; i < components.Length; ++i)
             {
                 NetworkBehaviour component = components[i];
-                if (isOwner && component.syncDirection == SyncDirection.ClientToServer)
+                if (isOwner && component.syncMode == SyncMode.ClientToServer)
                 {
                     if (component.IsDirty()) mask |= (1u << i);
                 }
@@ -223,7 +223,7 @@ namespace JFramework.Net
                 {
                     NetworkBehaviour component = components[i];
 
-                    if (component.syncDirection == SyncDirection.ClientToServer)
+                    if (component.syncMode == SyncMode.ClientToServer)
                     {
                         if (!component.Deserialize(reader, false)) return false;
 

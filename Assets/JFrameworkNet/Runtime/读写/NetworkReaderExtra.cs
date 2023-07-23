@@ -116,6 +116,11 @@ namespace JFramework.Net
         {
             return reader.ReadBlittable<Vector3>();
         }
+        
+        public static Vector3? ReadVector3Nullable(this NetworkReader reader)
+        {
+            return reader.ReadBlittableNullable<Vector3>();
+        }
 
         public static Vector4 ReadVector4(this NetworkReader reader)
         {
@@ -147,6 +152,11 @@ namespace JFramework.Net
             return reader.ReadBlittable<Quaternion>();
         }
         
+        public static Quaternion? ReadQuaternionNullable(this NetworkReader reader)
+        {
+            return reader.ReadBlittableNullable<Quaternion>();
+        }
+
         public static Rect ReadRect(this NetworkReader reader)
         {
             return new Rect(reader.ReadVector2(), reader.ReadVector2());

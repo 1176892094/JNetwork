@@ -43,7 +43,7 @@ namespace JFramework.Net
         /// <summary>
         /// 远端时间线
         /// </summary>
-        private double remoteTimeline;
+        internal double remoteTimeline;
         
         /// <summary>
         /// 远端时间量程
@@ -58,7 +58,7 @@ namespace JFramework.Net
         /// <summary>
         /// 快照缓存极限大小
         /// </summary>
-        private readonly int snapshotBufferSizeLimit = 64;
+        internal readonly int snapshotBufferSizeLimit = 64;
         
         /// <summary>
         /// 缓存时间

@@ -134,6 +134,11 @@ namespace JFramework.Net
         {
             writer.WriteBlittable(value);
         }
+        
+        public static void WriteVector3Nullable(this NetworkWriter writer, Vector3? value)
+        {
+            writer.WriteBlittableNullable(value);
+        }
 
         public static void WriteVector4(this NetworkWriter writer, Vector4 value)
         {
@@ -162,6 +167,11 @@ namespace JFramework.Net
         public static void WriteQuaternion(this NetworkWriter writer, Quaternion value)
         {
             writer.WriteBlittable(value);
+        }
+        
+        public static void WriteQuaternionNullable(this NetworkWriter writer, Quaternion? value)
+        {
+            writer.WriteBlittableNullable(value);
         }
 
         public static void WriteRect(this NetworkWriter writer, Rect value)

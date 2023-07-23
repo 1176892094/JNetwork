@@ -27,7 +27,7 @@ namespace JFramework.Net
         /// <summary>
         /// 当前时间线
         /// </summary>
-        private double localTimeline;
+        internal double localTimeline;
 
         /// <summary>
         /// 当前时间量程

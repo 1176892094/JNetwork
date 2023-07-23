@@ -101,6 +101,14 @@ namespace JFramework.Net
         }
 
         /// <summary>
+        /// 读取非托管的可空的类型
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal T? ReadBlittableNullable<T>() where T : unmanaged => ReadBlittable<byte>() != 0 ? ReadBlittable<T>() : default(T?);
+
+        /// <summary>
         /// 内部的读取byte[]数组方法
         /// </summary>
         /// <param name="bytes"></param>
