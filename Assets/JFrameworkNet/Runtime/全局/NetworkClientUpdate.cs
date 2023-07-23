@@ -61,7 +61,7 @@ namespace JFramework.Net
                 @object.ClientSerialize(writer);
                 if (writer.position > 0)
                 {
-                    Send(new EntityMessage(@object.objectId, writer.ToArraySegment()));
+                    SendMessage(new EntityMessage(@object.objectId, writer.ToArraySegment()));
                     @object.ClearDirty();
                 }
             }

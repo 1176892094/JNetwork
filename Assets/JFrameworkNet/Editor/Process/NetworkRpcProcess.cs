@@ -4,6 +4,13 @@ using Mono.Cecil.Cil;
 
 namespace JFramework.Editor
 {
+    internal enum RpcType : byte
+    {
+        ServerRpc,
+        ClientRpc,
+        TargetRpc,
+    }
+    
     internal static partial class NetworkRpcProcess
     {
         /// <summary>

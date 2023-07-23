@@ -33,7 +33,7 @@ namespace JFramework.Net
 
             RegisterMessage<NotReadyMessage>(OnNotReadyByClient);
             RegisterMessage<SceneMessage>(OnSceneByClient);
-            RegisterMessage<TimeMessage>(OnTimeByClient);
+            RegisterMessage<SnapshotMessage>(OnSnapshotByClient);
             RegisterMessage<InvokeRpcMessage>(OnInvokeRpcByClient);
         }
 
@@ -145,9 +145,9 @@ namespace JFramework.Net
         /// 客户端下网络消息快照的消息
         /// </summary>
         /// <param name="message"></param>
-        private static void OnTimeByClient(TimeMessage message)
-        {
-          //  NetworkSnapshot.OnTimeSnapshot(new TimeSnapshot(server.timestamp, NetworkTime.localTime));
+        private static void OnSnapshotByClient(SnapshotMessage message)
+        { 
+            NetworkSnapshot.OnTimeSnapshot(new TimeSnapshot(connection.timestamp, NetworkTime.localTime));
         }
 
         /// <summary>

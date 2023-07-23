@@ -1,6 +1,6 @@
 namespace JFramework.Net
 {
-   public static class Compression
+   internal static class Compression
     {
         public static void CompressVarUInt(NetworkWriter writer, ulong value)
         {

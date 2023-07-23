@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public class NetworkWriterPack
+    internal class NetworkWriterPack
     {
         /// <summary>
         /// 批处理队列

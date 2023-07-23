@@ -1,4 +1,4 @@
-namespace JFramework.Net
+namespace JFramework.Interface
 {
     public interface INetworkEvent
     {

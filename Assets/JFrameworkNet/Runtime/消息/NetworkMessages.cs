@@ -7,7 +7,7 @@ namespace JFramework.Net
     /// <summary>
     /// 快照差值
     /// </summary>
-    internal struct TimeMessage : IEvent
+    internal struct SnapshotMessage : IEvent
     {
     }
     
@@ -119,7 +119,7 @@ namespace JFramework.Net
     /// <summary>
     /// 对象事件
     /// </summary>
-    public struct EntityMessage : IEvent
+    internal struct EntityMessage : IEvent
     {
         public readonly uint objectId;
         public readonly ArraySegment<byte> segment;

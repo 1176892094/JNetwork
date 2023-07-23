@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using JFramework.Interface;
 using UnityEngine;
+// ReSharper disable All
 
 namespace JFramework.Net
 {
@@ -149,12 +150,12 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 可毒案发送消息到服务器
+        /// 客户端发送消息到服务器 (对发送消息的封装)
         /// </summary>
         /// <param name="message">网络事件</param>
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T"></typeparam>
-        internal static void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
+        internal static void SendMessage<T>(T message, Channel channel = Channel.Reliable) where T : struct, IEvent
         {
             if (connection != null)
             {

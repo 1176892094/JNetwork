@@ -11,7 +11,7 @@ namespace JFramework.Net
     /// 静态泛型消息Id
     /// </summary>
     /// <typeparam name="T">网络消息类型</typeparam>
-    public static class NetworkMessage<T> where T : struct, IEvent
+    internal static class NetworkMessage<T> where T : struct, IEvent
     {
         /// <summary>
         /// 根据泛型类型的名称来获取Hash的Id

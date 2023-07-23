@@ -2,7 +2,7 @@ using System;
 
 namespace JFramework.Net
 {
-    public struct Smooth
+    internal struct Smooth
     {
         /// <summary>
         /// 是否初始化

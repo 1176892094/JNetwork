@@ -99,7 +99,7 @@ namespace JFramework.Net
         /// <param name="channel"></param>
         /// <returns>返回一个发送类</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected NetworkWriterPack GetWriterPack(Channel channel)
+        internal NetworkWriterPack GetWriterPack(Channel channel)
         {
             if (writerPacks.TryGetValue(channel, out var writerPack)) return writerPack;
             var threshold = Transport.current.UnreliableSize();

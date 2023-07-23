@@ -7,7 +7,7 @@ using UnityEditor;
 
 namespace JFramework.Net
 {
-    public class NetworkPrefab : ScriptableObject
+    internal class NetworkPrefab : ScriptableObject
     {
         /// <summary>
         /// 预置体列表

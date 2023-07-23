@@ -331,7 +331,7 @@ namespace JFramework.Net
         /// <param name="objectId"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarSetterNetworkBehaviour<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkVariable objectId) where T : NetworkBehaviour
+        public void SyncVarSetterNetworkBehaviour<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkValue objectId) where T : NetworkBehaviour
         {
             if (!SyncVarEqualNetworkBehaviour(value, objectId))
             {
@@ -358,9 +358,9 @@ namespace JFramework.Net
         /// <param name="objectId"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterNetworkBehaviour<T>(ref T field, Action<T, T> OnChanged, NetworkReader reader, ref NetworkVariable objectId) where T : NetworkBehaviour
+        public void SyncVarGetterNetworkBehaviour<T>(ref T field, Action<T, T> OnChanged, NetworkReader reader, ref NetworkValue objectId) where T : NetworkBehaviour
         {
-            NetworkVariable oldId = objectId;
+            NetworkValue oldId = objectId;
             T oldObject = field;
             objectId = reader.ReadNetworkValue();
             field = GetSyncVarNetworkBehaviour(objectId, ref field);
@@ -377,7 +377,7 @@ namespace JFramework.Net
         /// <param name="objectId"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        private static bool SyncVarEqualNetworkBehaviour<T>(T @object, NetworkVariable objectId) where T : NetworkBehaviour
+        private static bool SyncVarEqualNetworkBehaviour<T>(T @object, NetworkValue objectId) where T : NetworkBehaviour
         {
             uint newId = 0;
             byte index = 0;
@@ -401,7 +401,7 @@ namespace JFramework.Net
         /// <param name="field"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        private T GetSyncVarNetworkBehaviour<T>(NetworkVariable value, ref T field) where T : NetworkBehaviour
+        private T GetSyncVarNetworkBehaviour<T>(NetworkValue value, ref T field) where T : NetworkBehaviour
         {
             if (isServer || !isClient)
             {
@@ -425,7 +425,7 @@ namespace JFramework.Net
         /// <param name="dirty"></param>
         /// <param name="netId"></param>
         /// <typeparam name="T"></typeparam>
-        private void SetSyncVarNetworkBehaviour<T>(T @object, ref T field, ulong dirty, ref NetworkVariable netId) where T : NetworkBehaviour
+        private void SetSyncVarNetworkBehaviour<T>(T @object, ref T field, ulong dirty, ref NetworkValue netId) where T : NetworkBehaviour
         {
             if (GetSyncVarHook(dirty)) return;
 
@@ -441,7 +441,7 @@ namespace JFramework.Net
                 }
             }
 
-            netId = new NetworkVariable(newId, index);
+            netId = new NetworkValue(newId, index);
             SetSyncVarDirty(dirty);
             field = @object;
         }

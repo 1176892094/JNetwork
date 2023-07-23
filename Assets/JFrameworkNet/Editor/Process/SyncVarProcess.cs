@@ -188,7 +188,7 @@ namespace JFramework.Editor
             FieldDefinition netIdField = null;
             if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
             { 
-                netIdField = new FieldDefinition($"{fd.Name}Id", FieldAttributes.Family, model.Import<NetworkVariable>());
+                netIdField = new FieldDefinition($"{fd.Name}Id", FieldAttributes.Family, model.Import<NetworkValue>());
                 netIdField.DeclaringType = td;
                 syncVarNetIds[fd] = netIdField;
             }

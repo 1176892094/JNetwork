@@ -1,16 +1,18 @@
 namespace JFramework.Net
 {
-    internal struct TimeSnapshot
+ 
+
+    internal struct TimeSnapshot : ISnapshot
     {
         /// <summary>
         /// 本地时间
         /// </summary>
-        public double localTime;
+        public double localTime { get; }
 
         /// <summary>
         /// 远端时间
         /// </summary>
-        public double remoteTime;
+        public double remoteTime { get; }
 
         /// <summary>
         /// 快照初始化

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public struct NetworkObjectSerialize
+    internal struct NetworkObjectSerialize
     {
         public int tick;
         public NetworkWriter owner;
