@@ -3,7 +3,7 @@ using JFramework.Core;
 using JFramework.Net;
 using UnityEngine;
 
-namespace Network
+namespace JFramework.Net
 {
     public abstract class NetworkSingleton<T> : NetworkBehaviour where T : NetworkSingleton<T>
     {

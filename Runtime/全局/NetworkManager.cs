@@ -101,8 +101,7 @@ namespace JFramework.Net
                 Debug.LogError("NetworkManager 的 Setting 数据为空");
                 return;
             }
-
-            setting.bufferTimeMultiplier = 2f;
+            
             Application.runInBackground = true;
 #if UNITY_SERVER
             Application.targetFrameRate = tickRate;

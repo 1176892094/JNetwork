@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Sirenix.OdinInspector;
@@ -11,10 +12,11 @@ namespace JFramework.Net
     internal class NetworkSetting : ScriptableObject
     {
         [SerializeField] internal List<GameObject> prefabs = new List<GameObject>();
+
         
         [InfoBox("本地模拟相对于发送间隔 * 缓冲时间乘数 的滞后时间")]
         public double bufferTimeMultiplier = 2;
-        
+
         [InfoBox("当本地时间线快速朝向远程时间时，减速开始")]
         public float catchupNegativeThreshold = -1;
         
@@ -65,10 +67,7 @@ namespace JFramework.Net
                 return instance;
             }
         }
-        
-        /// <summary>
-        /// 重置bufferTime乘数
-        /// </summary>
+
         private void OnValidate()
         {
             bufferTimeMultiplier = 2;

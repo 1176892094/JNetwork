@@ -2,7 +2,7 @@ using System;
 using JFramework.Interface;
 using JFramework.Net;
 
-namespace Network
+namespace JFramework.Net
 {
     /// <summary>
     /// 实体的抽象类
