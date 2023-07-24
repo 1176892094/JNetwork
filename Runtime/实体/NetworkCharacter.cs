@@ -38,23 +38,7 @@ namespace JFramework.Net
         /// <summary>
         /// 实体销毁
         /// </summary>
-        private void OnDestroy()
-        {
-            try
-            {
-                foreach (var scriptable in controllers.Values)
-                {
-                    Destroy(scriptable);
-                }
-
-                controllers.Clear();
-                Despawn();
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e.ToString());
-            }
-        }
+        private void OnDestroy() => ((IEntity)this).Destroy();
 
         /// <summary>
         /// 获取控制器
@@ -78,5 +62,26 @@ namespace JFramework.Net
         /// 实体接口调用实体更新方法
         /// </summary>
         void IEntity.Update() => OnUpdate();
+
+        /// <summary>
+        /// 实体销毁
+        /// </summary>
+        void IEntity.Destroy()
+        {
+            try
+            {
+                foreach (var scriptable in controllers.Values)
+                {
+                    Destroy(scriptable);
+                }
+
+                controllers.Clear();
+                Despawn();
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.ToString());
+            }
+        }
     }
 }
