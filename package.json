@@ -1,0 +1,16 @@
+{
+  "name": "com.jinyijie.net",
+  "displayName": "JNetwork",
+  "version": "1.0.2",
+  "unity": "2022.3",
+  "description": "This is the JNetwork package",
+  "dependencies": {
+    "com.unity.nuget.mono-cecil": "1.11.4",
+    "com.jinyijie.core": "1.0.2"
+  },
+  "author": {
+    "name": "Charlotte",
+    "email": "1176892094@qq..com",
+    "url": "https://github.com/1176892094/JFramework.git"
+  }
+}
