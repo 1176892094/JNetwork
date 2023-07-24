@@ -113,8 +113,7 @@ namespace JFramework.Net
         /// <summary>
         /// 开启服务器
         /// </summary>
-        /// <param name="isListen">设置false则为单机模式，不进行网络传输</param>
-        public void StartServer(bool isListen = true)
+        public void StartServer()
         {
             if (NetworkServer.isActive)
             {
@@ -123,7 +122,7 @@ namespace JFramework.Net
             }
 
             sceneName = "";
-            NetworkServer.StartServer(isListen);
+            NetworkServer.StartServer(true);
             OnStartServer?.Invoke();
         }
 
