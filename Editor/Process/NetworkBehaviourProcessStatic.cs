@@ -30,14 +30,14 @@ namespace JFramework.Editor
             ILProcessor cctorWorker = cctor.Body.GetILProcessor();
             for (int i = 0; i < serverRpcList.Count; ++i)
             {
-                ServerRpcResult cmdResult = serverRpcList[i];
-                GenerateRegisterServerRpcDelegate(cctorWorker, model.registerServerRpcRef, serverRpcFuncList[i], cmdResult);
+                ServerRpcResult result = serverRpcList[i];
+                GenerateRegisterServerRpcDelegate(cctorWorker, model.registerServerRpcRef, serverRpcFuncList[i], result);
             }
             
             for (int i = 0; i < clientRpcList.Count; ++i)
             {
-                ClientRpcResult clientRpcResult = clientRpcList[i];
-                GenerateRegisterClientRpcDelegate(cctorWorker, model.registerClientRpcRef, clientRpcFuncList[i], clientRpcResult.method.FullName);
+                ClientRpcResult result = clientRpcList[i];
+                GenerateRegisterClientRpcDelegate(cctorWorker, model.registerClientRpcRef, clientRpcFuncList[i], result.method.FullName);
             }
             
             for (int i = 0; i < targetRpcList.Count; ++i)
@@ -99,13 +99,13 @@ namespace JFramework.Editor
         /// <param name="worker"></param>
         /// <param name="registerMethod"></param>
         /// <param name="func"></param>
-        /// <param name="cmdResult"></param>
-        private void GenerateRegisterServerRpcDelegate(ILProcessor worker, MethodReference registerMethod, MethodDefinition func, ServerRpcResult cmdResult)
+        /// <param name="rpcResult"></param>
+        private void GenerateRegisterServerRpcDelegate(ILProcessor worker, MethodReference registerMethod, MethodDefinition func, ServerRpcResult rpcResult)
         {
-            string cmdName = cmdResult.method.FullName;
+            string rpcName = rpcResult.method.FullName;
             worker.Emit(OpCodes.Ldtoken, generateCode);
             worker.Emit(OpCodes.Call, model.getTypeFromHandleRef);
-            worker.Emit(OpCodes.Ldstr, cmdName);
+            worker.Emit(OpCodes.Ldstr, rpcName);
             worker.Emit(OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldftn, func);
             worker.Emit(OpCodes.Newobj, model.RpcDelegateRef);

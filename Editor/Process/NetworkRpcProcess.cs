@@ -92,8 +92,8 @@ namespace JFramework.Editor
         public static MethodDefinition ProcessServerRpc(Model model, Readers readers, Logger logger, TypeDefinition td, MethodDefinition md, MethodDefinition func)
         {
             string rpcName = Process.GenerateMethodName(CONST.INV_METHOD, md);
-            MethodDefinition cmd = new MethodDefinition(rpcName, CONST.RPC_ATTRS, model.Import(typeof(void)));
-            ILProcessor worker = cmd.Body.GetILProcessor();
+            MethodDefinition rpc = new MethodDefinition(rpcName, CONST.RPC_ATTRS, model.Import(typeof(void)));
+            ILProcessor worker = rpc.Body.GetILProcessor();
             Instruction label = worker.Create(OpCodes.Nop);
             NetworkServerActive(worker, model, md.Name, label, "ServerRpc");
             
@@ -108,9 +108,9 @@ namespace JFramework.Editor
             AddSenderConnection(md, worker);
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-            NetworkBehaviourProcess.AddInvokeParameters(model, cmd.Parameters);
-            td.Methods.Add(cmd);
-            return cmd;
+            NetworkBehaviourProcess.AddInvokeParameters(model, rpc.Parameters);
+            td.Methods.Add(rpc);
+            return rpc;
         }
         
         /// <summary>
