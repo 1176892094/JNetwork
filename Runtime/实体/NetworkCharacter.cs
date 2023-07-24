@@ -12,8 +12,8 @@ namespace JFramework.Net
         /// <summary>
         /// 控制器容器
         /// </summary>
-        [ShowInInspector, LabelText("控制器列表"), SerializeField]
-        private readonly Dictionary<Type, ScriptableObject> controllers = new Dictionary<Type, ScriptableObject>();
+        [ShowInInspector, LabelText("控制器列表")]
+        private Dictionary<Type, ScriptableObject> controllers = new Dictionary<Type, ScriptableObject>();
         
         /// <summary>
         /// 实体销毁
