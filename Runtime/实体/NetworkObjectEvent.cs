@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public sealed partial class NetworkObject
+    public partial class NetworkObject
     {
         /// <summary>
         /// 仅在客户端调用，当在客户端生成时调用

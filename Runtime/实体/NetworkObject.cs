@@ -6,7 +6,7 @@ using UnityEngine;
 namespace JFramework.Net
 {
     [DefaultExecutionOrder(-1)]
-    public sealed partial class NetworkObject : MonoBehaviour
+    public partial class NetworkObject : MonoBehaviour
     {
         internal struct NetworkSerialize
         {

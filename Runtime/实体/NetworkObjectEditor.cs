@@ -7,7 +7,7 @@ using UnityEditor.SceneManagement;
 
 namespace JFramework.Net
 {
-    public sealed partial class NetworkObject
+    public partial class NetworkObject
     {
 #if UNITY_EDITOR
         private void OnValidate()
