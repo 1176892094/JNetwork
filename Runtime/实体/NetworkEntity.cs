@@ -1,6 +1,5 @@
 using System;
 using JFramework.Interface;
-using JFramework.Net;
 
 namespace JFramework.Net
 {
