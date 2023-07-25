@@ -13,18 +13,13 @@ namespace JFramework.Net
         /// <summary>
         /// 控制器容器
         /// </summary>
-        [ShowInInspector, LabelText("控制器列表"), SerializeField]
-        private readonly Dictionary<Type, ScriptableObject> controllers = new Dictionary<Type, ScriptableObject>();
-        
+        [ShowInInspector, LabelText("控制器列表")]
+        private Dictionary<Type, ScriptableObject> controllers = new Dictionary<Type, ScriptableObject>();
+
         /// <summary>
         /// 实体Id
         /// </summary>
-        private int Id;
-
-        /// <summary>
-        /// 实体销毁
-        /// </summary>
-        protected virtual void Dispose() { }
+        public int Id { get; private set; }
 
         /// <summary>
         /// 实体更新
@@ -44,22 +39,14 @@ namespace JFramework.Net
         /// <summary>
         /// 实体销毁
         /// </summary>
-        private void OnDestroy()
+        protected virtual void OnDestroy()
         {
-            try
+            foreach (var scriptable in controllers.Values)
             {
-                foreach (var scriptable in controllers.Values)
-                {
-                    Destroy(scriptable);
-                }
+                Destroy(scriptable);
+            }
 
-                controllers.Clear();
-                Dispose();
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e.ToString());
-            }
+            controllers.Clear();
         }
 
         /// <summary>
@@ -79,7 +66,7 @@ namespace JFramework.Net
 
             return (T)controllers[key];
         }
-        
+
         /// <summary>
         /// 实体Id
         /// </summary>
@@ -88,6 +75,16 @@ namespace JFramework.Net
             get => Id;
             set => Id = value;
         }
+
+        /// <summary>
+        /// 实体Transform
+        /// </summary>
+        Transform IEntity.transform => transform;
+
+        /// <summary>
+        /// 实体GameObject
+        /// </summary>
+        GameObject IEntity.gameObject => gameObject;
 
         /// <summary>
         /// 实体接口调用实体更新方法
