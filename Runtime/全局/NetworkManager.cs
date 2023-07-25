@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using JFramework.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -70,7 +71,7 @@ namespace JFramework.Net
         /// 网络运行模式
         /// </summary>
         [FoldoutGroup("网络管理器"), ShowInInspector]
-        internal static NetworkMode mode
+        public static NetworkMode mode
         {
             get
             {
@@ -90,6 +91,7 @@ namespace JFramework.Net
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            SceneManager.OnLoadComplete += OnLoadComplete;
             if (transport == null)
             {
                 Debug.LogError("NetworkManager 没有 Transport 组件。");
@@ -242,7 +244,8 @@ namespace JFramework.Net
             {
                 StopServer();
             }
-
+            
+            SceneManager.OnLoadComplete -= OnLoadComplete;
             RuntimeInitializeOnLoad();
         }
     }

@@ -12,7 +12,7 @@ namespace JFramework.Net
     /// <summary>
     /// 网络模式
     /// </summary>
-    internal enum NetworkMode : byte
+    public enum NetworkMode : byte
     {
         None = 0,
         Client = 1,

@@ -10,7 +10,7 @@ namespace JFramework.Net
 {
     public abstract class NetworkCharacter : NetworkBehaviour, IEntity
     {
-        /// <summary>
+   /// <summary>
         /// 控制器容器
         /// </summary>
         [ShowInInspector, LabelText("控制器列表")]
@@ -61,7 +61,7 @@ namespace JFramework.Net
             {
                 var controller = ScriptableObject.CreateInstance<T>();
                 controllers.Add(key, controller);
-                return (T)controller.Spawn(this);
+                controller.Spawn(this);
             }
 
             return (T)controllers[key];
