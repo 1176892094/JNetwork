@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JFramework.Core;
 using JFramework.Interface;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -12,13 +13,18 @@ namespace JFramework.Net
         /// <summary>
         /// 控制器容器
         /// </summary>
-        [ShowInInspector, LabelText("控制器列表")]
-        private Dictionary<Type, ScriptableObject> controllers = new Dictionary<Type, ScriptableObject>();
+        [ShowInInspector, LabelText("控制器列表"), SerializeField]
+        private readonly Dictionary<Type, ScriptableObject> controllers = new Dictionary<Type, ScriptableObject>();
         
+        /// <summary>
+        /// 实体Id
+        /// </summary>
+        private int Id;
+
         /// <summary>
         /// 实体销毁
         /// </summary>
-        public virtual void Despawn() { }
+        protected virtual void Dispose() { }
 
         /// <summary>
         /// 实体更新
@@ -28,17 +34,33 @@ namespace JFramework.Net
         /// <summary>
         /// 实体启用
         /// </summary>
-        protected virtual void OnEnable() => ((IEntity)this).Enable();
+        protected virtual void OnEnable() => GlobalManager.Listen(this);
 
         /// <summary>
         /// 实体禁用
         /// </summary>
-        protected virtual void OnDisable() => ((IEntity)this).Disable();
+        protected virtual void OnDisable() => GlobalManager.Remove(this);
 
         /// <summary>
         /// 实体销毁
         /// </summary>
-        private void OnDestroy() => ((IEntity)this).Destroy();
+        private void OnDestroy()
+        {
+            try
+            {
+                foreach (var scriptable in controllers.Values)
+                {
+                    Destroy(scriptable);
+                }
+
+                controllers.Clear();
+                Dispose();
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.ToString());
+            }
+        }
 
         /// <summary>
         /// 获取控制器
@@ -57,31 +79,19 @@ namespace JFramework.Net
 
             return (T)controllers[key];
         }
+        
+        /// <summary>
+        /// 实体Id
+        /// </summary>
+        int IEntity.Id
+        {
+            get => Id;
+            set => Id = value;
+        }
 
         /// <summary>
         /// 实体接口调用实体更新方法
         /// </summary>
         void IEntity.Update() => OnUpdate();
-
-        /// <summary>
-        /// 实体销毁
-        /// </summary>
-        void IEntity.Destroy()
-        {
-            try
-            {
-                foreach (var scriptable in controllers.Values)
-                {
-                    Destroy(scriptable);
-                }
-
-                controllers.Clear();
-                Despawn();
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e.ToString());
-            }
-        }
     }
 }
