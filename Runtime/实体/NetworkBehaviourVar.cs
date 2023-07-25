@@ -190,9 +190,9 @@ namespace JFramework.Net
             uint newId = 0;
             if (newObject != null)
             {
-                if (newObject.TryGetComponent(out NetworkObject identity))
+                if (newObject.TryGetComponent(out NetworkObject entity))
                 {
-                    newId = identity.objectId;
+                    newId = entity.objectId;
                     if (newId == 0)
                     {
                         Debug.LogWarning($"设置网络变量的对象未生成。对象名称：{newObject.name}");

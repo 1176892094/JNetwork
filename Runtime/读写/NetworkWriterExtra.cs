@@ -204,7 +204,7 @@ namespace JFramework.Net
             writer.position += 16;
         }
 
-        public static void WriteNetworkIdentity(this NetworkWriter writer, NetworkObject value)
+        public static void WriteNetworkObject(this NetworkWriter writer, NetworkObject value)
         {
             if (value == null)
             {
@@ -246,9 +246,9 @@ namespace JFramework.Net
                 writer.WriteUInt(0);
                 return;
             }
-            if (value.TryGetComponent(out NetworkObject identity))
+            if (value.TryGetComponent(out NetworkObject @object))
             {
-                writer.WriteUInt(identity.objectId);
+                writer.WriteUInt(@object.objectId);
             }
             else
             {
@@ -265,12 +265,12 @@ namespace JFramework.Net
                 return;
             }
             
-            if (!value.TryGetComponent(out NetworkObject identity))
+            if (!value.TryGetComponent(out NetworkObject @object))
             {
                 Debug.LogWarning($"GameObject {value} 没有 NetworkObject 组件");
             }
             
-            writer.WriteNetworkIdentity(identity);
+            writer.WriteNetworkObject(@object);
         }
         
         public static void WriteList<T>(this NetworkWriter writer, List<T> list)

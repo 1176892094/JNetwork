@@ -188,7 +188,7 @@ namespace JFramework.Net
             throw new EndOfStreamException($"ReadGuid out of range: {reader}");
         }
    
-        public static NetworkObject ReadNetworkIdentity(this NetworkReader reader)
+        public static NetworkObject ReadNetworkObject(this NetworkReader reader)
         {
             uint netId = reader.ReadUInt();
             if (netId == 0) return null;
@@ -223,13 +223,13 @@ namespace JFramework.Net
 
         public static Transform ReadTransform(this NetworkReader reader)
         {
-            NetworkObject @object = reader.ReadNetworkIdentity();
+            NetworkObject @object = reader.ReadNetworkObject();
             return @object != null ? @object.transform : null;
         }
 
         public static GameObject ReadGameObject(this NetworkReader reader)
         {
-            NetworkObject @object = reader.ReadNetworkIdentity();
+            NetworkObject @object = reader.ReadNetworkObject();
             return @object != null ? @object.gameObject : null;
         }
         
