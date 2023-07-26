@@ -15,7 +15,7 @@ namespace JFramework.Net
         /// <param name="playerLoop">玩家循环</param>
         /// <param name="systemType">循环系统类型</param>
         /// <returns>返回能否添加循环</returns>
-        private static bool AddPlayerLoop(UpdateFunction function, ref PlayerLoopSystem playerLoop, Type systemType)
+        private static bool AddLoopSystem(UpdateFunction function, ref PlayerLoopSystem playerLoop, Type systemType)
         {
             if (playerLoop.type == systemType)
             {
@@ -38,7 +38,7 @@ namespace JFramework.Net
             {
                 for (int i = 0; i < playerLoop.subSystemList.Length; ++i)
                 {
-                    if (AddPlayerLoop(function, ref playerLoop.subSystemList[i], systemType))
+                    if (AddLoopSystem(function, ref playerLoop.subSystemList[i], systemType))
                     {
                         return true;
                     }
@@ -75,8 +75,8 @@ namespace JFramework.Net
         public static void RuntimeInitializeOnLoad()
         {
             var playerLoop = PlayerLoop.GetCurrentPlayerLoop();
-            AddPlayerLoop(EarlyUpdate, ref playerLoop, typeof(EarlyUpdate));
-            AddPlayerLoop(AfterUpdate, ref playerLoop, typeof(PreLateUpdate));
+            AddLoopSystem(EarlyUpdate, ref playerLoop, typeof(EarlyUpdate));
+            AddLoopSystem(AfterUpdate, ref playerLoop, typeof(PreLateUpdate));
             PlayerLoop.SetPlayerLoop(playerLoop);
         }
     }
