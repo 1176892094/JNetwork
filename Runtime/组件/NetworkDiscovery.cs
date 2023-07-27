@@ -300,7 +300,7 @@ namespace JFramework.Net
         /// <summary>
         /// 广播发现请求
         /// </summary>
-        public void BroadcastDiscoveryRequest()
+        private void BroadcastDiscoveryRequest()
         {
             if (udpClient == null) return;
 

@@ -30,6 +30,12 @@ namespace JFramework.Net
         private Transport transport;
         
         /// <summary>
+        /// 网络发现组件
+        /// </summary>
+        [FoldoutGroup("网络管理器"), SerializeField]
+        public NetworkDiscovery discovery;
+        
+        /// <summary>
         /// 网络设置和预置体
         /// </summary>
         [FoldoutGroup("网络管理器"), SerializeField]
