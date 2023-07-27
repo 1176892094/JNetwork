@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Sirenix.OdinInspector;
@@ -71,6 +72,11 @@ namespace JFramework.Net
         /// 是否为第一次生成
         /// </summary>
         private bool isSpawn;
+
+        /// <summary>
+        /// NetworkServer.Destroy
+        /// </summary>
+        internal bool isDestroy;
         
         /// <summary>
         /// 是否经过权限验证
@@ -360,6 +366,19 @@ namespace JFramework.Net
             isAuthority = false;
             connection = null;
             sceneIds.Clear();
+        }
+
+        private void OnDestroy()
+        {
+            if (isServer && !isDestroy)
+            {
+                NetworkServer.Destroy(this);
+            }
+
+            if (isClient)
+            {
+                NetworkClient.spawns.Remove(objectId);
+            }
         }
     }
 }
