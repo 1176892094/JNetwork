@@ -112,7 +112,7 @@ namespace JFramework.Net
         /// <summary>
         /// 关闭广播
         /// </summary>
-        private void StopDiscovery()
+        public void StopDiscovery()
         {
 #if UNITY_ANDROID
             EndMulticastLock();
