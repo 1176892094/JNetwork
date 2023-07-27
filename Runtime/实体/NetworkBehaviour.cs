@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using JFramework.Interface;
 using Sirenix.OdinInspector;
 using UnityEngine;
+// ReSharper disable All
 
 namespace JFramework.Net
 {
@@ -11,7 +12,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器变量的改变选项
         /// </summary>
-        private ulong syncVarDirty { get; set; }
+        protected ulong syncVarDirty { get; set; }
 
         /// <summary>
         /// 服务器变量的钩子
