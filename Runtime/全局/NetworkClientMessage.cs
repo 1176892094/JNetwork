@@ -61,6 +61,7 @@ namespace JFramework.Net
             if (NetworkServer.spawns.TryGetValue(message.objectId, out var @object))
             {
                 spawns[message.objectId] = @object;
+                @object.gameObject.SetActive(true);
                 @object.isOwner = message.isOwner;
                 @object.isClient = true;
                 @object.OnNotifyAuthority();

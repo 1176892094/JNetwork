@@ -235,7 +235,7 @@ namespace JFramework.Net
             StopClient();
             StopServer();
         }
-        
+
         /// <summary>
         /// 生成玩家预置体
         /// </summary>
@@ -244,7 +244,7 @@ namespace JFramework.Net
         {
             if (client.isSpawn && playerPrefab != null)
             {
-                NetworkServer.Spawn(Instantiate(playerPrefab));
+                NetworkServer.Spawn(Instantiate(playerPrefab), client);
                 client.isSpawn = false;
             }
         }

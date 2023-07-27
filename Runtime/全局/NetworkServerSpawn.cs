@@ -162,6 +162,7 @@ namespace JFramework.Net
         public static void Destroy(NetworkObject @object)
         {
             spawns.Remove(@object.objectId);
+            @object.isDestroy = true;
             if (NetworkManager.mode == NetworkMode.Host)
             {
                 @object.isOwner = false;
