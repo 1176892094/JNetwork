@@ -35,11 +35,12 @@ namespace JFramework.Net
                 Debug.LogError("没有有效的服务器连接！");
                 return;
             }
-            Debug.Log("设置身份验证成功。");
-            NetworkTime.ResetStatic();
+
+            Debug.Log("客户端连接成功。");
             state = ConnectState.Connected;
-            NetworkTime.Update();
             OnClientConnect?.Invoke();
+            NetworkTime.ResetStatic();
+            NetworkTime.Update();
             Ready();
         }
 
@@ -49,12 +50,11 @@ namespace JFramework.Net
         private static void OnClientDisconnected()
         {
             if (!isActive) return;
-            Debug.Log("客户端断开传输。");
+            Debug.Log("客户端断开连接。");
             UnRegisterTransport();
             OnClientDisconnect?.Invoke();
             StopClient();
             state = ConnectState.Disconnected;
-          
         }
 
         /// <summary>
@@ -66,65 +66,49 @@ namespace JFramework.Net
         {
             if (connection == null)
             {
-                Debug.LogError("没有有效的服务器连接！");
+                Debug.LogError("没有连接到有效的服务器！");
                 return;
             }
 
-            if (!connection.readers.ReadEnqueue(data))
+            if (!connection.readerPack.ReadEnqueue(data))
             {
                 Debug.LogError($"无法将读取消息合批!");
                 connection.Disconnect();
                 return;
             }
 
-            while (!isLoadScene && connection.readers.ReadDequeue(out var reader, out double remoteTime))
+            while (!isLoadScene && connection.readerPack.ReadDequeue(out var reader, out double remoteTime))
             {
-                if (reader.Residue >= NetworkConst.MessageSize)
+                if (reader.Residue < NetworkConst.MessageSize)
                 {
-                    connection.remoteTime = remoteTime;
-                    if (!TryInvoke(reader, channel))
-                    {
-                        Debug.LogWarning($"无法解包调用网络信息。");
-                        connection.Disconnect();
-                        return;
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning($"网络消息应该有个开始的Id");
+                    Debug.LogError($"网络消息应该有个开始的Id");
                     connection.Disconnect();
                     return;
                 }
-            }
 
-            if (!isLoadScene && connection.readers.Count > 0)
-            {
-                Debug.LogError($"读取器合批之后仍然还有次数残留！残留次数：{connection.readers.Count}\n");
-            }
-        }
+                connection.remoteTime = remoteTime;
 
-        /// <summary>
-        /// 尝试读取并调用从服务器接收的委托
-        /// </summary>
-        /// <param name="reader">网络读取器</param>
-        /// <param name="channel">传输通道</param>
-        /// <returns>返回是否读取成功</returns>
-        private static bool TryInvoke(NetworkReader reader, Channel channel)
-        {
-            if (NetworkMessage.ReadMessage(reader, out ushort id))
-            {
-                if (messages.TryGetValue(id, out MessageDelegate handle))
+                if (!NetworkMessage.ReadMessage(reader, out ushort id))
                 {
-                    handle.Invoke(connection, reader, channel);
-                    return true;
+                    Debug.LogError("无效的网络消息类型！");
+                    connection.Disconnect();
+                    return;
                 }
 
-                Debug.LogWarning($"未知的网络消息Id：{id}");
-                return false;
+                if (!messages.TryGetValue(id, out MessageDelegate handle))
+                {
+                    Debug.LogError($"未知的网络消息Id：{id}");
+                    connection.Disconnect();
+                    return;
+                }
+
+                handle.Invoke(connection, reader, channel);
             }
 
-            Debug.LogWarning("无效的网络消息类型！");
-            return false;
+            if (!isLoadScene && connection.readerPack.Count > 0)
+            {
+                Debug.LogError($"读取器合批之后仍然还有次数残留！残留次数：{connection.readerPack.Count}\n");
+            }
         }
     }
 }

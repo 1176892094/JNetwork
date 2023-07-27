@@ -12,7 +12,6 @@ namespace JFramework.Net
         /// <param name="isHost">是否是基于主机的连接</param>
         private static void RegisterMessage(bool isHost)
         {
-            Debug.Log("注册客户端网络消息");
             if (isHost)
             {
                 RegisterMessage<SpawnMessage>(OnSpawnByHost);

@@ -16,11 +16,6 @@ namespace JFramework.Net
         [ShowInInspector] internal readonly HashSet<NetworkObject> observers = new HashSet<NetworkObject>();
 
         /// <summary>
-        /// 网络消息读取
-        /// </summary>
-        internal readonly NetworkReaderPack readerPack = new NetworkReaderPack();
-
-        /// <summary>
         /// 可靠Rpc列表
         /// </summary>
         private readonly NetworkWriter reliableRpc = new NetworkWriter();

@@ -149,12 +149,7 @@ namespace JFramework.Net
             {
                 Transport.current.StopServer();
             }
-      
-            if (NetworkManager.mode is NetworkMode.Host)
-            {
-                OnServerDisconnect?.Invoke(connection);
-            }
-            
+
             var copyList = clients.Values.ToList();
             foreach (var client in copyList)
             {

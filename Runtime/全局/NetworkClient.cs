@@ -11,8 +11,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息委托字典
         /// </summary>
-        internal static readonly Dictionary<ushort, MessageDelegate> messages =
-            new Dictionary<ushort, MessageDelegate>();
+        internal static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
 
         /// <summary>
         /// 注册的预置体
@@ -91,7 +90,6 @@ namespace JFramework.Net
         /// <param name="port">传入连接端口</param>
         internal static void StartClient(string address, ushort port)
         {
-            Debug.Log("开启客户端。");
             RegisterTransport();
             RegisterMessage(false);
             state = ConnectState.Connecting;
@@ -105,7 +103,6 @@ namespace JFramework.Net
         /// <param name="uri">传入Uri</param>
         internal static void StartClient(Uri uri)
         {
-            Debug.Log("开启客户端。");
             RegisterTransport();
             RegisterMessage(false);
             state = ConnectState.Connecting;
@@ -118,12 +115,10 @@ namespace JFramework.Net
         /// </summary>
         internal static void StartClient()
         {
-            Debug.Log("开启客户端。");
             RegisterMessage(true);
             state = ConnectState.Connected;
             connection = new ServerEntity();
             var client = new ClientEntity(NetworkConst.HostId);
-            NetworkServer.connection = client;
             NetworkServer.OnClientConnect(client);
             Ready();
         }
@@ -133,21 +128,22 @@ namespace JFramework.Net
         /// </summary>
         public static void Ready()
         {
+            if (connection == null)
+            {
+                Debug.LogError("没有连接到有效的服务器！");
+                return;
+            }
+            
             if (isReady)
             {
                 Debug.LogError("客户端已经准备就绪！");
+                return;
             }
-            else if (connection == null)
-            {
-                Debug.LogError("没有有效的服务器连接！");
-            }
-            else
-            {
-                Debug.Log($"客户端准备。");
-                isReady = true;
-                connection.isReady = true;
-                connection.SendMessage(new SetReadyMessage());
-            }
+            
+            Debug.Log($"客户端准备。");
+            isReady = true;
+            connection.isReady = true;
+            connection.SendMessage(new SetReadyMessage());
         }
 
         /// <summary>
@@ -158,21 +154,19 @@ namespace JFramework.Net
         /// <typeparam name="T"></typeparam>
         internal static void SendMessage<T>(T message, Channel channel = Channel.Reliable) where T : struct, Message
         {
-            if (connection != null)
+            if (connection == null)
             {
-                if (state == ConnectState.Connected)
-                {
-                    connection.SendMessage(message, channel);
-                }
-                else
-                {
-                    Debug.LogError("客户端没有连接成功就向服务器发送消息！");
-                }
+                Debug.LogError("没有连接到有效的服务器！");
+                return;
             }
-            else
+            
+            if (state != ConnectState.Connected)
             {
-                Debug.LogError("没有有效的服务器连接！");
+                Debug.LogError("客户端没有连接成功就向服务器发送消息！");
+                return;
             }
+
+            connection.SendMessage(message, channel);
         }
 
         /// <summary>

@@ -50,7 +50,7 @@ namespace JFramework.Net
                 OnClientConnect(new ClientEntity(clientId));
             }
         }
-        
+
         /// <summary>
         /// 当客户端连接
         /// </summary>
@@ -58,9 +58,9 @@ namespace JFramework.Net
         internal static void OnClientConnect(ClientEntity client)
         {
             clients.TryAdd(client.clientId, client);
-            if (!string.IsNullOrEmpty(NetworkManager.sceneName))
+            if (client.clientId == NetworkConst.HostId)
             {
-                client.SendMessage(new SceneMessage(NetworkManager.sceneName));
+                connection = client;
             }
 
             OnServerConnect?.Invoke(client);
@@ -98,60 +98,43 @@ namespace JFramework.Net
 
             if (!client.readerPack.ReadEnqueue(segment))
             {
-                Debug.LogWarning($"网络消息应该有个开始的Id。断开客户端：{client}");
+                Debug.LogWarning($"无法将读取消息合批!。断开客户端：{client}");
                 client.Disconnect();
                 return;
             }
 
             while (!isLoadScene && client.readerPack.ReadDequeue(out var reader, out double remoteTime))
             {
-                if (reader.Residue >= NetworkConst.MessageSize)
+                if (reader.Residue < NetworkConst.MessageSize)
                 {
-                    client.remoteTime = remoteTime;
-                    if (!TryInvoke(client, reader, channel))
-                    {
-                        Debug.LogWarning($"无法解包调用网络信息。断开客户端：{client}");
-                        client.Disconnect();
-                        return;
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning($"网络消息应该有个开始的Id。断开客户端：{client}");
+                    Debug.LogError($"网络消息应该有个开始的Id。断开客户端：{client}");
                     client.Disconnect();
                     return;
                 }
+
+                client.remoteTime = remoteTime;
+
+                if (!NetworkMessage.ReadMessage(reader, out ushort id))
+                {
+                    Debug.LogError($"无效的网络消息类型！断开客户端：{client}");
+                    client.Disconnect();
+                    return;
+                }
+
+                if (!messages.TryGetValue(id, out MessageDelegate handle))
+                {
+                    Debug.LogError($"未知的网络消息Id：{id} 断开客户端：{client}");
+                    client.Disconnect();
+                    return;
+                }
+
+                handle.Invoke(client, reader, channel);
             }
 
             if (!isLoadScene && client.readerPack.Count > 0)
             {
                 Debug.LogError($"读取器合批之后仍然还有次数残留！残留次数：{client.readerPack.Count}");
             }
-        }
-
-        /// <summary>
-        /// 尝试读取并调用从客户端接收的委托
-        /// </summary>
-        /// <param name="client">客户端的Id</param>
-        /// <param name="reader">网络读取器</param>
-        /// <param name="channel">传输通道</param>
-        /// <returns>返回是否读取成功</returns>
-        private static bool TryInvoke(ClientEntity client, NetworkReader reader, Channel channel)
-        {
-            if (NetworkMessage.ReadMessage(reader, out ushort id))
-            {
-                if (messages.TryGetValue(id, out MessageDelegate handle))
-                {
-                    handle.Invoke(client, reader, channel);
-                    return true;
-                }
-
-                Debug.LogWarning($"未知的网络消息Id：{id}");
-                return false;
-            }
-
-            Debug.LogWarning($"无效的网络消息类型！");
-            return false;
         }
     }
 }

@@ -132,14 +132,14 @@ namespace JFramework.Net
         /// <returns>返回网络对象</returns>
         private static NetworkObject SpawnSceneObject(ulong sceneId)
         {
-            if (scenes.TryGetValue(sceneId, out var @object))
+            if (!scenes.TryGetValue(sceneId, out var @object))
             {
-                scenes.Remove(sceneId);
-                return @object;
+                Debug.LogError($"无法生成有效场景对象。 sceneId：{sceneId}");
+                return null;
             }
 
-            Debug.LogError($"无法生成有效场景对象。 sceneId：{sceneId}");
-            return null;
+            scenes.Remove(sceneId);
+            return @object;
         }
 
         /// <summary>
@@ -189,16 +189,15 @@ namespace JFramework.Net
         {
             foreach (var @object in spawns.Values.OrderBy(@object => @object.objectId))
             {
-                if (@object != null)
-                {
-                    @object.isClient = true;
-                    @object.OnNotifyAuthority();
-                    @object.OnStartClient();
-                }
-                else
+                if (@object == null)
                 {
                     Debug.LogWarning($"网络对象 {@object} 没有被正确销毁。");
+                    continue;
                 }
+
+                @object.isClient = true;
+                @object.OnNotifyAuthority();
+                @object.OnStartClient();
             }
         }
 
@@ -209,7 +208,7 @@ namespace JFramework.Net
         {
             try
             {
-                foreach (var @object in spawns.Values.Where(@object => @object != null && @object.gameObject != null))
+                foreach (var @object in spawns.Values.Where(@object => @object != null))
                 {
                     @object.OnStopClient();
                     if (NetworkManager.mode is NetworkMode.Client)

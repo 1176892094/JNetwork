@@ -42,22 +42,25 @@ namespace JFramework.Net
             if (!client.isReady)
             {
                 Debug.LogWarning("接收到 ServerRpc 但客户端没有准备就绪");
+                return;
             }
-            else if (!spawns.TryGetValue(message.objectId, out var @object))
+
+            if (!spawns.TryGetValue(message.objectId, out var @object))
             {
                 Debug.LogWarning($"没有找到发送 ServerRpc 的对象。对象网络Id：{message.objectId}");
+                return;
             }
-            else if (NetworkRpc.HasAuthority(message.methodHash) && @object.connection != client)
+
+            if (NetworkRpc.HasAuthority(message.methodHash) && @object.connection != client)
             {
                 Debug.LogWarning($"接收到 ServerRpc 但对象没有通过验证。对象网络Id：{message.objectId}");
+                return;
             }
-            else
-            {
-                using var reader = NetworkReader.Pop(message.segment);
-                @object.InvokeRpcMessage(message.serialId, message.methodHash, RpcType.ServerRpc, reader, client);
-            }
+
+            using var reader = NetworkReader.Pop(message.segment);
+            @object.InvokeRpcMessage(message.serialId, message.methodHash, RpcType.ServerRpc, reader, client);
         }
-        
+
         /// <summary>
         /// 当接收一条快照消息
         /// </summary>
@@ -67,7 +70,7 @@ namespace JFramework.Net
         {
             client?.OnSnapshotMessage(new SnapshotTime(client.remoteTime, NetworkTime.localTime));
         }
-        
+
         /// <summary>
         /// 实体状态同步消息
         /// </summary>

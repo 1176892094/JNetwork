@@ -15,11 +15,6 @@ namespace JFramework.Net
         internal readonly Queue<NetworkWriter> writeQueue = new Queue<NetworkWriter>();
 
         /// <summary>
-        /// 网络消息读取并分包
-        /// </summary>
-        internal readonly NetworkReaderPack readers = new NetworkReaderPack();
-
-        /// <summary>
         /// 网络设置
         /// </summary>
         private readonly NetworkSetting settingData;

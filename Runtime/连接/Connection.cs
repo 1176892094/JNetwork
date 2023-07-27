@@ -21,6 +21,11 @@ namespace JFramework.Net
         /// 快照存储字典
         /// </summary>
         internal readonly SortedList<double, SnapshotTime> snapshots = new SortedList<double, SnapshotTime>();
+        
+        /// <summary>
+        /// 网络消息读取并分包
+        /// </summary>
+        internal readonly NetworkReaderPack readerPack = new NetworkReaderPack();
 
         /// <summary>
         /// 是否准备好可以接收信息

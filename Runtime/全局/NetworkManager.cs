@@ -219,8 +219,7 @@ namespace JFramework.Net
                 Debug.LogWarning("客户端或服务器已经连接！");
                 return;
             }
-
-            Debug.Log("开启主机。");
+            
             NetworkServer.StartServer(isListen);
             NetworkClient.StartClient();
             NetworkClient.RegisterPrefab(setting.prefabs);
