@@ -49,12 +49,9 @@ namespace JFramework.Net
         /// </summary>
         private static void OnClientDisconnected()
         {
-            if (!isActive) return;
             Debug.Log("客户端断开连接。");
             UnRegisterTransport();
-            OnClientDisconnect?.Invoke();
             StopClient();
-            state = ConnectState.Disconnected;
         }
 
         /// <summary>
