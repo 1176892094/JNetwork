@@ -8,6 +8,9 @@ namespace JFramework.Net
     [DefaultExecutionOrder(-1)]
     public sealed partial class NetworkObject : MonoBehaviour
     {
+        /// <summary>
+        /// 网络变量序列化
+        /// </summary>
         internal struct NetworkSerialize
         {
             public int tick;
@@ -15,25 +18,73 @@ namespace JFramework.Net
             public NetworkWriter observer;
         }
         
+        /// <summary>
+        /// 上一次序列化间隔
+        /// </summary>
         private NetworkSerialize lastSerialize = new NetworkSerialize
         {
             owner = new NetworkWriter(),
             observer = new NetworkWriter()
         };
         
+        /// <summary>
+        /// 场景Id列表
+        /// </summary>
         private static readonly Dictionary<ulong, NetworkObject> sceneIds = new Dictionary<ulong, NetworkObject>();
         
+        /// <summary>
+        /// 作为预置体的资源Id
+        /// </summary>
         [ReadOnly, SerializeField] internal uint assetId;
+        
+        /// <summary>
+        /// 作为场景资源的Id
+        /// </summary>
         [ReadOnly, SerializeField] internal ulong sceneId;
+        
+        /// <summary>
+        /// 游戏对象Id，用于网络标识
+        /// </summary>
         [ReadOnly, ShowInInspector] internal uint objectId;
+        
+        /// <summary>
+        /// 是否有用权限
+        /// </summary>
         [ReadOnly, ShowInInspector] internal bool isOwner;
+        
+        /// <summary>
+        /// 是否在服务器端
+        /// </summary>
         [ReadOnly, ShowInInspector] internal bool isServer;
+        
+        /// <summary>
+        /// 是否在客户端
+        /// </summary>
         [ReadOnly, ShowInInspector] internal bool isClient;
-        [ReadOnly, ShowInInspector] internal ClientEntity connection;
-        private bool isStartClient;
+        
+        /// <summary>
+        /// 连接的客户端 (客户端不可用)
+        /// </summary>
+        internal ClientEntity connection;
+        
+        /// <summary>
+        /// 是否为第一次生成
+        /// </summary>
+        private bool isSpawn;
+        
+        /// <summary>
+        /// 是否经过权限验证
+        /// </summary>
         private bool isAuthority;
+        
+        /// <summary>
+        /// 所持有的 NetworkBehaviour
+        /// </summary>
         internal NetworkBehaviour[] entities;
 
+        /// <summary>
+        /// 初始化获取 NetworkBehaviour
+        /// </summary>
         private void Awake()
         {
             entities = GetComponentsInChildren<NetworkBehaviour>(true);
@@ -130,8 +181,8 @@ namespace JFramework.Net
                 return;
             }
 
-            NetworkBehaviour invokeComponent = entities[index];
-            if (!NetworkRpc.Invoke(function, rpcType, reader, invokeComponent, client))
+            NetworkBehaviour component = entities[index];
+            if (!NetworkRpc.Invoke(function, rpcType, reader, component, client))
             {
                 Debug.LogError($"无法调用{rpcType} [{function}] 网络对象：{gameObject.name} 网络Id：{objectId}");
             }
@@ -278,8 +329,8 @@ namespace JFramework.Net
         /// 客户端反序列化 SyncVar
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="initialState"></param>
-        internal void ClientDeserialize(NetworkReader reader, bool initialState)
+        /// <param name="start"></param>
+        internal void ClientDeserialize(NetworkReader reader, bool start)
         {
             IsValid();
             NetworkBehaviour[] components = entities;
@@ -291,7 +342,7 @@ namespace JFramework.Net
                 if (IsDirty(mask, i))
                 {
                     NetworkBehaviour comp = components[i];
-                    comp.Deserialize(reader, initialState);
+                    comp.Deserialize(reader, start);
                 }
             }
         }
@@ -305,7 +356,7 @@ namespace JFramework.Net
             isOwner = false;
             isClient = false;
             isServer = false;
-            isStartClient = false;
+            isSpawn = false;
             isAuthority = false;
             connection = null;
             sceneIds.Clear();
