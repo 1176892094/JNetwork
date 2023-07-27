@@ -132,10 +132,10 @@ namespace JFramework.Udp
                 socket.SendBufferSize = sendSize;
                 socket.ReceiveBufferSize = receiveSize;
             }
-            finally
+            catch (SocketException)
             {
-                Log.Info($"发送缓存发小: {sendBase} => {socket.SendBufferSize} : {socket.SendBufferSize / sendBase}");
-                Log.Info($"接收缓存大小: {receiveBase} => {socket.ReceiveBufferSize} : {socket.ReceiveBufferSize / receiveBase}");
+                Log.Warn($"发送缓存: {sendSize} => {sendBase} : {(sendBase / sendSize).ToString("F")}");
+                Log.Warn($"接收缓存: {receiveSize} => {receiveSize} : {(receiveBase / receiveSize).ToString("F")}");
             }
         }
     }
