@@ -97,6 +97,8 @@ namespace JFramework.Net
         {
             Transport.RestStatic();
             NetworkTime.ResetStatic();
+            NetworkServer.ClearEvent();
+            NetworkClient.ClearEvent();
             OnStartHost = null;
             OnStopHost = null;
             OnStartClient = null;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+
 // ReSharper disable All
 
 namespace JFramework.Net
@@ -10,8 +11,9 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息委托字典
         /// </summary>
-        internal static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
-        
+        internal static readonly Dictionary<ushort, MessageDelegate> messages =
+            new Dictionary<ushort, MessageDelegate>();
+
         /// <summary>
         /// 注册的预置体
         /// </summary>
@@ -26,7 +28,7 @@ namespace JFramework.Net
         /// 客户端生成的网络对象
         /// </summary>
         internal static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
-        
+
         /// <summary>
         /// 上一次发送信息的时间
         /// </summary>
@@ -41,7 +43,7 @@ namespace JFramework.Net
         /// 连接的状态
         /// </summary>
         private static ConnectState state;
-        
+
         /// <summary>
         /// 是否活跃
         /// </summary>
@@ -61,7 +63,7 @@ namespace JFramework.Net
         /// 是否正在加载场景
         /// </summary>
         public static bool isLoadScene { get; internal set; }
-        
+
         /// <summary>
         /// 连接到的服务器
         /// </summary>
@@ -71,12 +73,12 @@ namespace JFramework.Net
         /// 客户端连接的事件(包含主机)
         /// </summary>
         public static event Action OnClientConnect;
-        
+
         /// <summary>
         /// 客户端断开的事件
         /// </summary>
         public static event Action OnClientDisconnect;
-        
+
         /// <summary>
         /// 客户端取消准备的事件
         /// </summary>
@@ -174,6 +176,16 @@ namespace JFramework.Net
         }
 
         /// <summary>
+        /// 清除事件
+        /// </summary>
+        internal static void ClearEvent()
+        {
+            OnClientConnect = null;
+            OnClientDisconnect = null;
+            OnClientNotReady = null;
+        }
+
+        /// <summary>
         /// 停止客户端
         /// </summary>
         internal static void StopClient()
@@ -185,6 +197,11 @@ namespace JFramework.Net
                 Transport.current.ClientDisconnect();
             }
 
+            if (NetworkManager.mode is NetworkMode.Host)
+            {
+                OnClientDisconnect?.Invoke();
+            }
+
             DestroyForClient();
             state = ConnectState.Disconnected;
             lastSendTime = 0;
@@ -194,9 +211,6 @@ namespace JFramework.Net
             isReady = false;
             connection = null;
             isLoadScene = false;
-            OnClientConnect = null;
-            OnClientDisconnect = null;
-            OnClientNotReady = null;
         }
     }
 }

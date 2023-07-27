@@ -64,6 +64,10 @@ namespace JFramework.Net
         }
 
 
+        /// <summary>
+        /// 场景加载完成
+        /// </summary>
+        /// <param name="sceneName"></param>
         private static void OnLoadComplete(string sceneName)
         {
             switch (mode)

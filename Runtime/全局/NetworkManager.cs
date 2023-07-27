@@ -106,7 +106,7 @@ namespace JFramework.Net
 
             if (setting == null)
             {
-                Debug.LogError("NetworkManager 的 Setting 数据为空");
+                Debug.LogError("NetworkManager 的 Setting 为空");
                 return;
             }
             
@@ -196,7 +196,8 @@ namespace JFramework.Net
             if (mode == NetworkMode.Host)
             {
                 NetworkServer.clients.Remove(NetworkServer.connection.clientId);
-                foreach (var @object in NetworkServer.connection.observers.ToArray())
+                var copyList = NetworkServer.connection.observers.ToList();
+                foreach (var @object in copyList)
                 {
                     NetworkServer.Destroy(@object);
                 }

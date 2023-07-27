@@ -50,6 +50,21 @@ namespace JFramework.Net
                 OnClientConnect(new ClientEntity(clientId));
             }
         }
+        
+        /// <summary>
+        /// 当客户端连接
+        /// </summary>
+        /// <param name="client">连接的客户端实体</param>
+        internal static void OnClientConnect(ClientEntity client)
+        {
+            clients.TryAdd(client.clientId, client);
+            if (!string.IsNullOrEmpty(NetworkManager.sceneName))
+            {
+                client.SendMessage(new SceneMessage(NetworkManager.sceneName));
+            }
+
+            OnServerConnect?.Invoke(client);
+        }
 
         /// <summary>
         /// 服务器断开指定客户端连接
@@ -60,8 +75,8 @@ namespace JFramework.Net
             if (clients.TryGetValue(clientId, out var client))
             {
                 OnServerDisconnect?.Invoke(client);
-                
-                foreach (var @object in client.observers.ToArray())
+                var copyList = client.observers.ToList();
+                foreach (var @object in copyList)
                 {
                     Destroy(@object);
                 }

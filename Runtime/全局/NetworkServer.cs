@@ -103,21 +103,6 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 当客户端连接
-        /// </summary>
-        /// <param name="client">连接的客户端实体</param>
-        internal static void OnClientConnect(ClientEntity client)
-        {
-            clients.TryAdd(client.clientId, client);
-            if (!string.IsNullOrEmpty(NetworkManager.sceneName))
-            {
-                client.SendMessage(new SceneMessage(NetworkManager.sceneName));
-            }
-
-            OnServerConnect?.Invoke(client);
-        }
-
-        /// <summary>
         /// 设置客户端准备好(可以进行消息接收)
         /// </summary>
         /// <param name="client"></param>
@@ -141,6 +126,16 @@ namespace JFramework.Net
             client.isReady = false;
             client.SendMessage(new NotReadyMessage());
         }
+
+        /// <summary>
+        /// 清除事件
+        /// </summary>
+        internal static void ClearEvent()
+        {
+            OnServerConnect = null;
+            OnServerDisconnect = null;
+            OnServerReady = null;
+        }
         
         /// <summary>
         /// 停止服务器
@@ -154,8 +149,14 @@ namespace JFramework.Net
             {
                 Transport.current.StopServer();
             }
-
-            foreach (var client in clients.Values.ToList())
+      
+            if (NetworkManager.mode is NetworkMode.Host)
+            {
+                OnServerDisconnect?.Invoke(connection);
+            }
+            
+            var copyList = clients.Values.ToList();
+            foreach (var client in copyList)
             {
                 client.Disconnect();
                 if (client.clientId != NetworkConst.HostId)
@@ -172,9 +173,6 @@ namespace JFramework.Net
             clients.Clear();
             connection = null;
             isLoadScene = false;
-            OnServerConnect = null;
-            OnServerDisconnect = null;
-            OnServerReady = null;
         }
     }
 }
