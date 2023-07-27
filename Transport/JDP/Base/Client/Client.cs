@@ -51,8 +51,7 @@ namespace JFramework.Udp
             Log.Info($"客户端连接到：{addresses[0]} 端口：{port}。");
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.Blocking = false;
-            socket.SendBufferSize = setting.sendBufferSize;
-            socket.ReceiveBufferSize = setting.receiveBufferSize;
+            socket.SetBufferSize( setting.sendBufferSize,setting.receiveBufferSize);
             socket.Connect(endPoint);
             peer.Handshake();
         }

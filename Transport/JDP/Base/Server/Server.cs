@@ -39,7 +39,7 @@ namespace JFramework.Udp
                 Log.Warn("服务器已经连接！");
                 return;
             }
-
+            
             socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
             try
             {
@@ -52,8 +52,7 @@ namespace JFramework.Udp
 
             socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
             socket.Blocking = false;
-            socket.SendBufferSize = setting.sendBufferSize;
-            socket.ReceiveBufferSize = setting.receiveBufferSize;
+            socket.SetBufferSize(setting.sendBufferSize, setting.receiveBufferSize);
         }
 
         /// <summary>
@@ -181,7 +180,7 @@ namespace JFramework.Udp
             {
                 clients.Remove(clientId);
             }
-            
+
             removes.Clear();
         }
 
