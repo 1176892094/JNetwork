@@ -11,7 +11,8 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息委托字典
         /// </summary>
-        internal static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
+        internal static readonly Dictionary<ushort, MessageDelegate> messages =
+            new Dictionary<ushort, MessageDelegate>();
 
         /// <summary>
         /// 注册的预置体
@@ -133,13 +134,13 @@ namespace JFramework.Net
                 Debug.LogError("没有连接到有效的服务器！");
                 return;
             }
-            
+
             if (isReady)
             {
                 Debug.LogError("客户端已经准备就绪！");
                 return;
             }
-            
+
             Debug.Log($"客户端准备。");
             isReady = true;
             connection.isReady = true;
@@ -159,7 +160,7 @@ namespace JFramework.Net
                 Debug.LogError("没有连接到有效的服务器！");
                 return;
             }
-            
+
             if (state != ConnectState.Connected)
             {
                 Debug.LogError("客户端没有连接成功就向服务器发送消息！");
@@ -186,22 +187,18 @@ namespace JFramework.Net
         {
             if (!isActive) return;
             Debug.Log("停止客户端。");
+            state = ConnectState.Disconnected;
             if (Transport.current != null)
             {
                 Transport.current.ClientDisconnect();
             }
-
-            if (NetworkManager.mode is NetworkMode.Host)
-            {
-                OnClientDisconnect?.Invoke();
-            }
-
+            
+            OnClientDisconnect?.Invoke();
             DestroyForClient();
-            state = ConnectState.Disconnected;
             lastSendTime = 0;
             scenes.Clear();
-            messages.Clear();
             prefabs.Clear();
+            messages.Clear();
             isReady = false;
             connection = null;
             isLoadScene = false;
