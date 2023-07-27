@@ -11,11 +11,6 @@ namespace JFramework.Net
     public sealed class ClientEntity : Connection
     {
         /// <summary>
-        /// 观察的网络对象
-        /// </summary>
-        [ShowInInspector] internal readonly HashSet<NetworkObject> observers = new HashSet<NetworkObject>();
-
-        /// <summary>
         /// 可靠Rpc列表
         /// </summary>
         private readonly NetworkWriter reliableRpc = new NetworkWriter();

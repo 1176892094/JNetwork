@@ -52,7 +52,7 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 当客户端连接
+        /// 当客户端连接到服务器
         /// </summary>
         /// <param name="client">连接的客户端实体</param>
         internal static void OnClientConnect(ClientEntity client)
@@ -71,18 +71,23 @@ namespace JFramework.Net
         /// 服务器断开指定客户端连接
         /// </summary>
         /// <param name="clientId"></param>
-        private static void OnServerDisconnected(int clientId)
+        internal static void OnServerDisconnected(int clientId)
         {
             if (clients.TryGetValue(clientId, out var client))
             {
                 OnServerDisconnect?.Invoke(client);
-                var copyList = client.observers.ToList();
+                var copyList = spawns.Values.Where(@object => @object.connection == client).ToList();
                 foreach (var @object in copyList)
                 {
                     Destroy(@object);
                 }
 
-                clients.Remove(clientId);
+                if (client.clientId == NetworkConst.HostId)
+                {
+                    connection = null;
+                }
+
+                clients.Remove(client.clientId);
             }
         }
 

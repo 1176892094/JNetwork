@@ -202,14 +202,7 @@ namespace JFramework.Net
 
             if (mode == NetworkMode.Host)
             {
-                NetworkServer.clients.Remove(NetworkServer.connection.clientId);
-                var copyList = NetworkServer.connection.observers.ToList();
-                foreach (var @object in copyList)
-                {
-                    NetworkServer.Destroy(@object);
-                }
-
-                NetworkServer.connection = null;
+                NetworkServer.OnServerDisconnected(NetworkServer.connection.clientId);
             }
 
             OnStopClient?.Invoke();
