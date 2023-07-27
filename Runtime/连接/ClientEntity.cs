@@ -36,6 +36,11 @@ namespace JFramework.Net
         [ShowInInspector] private readonly bool isHost;
 
         /// <summary>
+        /// 是否生成 PlayerPrefab
+        /// </summary>
+        internal bool isSpawn;
+
+        /// <summary>
         /// 远端时间线
         /// </summary>
         internal double remoteTimeline;

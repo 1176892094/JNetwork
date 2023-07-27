@@ -5,18 +5,18 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace JFramework.Net
-{   
+{
     public sealed partial class NetworkManager : MonoBehaviour
     {
         /// <summary>
         /// NetworkManager 单例
         /// </summary>
         public static NetworkManager Instance;
-        
+
         /// <summary>
         /// 服务器场景
         /// </summary>
-        internal static string sceneName;
+        private static string sceneName;
 
         /// <summary>
         /// 消息发送率
@@ -28,18 +28,24 @@ namespace JFramework.Net
         /// </summary>
         [FoldoutGroup("网络管理器"), SerializeField]
         private Transport transport;
-        
+
         /// <summary>
         /// 网络发现组件
         /// </summary>
         [FoldoutGroup("网络管理器"), SerializeField]
         public NetworkDiscovery discovery;
-        
+
         /// <summary>
         /// 网络设置和预置体
         /// </summary>
         [FoldoutGroup("网络管理器"), SerializeField]
         internal NetworkSetting setting;
+
+        /// <summary>
+        /// 玩家预置体
+        /// </summary>
+        [FoldoutGroup("网络管理器"), SerializeField]
+        internal GameObject playerPrefab;
 
         /// <summary>
         /// 心跳传输率
@@ -109,7 +115,7 @@ namespace JFramework.Net
                 Debug.LogError("NetworkManager 的 Setting 为空");
                 return;
             }
-            
+
             Application.runInBackground = true;
 #if UNITY_SERVER
             Application.targetFrameRate = tickRate;
@@ -160,6 +166,7 @@ namespace JFramework.Net
                 return;
             }
 
+
             NetworkClient.StartClient(address, port);
             NetworkClient.RegisterPrefab(setting.prefabs);
             OnStartClient?.Invoke();
@@ -201,6 +208,7 @@ namespace JFramework.Net
                 {
                     NetworkServer.Destroy(@object);
                 }
+
                 NetworkServer.connection = null;
             }
 
@@ -219,7 +227,7 @@ namespace JFramework.Net
                 Debug.LogWarning("客户端或服务器已经连接！");
                 return;
             }
-            
+
             NetworkServer.StartServer(isListen);
             NetworkClient.StartClient();
             NetworkClient.RegisterPrefab(setting.prefabs);
@@ -234,6 +242,19 @@ namespace JFramework.Net
             OnStopHost?.Invoke();
             StopClient();
             StopServer();
+        }
+        
+        /// <summary>
+        /// 生成玩家预置体
+        /// </summary>
+        /// <param name="client"></param>
+        internal void SpawnPrefab(ClientEntity client)
+        {
+            if (client.isSpawn && playerPrefab != null)
+            {
+                NetworkServer.Spawn(Instantiate(playerPrefab));
+                client.isSpawn = false;
+            }
         }
 
         /// <summary>
@@ -250,7 +271,7 @@ namespace JFramework.Net
             {
                 StopServer();
             }
-            
+
             SceneManager.OnLoadComplete -= OnLoadComplete;
             RuntimeInitializeOnLoad();
         }

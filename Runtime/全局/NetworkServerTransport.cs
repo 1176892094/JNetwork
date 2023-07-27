@@ -63,6 +63,7 @@ namespace JFramework.Net
                 connection = client;
             }
 
+            client.isSpawn = true;
             OnServerConnect?.Invoke(client);
         }
 

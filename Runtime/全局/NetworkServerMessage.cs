@@ -105,6 +105,7 @@ namespace JFramework.Net
         private static void OnSetReadyByServer(ClientEntity client, SetReadyMessage message)
         {
             SetReadyForClient(client);
+            NetworkManager.Instance.SpawnPrefab(client);
             OnServerReady?.Invoke(client);
         }
     }
