@@ -11,8 +11,8 @@ namespace JFramework.Net
         /// </summary>
         internal void OnStartClient()
         {
-            if (isStartClient) return;
-            isStartClient = true;
+            if (isSpawn) return;
+            isSpawn = true;
 
             foreach (var entity in entities)
             {
@@ -32,7 +32,7 @@ namespace JFramework.Net
         /// </summary>
         internal void OnStopClient()
         {
-            if (!isStartClient) return;
+            if (!isSpawn) return;
 
             foreach (var entity in entities)
             {
