@@ -1,4 +1,3 @@
-using System;
 using JFramework.Core;
 using JFramework.Interface;
 using UnityEngine;
@@ -8,7 +7,6 @@ namespace JFramework.Net
     /// <summary>
     /// 实体的抽象类
     /// </summary>
-    [Serializable]
     public abstract class NetworkEntity : NetworkBehaviour, IEntity
     {
         /// <summary>

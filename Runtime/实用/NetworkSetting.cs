@@ -14,7 +14,6 @@ namespace JFramework.Net
     {
         [SerializeField] internal List<GameObject> prefabs = new List<GameObject>();
 
-        
         [InfoBox("本地模拟相对于发送间隔 * 缓冲时间乘数 的滞后时间")]
         public double bufferTimeMultiplier = 2;
 
