@@ -11,8 +11,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息委托字典
         /// </summary>
-        internal static readonly Dictionary<ushort, MessageDelegate> messages =
-            new Dictionary<ushort, MessageDelegate>();
+        internal static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
 
         /// <summary>
         /// 注册的预置体
@@ -187,6 +186,7 @@ namespace JFramework.Net
         {
             if (!isActive) return;
             Debug.Log("停止客户端。");
+            DestroyForClient();
             state = ConnectState.Disconnected;
             if (Transport.current != null)
             {
@@ -194,7 +194,6 @@ namespace JFramework.Net
             }
             
             OnClientDisconnect?.Invoke();
-            DestroyForClient();
             lastSendTime = 0;
             scenes.Clear();
             prefabs.Clear();
