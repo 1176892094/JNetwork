@@ -220,7 +220,7 @@ namespace JFramework.Editor
 
             AddRuntimeInitializeOnLoadAttribute(assembly, models, method);
 
-            if (Helpers.IsEditorAssembly(assembly))
+            if (Helper.IsEditorAssembly(assembly))
             {
                 AddInitializeOnLoadAttribute(assembly, models, method);
             }

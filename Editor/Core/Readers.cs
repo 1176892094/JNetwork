@@ -153,7 +153,7 @@ namespace JFramework.Editor
             GetReadFunc(elementType, ref failed);
             var module = assembly.MainModule;
             var readerExtensions = module.ImportReference(typeof(StreamExtensions));
-            var listReader = Utils.ResolveMethod(readerExtensions, assembly, logger, readerFunction, ref failed);
+            var listReader = Helper.ResolveMethod(readerExtensions, assembly, logger, readerFunction, ref failed);
             var methodRef = new GenericInstanceMethod(listReader);
             methodRef.GenericArguments.Add(elementType);
             var worker = readerFunc.Body.GetILProcessor();
@@ -257,7 +257,7 @@ namespace JFramework.Editor
             }
             else
             {
-                MethodDefinition ctor = Utils.ResolveDefaultPublicCtor(variable);
+                MethodDefinition ctor = Helper.ResolveDefaultPublicCtor(variable);
                 if (ctor == null)
                 {
                     logger.Error($"{variable.Name} 不能被反序列化，因为它没有默认的构造函数", variable);

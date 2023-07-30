@@ -20,7 +20,7 @@ namespace JFramework.Editor
             var worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
-            var baseSerialize = Utils.TryResolveMethodInParents(generate.BaseType, assembly, CONST.SER_METHOD);
+            var baseSerialize = Helper.TryResolveMethodInParents(generate.BaseType, assembly, CONST.SER_METHOD);
             if (baseSerialize != null)
             {
                 worker.Emit(OpCodes.Ldarg_0);
@@ -120,7 +120,7 @@ namespace JFramework.Editor
             var dirtyBitsLocal = new VariableDefinition(models.Import<long>());
             serialize.Body.Variables.Add(dirtyBitsLocal);
 
-            var baseDeserialize = Utils.TryResolveMethodInParents(generate.BaseType, assembly, CONST.DES_METHOD);
+            var baseDeserialize = Helper.TryResolveMethodInParents(generate.BaseType, assembly, CONST.DES_METHOD);
             if (baseDeserialize != null)
             {
                 worker.Append(worker.Create(OpCodes.Ldarg_0));
