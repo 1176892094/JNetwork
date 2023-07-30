@@ -103,19 +103,20 @@ namespace JFramework.Net
                 scenes.Remove(message.sceneId);
                 return false;
             }
-            
+
             scenes.Remove(message.sceneId);
+
             if (!prefabs.TryGetValue(message.assetId, out GameObject prefab))
             {
-                Debug.LogError($"无法生成有效预置体。 assetId：{message.assetId}  sceneId：{message.sceneId}");
+                Debug.LogError($"无法生成有效预置体 {@object}。 assetId：{message.assetId} sceneId：{message.sceneId}");
                 return false;
             }
-            
+
             @object = Object.Instantiate(prefab, message.position, message.rotation).GetComponent<NetworkObject>();
 
             if (@object == null)
             {
-                Debug.LogError($"无法生成 {@object}。 assetId：{message.assetId} sceneId：{message.sceneId}");
+                Debug.LogError($"无法获取网络组件 {@object}。 assetId：{message.assetId} sceneId：{message.sceneId}");
                 return false;
             }
 

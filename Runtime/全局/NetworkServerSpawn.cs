@@ -59,9 +59,13 @@ namespace JFramework.Net
             }
             
             @object.connection = client;
+            
             if (NetworkManager.mode == NetworkMode.Host)
             {
-                @object.isOwner = true;
+                if (@object.connection?.clientId == NetworkConst.HostId)
+                {
+                    @object.isOwner = true;
+                }
             }
             
             if (!@object.isServer && @object.objectId == 0)
