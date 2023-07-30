@@ -134,7 +134,7 @@ namespace JFramework.Net
         {
             // if (typeof(T) != typeof(SnapshotMessage) && typeof(T) != typeof(PingMessage) && typeof(T) != typeof(PongMessage))
             // {
-            //     Debug.LogWarning("Write----"+typeof(T).Name);
+            //     Debug.Log("Writer: ".Color(0x00FFFF) + typeof(T).Name.Color(0xFFFF00));
             // }
         
             Action<NetworkWriter, T> writeDelegate = Writer<T>.write;
