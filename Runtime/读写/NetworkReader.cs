@@ -168,7 +168,7 @@ namespace JFramework.Net
         {
             // if (typeof(T) != typeof(SnapshotMessage) && typeof(T) != typeof(PingMessage) && typeof(T) != typeof(PongMessage))
             // {
-            //     Debug.LogWarning("Read----" + typeof(T).Name);
+            //     Debug.Log("Reader: ".Color(0x00FFFF) + typeof(T).Name.Color(0xFFFF00));
             // }
 
             Func<NetworkReader, T> readerDelegate = Reader<T>.read;
