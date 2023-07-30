@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -10,7 +7,7 @@ using UnityEditor;
 
 namespace JFramework.Net
 {
-    internal class NetworkSetting : ScriptableObject
+    internal class NetworkSetting : AssetSingleton<NetworkSetting>
     {
         [SerializeField] internal List<GameObject> prefabs = new List<GameObject>();
 
@@ -42,32 +39,6 @@ namespace JFramework.Net
         public int deliveryTimeEmaDuration = 2;
 
 #if UNITY_EDITOR
-        /// <summary>
-        /// 单例自身
-        /// </summary>
-        private static NetworkSetting instance;
-        
-        /// <summary>
-        /// 获取创建或寻找单例
-        /// </summary>
-        private static NetworkSetting Instance
-        {
-            get
-            {
-                if (instance != null) return instance;
-                const string path = "Assets/AddressableResources/Settings";
-                var asset = $"{path}/{nameof(NetworkSetting)}.asset";
-                instance = AssetDatabase.LoadAssetAtPath<NetworkSetting>(asset);
-                if (instance != null) return instance;
-                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-                instance = CreateInstance<NetworkSetting>();
-                AssetDatabase.CreateAsset(instance, asset);
-                AssetDatabase.Refresh();
-                Debug.Log($"创建 <color=#00FF00>{nameof(NetworkSetting)}</color> 单例资源。路径: <color=#FFFF00>{path}</color>");
-                return instance;
-            }
-        }
-
         private void OnValidate()
         {
             bufferTimeMultiplier = 2;
@@ -95,6 +66,8 @@ namespace JFramework.Net
                     prefabs.Add(prefab);
                 }
             }
+
+            EditorUtility.SetDirty(this);
         }
 #endif
     }
