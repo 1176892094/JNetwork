@@ -103,14 +103,15 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 设置客户端准备好(可以进行消息接收)
+        /// 设置客户端准备好 为客户端生成服务器的所有对象
         /// </summary>
         /// <param name="client"></param>
         private static void SetReadyForClient(ClientEntity client)
         {
             Debug.Log($"设置客户端 {client.clientId} 准备就绪。");
             client.isReady = true;
-            foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
+            var enumerable = spawns.Values.Where(@object => @object.gameObject.activeSelf);
+            foreach (var @object in enumerable)
             {
                 SendSpawnMessage(client, @object);
             }

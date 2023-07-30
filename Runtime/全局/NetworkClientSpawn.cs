@@ -14,7 +14,7 @@ namespace JFramework.Net
         /// <param name="objects">传入预置体</param>
         internal static void RegisterPrefab(IEnumerable<GameObject> objects)
         {
-            foreach (var prefab in objects.Where(@object => @object != null))
+            foreach (var prefab in objects)
             {
                 if (prefab == null)
                 {
@@ -77,7 +77,7 @@ namespace JFramework.Net
                 }
             }
         }
-        
+
         /// <summary>
         /// 获取网络对象
         /// </summary>
@@ -90,14 +90,28 @@ namespace JFramework.Net
             {
                 return true;
             }
-            
+
             if (message is { assetId: 0, sceneId: 0 })
             {
                 Debug.LogError($"生成游戏对象 {message.objectId} 需要保证 assetId 和 sceneId 其中一个不为零");
                 return false;
             }
 
-            @object = message.sceneId == 0 ? SpawnAssetPrefab(message) : SpawnSceneObject(message.sceneId);
+            if (message.sceneId != 0 && !scenes.TryGetValue(message.sceneId, out @object))
+            {
+                Debug.LogError($"无法生成有效场景对象。 sceneId：{message.sceneId}");
+                scenes.Remove(message.sceneId);
+                return false;
+            }
+            
+            scenes.Remove(message.sceneId);
+            if (!prefabs.TryGetValue(message.assetId, out GameObject prefab))
+            {
+                Debug.LogError($"无法生成有效预置体。 assetId：{message.assetId}  sceneId：{message.sceneId}");
+                return false;
+            }
+            
+            @object = Object.Instantiate(prefab, message.position, message.rotation).GetComponent<NetworkObject>();
 
             if (@object == null)
             {
@@ -106,40 +120,6 @@ namespace JFramework.Net
             }
 
             return true;
-        }
-        
-        /// <summary>
-        /// 生成资源预置体
-        /// </summary>
-        /// <param name="message">传入网络消息</param>
-        /// <returns>返回网络对象</returns>
-        private static NetworkObject SpawnAssetPrefab(SpawnMessage message)
-        {
-            if (prefabs.TryGetValue(message.assetId, out GameObject prefab))
-            {
-                var gameObject = Object.Instantiate(prefab, message.position, message.rotation);
-                return gameObject.GetComponent<NetworkObject>();
-            }
-
-            Debug.LogError($"无法生成有效预置体。 assetId：{message.assetId}  sceneId：{message.sceneId}");
-            return null;
-        }
-
-        /// <summary>
-        /// 生成场景对象
-        /// </summary>
-        /// <param name="sceneId">传入场景Id</param>
-        /// <returns>返回网络对象</returns>
-        private static NetworkObject SpawnSceneObject(ulong sceneId)
-        {
-            if (!scenes.TryGetValue(sceneId, out var @object))
-            {
-                Debug.LogError($"无法生成有效场景对象。 sceneId：{sceneId}");
-                return null;
-            }
-
-            scenes.Remove(sceneId);
-            return @object;
         }
 
         /// <summary>
@@ -187,7 +167,7 @@ namespace JFramework.Net
         /// </summary>
         private static void SpawnFinish()
         {
-            foreach (var @object in spawns.Values.OrderBy(@object => @object.objectId))
+            foreach (var @object in spawns.Values)
             {
                 if (@object == null)
                 {
@@ -208,7 +188,8 @@ namespace JFramework.Net
         {
             try
             {
-                foreach (var @object in spawns.Values.Where(@object => @object != null))
+                var enumerable = spawns.Values.Where(@object => @object != null);
+                foreach (var @object in enumerable)
                 {
                     @object.OnStopClient();
                     if (NetworkManager.mode is NetworkMode.Client)

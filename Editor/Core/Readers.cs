@@ -14,15 +14,15 @@ namespace JFramework.Editor
     internal class Readers
     {
         private readonly Dictionary<TypeReference, MethodReference> readFuncList = new Dictionary<TypeReference, MethodReference>(new Comparer());
-        private readonly Model model;
+        private readonly Models models;
         private readonly Logger logger;
         private readonly TypeDefinition generate;
         private readonly AssemblyDefinition assembly;
 
-        public Readers(AssemblyDefinition assembly, Model model, TypeDefinition generate, Logger logger)
+        public Readers(AssemblyDefinition assembly, Models models, TypeDefinition generate, Logger logger)
         {
             this.assembly = assembly;
-            this.model = model;
+            this.models = models;
             this.generate = generate;
             this.logger = logger;
         }
@@ -39,7 +39,7 @@ namespace JFramework.Editor
             generate.Methods.Add(newReaderFunc);
         }
         
-        public MethodReference GetReadFunc(TypeReference variable)
+        public MethodReference GetReadFunc(TypeReference variable,ref bool failed)
         {
             if (readFuncList.TryGetValue(variable, out MethodReference foundFunc))
             {
@@ -47,46 +47,46 @@ namespace JFramework.Editor
             }
 
             TypeReference importedVariable = assembly.MainModule.ImportReference(variable);
-            return GenerateReader(importedVariable);
+            return GenerateReader(importedVariable,ref failed);
         }
 
-        private MethodReference GenerateReader(TypeReference variableReference)
+        private MethodReference GenerateReader(TypeReference variableReference,ref bool failed)
         {
             if (variableReference.IsArray)
             {
                 if (variableReference.IsMultidimensionalArray())
                 {
                     logger.Error($"无法为多维数组 {variableReference.Name} 生成 Reader", variableReference);
-                    Process.failed = true;
+                    failed = true;
                     return null;
                 }
 
-                return GenerateReadCollection(variableReference, variableReference.GetElementType(), nameof(StreamExtensions.ReadArray));
+                return GenerateReadCollection(variableReference, variableReference.GetElementType(), nameof(StreamExtensions.ReadArray),ref failed);
             }
             
             TypeDefinition variableDefinition = variableReference.Resolve();
             if (variableDefinition == null)
             {
                 logger.Error($"无法为Null {variableReference.Name} 生成 Reader", variableReference); 
-                Process.failed = true;
+                failed = true;
                 return null;
             }
             
             if (variableReference.IsByReference)
             {
                 logger.Error($"无法为反射 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                failed = true;
                 return null;
             }
             
             if (variableDefinition.IsEnum)
             {
-                return GenerateEnumReadFunc(variableReference);
+                return GenerateEnumReadFunc(variableReference,ref failed);
             }
             
             if (variableDefinition.Is(typeof(ArraySegment<>)))
             {
-                return GenerateArraySegmentReadFunc(variableReference);
+                return GenerateArraySegmentReadFunc(variableReference,ref failed);
             }
             
             if (variableDefinition.Is(typeof(List<>)))
@@ -94,7 +94,7 @@ namespace JFramework.Editor
                 GenericInstanceType genericInstance = (GenericInstanceType)variableReference;
                 TypeReference elementType = genericInstance.GenericArguments[0];
 
-                return GenerateReadCollection(variableReference, elementType, nameof(StreamExtensions.ReadList));
+                return GenerateReadCollection(variableReference, elementType, nameof(StreamExtensions.ReadList),ref failed);
             }
             
             if (variableReference.IsDerivedFrom<NetworkBehaviour>() || variableReference.Is<NetworkBehaviour>())
@@ -105,55 +105,55 @@ namespace JFramework.Editor
             if (variableDefinition.IsDerivedFrom<Component>())
             {
                 logger.Error($"无法为组件 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                failed = true;
                 return null;
             }
             
             if (variableReference.Is<Object>())
             {
                 logger.Error($"无法为对象 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                failed = true;
                 return null;
             }
             
             if (variableReference.Is<ScriptableObject>())
             {
                 logger.Error($"无法为可视化脚本 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                failed = true;
                 return null;
             }
             
             if (variableDefinition.HasGenericParameters)
             {
                 logger.Error($"无法为通用变量 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                failed = true;
                 return null;
             }
             
             if (variableDefinition.IsInterface)
             {
                 logger.Error($"无法为接口 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                failed = true;
                 return null;
             }
             
             if (variableDefinition.IsAbstract)
             { 
                 logger.Error($"无法为抽象类 {variableReference.Name} 生成 Reader", variableReference);
-                Process.failed = true;
+                failed = true;
                 return null;
             }
 
-            return GenerateClassOrStructReadFunction(variableReference);
+            return GenerateClassOrStructReadFunction(variableReference,ref failed);
         }
 
-        private MethodDefinition GenerateReadCollection(TypeReference variable, TypeReference elementType, string readerFunction)
+        private MethodDefinition GenerateReadCollection(TypeReference variable, TypeReference elementType, string readerFunction,ref bool failed)
         {
             MethodDefinition readerFunc = GenerateReaderFunction(variable);
-            GetReadFunc(elementType);
+            GetReadFunc(elementType,ref failed);
             ModuleDefinition module = assembly.MainModule;
             TypeReference readerExtensions = module.ImportReference(typeof(StreamExtensions));
-            MethodReference listReader = Utils.ResolveMethod(readerExtensions, assembly, logger, readerFunction);
+            MethodReference listReader = Utils.ResolveMethod(readerExtensions, assembly, logger, readerFunction,ref failed);
             GenericInstanceMethod methodRef = new GenericInstanceMethod(listReader);
             methodRef.GenericArguments.Add(elementType);
             ILProcessor worker = readerFunc.Body.GetILProcessor();
@@ -167,25 +167,25 @@ namespace JFramework.Editor
         {
             string functionName = $"Read{NetworkMessage.GetHashByName(variable.FullName)}";
             MethodDefinition readerFunc = new MethodDefinition(functionName, CONST.RAW_ATTRS, variable);
-            readerFunc.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, model.Import<NetworkReader>()));
+            readerFunc.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<NetworkReader>()));
             readerFunc.Body.InitLocals = true;
             RegisterReadFunc(variable, readerFunc);
             return readerFunc;
         }
 
-        private MethodDefinition GenerateEnumReadFunc(TypeReference variable)
+        private MethodDefinition GenerateEnumReadFunc(TypeReference variable,ref bool failed)
         {
             MethodDefinition readerFunc = GenerateReaderFunction(variable);
             ILProcessor worker = readerFunc.Body.GetILProcessor();
             worker.Emit(OpCodes.Ldarg_0);
             TypeReference underlyingType = variable.Resolve().GetEnumUnderlyingType();
-            MethodReference underlyingFunc = GetReadFunc(underlyingType);
+            MethodReference underlyingFunc = GetReadFunc(underlyingType,ref failed);
             worker.Emit(OpCodes.Call, underlyingFunc);
             worker.Emit(OpCodes.Ret);
             return readerFunc;
         }
 
-        private MethodDefinition GenerateArraySegmentReadFunc(TypeReference variable)
+        private MethodDefinition GenerateArraySegmentReadFunc(TypeReference variable,ref bool failed)
         {
             GenericInstanceType genericInstance = (GenericInstanceType)variable;
             TypeReference elementType = genericInstance.GenericArguments[0];
@@ -193,21 +193,21 @@ namespace JFramework.Editor
             ILProcessor worker = readerFunc.Body.GetILProcessor();
             ArrayType arrayType = new ArrayType(elementType);
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Call, GetReadFunc(arrayType));
-            worker.Emit(OpCodes.Newobj, model.ArraySegmentRef.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
+            worker.Emit(OpCodes.Call, GetReadFunc(arrayType,ref failed));
+            worker.Emit(OpCodes.Newobj, models.ArraySegmentRef.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
             worker.Emit(OpCodes.Ret);
             return readerFunc;
         }
 
         private MethodReference GetNetworkBehaviourReader(TypeReference variableReference)
         {
-            MethodReference generic = model.ReadNetworkBehaviourGeneric;
+            MethodReference generic = models.ReadNetworkBehaviourGeneric;
             MethodReference readFunc = generic.MakeGeneric(assembly.MainModule, variableReference);
             Register(variableReference, readFunc);
             return readFunc;
         }
 
-        private MethodDefinition GenerateClassOrStructReadFunction(TypeReference variable)
+        private MethodDefinition GenerateClassOrStructReadFunction(TypeReference variable,ref bool failed)
         {
             MethodDefinition readerFunc = GenerateReaderFunction(variable);
             
@@ -219,21 +219,21 @@ namespace JFramework.Editor
 
             if (!td.IsValueType)
             {
-                GenerateNullCheck(worker);
+                GenerateNullCheck(worker,ref failed);
             }
 
-            CreateNew(variable, worker, td);
-            ReadAllFields(variable, worker);
+            CreateNew(variable, worker, td,ref failed);
+            ReadAllFields(variable, worker,ref failed);
 
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ret);
             return readerFunc;
         }
 
-        private void GenerateNullCheck(ILProcessor worker)
+        private void GenerateNullCheck(ILProcessor worker,ref bool failed)
         {
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Call, GetReadFunc(model.Import<bool>()));
+            worker.Emit(OpCodes.Call, GetReadFunc(models.Import<bool>(),ref failed));
             Instruction labelEmptyArray = worker.Create(OpCodes.Nop);
             worker.Emit(OpCodes.Brtrue, labelEmptyArray);
             worker.Emit(OpCodes.Ldnull);
@@ -241,7 +241,7 @@ namespace JFramework.Editor
             worker.Append(labelEmptyArray);
         }
 
-        private void CreateNew(TypeReference variable, ILProcessor worker, TypeDefinition td)
+        private void CreateNew(TypeReference variable, ILProcessor worker, TypeDefinition td,ref bool failed)
         {
             if (variable.IsValueType)
             {
@@ -250,7 +250,7 @@ namespace JFramework.Editor
             }
             else if (td.IsDerivedFrom<ScriptableObject>())
             {
-                GenericInstanceMethod genericInstanceMethod = new GenericInstanceMethod(model.CreateInstanceMethodRef);
+                GenericInstanceMethod genericInstanceMethod = new GenericInstanceMethod(models.CreateInstanceMethodRef);
                 genericInstanceMethod.GenericArguments.Add(variable);
                 worker.Emit(OpCodes.Call, genericInstanceMethod);
                 worker.Emit(OpCodes.Stloc_0);
@@ -261,7 +261,7 @@ namespace JFramework.Editor
                 if (ctor == null)
                 {
                     logger.Error($"{variable.Name} 不能被反序列化，因为它没有默认的构造函数", variable);
-                    Process.failed = true;
+                    failed = true;
                     return;
                 }
 
@@ -272,13 +272,13 @@ namespace JFramework.Editor
             }
         }
 
-        private void ReadAllFields(TypeReference variable, ILProcessor worker)
+        private void ReadAllFields(TypeReference variable, ILProcessor worker,ref bool failed)
         {
             foreach (FieldDefinition field in variable.FindAllPublicFields())
             {
                 OpCode opcode = variable.IsValueType ? OpCodes.Ldloca : OpCodes.Ldloc;
                 worker.Emit(opcode, 0);
-                MethodReference readFunc = GetReadFunc(field.FieldType);
+                MethodReference readFunc = GetReadFunc(field.FieldType,ref failed);
                 if (readFunc != null)
                 {
                     worker.Emit(OpCodes.Ldarg_0);
@@ -287,7 +287,7 @@ namespace JFramework.Editor
                 else
                 {
                     logger.Error($"{field.Name} 有不受支持的类型", field);
-                    Process.failed = true;
+                    failed = true;
                 }
                 FieldReference fieldRef = assembly.MainModule.ImportReference(field);
 

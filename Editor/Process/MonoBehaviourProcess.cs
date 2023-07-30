@@ -6,41 +6,59 @@ namespace JFramework.Editor
 {
     internal static class MonoBehaviourProcess
     {
-        public static void Process(Logger logger, TypeDefinition td)
+        /// <summary>
+        /// 处理MonoBehaviour
+        /// </summary>
+        /// <param name="td"></param>
+        /// <param name="logger"></param>
+        /// <param name="failed"></param>
+        public static void Process(TypeDefinition td, Logger logger, ref bool failed)
         {
-            ProcessVar(logger, td);
-            ProcessRpc(logger, td);
+            ProcessVar(td, logger, ref failed);
+            ProcessRpc(td, logger, ref failed);
         }
 
-        private static void ProcessVar(Logger logger, TypeDefinition td)
+        /// <summary>
+        /// 处理网络变量
+        /// </summary>
+        /// <param name="td"></param>
+        /// <param name="logger"></param>
+        /// <param name="failed"></param>
+        private static void ProcessVar(TypeDefinition td, Logger logger, ref bool failed)
         {
             foreach (var fd in td.Fields.Where(fd => fd.HasCustomAttribute<SyncVarAttribute>()))
             {
-                logger.Error($"网络变量 {fd.Name} 必须在 NetworkEntity 中使用。", fd);
-                Editor.Process.failed = true;
+                logger.Error($"网络变量 {fd.Name} 必须在 NetworkBehaviour 中使用。", fd);
+                failed = true;
             }
         }
 
-        private static void ProcessRpc(Logger logger, TypeDefinition td)
+        /// <summary>
+        /// 处理远程调用
+        /// </summary>
+        /// <param name="td"></param>
+        /// <param name="logger"></param>
+        /// <param name="failed"></param>
+        private static void ProcessRpc(TypeDefinition td, Logger logger, ref bool failed)
         {
-            foreach (MethodDefinition md in td.Methods)
+            foreach (var md in td.Methods)
             {
                 if (md.HasCustomAttribute<ServerRpcAttribute>())
                 {
-                    logger.Error($"ServerRpc {md.Name} 必须在 NetworkEntity 中使用。", md);
-                    Editor.Process.failed = true;
+                    logger.Error($"ServerRpc {md.Name} 必须在 NetworkBehaviour 中使用。", md);
+                    failed = true;
                 }
 
                 if (md.HasCustomAttribute<ClientRpcAttribute>())
                 {
-                    logger.Error($"ClientRpc {md.Name} 必须在 NetworkEntity 中使用。", md);
-                    Editor.Process.failed = true;
+                    logger.Error($"ClientRpc {md.Name} 必须在 NetworkBehaviour 中使用。", md);
+                    failed = true;
                 }
 
                 if (md.HasCustomAttribute<TargetRpcAttribute>())
                 {
-                    logger.Error($"TargetRpc {md.Name} 必须在 NetworkEntity 中使用。", md);
-                    Editor.Process.failed = true;
+                    logger.Error($"TargetRpc {md.Name} 必须在 NetworkBehaviour 中使用。", md);
+                    failed = true;
                 }
             }
         }

@@ -17,7 +17,7 @@ namespace JFramework.Editor
         /// <summary>
         /// 生成脚本名称
         /// </summary>
-        public const string GEN_NET_CODE = "NetworkGenerator";
+        public const string GEN_NAME = "NetworkGenerator";
         
         /// <summary>
         /// 处理方法名称
@@ -82,6 +82,6 @@ namespace JFramework.Editor
         /// <summary>
         /// 类型属性
         /// </summary>
-        public const TypeAttributes TYPE_ATTRS = TypeAttributes.Class | TypeAttributes.AnsiClass | TypeAttributes.Public | TypeAttributes.AutoClass | TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit;
+        public const TypeAttributes GEN_ATTRS = TypeAttributes.Class | TypeAttributes.AnsiClass | TypeAttributes.Public | TypeAttributes.AutoClass | TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit;
     }
 }

@@ -7,76 +7,66 @@ namespace JFramework.Editor
 {
     internal partial class NetworkBehaviourProcess
     {
-        private readonly Model model;
+        private Dictionary<FieldDefinition, FieldDefinition> syncVarIds = new Dictionary<FieldDefinition, FieldDefinition>();
+        private List<FieldDefinition> syncVars = new List<FieldDefinition>();
+        private readonly Models models;
         private readonly Logger logger;
         private readonly Writers writers;
         private readonly Readers readers;
         private readonly TypeDefinition type;
         private readonly SyncVarProcess process;
         private readonly AssemblyDefinition assembly;
-        private readonly List<ServerRpcResult> serverRpcList = new List<ServerRpcResult>();
+        private readonly List<MethodDefinition> serverRpcList = new List<MethodDefinition>();
         private readonly List<MethodDefinition> serverRpcFuncList = new List<MethodDefinition>();
-        private readonly List<ClientRpcResult> clientRpcList = new List<ClientRpcResult>();
+        private readonly List<MethodDefinition> clientRpcList = new List<MethodDefinition>();
         private readonly List<MethodDefinition> clientRpcFuncList = new List<MethodDefinition>();
         private readonly List<MethodDefinition> targetRpcList = new List<MethodDefinition>();
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
-        private List<FieldDefinition> syncVars = new List<FieldDefinition>();
-        private Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds = new Dictionary<FieldDefinition, FieldDefinition>();
+      
 
         private readonly TypeDefinition generateCode;
 
-        public struct ServerRpcResult
-        {
-            public readonly MethodDefinition method;
-            public ServerRpcResult(MethodDefinition method) => this.method = method;
-        }
-
-        public struct ClientRpcResult
-        {
-            public readonly MethodDefinition method;
-            public ClientRpcResult(MethodDefinition method) => this.method = method;
-        }
-        
-        public NetworkBehaviourProcess(AssemblyDefinition assembly, Model model, Writers writers, Readers readers, Logger logger, TypeDefinition type)
+        public NetworkBehaviourProcess(AssemblyDefinition assembly, Models models, Writers writers, Readers readers,
+            Logger logger, TypeDefinition type)
         {
             this.type = type;
-            this.model = model;
+            this.models = models;
             this.logger = logger;
             this.writers = writers;
             this.readers = readers;
             this.assembly = assembly;
-            process = new SyncVarProcess(assembly, model, logger);
+            process = new SyncVarProcess(assembly, models, logger);
             generateCode = this.type;
         }
 
-        public bool Process()
+        public bool Process(ref bool failed)
         {
             if (WasProcessed(type))
             {
                 return false;
             }
-            
+
             MarkAsProcessed(type);
-            
-            (syncVars, syncVarNetIds) = process.ProcessSyncVars(type);
-           
-            ProcessRpcMethods();
-            
-            if (Editor.Process.failed)
-            {
-                return true;
-            }
-            
-            InjectStaticConstructor();
-            
-            GenerateSerialize();
-        
-            if (Editor.Process.failed)
+
+            (syncVars, syncVarIds) = process.ProcessSyncVars(type, ref failed);
+
+            ProcessRpcMethods(ref failed);
+
+            if (failed)
             {
                 return true;
             }
 
-            GenerateDeserialize();
+            InjectStaticConstructor(ref failed);
+
+            GenerateSerialize(ref failed);
+
+            if (failed)
+            {
+                return true;
+            }
+
+            GenerateDeserialize(ref failed);
             return true;
         }
 
@@ -89,37 +79,38 @@ namespace JFramework.Editor
         {
             if (!WasProcessed(td))
             {
-                MethodDefinition versionMethod = new MethodDefinition(CONST.GEN_FUNC, MethodAttributes.Private, model.Import(typeof(void)));
+                MethodDefinition versionMethod = new MethodDefinition(CONST.GEN_FUNC, MethodAttributes.Private,
+                    models.Import(typeof(void)));
                 ILProcessor worker = versionMethod.Body.GetILProcessor();
                 worker.Emit(OpCodes.Ret);
                 td.Methods.Add(versionMethod);
             }
         }
 
-        public static void WriteSetupLocals(ILProcessor worker, Model model)
+        public static void WriteSetupLocals(ILProcessor worker, Models models)
         {
             worker.Body.InitLocals = true;
-            worker.Body.Variables.Add(new VariableDefinition(model.Import<NetworkWriter>()));
+            worker.Body.Variables.Add(new VariableDefinition(models.Import<NetworkWriter>()));
         }
 
-        public static void WriteGetWriter(ILProcessor worker, Model model)
+        public static void WriteGetWriter(ILProcessor worker, Models models)
         {
-            worker.Emit(OpCodes.Call, model.PopWriterRef);
+            worker.Emit(OpCodes.Call, models.PopWriterRef);
             worker.Emit(OpCodes.Stloc_0);
         }
 
-        public static void WriteReturnWriter(ILProcessor worker, Model model)
+        public static void WriteReturnWriter(ILProcessor worker, Models models)
         {
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Call, model.PushWriterRef);
+            worker.Emit(OpCodes.Call, models.PushWriterRef);
         }
 
 
-        public static void AddInvokeParameters(Model model, ICollection<ParameterDefinition> collection)
+        public static void AddInvokeParameters(Models models, ICollection<ParameterDefinition> collection)
         {
-            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, model.Import<NetworkBehaviour>()));
-            collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, model.Import<NetworkReader>()));
-            collection.Add(new ParameterDefinition("target", ParameterAttributes.None, model.Import<ClientEntity>()));
+            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, models.Import<NetworkBehaviour>()));
+            collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<NetworkReader>()));
+            collection.Add(new ParameterDefinition("target", ParameterAttributes.None, models.Import<ClientEntity>()));
         }
     }
 }

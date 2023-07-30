@@ -9,47 +9,46 @@ namespace JFramework.Editor
 {
     internal class Process
     {
-        public static bool failed;
-        public static bool change;
-        private Model model;
+        private bool failed;
+        private Models models;
         private Writers writers;
         private Readers readers;
         private TypeDefinition generate;
-        private AssemblyDefinition currentAssembly;
+        private AssemblyDefinition assembly;
         private readonly Logger logger;
 
-        public Process(Logger logger)
-        {
-            this.logger = logger;
-        }
+        public Process(Logger logger) => this.logger = logger;
 
         /// <summary>
         /// 执行程序集注入
         /// </summary>
         /// <param name="assembly"></param>
         /// <param name="resolver"></param>
+        /// <param name="change"></param>
         /// <returns></returns>
-        public bool Execute(AssemblyDefinition assembly, IAssemblyResolver resolver)
+        public bool Execute(AssemblyDefinition assembly, IAssemblyResolver resolver, out bool change)
         {
             failed = false;
             change = false;
             try
             {
-                currentAssembly = assembly;
-                if (currentAssembly.MainModule.Contains(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE))
+                this.assembly = assembly;
+                if (assembly.MainModule.Contains(CONST.GEN_NAMESPACE, CONST.GEN_NAME))
                 {
                     return true;
                 }
 
-                model = new Model(currentAssembly, logger);
-                generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NET_CODE, CONST.TYPE_ATTRS, model.Import<object>());
-                writers = new Writers(currentAssembly, model, generate, logger);
-                readers = new Readers(currentAssembly, model, generate, logger);
-                change = StreamingProcess.Process(currentAssembly, resolver, logger, writers, readers);
+                models = new Models(assembly, logger, ref failed);
+                generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NAME, CONST.GEN_ATTRS,
+                    models.Import<object>());
+                writers = new Writers(assembly, models, generate, logger);
+                readers = new Readers(assembly, models, generate, logger);
+                change = StreamingProcess.Process(assembly, resolver, logger, writers, readers, ref failed);
 
-                ModuleDefinition moduleDefinition = currentAssembly.MainModule;
+                var mainModule = assembly.MainModule;
 
-                change |= ProcessModule(moduleDefinition);
+                change |= ProcessModule(mainModule);
+                logger.Warn($"{assembly.Name}, Dirty={change}");
                 if (failed)
                 {
                     return false;
@@ -57,9 +56,9 @@ namespace JFramework.Editor
 
                 if (change)
                 {
-                    SyncVarProcessReplace.Process(moduleDefinition);
-                    moduleDefinition.Types.Add(generate);
-                    StreamingProcess.StreamingInitialize(currentAssembly, model, writers, readers, generate);
+                    SyncVarProcessReplace.Process(mainModule);
+                    mainModule.Types.Add(generate);
+                    StreamingProcess.StreamingInitialize(assembly, models, writers, readers, generate);
                 }
 
                 return true;
@@ -75,25 +74,26 @@ namespace JFramework.Editor
                 SyncVarHelpers.Clear();
             }
         }
-        
+
         /// <summary>
         /// 处理 NetworkBehaviour
         /// </summary>
         /// <param name="td"></param>
+        /// <param name="failed"></param>
         /// <returns></returns>
-        private bool ProcessNetworkBehavior(TypeDefinition td)
+        private bool ProcessNetworkBehavior(TypeDefinition td, ref bool failed)
         {
-            
             if (!td.IsClass) return false;
             if (!td.IsDerivedFrom<NetworkBehaviour>())
             {
                 if (td.IsDerivedFrom<MonoBehaviour>())
                 {
-                    MonoBehaviourProcess.Process(logger, td);
+                    MonoBehaviourProcess.Process(td, logger, ref failed);
                 }
+
                 return false;
             }
-           
+
             var behaviourClasses = new List<TypeDefinition>();
 
             TypeDefinition parent = td;
@@ -118,11 +118,14 @@ namespace JFramework.Editor
             bool changed = false;
             foreach (TypeDefinition behaviour in behaviourClasses)
             {
-                changed |= new NetworkBehaviourProcess(currentAssembly, model,  writers, readers, logger, behaviour).Process();
+                changed |=
+                    new NetworkBehaviourProcess(assembly, models, writers, readers, logger, behaviour).Process(
+                        ref failed);
             }
+
             return changed;
         }
-        
+
         /// <summary>
         /// 处理功能
         /// </summary>
@@ -130,7 +133,8 @@ namespace JFramework.Editor
         /// <returns></returns>
         private bool ProcessModule(ModuleDefinition moduleDefinition)
         {
-            return moduleDefinition.Types.Where(td => td.IsClass && td.BaseType.CanBeResolved()).Aggregate(false, (current, td) => current | ProcessNetworkBehavior(td));
+            return moduleDefinition.Types.Where(td => td.IsClass && td.BaseType.CanBeResolved()).Aggregate(false,
+                (current, td) => current | ProcessNetworkBehavior(td, ref failed));
         }
 
         /// <summary>
@@ -142,7 +146,8 @@ namespace JFramework.Editor
         public static string GenerateMethodName(string prefix, MethodDefinition md)
         {
             prefix += md.Name;
-            return md.Parameters.Aggregate(prefix, (str, definition) => str + $"{NetworkMessage.GetHashByName(definition.ParameterType.Name)}");
+            return md.Parameters.Aggregate(prefix,
+                (str, definition) => str + $"{NetworkMessage.GetHashByName(definition.ParameterType.Name)}");
         }
     }
 }

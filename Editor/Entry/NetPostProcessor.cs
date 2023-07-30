@@ -66,7 +66,7 @@ namespace JFramework.Editor
             resolver.SetAssemblyDefinitionForCompiledAssembly(definition);
             var process = new Process(logger);
           
-            if (!process.Execute(definition, resolver) || !Editor.Process.change)
+            if (!process.Execute(definition, resolver,out bool change) || !change)
             {
                 return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, logger.logs);
             }
