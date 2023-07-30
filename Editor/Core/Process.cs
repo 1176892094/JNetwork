@@ -69,10 +69,6 @@ namespace JFramework.Editor
                 logger.Error(e.ToString());
                 return false;
             }
-            finally
-            {
-                access.Clear();
-            }
         }
 
         /// <summary>
