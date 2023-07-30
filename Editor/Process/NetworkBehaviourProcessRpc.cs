@@ -11,12 +11,12 @@ namespace JFramework.Editor
         /// </summary>
         private void ProcessRpcMethods(ref bool failed)
         {
-            HashSet<string> names = new HashSet<string>();
-            List<MethodDefinition> methods = new List<MethodDefinition>(generateCode.Methods);
+            var names = new HashSet<string>();
+            var methods = new List<MethodDefinition>(generate.Methods);
 
-            foreach (MethodDefinition md in methods)
+            foreach (var md in methods)
             {
-                foreach (CustomAttribute ca in md.CustomAttributes)
+                foreach (var ca in md.CustomAttributes)
                 {
                     if (ca.AttributeType.Is<ServerRpcAttribute>())
                     {
@@ -60,14 +60,11 @@ namespace JFramework.Editor
                 return;
             }
 
-
             names.Add(md.Name);
             clientRpcList.Add(md);
-            MethodDefinition func =
-                NetworkRpcProcess.ProcessClientRpcInvoke(models, writers, logger, generateCode, md, rpc, ref failed);
+            var func = NetworkRpcProcess.ProcessClientRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
             if (func == null) return;
-            MethodDefinition rpcFunc =
-                NetworkRpcProcess.ProcessClientRpc(models, readers, logger, generateCode, md, func, ref failed);
+            var rpcFunc = NetworkRpcProcess.ProcessClientRpc(models, readers, logger, generate, md, func, ref failed);
             if (rpcFunc != null)
             {
                 clientRpcFuncList.Add(rpcFunc);
@@ -97,11 +94,9 @@ namespace JFramework.Editor
 
             names.Add(md.Name);
             serverRpcList.Add(md);
-            MethodDefinition func =
-                NetworkRpcProcess.ProcessServerRpcInvoke(models, writers, logger, generateCode, md, rpc, ref failed);
+            var func = NetworkRpcProcess.ProcessServerRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
             if (func == null) return;
-            MethodDefinition rpcFunc =
-                NetworkRpcProcess.ProcessServerRpc(models, readers, logger, generateCode, md, func, ref failed);
+            var rpcFunc = NetworkRpcProcess.ProcessServerRpc(models, readers, logger, generate, md, func, ref failed);
             if (rpcFunc != null)
             {
                 serverRpcFuncList.Add(rpcFunc);
@@ -131,8 +126,8 @@ namespace JFramework.Editor
 
             names.Add(md.Name);
             targetRpcList.Add(md);
-            MethodDefinition func = NetworkRpcProcess.ProcessTargetRpcInvoke(models, writers, logger, generateCode, md, rpc, ref failed);
-            MethodDefinition rpcFunc = NetworkRpcProcess.ProcessTargetRpc(models, readers, logger, generateCode, md, func, ref failed);
+            var func = NetworkRpcProcess.ProcessTargetRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
+            var rpcFunc = NetworkRpcProcess.ProcessTargetRpc(models, readers, logger, generate, md, func, ref failed);
             if (rpcFunc != null)
             {
                 targetRpcFuncList.Add(rpcFunc);
@@ -142,40 +137,40 @@ namespace JFramework.Editor
         /// <summary>
         /// 判断是否为非静态方法
         /// </summary>
-        /// <param name="method"></param>
+        /// <param name="md"></param>
         /// <param name="rpcType"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private bool IsValidMethod(MethodDefinition method, RpcType rpcType, ref bool failed)
+        private bool IsValidMethod(MethodDefinition md, RpcType rpcType, ref bool failed)
         {
-            if (method.IsStatic)
+            if (md.IsStatic)
             {
-                logger.Error($"{method.Name} 方法不能是静态的。", method);
+                logger.Error($"{md.Name} 方法不能是静态的。", md);
                 failed = true;
                 return false;
             }
 
-            return IsValidFunc(method, ref failed) && IsValidParams(method, rpcType, ref failed);
+            return IsValidFunc(md, ref failed) && IsValidParams(md, rpcType, ref failed);
         }
 
         /// <summary>
         /// 判断是否为有效Rpc
         /// </summary>
-        /// <param name="md"></param>
+        /// <param name="mr"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private bool IsValidFunc(MethodReference md, ref bool failed)
+        private bool IsValidFunc(MethodReference mr, ref bool failed)
         {
-            if (!md.ReturnType.Is(typeof(void)))
+            if (!mr.ReturnType.Is(typeof(void)))
             {
-                logger.Error($"{md.Name} 方法不能有返回值。", md);
+                logger.Error($"{mr.Name} 方法不能有返回值。", mr);
                 failed = true;
                 return false;
             }
 
-            if (md.HasGenericParameters)
+            if (mr.HasGenericParameters)
             {
-                logger.Error($"{md.Name} 方法不能有泛型参数。", md);
+                logger.Error($"{mr.Name} 方法不能有泛型参数。", mr);
                 failed = true;
                 return false;
             }
@@ -186,16 +181,16 @@ namespace JFramework.Editor
         /// <summary>
         /// 判断Rpc携带的参数
         /// </summary>
-        /// <param name="method"></param>
+        /// <param name="mr"></param>
         /// <param name="rpcType"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private bool IsValidParams(MethodReference method, RpcType rpcType, ref bool failed)
+        private bool IsValidParams(MethodReference mr, RpcType rpcType, ref bool failed)
         {
-            for (int i = 0; i < method.Parameters.Count; ++i)
+            for (int i = 0; i < mr.Parameters.Count; ++i)
             {
-                ParameterDefinition param = method.Parameters[i];
-                if (!IsValidParam(method, param, rpcType, i == 0, ref failed))
+                ParameterDefinition param = mr.Parameters[i];
+                if (!IsValidParam(mr, param, rpcType, i == 0, ref failed))
                 {
                     return false;
                 }
@@ -213,8 +208,7 @@ namespace JFramework.Editor
         /// <param name="firstParam"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private bool IsValidParam(MethodReference method, ParameterDefinition param, RpcType rpcType, bool firstParam,
-            ref bool failed)
+        private bool IsValidParam(MethodReference method, ParameterDefinition param, RpcType rpcType, bool firstParam, ref bool failed)
         {
             if (param.ParameterType.IsGenericParameter)
             {
@@ -223,8 +217,8 @@ namespace JFramework.Editor
                 return false;
             }
 
-            bool isNetworkConnection = param.ParameterType.Is<Connection>();
-            bool isSenderConnection = NetworkRpcProcess.IsSenderConnection(param, rpcType);
+            bool connection = param.ParameterType.Is<Connection>();
+            bool sendTarget = NetworkRpcProcess.IsSendTarget(param, rpcType);
 
             if (param.IsOut)
             {
@@ -233,14 +227,14 @@ namespace JFramework.Editor
                 return false;
             }
 
-            if (!isSenderConnection && isNetworkConnection && !(rpcType == RpcType.TargetRpc && firstParam))
+            if (!sendTarget && connection && !(rpcType == RpcType.TargetRpc && firstParam))
             {
                 logger.Error($"{method.Name} 方法无效的参数 {param}，不能传递网络连接。", method);
                 failed = true;
                 return false;
             }
 
-            if (param.IsOptional && !isSenderConnection)
+            if (param.IsOptional && !sendTarget)
             {
                 logger.Error($"{method.Name} 方法不能有可选参数。", method);
                 failed = true;

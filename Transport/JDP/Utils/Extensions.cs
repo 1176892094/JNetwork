@@ -134,8 +134,8 @@ namespace JFramework.Udp
             }
             catch (SocketException)
             {
-                Log.Warn($"发送缓存: {sendSize} => {sendBase} : {(sendBase / sendSize).ToString("F")}");
-                Log.Warn($"接收缓存: {receiveSize} => {receiveSize} : {(receiveBase / receiveSize).ToString("F")}");
+                Log.Info($"发送缓存: {sendSize} => {sendBase} : {(sendBase / sendSize).ToString("F")}");
+                Log.Info($"接收缓存: {receiveSize} => {receiveSize} : {(receiveBase / receiveSize).ToString("F")}");
             }
         }
     }

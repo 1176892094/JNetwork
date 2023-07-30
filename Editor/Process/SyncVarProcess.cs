@@ -12,13 +12,15 @@ namespace JFramework.Editor
     {
         private readonly Logger logger;
         private readonly Models models;
+        private readonly SyncVarAccess access;
         private readonly AssemblyDefinition assembly;
 
-        public SyncVarProcess(AssemblyDefinition assembly, Models models, Logger logger)
+        public SyncVarProcess(AssemblyDefinition assembly,SyncVarAccess access, Models models, Logger logger)
         {
-            this.assembly = assembly;
-            this.models = models;
             this.logger = logger;
+            this.access = access;
+            this.models = models;
+            this.assembly = assembly;
         }
 
         /// <summary>
@@ -27,15 +29,13 @@ namespace JFramework.Editor
         /// <param name="syncVar"></param>
         /// <param name="worker"></param>
         /// <param name="hookMethod"></param>
-        public void GenerateNewActionFromHookMethod(FieldDefinition syncVar, ILProcessor worker,
-            MethodDefinition hookMethod)
+        public void GenerateNewActionFromHookMethod(FieldDefinition syncVar, ILProcessor worker, MethodDefinition hookMethod)
         {
             worker.Emit(hookMethod.IsStatic ? OpCodes.Ldnull : OpCodes.Ldarg_0);
             MethodReference hookMethodRef;
             if (hookMethod.DeclaringType.HasGenericParameters)
             {
-                var instanceType = hookMethod.DeclaringType.MakeGenericInstanceType(hookMethod.DeclaringType
-                    .GenericParameters.Cast<TypeReference>().ToArray());
+                var instanceType = hookMethod.DeclaringType.MakeGenericInstanceType(hookMethod.DeclaringType.GenericParameters.Cast<TypeReference>().ToArray());
                 hookMethodRef = hookMethod.MakeHostInstanceGeneric(hookMethod.Module, instanceType);
             }
             else
@@ -53,11 +53,9 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldftn, hookMethodRef);
             }
 
-            TypeReference actionRef = assembly.MainModule.ImportReference(typeof(Action<,>));
-            GenericInstanceType genericInstance =
-                actionRef.MakeGenericInstanceType(syncVar.FieldType, syncVar.FieldType);
-            worker.Emit(OpCodes.Newobj,
-                models.HookMethodRef.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
+            var actionRef = assembly.MainModule.ImportReference(typeof(Action<,>));
+            var genericInstance = actionRef.MakeGenericInstanceType(syncVar.FieldType, syncVar.FieldType);
+            worker.Emit(OpCodes.Newobj, models.HookMethodRef.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
         }
 
         /// <summary>
@@ -69,7 +67,7 @@ namespace JFramework.Editor
         /// <returns></returns>
         public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition syncVar, ref bool failed)
         {
-            CustomAttribute attribute = syncVar.GetCustomAttribute<SyncVarAttribute>();
+            var attribute = syncVar.GetCustomAttribute<SyncVarAttribute>();
             string hookMethod = attribute.GetField<string>(null);
             return hookMethod == null ? null : FindHookMethod(td, syncVar, hookMethod, ref failed);
         }
@@ -78,54 +76,50 @@ namespace JFramework.Editor
         /// 寻找挂钩方法
         /// </summary>
         /// <param name="td"></param>
-        /// <param name="serverVar"></param>
+        /// <param name="syncVar"></param>
         /// <param name="hookMethod"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private MethodDefinition FindHookMethod(TypeDefinition td, FieldDefinition serverVar, string hookMethod,
-            ref bool failed)
+        private MethodDefinition FindHookMethod(TypeDefinition td, FieldDefinition syncVar, string hookMethod, ref bool failed)
         {
-            List<MethodDefinition> methods = td.GetMethods(hookMethod);
+            var methods = td.GetMethods(hookMethod);
 
-            List<MethodDefinition> fixMethods =
-                new List<MethodDefinition>(methods.Where(method => method.Parameters.Count == 2));
+            var fixMethods = new List<MethodDefinition>(methods.Where(method => method.Parameters.Count == 2));
 
             if (fixMethods.Count == 0)
             {
-                logger.Error($"无法注册 {serverVar.Name} 请修改为 {HookMethod(hookMethod, serverVar.FieldType)}", serverVar);
+                logger.Error($"无法注册 {syncVar.Name} 请修改为 {HookMethod(hookMethod, syncVar.FieldType)}", syncVar);
                 failed = true;
                 return null;
             }
 
-            foreach (var method in fixMethods.Where(method => MatchesParameters(serverVar, method)))
+            foreach (var method in fixMethods.Where(method => MatchesParameters(syncVar, method)))
             {
                 return method;
             }
 
-            logger.Error($"参数类型错误 {serverVar.Name} 请修改为 {HookMethod(hookMethod, serverVar.FieldType)}", serverVar);
+            logger.Error($"参数类型错误 {syncVar.Name} 请修改为 {HookMethod(hookMethod, syncVar.FieldType)}", syncVar);
             failed = true;
             return null;
         }
 
         /// <summary>
-        /// 钩子方法的模版
+        /// 挂钩方法的模版
         /// </summary>
         /// <param name="name"></param>
         /// <param name="valueType"></param>
         /// <returns></returns>
-        private static string HookMethod(string name, TypeReference valueType) =>
-            $"void {name}({valueType} oldValue, {valueType} newValue)";
+        private static string HookMethod(string name, TypeReference valueType) => $"void {name}({valueType} oldValue, {valueType} newValue)";
 
         /// <summary>
         /// 参数配对
         /// </summary>
-        /// <param name="serverVar"></param>
-        /// <param name="method"></param>
+        /// <param name="syncVar"></param>
+        /// <param name="md"></param>
         /// <returns></returns>
-        private static bool MatchesParameters(FieldDefinition serverVar, MethodDefinition method)
+        private static bool MatchesParameters(FieldDefinition syncVar, MethodDefinition md)
         {
-            return method.Parameters[0].ParameterType.FullName == serverVar.FieldType.FullName &&
-                   method.Parameters[1].ParameterType.FullName == serverVar.FieldType.FullName;
+            return md.Parameters[0].ParameterType.FullName == syncVar.FieldType.FullName && md.Parameters[1].ParameterType.FullName == syncVar.FieldType.FullName;
         }
 
         /// <summary>
@@ -136,10 +130,9 @@ namespace JFramework.Editor
         /// <returns></returns>
         public (List<FieldDefinition> syncVars, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds) ProcessSyncVars(TypeDefinition td, ref bool failed)
         {
-            List<FieldDefinition> syncVars = new List<FieldDefinition>();
-            Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds =
-                new Dictionary<FieldDefinition, FieldDefinition>();
-            int dirtyBitCounter = SyncVarHelpers.GetSyncVar(td.BaseType.FullName);
+            var syncVars = new List<FieldDefinition>();
+            var syncVarIds = new Dictionary<FieldDefinition, FieldDefinition>();
+            int dirtyBits = access.GetSyncVar(td.BaseType.FullName);
 
             foreach (var fd in td.Fields.Where(fd => fd.HasCustomAttribute<SyncVarAttribute>()))
             {
@@ -166,24 +159,24 @@ namespace JFramework.Editor
 
                 syncVars.Add(fd);
 
-                ProcessSyncVar(td, fd, syncVarNetIds, 1L << dirtyBitCounter, ref failed);
-                dirtyBitCounter += 1;
+                ProcessSyncVar(td, fd, syncVarIds, 1L << dirtyBits, ref failed);
+                dirtyBits += 1;
 
-                if (dirtyBitCounter > CONST.SYNC_LIMIT)
+                if (dirtyBits > CONST.SYNC_LIMIT)
                 {
                     logger.Error($"{td.Name} 网络变量数量大于 {CONST.SYNC_LIMIT}。", td);
                     failed = true;
                 }
             }
 
-            foreach (FieldDefinition fd in syncVarNetIds.Values)
+            foreach (var fd in syncVarIds.Values)
             {
                 td.Fields.Add(fd);
             }
 
-            int parentSyncVarCount = SyncVarHelpers.GetSyncVar(td.BaseType.FullName);
-            SyncVarHelpers.SetSyncVar(td.FullName, parentSyncVarCount + syncVars.Count);
-            return (syncVars, syncVarNetIds);
+            int parentSyncVarCount = access.GetSyncVar(td.BaseType.FullName);
+            access.SetSyncVar(td.FullName, parentSyncVarCount + syncVars.Count);
+            return (syncVars, syncVarIds);
         }
 
         /// <summary>
@@ -191,49 +184,47 @@ namespace JFramework.Editor
         /// </summary>
         /// <param name="td"></param>
         /// <param name="fd"></param>
-        /// <param name="syncVarNetIds"></param>
-        /// <param name="dirtyBit"></param>
+        /// <param name="syncVarIds"></param>
+        /// <param name="dirtyBits"></param>
         /// <param name="failed"></param>
-        private void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarNetIds, long dirtyBit, ref bool failed)
+        private void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarIds, long dirtyBits, ref bool failed)
         {
-            string originalName = fd.Name;
-
-            FieldDefinition netIdField = null;
+            FieldDefinition objectId = null;
             if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
             {
-                netIdField = new FieldDefinition($"{fd.Name}Id", FieldAttributes.Family, models.Import<NetworkValue>());
-                netIdField.DeclaringType = td;
-                syncVarNetIds[fd] = netIdField;
+                objectId = new FieldDefinition($"{fd.Name}Id", FieldAttributes.Family, models.Import<NetworkValue>())
+                {
+                    DeclaringType = td
+                };
+                syncVarIds[fd] = objectId;
             }
             else if (fd.FieldType.IsNetworkObjectField())
             {
-                netIdField = new FieldDefinition($"{fd.Name}Id", FieldAttributes.Family, models.Import<uint>());
-                netIdField.DeclaringType = td;
-
-                syncVarNetIds[fd] = netIdField;
+                objectId = new FieldDefinition($"{fd.Name}Id", FieldAttributes.Family, models.Import<uint>())
+                {
+                    DeclaringType = td
+                };
+                syncVarIds[fd] = objectId;
             }
 
-            MethodDefinition get = GenerateSyncVarGetter(fd, originalName, netIdField);
-            MethodDefinition set = GenerateSyncVarSetter(td, fd, originalName, dirtyBit, netIdField, ref failed);
-
-
-            PropertyDefinition propertyDefinition =
-                new PropertyDefinition($"Network{originalName}", PropertyAttributes.None, fd.FieldType)
-                {
-                    GetMethod = get,
-                    SetMethod = set
-                };
-
+            var get = GenerateSyncVarGetter(fd, fd.Name, objectId);
+            var set = GenerateSyncVarSetter(td, fd, fd.Name, dirtyBits, objectId, ref failed);
+            
+            var pd = new PropertyDefinition($"Network{fd.Name}", PropertyAttributes.None, fd.FieldType)
+            {
+                GetMethod = get,
+                SetMethod = set
+            };
 
             td.Methods.Add(get);
             td.Methods.Add(set);
-            td.Properties.Add(propertyDefinition);
+            td.Properties.Add(pd);
 
-            SyncVarHelpers.setter[fd] = set;
+            access.setter[fd] = set;
 
             if (fd.FieldType.IsNetworkObjectField())
             {
-                SyncVarHelpers.getter[fd] = get;
+                access.getter[fd] = get;
             }
         }
 
@@ -244,8 +235,7 @@ namespace JFramework.Editor
         /// <param name="originalName"></param>
         /// <param name="netFieldId"></param>
         /// <returns></returns>
-        private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string originalName,
-            FieldDefinition netFieldId)
+        private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string originalName, FieldDefinition netFieldId)
         {
             MethodDefinition get = new MethodDefinition($"get_Network{originalName}", CONST.VAR_ATTRS, fd.FieldType);
 

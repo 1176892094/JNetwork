@@ -11,13 +11,12 @@ namespace JFramework.Editor
         private void InjectStaticConstructor(ref bool failed)
         {
             if (serverRpcList.Count == 0 && clientRpcList.Count == 0 && targetRpcList.Count == 0) return;
-            MethodDefinition cctor = generateCode.GetMethod(".cctor");
-            bool cctorFound = cctor != null;
+            MethodDefinition cctor = generate.GetMethod(".cctor");
             if (cctor != null)
             {
                 if (!RemoveFinalRetInstruction(cctor))
                 {
-                    logger.Error($"{generateCode.Name} 无效的静态构造函数。", cctor);
+                    logger.Error($"{generate.Name} 无效的静态构造函数。", cctor);
                     failed = true;
                     return;
                 }
@@ -27,46 +26,40 @@ namespace JFramework.Editor
                 cctor = new MethodDefinition(".cctor",CONST.CTOR_ATTRS, models.Import(typeof(void)));
             }
 
-            ILProcessor cctorWorker = cctor.Body.GetILProcessor();
+            ILProcessor worker = cctor.Body.GetILProcessor();
             for (int i = 0; i < serverRpcList.Count; ++i)
             {
-                var result = serverRpcList[i];
-                GenerateRegisterServerRpcDelegate(cctorWorker, models.registerServerRpcRef, serverRpcFuncList[i], result);
+                GenerateServerRpcDelegate(worker, models.registerServerRpcRef, serverRpcFuncList[i], serverRpcList[i].FullName);
             }
             
             for (int i = 0; i < clientRpcList.Count; ++i)
             {
-                var result = clientRpcList[i];
-                GenerateRegisterClientRpcDelegate(cctorWorker, models.registerClientRpcRef, clientRpcFuncList[i], result.FullName);
+                GenerateClientRpcDelegate(worker, models.registerClientRpcRef, clientRpcFuncList[i], clientRpcList[i].FullName);
             }
             
             for (int i = 0; i < targetRpcList.Count; ++i)
             {
-                GenerateRegisterClientRpcDelegate(cctorWorker, models.registerClientRpcRef, targetRpcFuncList[i], targetRpcList[i].FullName);
+                GenerateClientRpcDelegate(worker, models.registerClientRpcRef, targetRpcFuncList[i], targetRpcList[i].FullName);
             }
             
-            cctorWorker.Append(cctorWorker.Create(OpCodes.Ret));
-            if (!cctorFound)
-            {
-                generateCode.Methods.Add(cctor);
-            }
-            
-            generateCode.Attributes &= ~TypeAttributes.BeforeFieldInit;
+            worker.Append(worker.Create(OpCodes.Ret));
+            generate.Methods.Add(cctor);
+            generate.Attributes &= ~TypeAttributes.BeforeFieldInit;
         }
         
         /// <summary>
         /// 判断自身静态构造函数是否被创建
         /// </summary>
-        /// <param name="method"></param>
+        /// <param name="md"></param>
         /// <returns></returns>
-        private static bool RemoveFinalRetInstruction(MethodDefinition method)
+        private static bool RemoveFinalRetInstruction(MethodDefinition md)
         {
-            if (method.Body.Instructions.Count != 0)
+            if (md.Body.Instructions.Count != 0)
             {
-                Instruction retInstr = method.Body.Instructions[^1];
+                Instruction retInstr = md.Body.Instructions[^1];
                 if (retInstr.OpCode == OpCodes.Ret)
                 {
-                    method.Body.Instructions.RemoveAt(method.Body.Instructions.Count - 1);
+                    md.Body.Instructions.RemoveAt(md.Body.Instructions.Count - 1);
                     return true;
                 }
                 return false;
@@ -79,37 +72,36 @@ namespace JFramework.Editor
         /// 在静态构造函数中注入ClientRpc委托
         /// </summary>
         /// <param name="worker"></param>
-        /// <param name="registerMethod"></param>
+        /// <param name="mr"></param>
+        /// <param name="md"></param>
         /// <param name="func"></param>
-        /// <param name="functionFullName"></param>
-        private void GenerateRegisterClientRpcDelegate(ILProcessor worker, MethodReference registerMethod, MethodDefinition func, string functionFullName)
+        private void GenerateClientRpcDelegate(ILProcessor worker, MethodReference mr, MethodDefinition md, string func)
         {
-            worker.Emit(OpCodes.Ldtoken, generateCode);
+            worker.Emit(OpCodes.Ldtoken, generate);
             worker.Emit(OpCodes.Call, models.getTypeFromHandleRef);
-            worker.Emit(OpCodes.Ldstr, functionFullName);
+            worker.Emit(OpCodes.Ldstr, func);
             worker.Emit(OpCodes.Ldnull);
-            worker.Emit(OpCodes.Ldftn, func);
+            worker.Emit(OpCodes.Ldftn, md);
             worker.Emit(OpCodes.Newobj, models.RpcDelegateRef);
-            worker.Emit(OpCodes.Call, registerMethod);
+            worker.Emit(OpCodes.Call, mr);
         }
 
         /// <summary>
         /// 在静态构造函数中注入ServerRpc委托
         /// </summary>
         /// <param name="worker"></param>
-        /// <param name="registerMethod"></param>
+        /// <param name="mr"></param>
+        /// <param name="md"></param>
         /// <param name="func"></param>
-        /// <param name="rpcResult"></param>
-        private void GenerateRegisterServerRpcDelegate(ILProcessor worker, MethodReference registerMethod, MethodDefinition func, MethodDefinition rpcResult)
+        private void GenerateServerRpcDelegate(ILProcessor worker, MethodReference mr, MethodDefinition md, string func)
         {
-            string rpcName = rpcResult.FullName;
-            worker.Emit(OpCodes.Ldtoken, generateCode);
+            worker.Emit(OpCodes.Ldtoken, generate);
             worker.Emit(OpCodes.Call, models.getTypeFromHandleRef);
-            worker.Emit(OpCodes.Ldstr, rpcName);
+            worker.Emit(OpCodes.Ldstr, func);
             worker.Emit(OpCodes.Ldnull);
-            worker.Emit(OpCodes.Ldftn, func);
+            worker.Emit(OpCodes.Ldftn, md);
             worker.Emit(OpCodes.Newobj, models.RpcDelegateRef);
-            worker.Emit(OpCodes.Call, registerMethod);
+            worker.Emit(OpCodes.Call, mr);
         }
     }
 }

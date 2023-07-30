@@ -13,7 +13,9 @@ namespace JFramework.Editor
         private readonly Logger logger;
         private readonly Writers writers;
         private readonly Readers readers;
+        private readonly SyncVarAccess access;
         private readonly TypeDefinition type;
+        private readonly TypeDefinition generate;
         private readonly SyncVarProcess process;
         private readonly AssemblyDefinition assembly;
         private readonly List<MethodDefinition> serverRpcList = new List<MethodDefinition>();
@@ -22,26 +24,23 @@ namespace JFramework.Editor
         private readonly List<MethodDefinition> clientRpcFuncList = new List<MethodDefinition>();
         private readonly List<MethodDefinition> targetRpcList = new List<MethodDefinition>();
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
-      
 
-        private readonly TypeDefinition generateCode;
-
-        public NetworkBehaviourProcess(AssemblyDefinition assembly, Models models, Writers writers, Readers readers,
-            Logger logger, TypeDefinition type)
+        public NetworkBehaviourProcess(AssemblyDefinition assembly,SyncVarAccess access, Models models, Writers writers, Readers readers, Logger logger, TypeDefinition type)
         {
+            generate = type;
             this.type = type;
             this.models = models;
+            this.access = access;
             this.logger = logger;
             this.writers = writers;
             this.readers = readers;
             this.assembly = assembly;
-            process = new SyncVarProcess(assembly, models, logger);
-            generateCode = this.type;
+            process = new SyncVarProcess(assembly,access, models, logger);
         }
 
         public bool Process(ref bool failed)
         {
-            if (WasProcessed(type))
+            if (type.GetMethod(CONST.GEN_FUNC) != null)
             {
                 return false;
             }
@@ -70,41 +69,31 @@ namespace JFramework.Editor
             return true;
         }
 
-        private static bool WasProcessed(TypeDefinition td)
-        {
-            return td.GetMethod(CONST.GEN_FUNC) != null;
-        }
-
         private void MarkAsProcessed(TypeDefinition td)
         {
-            if (!WasProcessed(td))
-            {
-                MethodDefinition versionMethod = new MethodDefinition(CONST.GEN_FUNC, MethodAttributes.Private,
-                    models.Import(typeof(void)));
-                ILProcessor worker = versionMethod.Body.GetILProcessor();
-                worker.Emit(OpCodes.Ret);
-                td.Methods.Add(versionMethod);
-            }
+            var versionMethod = new MethodDefinition(CONST.GEN_FUNC, MethodAttributes.Private, models.Import(typeof(void)));
+            var worker = versionMethod.Body.GetILProcessor();
+            worker.Emit(OpCodes.Ret);
+            td.Methods.Add(versionMethod);
         }
 
-        public static void WriteSetupLocals(ILProcessor worker, Models models)
+        public static void WriteInitLocals(ILProcessor worker, Models models)
         {
             worker.Body.InitLocals = true;
             worker.Body.Variables.Add(new VariableDefinition(models.Import<NetworkWriter>()));
         }
 
-        public static void WriteGetWriter(ILProcessor worker, Models models)
+        public static void WritePopWriter(ILProcessor worker, Models models)
         {
             worker.Emit(OpCodes.Call, models.PopWriterRef);
             worker.Emit(OpCodes.Stloc_0);
         }
 
-        public static void WriteReturnWriter(ILProcessor worker, Models models)
+        public static void WritePushWriter(ILProcessor worker, Models models)
         {
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Call, models.PushWriterRef);
         }
-
 
         public static void AddInvokeParameters(Models models, ICollection<ParameterDefinition> collection)
         {

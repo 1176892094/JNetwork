@@ -12,20 +12,15 @@ namespace JFramework.Editor
         /// </summary>
         private void GenerateSerialize(ref bool failed)
         {
-            if (generateCode.GetMethod(CONST.SER_METHOD) != null) return;
+            if (generate.GetMethod(CONST.SER_METHOD) != null) return;
             if (syncVars.Count == 0) return;
-
-            MethodDefinition serialize =
-                new MethodDefinition(CONST.SER_METHOD, CONST.SER_ATTRS, models.Import(typeof(void)));
-
-            serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None,
-                models.Import<NetworkWriter>()));
+            var serialize = new MethodDefinition(CONST.SER_METHOD, CONST.SER_ATTRS, models.Import(typeof(void)));
+            serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, models.Import<NetworkWriter>()));
             serialize.Parameters.Add(new ParameterDefinition("start", ParameterAttributes.None, models.Import<bool>()));
-            ILProcessor worker = serialize.Body.GetILProcessor();
+            var worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
-            MethodReference baseSerialize =
-                Utils.TryResolveMethodInParents(generateCode.BaseType, assembly, CONST.SER_METHOD);
+            var baseSerialize = Utils.TryResolveMethodInParents(generate.BaseType, assembly, CONST.SER_METHOD);
             if (baseSerialize != null)
             {
                 worker.Emit(OpCodes.Ldarg_0);
@@ -37,11 +32,10 @@ namespace JFramework.Editor
             Instruction isStart = worker.Create(OpCodes.Nop);
             worker.Emit(OpCodes.Ldarg_2);
             worker.Emit(OpCodes.Brfalse, isStart);
-            foreach (FieldDefinition syncVarDef in syncVars)
+            foreach (var syncVarDef in syncVars)
             {
                 FieldReference syncVar = syncVarDef;
-
-                if (generateCode.HasGenericParameters)
+                if (generate.HasGenericParameters)
                 {
                     syncVar = syncVarDef.MakeHostInstanceGeneric();
                 }
@@ -49,9 +43,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
-                MethodReference writeFunc = writers.GetWriteFunc(syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>()
-                    ? models.Import<NetworkBehaviour>()
-                    : syncVar.FieldType,ref failed);
+                var writeFunc = writers.GetWriteFunc(syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? models.Import<NetworkBehaviour>() : syncVar.FieldType, ref failed);
 
                 if (writeFunc != null)
                 {
@@ -70,18 +62,18 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Call, models.NetworkBehaviourDirtyRef);
-            MethodReference writeUint64Func = writers.GetWriteFunc(models.Import<ulong>(),ref failed);
+            var writeUint64Func = writers.GetWriteFunc(models.Import<ulong>(), ref failed);
             worker.Emit(OpCodes.Call, writeUint64Func);
-            int dirty = SyncVarHelpers.GetSyncVar(generateCode.BaseType.FullName);
-            foreach (FieldDefinition syncVarDef in syncVars)
+            int dirty = access.GetSyncVar(generate.BaseType.FullName);
+            foreach (var syncVarDef in syncVars)
             {
                 FieldReference syncVar = syncVarDef;
-                if (generateCode.HasGenericParameters)
+                if (generate.HasGenericParameters)
                 {
                     syncVar = syncVarDef.MakeHostInstanceGeneric();
                 }
 
-                Instruction varLabel = worker.Create(OpCodes.Nop);
+                var varLabel = worker.Create(OpCodes.Nop);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Call, models.NetworkBehaviourDirtyRef);
                 worker.Emit(OpCodes.Ldc_I8, 1L << dirty);
@@ -91,9 +83,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
 
-                MethodReference writeFunc = writers.GetWriteFunc(syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>()
-                    ? models.Import<NetworkBehaviour>()
-                    : syncVar.FieldType,ref failed);
+                var writeFunc = writers.GetWriteFunc(syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? models.Import<NetworkBehaviour>() : syncVar.FieldType, ref failed);
 
                 if (writeFunc != null)
                 {
@@ -111,7 +101,7 @@ namespace JFramework.Editor
             }
 
             worker.Emit(OpCodes.Ret);
-            generateCode.Methods.Add(serialize);
+            generate.Methods.Add(serialize);
         }
 
         /// <summary>
@@ -119,64 +109,59 @@ namespace JFramework.Editor
         /// </summary>
         private void GenerateDeserialize(ref bool failed)
         {
-            if (generateCode.GetMethod(CONST.DES_METHOD) != null) return;
+            if (generate.GetMethod(CONST.DES_METHOD) != null) return;
             if (syncVars.Count == 0) return;
-
-            MethodDefinition serialize =
-                new MethodDefinition(CONST.DES_METHOD, CONST.SER_ATTRS, models.Import(typeof(void)));
-
-            serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None,
-                models.Import<NetworkReader>()));
+            var serialize = new MethodDefinition(CONST.DES_METHOD, CONST.SER_ATTRS, models.Import(typeof(void)));
+            serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<NetworkReader>()));
             serialize.Parameters.Add(new ParameterDefinition("start", ParameterAttributes.None, models.Import<bool>()));
-            ILProcessor serWorker = serialize.Body.GetILProcessor();
+            var worker = serialize.Body.GetILProcessor();
+            
             serialize.Body.InitLocals = true;
-            VariableDefinition dirtyBitsLocal = new VariableDefinition(models.Import<long>());
+            var dirtyBitsLocal = new VariableDefinition(models.Import<long>());
             serialize.Body.Variables.Add(dirtyBitsLocal);
 
-            MethodReference baseDeserialize =
-                Utils.TryResolveMethodInParents(generateCode.BaseType, assembly, CONST.DES_METHOD);
+            var baseDeserialize = Utils.TryResolveMethodInParents(generate.BaseType, assembly, CONST.DES_METHOD);
             if (baseDeserialize != null)
             {
-                serWorker.Append(serWorker.Create(OpCodes.Ldarg_0));
-                serWorker.Append(serWorker.Create(OpCodes.Ldarg_1));
-                serWorker.Append(serWorker.Create(OpCodes.Ldarg_2));
-                serWorker.Append(serWorker.Create(OpCodes.Call, baseDeserialize));
+                worker.Append(worker.Create(OpCodes.Ldarg_0));
+                worker.Append(worker.Create(OpCodes.Ldarg_1));
+                worker.Append(worker.Create(OpCodes.Ldarg_2));
+                worker.Append(worker.Create(OpCodes.Call, baseDeserialize));
             }
 
-            Instruction isStart = serWorker.Create(OpCodes.Nop);
+            var isStart = worker.Create(OpCodes.Nop);
 
-            serWorker.Append(serWorker.Create(OpCodes.Ldarg_2));
-            serWorker.Append(serWorker.Create(OpCodes.Brfalse, isStart));
+            worker.Append(worker.Create(OpCodes.Ldarg_2));
+            worker.Append(worker.Create(OpCodes.Brfalse, isStart));
 
-            foreach (FieldDefinition syncVar in syncVars)
+            foreach (var syncVar in syncVars)
             {
-                DeserializeField(syncVar, serWorker, ref failed);
+                DeserializeField(syncVar, worker, ref failed);
             }
 
-            serWorker.Append(serWorker.Create(OpCodes.Ret));
-            serWorker.Append(isStart);
-            serWorker.Append(serWorker.Create(OpCodes.Ldarg_1));
-            serWorker.Append(serWorker.Create(OpCodes.Call, readers.GetReadFunc(models.Import<ulong>(),ref failed)));
-            serWorker.Append(serWorker.Create(OpCodes.Stloc_0));
+            worker.Append(worker.Create(OpCodes.Ret));
+            worker.Append(isStart);
+            worker.Append(worker.Create(OpCodes.Ldarg_1));
+            worker.Append(worker.Create(OpCodes.Call, readers.GetReadFunc(models.Import<ulong>(), ref failed)));
+            worker.Append(worker.Create(OpCodes.Stloc_0));
 
-            int dirty = SyncVarHelpers.GetSyncVar(generateCode.BaseType.FullName);
-            foreach (FieldDefinition syncVar in syncVars)
+            int dirtyBits = access.GetSyncVar(generate.BaseType.FullName);
+            foreach (var syncVar in syncVars)
             {
-                Instruction varLabel = serWorker.Create(OpCodes.Nop);
+                var varLabel = worker.Create(OpCodes.Nop);
+                worker.Append(worker.Create(OpCodes.Ldloc_0));
+                worker.Append(worker.Create(OpCodes.Ldc_I8, 1L << dirtyBits));
+                worker.Append(worker.Create(OpCodes.And));
+                worker.Append(worker.Create(OpCodes.Brfalse, varLabel));
 
-                serWorker.Append(serWorker.Create(OpCodes.Ldloc_0));
-                serWorker.Append(serWorker.Create(OpCodes.Ldc_I8, 1L << dirty));
-                serWorker.Append(serWorker.Create(OpCodes.And));
-                serWorker.Append(serWorker.Create(OpCodes.Brfalse, varLabel));
+                DeserializeField(syncVar, worker, ref failed);
 
-                DeserializeField(syncVar, serWorker, ref failed);
-
-                serWorker.Append(varLabel);
-                dirty += 1;
+                worker.Append(varLabel);
+                dirtyBits += 1;
             }
 
-            serWorker.Append(serWorker.Create(OpCodes.Ret));
-            generateCode.Methods.Add(serialize);
+            worker.Append(worker.Create(OpCodes.Ret));
+            generate.Methods.Add(serialize);
         }
 
         /// <summary>
@@ -188,12 +173,10 @@ namespace JFramework.Editor
         private void DeserializeField(FieldDefinition syncVar, ILProcessor worker, ref bool failed)
         {
             worker.Append(worker.Create(OpCodes.Ldarg_0));
-
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Ldflda,
-                generateCode.HasGenericParameters ? syncVar.MakeHostInstanceGeneric() : syncVar);
+            worker.Emit(OpCodes.Ldflda, generate.HasGenericParameters ? syncVar.MakeHostInstanceGeneric() : syncVar);
 
-            MethodDefinition hookMethod = process.GetHookMethod(generateCode, syncVar, ref failed);
+            var hookMethod = process.GetHookMethod(generate, syncVar, ref failed);
             if (hookMethod != null)
             {
                 process.GenerateNewActionFromHookMethod(syncVar, worker, hookMethod);
@@ -205,32 +188,32 @@ namespace JFramework.Editor
 
             if (syncVar.FieldType.Is<GameObject>())
             {
+                var objectId = syncVarIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_1);
-                FieldDefinition netIdField = syncVarIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Ldflda, netIdField);
+                worker.Emit(OpCodes.Ldflda, objectId);
                 worker.Emit(OpCodes.Call, models.syncVarGetterGameObject);
             }
             else if (syncVar.FieldType.Is<NetworkObject>())
             {
+                var objectId = syncVarIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_1);
-                FieldDefinition netIdField = syncVarIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Ldflda, netIdField);
+                worker.Emit(OpCodes.Ldflda, objectId);
                 worker.Emit(OpCodes.Call, models.syncVarGetterNetworkObject);
             }
             else if (syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() || syncVar.FieldType.Is<NetworkBehaviour>())
             {
+                var objectId = syncVarIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_1);
-                FieldDefinition netIdField = syncVarIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Ldflda, netIdField);
-                MethodReference getFunc = models.syncVarGetterNetworkBehaviour.MakeGeneric(assembly.MainModule, syncVar.FieldType);
+                worker.Emit(OpCodes.Ldflda, objectId);
+                var getFunc = models.syncVarGetterNetworkBehaviour.MakeGeneric(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else
             {
-                MethodReference readFunc = readers.GetReadFunc(syncVar.FieldType,ref failed);
+                var readFunc = readers.GetReadFunc(syncVar.FieldType, ref failed);
                 if (readFunc == null)
                 {
                     logger.Error($"不支持 {syncVar.Name} 的类型。", syncVar);
@@ -240,8 +223,7 @@ namespace JFramework.Editor
 
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Call, readFunc);
-                MethodReference generic =
-                    models.syncVarGetterGeneral.MakeGeneric(assembly.MainModule, syncVar.FieldType);
+                MethodReference generic = models.syncVarGetterGeneral.MakeGeneric(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, generic);
             }
         }

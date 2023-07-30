@@ -13,6 +13,7 @@ namespace JFramework.Editor
         private Models models;
         private Writers writers;
         private Readers readers;
+        private SyncVarAccess access;
         private TypeDefinition generate;
         private AssemblyDefinition assembly;
         private readonly Logger logger;
@@ -38,9 +39,9 @@ namespace JFramework.Editor
                     return true;
                 }
 
+                access = new SyncVarAccess();
                 models = new Models(assembly, logger, ref failed);
-                generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NAME, CONST.GEN_ATTRS,
-                    models.Import<object>());
+                generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NAME, CONST.GEN_ATTRS, models.Import<object>());
                 writers = new Writers(assembly, models, generate, logger);
                 readers = new Readers(assembly, models, generate, logger);
                 change = StreamingProcess.Process(assembly, resolver, logger, writers, readers, ref failed);
@@ -48,7 +49,6 @@ namespace JFramework.Editor
                 var mainModule = assembly.MainModule;
 
                 change |= ProcessModule(mainModule);
-                logger.Warn($"{assembly.Name}, Dirty={change}");
                 if (failed)
                 {
                     return false;
@@ -56,7 +56,7 @@ namespace JFramework.Editor
 
                 if (change)
                 {
-                    SyncVarProcessReplace.Process(mainModule);
+                    SyncVarProcessReplace.Process(mainModule, access);
                     mainModule.Types.Add(generate);
                     StreamingProcess.StreamingInitialize(assembly, models, writers, readers, generate);
                 }
@@ -71,7 +71,7 @@ namespace JFramework.Editor
             }
             finally
             {
-                SyncVarHelpers.Clear();
+                access.Clear();
             }
         }
 
@@ -94,7 +94,7 @@ namespace JFramework.Editor
                 return false;
             }
 
-            var behaviourClasses = new List<TypeDefinition>();
+            var behaviours = new List<TypeDefinition>();
 
             TypeDefinition parent = td;
             while (parent != null)
@@ -106,7 +106,7 @@ namespace JFramework.Editor
 
                 try
                 {
-                    behaviourClasses.Insert(0, parent);
+                    behaviours.Insert(0, parent);
                     parent = parent.BaseType.Resolve();
                 }
                 catch (AssemblyResolutionException)
@@ -116,11 +116,9 @@ namespace JFramework.Editor
             }
 
             bool changed = false;
-            foreach (TypeDefinition behaviour in behaviourClasses)
+            foreach (TypeDefinition behaviour in behaviours)
             {
-                changed |=
-                    new NetworkBehaviourProcess(assembly, models, writers, readers, logger, behaviour).Process(
-                        ref failed);
+                changed |= new NetworkBehaviourProcess(assembly,access, models, writers, readers, logger, behaviour).Process(ref failed);
             }
 
             return changed;
@@ -133,8 +131,7 @@ namespace JFramework.Editor
         /// <returns></returns>
         private bool ProcessModule(ModuleDefinition moduleDefinition)
         {
-            return moduleDefinition.Types.Where(td => td.IsClass && td.BaseType.CanBeResolved()).Aggregate(false,
-                (current, td) => current | ProcessNetworkBehavior(td, ref failed));
+            return moduleDefinition.Types.Where(td => td.IsClass && td.BaseType.CanBeResolved()).Aggregate(false, (current, td) => current | ProcessNetworkBehavior(td, ref failed));
         }
 
         /// <summary>
@@ -146,8 +143,7 @@ namespace JFramework.Editor
         public static string GenerateMethodName(string prefix, MethodDefinition md)
         {
             prefix += md.Name;
-            return md.Parameters.Aggregate(prefix,
-                (str, definition) => str + $"{NetworkMessage.GetHashByName(definition.ParameterType.Name)}");
+            return md.Parameters.Aggregate(prefix, (str, definition) => str + $"{NetworkMessage.GetHashByName(definition.ParameterType.Name)}");
         }
     }
 }

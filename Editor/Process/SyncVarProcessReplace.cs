@@ -10,28 +10,30 @@ namespace JFramework.Editor
         /// 用于NetworkBehaviour注入后，修正SyncVar
         /// </summary>
         /// <param name="md"></param>
-        public static void Process(ModuleDefinition md)
+        /// <param name="access"></param>
+        public static void Process(ModuleDefinition md, SyncVarAccess access)
         {
             foreach (var td in md.Types.Where(td => td.IsClass))
             {
-                ProcessClass(td);
+                ProcessClass(td, access);
             }
         }
-        
+
         /// <summary>
         /// 处理类
         /// </summary>
         /// <param name="td"></param>
-        private static void ProcessClass(TypeDefinition td)
+        /// <param name="access"></param>
+        private static void ProcessClass(TypeDefinition td, SyncVarAccess access)
         {
             foreach (MethodDefinition md in td.Methods)
             {
-                ProcessMethod( md);
+                ProcessMethod(md, access);
             }
-            
+
             foreach (TypeDefinition nested in td.NestedTypes)
             {
-                ProcessClass(nested);
+                ProcessClass(nested, access);
             }
         }
 
@@ -39,24 +41,25 @@ namespace JFramework.Editor
         /// 处理方法
         /// </summary>
         /// <param name="md"></param>
-        private static void ProcessMethod(MethodDefinition md)
+        /// <param name="access"></param>
+        private static void ProcessMethod(MethodDefinition md, SyncVarAccess access)
         {
             if (md.Name == ".cctor" || md.Name == CONST.GEN_FUNC || md.Name.StartsWith(CONST.INV_METHOD))
             {
                 return;
             }
-            
+
             if (md.IsAbstract)
             {
                 return;
             }
-            
+
             if (md.Body is { Instructions: not null })
             {
                 for (int i = 0; i < md.Body.Instructions.Count;)
                 {
                     Instruction instr = md.Body.Instructions[i];
-                    i += ProcessInstruction(md, instr, i);
+                    i += ProcessInstruction(md, instr, i, access);
                 }
             }
         }
@@ -67,24 +70,25 @@ namespace JFramework.Editor
         /// <param name="md"></param>
         /// <param name="instr"></param>
         /// <param name="index"></param>
+        /// <param name="access"></param>
         /// <returns></returns>
-        private static int ProcessInstruction(MethodDefinition md, Instruction instr, int index)
+        private static int ProcessInstruction(MethodDefinition md, Instruction instr, int index, SyncVarAccess access)
         {
             if (instr.OpCode == OpCodes.Stfld && instr.Operand is FieldDefinition OpStfLd)
             {
-                ProcessSetInstruction(md, instr, OpStfLd);
+                ProcessSetInstruction(md, instr, OpStfLd, access);
             }
-            
+
             if (instr.OpCode == OpCodes.Ldfld && instr.Operand is FieldDefinition OpLdfLd)
             {
-                ProcessGetInstruction(md, instr, OpLdfLd);
+                ProcessGetInstruction(md, instr, OpLdfLd, access);
             }
-            
+
             if (instr.OpCode == OpCodes.Ldflda && instr.Operand is FieldDefinition OpLdfLda)
             {
-                return ProcessLoadAddressInstruction( md, instr, OpLdfLda, index);
+                return ProcessLoadAddressInstruction(md, instr, OpLdfLda, access, index);
             }
-            
+
             return 1;
         }
 
@@ -94,11 +98,12 @@ namespace JFramework.Editor
         /// <param name="md"></param>
         /// <param name="i"></param>
         /// <param name="opField"></param>
-        private static void ProcessSetInstruction(MethodDefinition md, Instruction i, FieldDefinition opField)
+        /// <param name="access"></param>
+        private static void ProcessSetInstruction(MethodDefinition md, Instruction i, FieldDefinition opField, SyncVarAccess access)
         {
             if (md.Name == ".ctor") return;
 
-            if (SyncVarHelpers.setter.TryGetValue(opField, out MethodDefinition replacement))
+            if (access.setter.TryGetValue(opField, out MethodDefinition replacement))
             {
                 i.OpCode = OpCodes.Call;
                 i.Operand = replacement;
@@ -111,11 +116,12 @@ namespace JFramework.Editor
         /// <param name="md"></param>
         /// <param name="i"></param>
         /// <param name="opField"></param>
-        private static void ProcessGetInstruction(MethodDefinition md, Instruction i, FieldDefinition opField)
+        /// <param name="access"></param>
+        private static void ProcessGetInstruction(MethodDefinition md, Instruction i, FieldDefinition opField, SyncVarAccess access)
         {
             if (md.Name == ".ctor") return;
-            
-            if (SyncVarHelpers.getter.TryGetValue(opField, out MethodDefinition replacement))
+
+            if (access.getter.TryGetValue(opField, out MethodDefinition replacement))
             {
                 i.OpCode = OpCodes.Call;
                 i.Operand = replacement;
@@ -128,13 +134,14 @@ namespace JFramework.Editor
         /// <param name="md"></param>
         /// <param name="instr"></param>
         /// <param name="opField"></param>
+        /// <param name="access"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        private static int ProcessLoadAddressInstruction(MethodDefinition md, Instruction instr, FieldDefinition opField, int index)
+        private static int ProcessLoadAddressInstruction(MethodDefinition md, Instruction instr, FieldDefinition opField,SyncVarAccess access, int index)
         {
             if (md.Name == ".ctor") return 1;
-            
-            if (SyncVarHelpers.setter.TryGetValue(opField, out MethodDefinition replacement))
+
+            if (access.setter.TryGetValue(opField, out MethodDefinition replacement))
             {
                 Instruction nextInstr = md.Body.Instructions[index + 1];
 
