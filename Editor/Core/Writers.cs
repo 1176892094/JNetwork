@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using JFramework.Net;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -12,9 +11,7 @@ namespace JFramework.Editor
 {
     internal class Writers
     {
-        private readonly Dictionary<TypeReference, MethodReference> writeFuncList =
-            new Dictionary<TypeReference, MethodReference>(new Comparer());
-
+        private readonly Dictionary<TypeReference, MethodReference> writeFuncList = new Dictionary<TypeReference, MethodReference>(new Comparer());
         private readonly Models models;
         private readonly Logger logger;
         private readonly TypeDefinition generate;
@@ -22,15 +19,15 @@ namespace JFramework.Editor
 
         public Writers(AssemblyDefinition assembly, Models models, TypeDefinition generate, Logger logger)
         {
-            this.assembly = assembly;
-            this.models = models;
-            this.generate = generate;
             this.logger = logger;
+            this.models = models;
+            this.assembly = assembly;
+            this.generate = generate;
         }
 
         public void Register(TypeReference dataType, MethodReference md)
         {
-            TypeReference imported = assembly.MainModule.ImportReference(dataType);
+            var imported = assembly.MainModule.ImportReference(dataType);
             writeFuncList[imported] = md;
         }
 
@@ -47,108 +44,103 @@ namespace JFramework.Editor
                 return func;
             }
 
-            TypeReference importedVariable = assembly.MainModule.ImportReference(variable);
+            var importedVariable = assembly.MainModule.ImportReference(variable);
             return GenerateWriter(importedVariable, ref failed);
         }
 
-        private MethodReference GenerateWriter(TypeReference variableRef, ref bool failed)
+        private MethodReference GenerateWriter(TypeReference tr, ref bool failed)
         {
-            if (variableRef.IsArray)
+            if (tr.IsArray)
             {
-                if (variableRef.IsMultidimensionalArray())
+                if (tr.IsMultidimensionalArray())
                 {
-                    logger.Error($"无法为多维数组 {variableRef.Name} 生成 Writer", variableRef);
+                    logger.Error($"无法为多维数组 {tr.Name} 生成 Writer", tr);
                 }
 
-                TypeReference elementType = variableRef.GetElementType();
-                return GenerateCollectionWriter(variableRef, elementType, nameof(StreamExtensions.WriteArray),
-                    ref failed);
+                var elementType = tr.GetElementType();
+                return GenerateCollectionWriter(tr, elementType, nameof(StreamExtensions.WriteArray), ref failed);
             }
 
-            if (variableRef.IsByReference)
+            if (tr.IsByReference)
             {
-                logger.Error($"无法为反射 {variableRef.Name} 生成 Writer", variableRef);
+                logger.Error($"无法为反射 {tr.Name} 生成 Writer", tr);
             }
 
-            if (variableRef.Resolve()?.IsEnum ?? false)
+            if (tr.Resolve()?.IsEnum ?? false)
             {
-                return GenerateEnumWriteFunc(variableRef, ref failed);
+                return GenerateEnumWriteFunc(tr, ref failed);
             }
 
-            if (variableRef.Is(typeof(ArraySegment<>)))
+            if (tr.Is(typeof(ArraySegment<>)))
             {
-                GenericInstanceType genericInstance = (GenericInstanceType)variableRef;
-                TypeReference elementType = genericInstance.GenericArguments[0];
-
-                return GenerateCollectionWriter(variableRef, elementType, nameof(StreamExtensions.WriteArraySegment),
-                    ref failed);
+                var genericInstance = (GenericInstanceType)tr;
+                var elementType = genericInstance.GenericArguments[0];
+                return GenerateCollectionWriter(tr, elementType, nameof(StreamExtensions.WriteArraySegment), ref failed);
             }
 
-            if (variableRef.Is(typeof(List<>)))
+            if (tr.Is(typeof(List<>)))
             {
-                GenericInstanceType genericInstance = (GenericInstanceType)variableRef;
-                TypeReference elementType = genericInstance.GenericArguments[0];
-
-                return GenerateCollectionWriter(variableRef, elementType, nameof(StreamExtensions.WriteList),
-                    ref failed);
+                var genericInstance = (GenericInstanceType)tr;
+                var elementType = genericInstance.GenericArguments[0];
+                return GenerateCollectionWriter(tr, elementType, nameof(StreamExtensions.WriteList), ref failed);
             }
 
-            if (variableRef.IsDerivedFrom<NetworkBehaviour>() || variableRef.Is<NetworkBehaviour>())
+            if (tr.IsDerivedFrom<NetworkBehaviour>() || tr.Is<NetworkBehaviour>())
             {
-                return GetNetworkBehaviourWriter(variableRef);
+                return GetNetworkBehaviourWriter(tr);
             }
 
-            TypeDefinition variableDefinition = variableRef.Resolve();
-            if (variableDefinition == null)
+            var variable = tr.Resolve();
+            if (variable == null)
             {
-                logger.Error($"无法为Null {variableRef.Name} 生成 Writer", variableRef);
+                logger.Error($"无法为Null {tr.Name} 生成 Writer", tr);
                 return null;
             }
 
-            if (variableDefinition.IsDerivedFrom<Component>())
+            if (variable.IsDerivedFrom<Component>())
             {
-                logger.Error($"无法为组件 {variableRef.Name} 生成 Writer", variableRef);
+                logger.Error($"无法为组件 {tr.Name} 生成 Writer", tr);
                 return null;
             }
 
-            if (variableRef.Is<Object>())
+            if (tr.Is<Object>())
             {
-                logger.Error($"无法为对象 {variableRef.Name} 生成 Writer", variableRef);
+                logger.Error($"无法为对象 {tr.Name} 生成 Writer", tr);
                 return null;
             }
 
-            if (variableRef.Is<ScriptableObject>())
+            if (tr.Is<ScriptableObject>())
             {
-                logger.Error($"无法为可视化脚本 {variableRef.Name} 生成 Writer", variableRef);
+                logger.Error($"无法为可视化脚本 {tr.Name} 生成 Writer", tr);
                 return null;
             }
 
-            if (variableDefinition.HasGenericParameters)
+            if (variable.HasGenericParameters)
             {
-                logger.Error($"无法为通用变量 {variableRef.Name} 生成 Writer", variableRef);
+                logger.Error($"无法为通用变量 {tr.Name} 生成 Writer", tr);
                 return null;
             }
 
-            if (variableDefinition.IsInterface)
+            if (variable.IsInterface)
             {
-                logger.Error($"无法为接口 {variableRef.Name} 生成 Writer", variableRef);
+                logger.Error($"无法为接口 {tr.Name} 生成 Writer", tr);
                 return null;
             }
 
-            if (variableDefinition.IsAbstract)
+            if (variable.IsAbstract)
             {
-                logger.Error($"无法为抽象类 {variableRef.Name} 生成 Writer", variableRef);
+                logger.Error($"无法为抽象类 {tr.Name} 生成 Writer", tr);
                 return null;
             }
 
-            return GenerateClassOrStructWriterFunction(variableRef, ref failed);
+            return GenerateClassOrStructWriterFunction(tr, ref failed);
         }
 
-        private MethodReference GetNetworkBehaviourWriter(TypeReference variableReference)
+        private MethodReference GetNetworkBehaviourWriter(TypeReference variable)
         {
             if (writeFuncList.TryGetValue(models.Import<NetworkBehaviour>(), out MethodReference func))
             {
-                Register(variableReference, func);
+                Register(variable, func);
                 return func;
             }
 
@@ -157,11 +149,9 @@ namespace JFramework.Editor
 
         private MethodDefinition GenerateEnumWriteFunc(TypeReference variable, ref bool failed)
         {
-            MethodDefinition writerFunc = GenerateWriterFunc(variable);
-
-            ILProcessor worker = writerFunc.Body.GetILProcessor();
-
-            MethodReference underlyingWriter = GetWriteFunc(variable.Resolve().GetEnumUnderlyingType(), ref failed);
+            var writerFunc = GenerateWriterFunc(variable);
+            var worker = writerFunc.Body.GetILProcessor();
+            var underlyingWriter = GetWriteFunc(variable.Resolve().GetEnumUnderlyingType(), ref failed);
 
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldarg_1);
@@ -173,11 +163,9 @@ namespace JFramework.Editor
 
         private MethodDefinition GenerateWriterFunc(TypeReference variable)
         {
-            string functionName = $"Write{NetworkMessage.GetHashByName(variable.FullName)}";
-            MethodDefinition writerFunc =
-                new MethodDefinition(functionName, CONST.RAW_ATTRS, models.Import(typeof(void)));
-            writerFunc.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None,
-                models.Import<NetworkWriter>()));
+            var functionName = $"Write{NetworkMessage.GetHashByName(variable.FullName)}";
+            var writerFunc = new MethodDefinition(functionName, CONST.RAW_ATTRS, models.Import(typeof(void)));
+            writerFunc.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, models.Import<NetworkWriter>()));
             writerFunc.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, variable));
             writerFunc.Body.InitLocals = true;
 
@@ -187,9 +175,8 @@ namespace JFramework.Editor
 
         private MethodDefinition GenerateClassOrStructWriterFunction(TypeReference variable, ref bool failed)
         {
-            MethodDefinition writerFunc = GenerateWriterFunc(variable);
-
-            ILProcessor worker = writerFunc.Body.GetILProcessor();
+            var writerFunc = GenerateWriterFunc(variable);
+            var worker = writerFunc.Body.GetILProcessor();
 
             if (!variable.Resolve().IsValueType)
             {
@@ -207,7 +194,7 @@ namespace JFramework.Editor
 
         private void WriteNullCheck(ILProcessor worker, ref bool failed)
         {
-            Instruction labelNotNull = worker.Create(OpCodes.Nop);
+            var labelNotNull = worker.Create(OpCodes.Nop);
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Brtrue, labelNotNull);
             worker.Emit(OpCodes.Ldarg_0);
@@ -223,15 +210,15 @@ namespace JFramework.Editor
 
         private bool WriteAllFields(TypeReference variable, ILProcessor worker, ref bool failed)
         {
-            foreach (FieldDefinition field in variable.FindAllPublicFields())
+            foreach (var field in variable.FindAllPublicFields())
             {
-                MethodReference writeFunc = GetWriteFunc(field.FieldType, ref failed);
+                var writeFunc = GetWriteFunc(field.FieldType, ref failed);
                 if (writeFunc == null)
                 {
                     return false;
                 }
 
-                FieldReference fieldRef = assembly.MainModule.ImportReference(field);
+                var fieldRef = assembly.MainModule.ImportReference(field);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldfld, fieldRef);
@@ -241,11 +228,10 @@ namespace JFramework.Editor
             return true;
         }
 
-        private MethodDefinition GenerateCollectionWriter(TypeReference variable, TypeReference elementType,
-            string writerFunction, ref bool failed)
+        private MethodDefinition GenerateCollectionWriter(TypeReference variable, TypeReference elementType, string writerFunction, ref bool failed)
         {
-            MethodDefinition writerFunc = GenerateWriterFunc(variable);
-            MethodReference elementWriteFunc = GetWriteFunc(elementType, ref failed);
+            var writerFunc = GenerateWriterFunc(variable);
+            var elementWriteFunc = GetWriteFunc(elementType, ref failed);
 
             if (elementWriteFunc == null)
             {
@@ -254,14 +240,14 @@ namespace JFramework.Editor
                 return writerFunc;
             }
 
-            ModuleDefinition module = assembly.MainModule;
-            TypeReference readerExtensions = module.ImportReference(typeof(StreamExtensions));
-            MethodReference collectionWriter = Utils.ResolveMethod(readerExtensions, assembly, logger, writerFunction,ref failed);
+            var module = assembly.MainModule;
+            var readerExtensions = module.ImportReference(typeof(StreamExtensions));
+            var collectionWriter = Utils.ResolveMethod(readerExtensions, assembly, logger, writerFunction,ref failed);
 
-            GenericInstanceMethod methodRef = new GenericInstanceMethod(collectionWriter);
+            var methodRef = new GenericInstanceMethod(collectionWriter);
             methodRef.GenericArguments.Add(elementType);
 
-            ILProcessor worker = writerFunc.Body.GetILProcessor();
+            var worker = writerFunc.Body.GetILProcessor();
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Call, methodRef);
@@ -271,24 +257,23 @@ namespace JFramework.Editor
 
         internal void InitializeWriters(ILProcessor worker)
         {
-            ModuleDefinition module = assembly.MainModule;
-            TypeReference genericWriterClassRef = module.ImportReference(typeof(Writer<>));
-            FieldInfo fieldInfo = typeof(Writer<>).GetField(nameof(Writer<object>.write));
-            FieldReference fieldRef = module.ImportReference(fieldInfo);
-            TypeReference networkWriterRef = module.ImportReference(typeof(NetworkWriter));
-            TypeReference actionRef = module.ImportReference(typeof(Action<,>));
-            MethodReference actionConstructorRef = module.ImportReference(typeof(Action<,>).GetConstructors()[0]);
+            var module = assembly.MainModule;
+            var genericWriterClassRef = module.ImportReference(typeof(Writer<>));
+            var fieldInfo = typeof(Writer<>).GetField(nameof(Writer<object>.write));
+            var fieldRef = module.ImportReference(fieldInfo);
+            var networkWriterRef = module.ImportReference(typeof(NetworkWriter));
+            var actionRef = module.ImportReference(typeof(Action<,>));
+            var actionConstructorRef = module.ImportReference(typeof(Action<,>).GetConstructors()[0]);
 
             foreach (var (type, method) in writeFuncList)
             {
                 worker.Emit(OpCodes.Ldnull);
                 worker.Emit(OpCodes.Ldftn, method);
-                GenericInstanceType actionGenericInstance = actionRef.MakeGenericInstanceType(networkWriterRef, type);
-                MethodReference actionRefInstance =
-                    actionConstructorRef.MakeHostInstanceGeneric(assembly.MainModule, actionGenericInstance);
+                var actionGenericInstance = actionRef.MakeGenericInstanceType(networkWriterRef, type);
+                var actionRefInstance = actionConstructorRef.MakeHostInstanceGeneric(assembly.MainModule, actionGenericInstance);
                 worker.Emit(OpCodes.Newobj, actionRefInstance);
-                GenericInstanceType genericInstance = genericWriterClassRef.MakeGenericInstanceType(type);
-                FieldReference specializedField = fieldRef.SpecializeField(assembly.MainModule, genericInstance);
+                var genericInstance = genericWriterClassRef.MakeGenericInstanceType(type);
+                var specializedField = fieldRef.SpecializeField(assembly.MainModule, genericInstance);
                 worker.Emit(OpCodes.Stsfld, specializedField);
             }
         }
