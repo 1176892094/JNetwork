@@ -9,7 +9,7 @@ namespace JFramework.Net
 {
     internal class NetworkSetting : AssetSingleton<NetworkSetting>
     {
-        [SerializeField] internal List<GameObject> prefabs = new List<GameObject>();
+        public List<GameObject> prefabs = new List<GameObject>();
 
         [InfoBox("本地模拟相对于发送间隔 * 缓冲时间乘数 的滞后时间")]
         public double bufferTimeMultiplier = 2;
@@ -56,7 +56,7 @@ namespace JFramework.Net
         private void FindPrefabs()
         {
             prefabs.Clear();
-            string[] guids = AssetDatabase.FindAssets("t:Prefab");
+            string[] guids = AssetDatabase.FindAssets("t:Prefab", new string[] { AssetSetting.FILE_PATH });
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
@@ -68,6 +68,7 @@ namespace JFramework.Net
             }
 
             EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
         }
 #endif
     }
