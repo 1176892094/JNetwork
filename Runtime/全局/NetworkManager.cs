@@ -38,7 +38,7 @@ namespace JFramework.Net
         /// 网络设置和预置体
         /// </summary>
         [FoldoutGroup("网络管理器"), SerializeField]
-        internal NetworkSetting setting;
+        public NetworkSetting setting;
 
         /// <summary>
         /// 玩家预置体
