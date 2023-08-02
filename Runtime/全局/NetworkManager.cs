@@ -102,7 +102,9 @@ namespace JFramework.Net
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            GlobalManager.OnQuit += OnQuit;
             SceneManager.OnLoadComplete += OnLoadComplete;
+           
             if (transport == null)
             {
                 Debug.LogError("NetworkManager 没有 Transport 组件。");
@@ -252,7 +254,7 @@ namespace JFramework.Net
         /// <summary>
         /// 当程序退出，停止服务器和客户端
         /// </summary>
-        private void OnApplicationQuit()
+        private void OnQuit()
         {
             if (NetworkClient.isConnect)
             {
@@ -263,9 +265,10 @@ namespace JFramework.Net
             {
                 StopServer();
             }
-
-            SceneManager.OnLoadComplete -= OnLoadComplete;
+            
             RuntimeInitializeOnLoad();
+            GlobalManager.OnQuit -= OnQuit;
+            SceneManager.OnLoadComplete -= OnLoadComplete;
         }
     }
 }
