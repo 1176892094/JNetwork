@@ -16,7 +16,7 @@ namespace JFramework.Net
         /// <summary>
         /// 实体启用
         /// </summary>
-        protected virtual void OnEnable() => GlobalManager.Listen(this, gameObject);
+        protected virtual void OnEnable() => GlobalManager.Listen(this);
 
         /// <summary>
         /// 实体禁用
