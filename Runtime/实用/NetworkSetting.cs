@@ -7,7 +7,7 @@ using UnityEditor;
 
 namespace JFramework.Net
 {
-    internal class NetworkSetting : AssetSingleton<NetworkSetting>
+    public class NetworkSetting : AssetSingleton<NetworkSetting>
     {
         public List<GameObject> prefabs = new List<GameObject>();
 
@@ -56,7 +56,7 @@ namespace JFramework.Net
         private void FindPrefabs()
         {
             prefabs.Clear();
-            string[] guids = AssetDatabase.FindAssets("t:Prefab", new string[] { AssetSetting.FILE_PATH });
+            string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { AssetSetting.FILE_PATH });
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
