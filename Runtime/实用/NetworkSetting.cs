@@ -39,11 +39,6 @@ namespace JFramework.Net
         public int deliveryTimeEmaDuration = 2;
 
 #if UNITY_EDITOR
-        private void OnValidate()
-        {
-            bufferTimeMultiplier = 2;
-        }
-
         /// <summary>
         /// 自动寻找预置体
         /// </summary>
@@ -53,9 +48,9 @@ namespace JFramework.Net
         /// <summary>
         /// 寻找预置体的方法
         /// </summary>
+        [Button]
         private void FindPrefabs()
         {
-            prefabs.Clear();
             string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { AssetSetting.FILE_PATH });
             foreach (string guid in guids)
             {
@@ -63,12 +58,20 @@ namespace JFramework.Net
                 GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                 if (prefab != null && prefab.GetComponent<NetworkObject>() != null)
                 {
-                    prefabs.Add(prefab);
+                    if (!prefabs.Contains(prefab))
+                    {
+                        prefabs.Add(prefab);
+                    }
                 }
+                else
+                {
+                    prefabs.Remove(prefab);
+                } 
             }
 
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
 #endif
     }
