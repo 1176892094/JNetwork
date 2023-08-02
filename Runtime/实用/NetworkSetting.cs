@@ -8,7 +8,7 @@ using UnityEditor;
 
 namespace JFramework.Net
 {
-    public class NetworkSetting : AssetSingleton<NetworkSetting>
+    internal sealed class NetworkSetting : AssetSingleton<NetworkSetting>
     {
         public List<GameObject> prefabs = new List<GameObject>();
 
