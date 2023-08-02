@@ -64,8 +64,8 @@ namespace JFramework.Net
                 @object.gameObject.SetActive(true);
                 @object.isOwner = message.isOwner;
                 @object.isClient = true;
-                @object.OnNotifyAuthority();
                 @object.OnStartClient();
+                @object.OnNotifyAuthority();
             }
         }
 

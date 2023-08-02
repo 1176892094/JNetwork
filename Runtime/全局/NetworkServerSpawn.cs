@@ -143,8 +143,8 @@ namespace JFramework.Net
 
             if (NetworkManager.mode == NetworkMode.Host)
             {
-                @object.isOwner = false;
                 @object.OnStopClient();
+                @object.isOwner = false;
                 @object.OnNotifyAuthority();
                 NetworkClient.spawns.Remove(@object.objectId);
             }
@@ -169,8 +169,8 @@ namespace JFramework.Net
             @object.isDestroy = true;
             if (NetworkManager.mode == NetworkMode.Host)
             {
-                @object.isOwner = false;
                 @object.OnStopClient();
+                @object.isOwner = false;
                 @object.OnNotifyAuthority();
                 NetworkClient.spawns.Remove(@object.objectId);
             }
