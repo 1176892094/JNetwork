@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -63,10 +64,12 @@ namespace JFramework.Net
                         prefabs.Add(prefab);
                     }
                 }
-                else
-                {
-                    prefabs.Remove(prefab);
-                } 
+            }
+
+            var copies = prefabs.ToList();
+            foreach (var prefab in copies.Where(prefab => prefab == null))
+            {
+                prefabs.Remove(prefab);
             }
 
             EditorUtility.SetDirty(this);
