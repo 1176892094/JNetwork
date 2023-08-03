@@ -73,7 +73,6 @@ namespace JFramework.Net
             }
 
             EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
 #endif
