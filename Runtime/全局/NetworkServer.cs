@@ -44,6 +44,11 @@ namespace JFramework.Net
         private static uint objectId;
 
         /// <summary>
+        /// 所有客户端都准备
+        /// </summary>
+        public static bool isReady => clients.Values.All(entity => entity.isReady);
+      
+        /// <summary>
         /// 连接客户端数量
         /// </summary>
         public static int connections => clients.Count;
