@@ -140,6 +140,11 @@ namespace JFramework.Net
         public static void Despawn(NetworkObject @object)
         {
             spawns.Remove(@object.objectId);
+            foreach (var client in clients.Values)
+            {
+                Debug.Log($"服务器为客户端 {client.clientId} 重置 {@object}");
+                client.SendMessage(new DespawnMessage(@object.objectId));
+            }
 
             if (NetworkManager.mode == NetworkMode.Host)
             {
@@ -152,11 +157,6 @@ namespace JFramework.Net
             @object.OnStopServer();
             @object.gameObject.SetActive(false);
             @object.Reset();
-            foreach (var client in clients.Values)
-            {
-                Debug.Log($"服务器为客户端 {client.clientId} 重置 {@object}");
-                client.SendMessage(new DespawnMessage(@object.objectId));
-            }
         }
 
         /// <summary>
@@ -167,6 +167,12 @@ namespace JFramework.Net
         {
             spawns.Remove(@object.objectId);
             @object.isDestroy = true;
+            foreach (var client in clients.Values)
+            {
+                Debug.Log($"服务器为客户端 {client.clientId} 销毁 {@object}");
+                client.SendMessage(new DestroyMessage(@object.objectId));
+            }
+
             if (NetworkManager.mode == NetworkMode.Host)
             {
                 @object.OnStopClient();
@@ -174,14 +180,9 @@ namespace JFramework.Net
                 @object.OnNotifyAuthority();
                 NetworkClient.spawns.Remove(@object.objectId);
             }
-            
+
             @object.OnStopServer();
             Object.Destroy(@object.gameObject);
-            foreach (var client in clients.Values)
-            {
-                Debug.Log($"服务器为客户端 {client.clientId} 销毁 {@object}");
-                client.SendMessage(new DestroyMessage(@object.objectId));
-            }
         }
     }
 }
