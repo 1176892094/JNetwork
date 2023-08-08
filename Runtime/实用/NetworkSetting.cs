@@ -40,11 +40,6 @@ namespace JFramework.Net
         public int deliveryTimeEmaDuration = 2;
 
 #if UNITY_EDITOR
-        /// <summary>
-        /// 自动寻找预置体
-        /// </summary>
-        [InitializeOnLoadMethod]
-        private static void InitializeOnLoad() => Instance.FindPrefabs();
 
         /// <summary>
         /// 寻找预置体的方法
