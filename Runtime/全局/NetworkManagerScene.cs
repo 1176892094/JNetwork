@@ -41,7 +41,7 @@ namespace JFramework.Net
                 }
             }
 
-            SceneManager.LoadSceneAsync(newSceneName);
+            SceneManager.LoadSceneAsync(newSceneName, OnLoadComplete);
         }
 
         /// <summary>
@@ -60,15 +60,14 @@ namespace JFramework.Net
             if (NetworkServer.isActive) return; //Host不做处理
             sceneName = newSceneName;
             NetworkClient.isLoadScene = true;
-            SceneManager.LoadSceneAsync(newSceneName);
+            SceneManager.LoadSceneAsync(newSceneName, OnLoadComplete);
         }
 
 
         /// <summary>
         /// 场景加载完成
         /// </summary>
-        /// <param name="sceneName"></param>
-        private static void OnLoadComplete(string sceneName)
+        private static void OnLoadComplete()
         {
             switch (mode)
             {
