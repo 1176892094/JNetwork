@@ -4,25 +4,70 @@ using System.Net.Sockets;
 
 namespace JFramework.Udp
 {
+    /// <summary>
+    /// Udp客户端
+    /// </summary>
     [Serializable]
     public sealed class Client
     {
-        private State state;
+        /// <summary>
+        /// 端对端
+        /// </summary>
         private Peer peer;
-        private Socket socket;
-        private EndPoint endPoint;
-        private readonly byte[] buffer;
-        private readonly Setting setting;
-        private event Action onConnected;
-        private event Action onDisconnected;
-        private event Action<ArraySegment<byte>, Channel> onReceive;
+        
+        /// <summary>
+        /// 客户端状态
+        /// </summary>
+        private State state;
 
-        public Client(Setting setting, Action onConnected, Action onDisconnected, Action<ArraySegment<byte>, Channel> onReceive)
+        /// <summary>
+        /// 套接字
+        /// </summary>
+        private Socket socket;
+
+        /// <summary>
+        /// 终端
+        /// </summary>
+        private EndPoint endPoint;
+
+        /// <summary>
+        /// 缓冲区
+        /// </summary>
+        private readonly byte[] buffer;
+
+        /// <summary>
+        /// 配置
+        /// </summary>
+        private readonly Setting setting;
+
+        /// <summary>
+        /// 当客户端连接到服务器
+        /// </summary>
+        private event Action OnConnected;
+
+        /// <summary>
+        /// 当客户端从服务器断开
+        /// </summary>
+        private event Action OnDisconnected;
+
+        /// <summary>
+        /// 当从服务器接收消息
+        /// </summary>
+        private event Action<ArraySegment<byte>, Channel> OnReceive;
+
+        /// <summary>
+        /// 构造函数初始化
+        /// </summary>
+        /// <param name="setting"></param>
+        /// <param name="OnConnected"></param>
+        /// <param name="OnDisconnected"></param>
+        /// <param name="OnReceive"></param>
+        public Client(Setting setting, Action OnConnected, Action OnDisconnected, Action<ArraySegment<byte>, Channel> OnReceive)
         {
             this.setting = setting;
-            this.onConnected = onConnected;
-            this.onDisconnected = onDisconnected;
-            this.onReceive = onReceive;
+            this.OnReceive = OnReceive;
+            this.OnConnected = OnConnected;
+            this.OnDisconnected = OnDisconnected;
             buffer = new byte[setting.maxTransferUnit];
             state = State.Disconnected;
         }
@@ -40,9 +85,9 @@ namespace JFramework.Udp
                 return;
             }
 
-            if (!Utils.TryGetAddress(address, out var addresses))
+            if (!Helper.TryGetAddress(address, out var addresses))
             {
-                onDisconnected?.Invoke();
+                OnDisconnected?.Invoke();
                 return;
             }
 
@@ -51,7 +96,7 @@ namespace JFramework.Udp
             Log.Info($"客户端连接到：{addresses[0]} 端口：{port}。");
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.Blocking = false;
-            socket.SetBufferSize( setting.sendBufferSize,setting.receiveBufferSize);
+            socket.SetBufferSize(setting.sendBufferSize, setting.receiveBufferSize);
             socket.Connect(endPoint);
             peer.Handshake();
         }
@@ -110,13 +155,13 @@ namespace JFramework.Udp
         /// </summary>
         private void Connection()
         {
-            peer = new Peer(OnAuthority, OnDisconnected, OnSend, onReceive, setting, 0);
+            peer = new Peer(setting, 0, OnAuthority, OnDisconnected, OnSend, OnReceive);
 
             void OnAuthority()
             {
                 Log.Info("客户端连接成功。");
                 state = State.Connected;
-                onConnected?.Invoke();
+                OnConnected?.Invoke();
             }
 
             void OnDisconnected()
@@ -127,7 +172,7 @@ namespace JFramework.Udp
                 socket = null;
                 endPoint = null;
                 state = State.Disconnected;
-                onDisconnected?.Invoke();
+                this.OnDisconnected?.Invoke();
             }
 
             void OnSend(ArraySegment<byte> segment)

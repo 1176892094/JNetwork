@@ -5,25 +5,70 @@ using System.Net.Sockets;
 
 namespace JFramework.Udp
 {
+    /// <summary>
+    /// Udp服务器
+    /// </summary>
     [Serializable]
     public sealed class Server
     {
+        /// <summary>
+        /// 连接客户端字典
+        /// </summary>
         private readonly Dictionary<int, Connection> clients = new Dictionary<int, Connection>();
+        
+        /// <summary>
+        /// 移除客户端列表
+        /// </summary>
         private readonly HashSet<int> removes = new HashSet<int>();
+        
+        /// <summary>
+        /// 套接字
+        /// </summary>
         private Socket socket;
+        
+        /// <summary>
+        /// 终端
+        /// </summary>
         private EndPoint endPoint;
+        
+        /// <summary>
+        /// 缓冲区
+        /// </summary>
         private readonly byte[] buffer;
+        
+        /// <summary>
+        /// 配置
+        /// </summary>
         private readonly Setting setting;
-        private event Action<int> onConnected;
-        private event Action<int> onDisconnected;
-        private event Action<int, ArraySegment<byte>, Channel> onReceive;
+        
+        /// <summary>
+        /// 当有客户端连接到服务器
+        /// </summary>
+        private event Action<int> OnConnected;
+        
+        /// <summary>
+        /// 当有客户端从服务器断开
+        /// </summary>
+        private event Action<int> OnDisconnected;
+        
+        /// <summary>
+        /// 当从客户端收到消息
+        /// </summary>
+        private event Action<int, ArraySegment<byte>, Channel> OnReceive;
 
-        public Server(Setting setting, Action<int> onConnected, Action<int> onDisconnected, Action<int, ArraySegment<byte>, Channel> onReceive)
+        /// <summary>
+        /// 构造函数初始化
+        /// </summary>
+        /// <param name="setting"></param>
+        /// <param name="OnConnected"></param>
+        /// <param name="OnDisconnected"></param>
+        /// <param name="OnReceive"></param>
+        public Server(Setting setting, Action<int> OnConnected, Action<int> OnDisconnected, Action<int, ArraySegment<byte>, Channel> OnReceive)
         {
             this.setting = setting;
-            this.onConnected = onConnected;
-            this.onDisconnected = onDisconnected;
-            this.onReceive = onReceive;
+            this.OnReceive = OnReceive;
+            this.OnConnected = OnConnected;
+            this.OnDisconnected = OnDisconnected;
             buffer = new byte[setting.maxTransferUnit];
             endPoint = new IPEndPoint(IPAddress.IPv6Any, 0);
         }
@@ -107,25 +152,25 @@ namespace JFramework.Udp
         /// </summary>
         private Connection Connection(int clientId)
         {
-            var newConnection = new Connection(endPoint);
-            var cookie = Utils.GenerateCookie();
-            var peer = new Peer(OnAuthority, OnDisconnected, OnSend, OnReceive, setting, cookie);
-            newConnection.peer = peer;
-            return newConnection;
+            var client = new Connection(endPoint);
+            var cookie = Helper.GenerateCookie();
+            var peer = new Peer(setting, cookie, OnAuthority, OnDisconnected, OnSend, OnReceive);
+            client.peer = peer;
+            return client;
 
             void OnAuthority()
             {
-                newConnection.peer.Handshake();
+                client.peer.Handshake();
                 Log.Info($"客户端 {clientId} 连接到服务器。");
-                clients.Add(clientId, newConnection);
-                onConnected?.Invoke(clientId);
+                clients.Add(clientId, client);
+                OnConnected?.Invoke(clientId);
             }
 
             void OnDisconnected()
             {
                 removes.Add(clientId);
                 Log.Info($"客户端 {clientId} 从服务器断开。");
-                onDisconnected?.Invoke(clientId);
+                this.OnDisconnected?.Invoke(clientId);
             }
 
             void OnSend(ArraySegment<byte> segment)
@@ -148,7 +193,7 @@ namespace JFramework.Udp
 
             void OnReceive(ArraySegment<byte> message, Channel channel)
             {
-                onReceive?.Invoke(clientId, message, channel);
+                this.OnReceive?.Invoke(clientId, message, channel);
             }
         }
 

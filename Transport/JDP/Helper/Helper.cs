@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace JFramework.Udp
 {
-    public static class Utils
+    public static class Helper
     {
         internal const int PING_INTERVAL = 1000;
         internal const int QUEUE_DISCONNECTED_THRESHOLD = 10000;

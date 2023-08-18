@@ -99,10 +99,10 @@ namespace JFramework.Net
 
         public override int GetMaxPacketSize(Channel channel = Channel.Reliable)
         {
-            return channel == Channel.Reliable ? Utils.ReliableSize(setting.maxTransferUnit, receivePacketSize) : Utils.UnreliableSize(setting.maxTransferUnit);
+            return channel == Channel.Reliable ? Helper.ReliableSize(setting.maxTransferUnit, receivePacketSize) : Helper.UnreliableSize(setting.maxTransferUnit);
         }
 
-        public override int UnreliableSize() => Utils.UnreliableSize(maxTransmitUnit);
+        public override int UnreliableSize() => Helper.UnreliableSize(maxTransmitUnit);
 
         public override void StopServer() => server.StopServer();
 

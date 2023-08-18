@@ -83,7 +83,7 @@ namespace JFramework.Udp
                         var prettyCookie = BitConverter.ToUInt32(segment.Array, segment.Offset);
                         Log.Info($"接收到握手消息。签名缓存：{prettyCookie}");
                         state = State.Authority;
-                        onAuthority?.Invoke();
+                        OnAuthority?.Invoke();
                         break;
                     case Header.Disconnect:
                         Disconnect();
@@ -106,7 +106,7 @@ namespace JFramework.Udp
                     case Header.Message:
                         if (segment.Count > 0)
                         {
-                            onReceive?.Invoke(segment, Channel.Reliable);
+                            OnReceive?.Invoke(segment, Channel.Reliable);
                         }
                         else
                         {
@@ -137,13 +137,13 @@ namespace JFramework.Udp
                 Disconnect();
             }
 
-            if (time >= lastPingTime + Utils.PING_INTERVAL)
+            if (time >= lastPingTime + Helper.PING_INTERVAL)
             {
                 SendReliable(Header.Ping, default);
                 lastPingTime = time;
             }
             
-            if (jdp.GetBufferQueueCount() >= Utils.QUEUE_DISCONNECTED_THRESHOLD)
+            if (jdp.GetBufferQueueCount() >= Helper.QUEUE_DISCONNECTED_THRESHOLD)
             {
                 Log.Error($"断开连接，因为它处理数据的速度不够快！");
                 jdp.sendQueue.Clear();

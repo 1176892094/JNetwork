@@ -2,35 +2,94 @@ using System.IO;
 
 namespace JFramework.Udp
 {
+    /// <summary>
+    /// 网络消息分段
+    /// </summary>
     internal sealed class Segment
     {
+        /// <summary>
+        /// 内存流
+        /// </summary>
         public readonly MemoryStream stream = new MemoryStream(Jdp.MTU_DEF);
-        public uint conversation;     // 会话Id
-        public uint command;          // 命令
-        public uint fragment;         // 分段（以1字节发送）
-        public uint windowSize;       // 接收方当前可以接收的窗口大小
-        public uint timestamp;        // 时间戳
-        public uint serialNumber;     // 序列号
-        public uint unAcknowledge;    // 未确认的序列号
-        public uint resendTimestamp;  // 重传时间戳
-        public uint fastAcknowledge;  // 快速重传的序列号
-        public uint retransmitCount;  // 重传计数
-        public int retransmitTimeout; // 超时重传
 
+        /// <summary>
+        /// 会话Id
+        /// </summary>
+        public uint conversation;
+
+        /// <summary>
+        /// 命令
+        /// </summary>
+        public uint command;
+
+        /// <summary>
+        /// 分段（以1字节发送）
+        /// </summary>
+        public uint fragment;
+
+        /// <summary>
+        /// 接收方当前可以接收的窗口大小
+        /// </summary>
+        public uint windowSize;
+
+        /// <summary>
+        /// 时间戳
+        /// </summary>
+        public uint timestamp;
+
+        /// <summary>
+        /// 序列号
+        /// </summary>
+        public uint serialNumber;
+
+        /// <summary>
+        /// 未确认的序列号
+        /// </summary>
+        public uint unAcknowledge;
+
+        /// <summary>
+        /// 重传时间戳
+        /// </summary>
+        public uint resendTimestamp;
+
+        /// <summary>
+        /// 快速重传的序列号
+        /// </summary>
+        public uint fastAcknowledge;
+
+        /// <summary>
+        /// 重传计数
+        /// </summary>
+        public uint retransmitCount;
+
+        /// <summary>
+        /// 超时重传
+        /// </summary>
+        public int retransmitTimeout;
+
+        /// <summary>
+        /// 编码
+        /// </summary>
+        /// <param name="ptr"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         public int Encode(byte[] ptr, int offset)
         {
             int previousPosition = offset;
-            offset += Utils.Encode32U(ptr, offset, conversation);
-            offset += Utils.Encode8u(ptr, offset, (byte)command);
-            offset += Utils.Encode8u(ptr, offset, (byte)fragment);
-            offset += Utils.Encode16U(ptr, offset, (ushort)windowSize);
-            offset += Utils.Encode32U(ptr, offset, timestamp);
-            offset += Utils.Encode32U(ptr, offset, serialNumber);
-            offset += Utils.Encode32U(ptr, offset, unAcknowledge);
-            offset += Utils.Encode32U(ptr, offset, (uint)stream.Position);
+            offset += Helper.Encode32U(ptr, offset, conversation);
+            offset += Helper.Encode8u(ptr, offset, (byte)command);
+            offset += Helper.Encode8u(ptr, offset, (byte)fragment);
+            offset += Helper.Encode16U(ptr, offset, (ushort)windowSize);
+            offset += Helper.Encode32U(ptr, offset, timestamp);
+            offset += Helper.Encode32U(ptr, offset, serialNumber);
+            offset += Helper.Encode32U(ptr, offset, unAcknowledge);
+            offset += Helper.Encode32U(ptr, offset, (uint)stream.Position);
             return offset - previousPosition;
         }
 
+        /// <summary>
+        /// 重置
+        /// </summary>
         public void Reset()
         {
             conversation = 0;

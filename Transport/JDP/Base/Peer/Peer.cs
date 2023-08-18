@@ -6,38 +6,114 @@ namespace JFramework.Udp
 {
     internal sealed partial class Peer
     {
+        /// <summary>
+        /// 端对端状态
+        /// </summary>
         private State state;
+        
+        /// <summary>
+        /// 上一次发送Ping的时间
+        /// </summary>
         private uint lastPingTime;
+        
+        /// <summary>
+        /// 上一次接收消息的时间
+        /// </summary>
         private uint lastReceiveTime;
+        
+        /// <summary>
+        /// 可靠Udp协议
+        /// </summary>
         private readonly Jdp jdp;
+        
+        /// <summary>
+        /// 缓存Id
+        /// </summary>
         private readonly int cookie;
+        
+        /// <summary>
+        /// 超时时间
+        /// </summary>
         private readonly int timeout;
+        
+        /// <summary>
+        /// 可靠消息大小
+        /// </summary>
         private readonly int reliableSize;
+        
+        /// <summary>
+        /// 不可靠消息大小
+        /// </summary>
         private readonly int unreliableSize;
+        
+        /// <summary>
+        /// 消息缓冲区
+        /// </summary>
         private readonly byte[] messageBuffer;
+        
+        /// <summary>
+        /// 发送协议缓冲区
+        /// </summary>
         private readonly byte[] jdpSendBuffer;
+        
+        /// <summary>
+        /// 低等级发送缓存区
+        /// </summary>
         private readonly byte[] rawSendBuffer;
+        
+        /// <summary>
+        /// 接收的缓存Id
+        /// </summary>
         private readonly byte[] receiveCookie = new byte[4];
+        
+        /// <summary>
+        /// 计时器
+        /// </summary>
         private readonly Stopwatch watch = new Stopwatch();
-        private event Action onAuthority;
-        private event Action onDisconnected;
-        private event Action<ArraySegment<byte>> onSend;
-        private event Action<ArraySegment<byte>, Channel> onReceive;
+        
+        /// <summary>
+        /// 当客户端通过验证
+        /// </summary>
+        private event Action OnAuthority;
+        
+        /// <summary>
+        /// 当客户端或服务器断开连接
+        /// </summary>
+        private event Action OnDisconnected;
+        
+        /// <summary>
+        /// 当服务器或客户端发送消息
+        /// </summary>
+        private event Action<ArraySegment<byte>> OnSend;
+        
+        /// <summary>
+        /// 当服务器或客户端接收消息
+        /// </summary>
+        private event Action<ArraySegment<byte>, Channel> OnReceive;
 
-        public Peer(Action onAuthority, Action onDisconnected, Action<ArraySegment<byte>> onSend, Action<ArraySegment<byte>, Channel> onReceive, Setting setting, int cookie)
+        /// <summary>
+        /// 构造函数初始化
+        /// </summary>
+        /// <param name="setting"></param>
+        /// <param name="cookie"></param>
+        /// <param name="OnAuthority"></param>
+        /// <param name="OnDisconnected"></param>
+        /// <param name="OnSend"></param>
+        /// <param name="OnReceive"></param>
+        public Peer(Setting setting, int cookie, Action OnAuthority, Action OnDisconnected, Action<ArraySegment<byte>> OnSend, Action<ArraySegment<byte>, Channel> OnReceive)
         {
             this.cookie = cookie;
-            this.onAuthority = onAuthority;
-            this.onDisconnected = onDisconnected;
-            this.onSend = onSend;
-            this.onReceive = onReceive;
+            this.OnSend = OnSend;
+            this.OnReceive = OnReceive;
+            this.OnAuthority = OnAuthority;
+            this.OnDisconnected = OnDisconnected;
             timeout = setting.timeout;
             jdp = new Jdp(0, SendReliable);
             jdp.SetNoDelay(setting.noDelay ? 1U : 0U, setting.interval, setting.resend, setting.congestion);
             jdp.SetWindowSize(setting.sendPacketSize, setting.receivePacketSize);
-            jdp.SetTransferUnit((uint)setting.maxTransferUnit - Utils.METADATA_SIZE);
-            reliableSize = Utils.ReliableSize(setting.maxTransferUnit, setting.receivePacketSize);
-            unreliableSize = Utils.UnreliableSize(setting.maxTransferUnit);
+            jdp.SetTransferUnit((uint)setting.maxTransferUnit - Helper.METADATA_SIZE);
+            reliableSize = Helper.ReliableSize(setting.maxTransferUnit, setting.receivePacketSize);
+            unreliableSize = Helper.UnreliableSize(setting.maxTransferUnit);
             messageBuffer = new byte[reliableSize + 1];
             jdpSendBuffer = new byte[reliableSize + 1];
             rawSendBuffer = new byte[setting.maxTransferUnit];
@@ -103,7 +179,7 @@ namespace JFramework.Udp
             Buffer.BlockCopy(receiveCookie, 0, rawSendBuffer, 1, 4);
             Buffer.BlockCopy(message, 0, rawSendBuffer, 1 + 4, length);
             var segment = new ArraySegment<byte>(rawSendBuffer, 0, length + 1 + 4);
-            onSend.Invoke(segment);
+            OnSend.Invoke(segment);
         }
 
         /// <summary>
@@ -121,7 +197,7 @@ namespace JFramework.Udp
             Buffer.BlockCopy(receiveCookie, 0, rawSendBuffer, 1, 4);
             Buffer.BlockCopy(segment.Array, segment.Offset, rawSendBuffer, 1 + 4, segment.Count);
             var message = new ArraySegment<byte>(rawSendBuffer, 0, segment.Count + 1 + 4);
-            onSend.Invoke(message);
+            OnSend.Invoke(message);
         }
 
         /// <summary>
@@ -190,7 +266,7 @@ namespace JFramework.Udp
 
             Log.Info($"P2P断开连接。");
             state = State.Disconnected;
-            onDisconnected?.Invoke();
+            OnDisconnected?.Invoke();
         }
         
          /// <summary>
@@ -246,7 +322,7 @@ namespace JFramework.Udp
         {
             if (state == State.Authority)
             {
-                onReceive?.Invoke(message, Channel.Unreliable);
+                OnReceive?.Invoke(message, Channel.Unreliable);
                 lastReceiveTime = (uint)watch.ElapsedMilliseconds;
             }
             else
