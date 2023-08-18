@@ -66,7 +66,7 @@ namespace JFramework.Udp
         private readonly int fastLimit;            // 快速重传的最大限制次数
         private readonly uint conversation;        // 会话Id
         private readonly Action<byte[], int> onOutput;
-        private readonly Pool<Segment> segmentPool = new Pool<Segment>(() => new Segment(), _ => _.Reset(), 32);
+        private readonly SegmentPool segmentPool = new SegmentPool(32);
         private readonly List<Packet> packetList = new List<Packet>(16);
         private readonly List<Segment> sendBuffers = new List<Segment>(16);
         private readonly List<Segment> receiveBuffers = new List<Segment>(16);
