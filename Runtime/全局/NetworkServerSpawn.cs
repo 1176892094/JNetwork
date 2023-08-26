@@ -99,7 +99,6 @@ namespace JFramework.Net
         /// <param name="object">生成的游戏对象</param>
         private static void SendSpawnMessage(ClientEntity client, NetworkObject @object)
         {
-            Debug.Log($"服务器为客户端 {client.clientId} 生成 {@object}");
             using NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
             var isOwner = @object.connection == client;
             var transform = @object.transform;

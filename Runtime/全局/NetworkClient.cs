@@ -139,8 +139,7 @@ namespace JFramework.Net
                 Debug.LogError("客户端已经准备就绪！");
                 return;
             }
-
-            Debug.Log($"客户端准备。");
+            
             isReady = true;
             connection.isReady = true;
             connection.SendMessage(new SetReadyMessage());

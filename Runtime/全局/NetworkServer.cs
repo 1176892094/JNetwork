@@ -96,7 +96,6 @@ namespace JFramework.Net
 
             if (!isActive)
             {
-                Debug.Log("开启服务器。");
                 isActive = true;
                 clients.Clear();
                 RegisterMessage();
@@ -113,7 +112,6 @@ namespace JFramework.Net
         /// <param name="client"></param>
         private static void SetReadyForClient(ClientEntity client)
         {
-            Debug.Log($"设置客户端 {client.clientId} 准备就绪。");
             client.isReady = true;
             var enumerable = spawns.Values.Where(@object => @object.gameObject.activeSelf);
             foreach (var @object in enumerable)

@@ -10,7 +10,6 @@ namespace JFramework.Net
         /// </summary>
         private static void RegisterMessage()
         {
-            Debug.Log("注册服务器网络消息");
             RegisterMessage<EntityMessage>(OnEntityByServer);
             RegisterMessage<SetReadyMessage>(OnSetReadyByServer);
             RegisterMessage<ServerRpcMessage>(OnServerRpcByServer);

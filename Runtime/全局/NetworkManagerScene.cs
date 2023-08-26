@@ -21,8 +21,7 @@ namespace JFramework.Net
                 Debug.LogError($"服务器已经在加载 {newSceneName} 场景");
                 return;
             }
-
-            Debug.Log("服务器开始加载场景");
+            
             foreach (var client in NetworkServer.clients.Values)
             {
                 NetworkServer.NotReadyForClient(client);
