@@ -60,12 +60,12 @@ namespace JFramework.Net
         /// <summary>
         /// 主机
         /// </summary>
-        private UdpClient udpServer;
+        private System.Net.Sockets.UdpClient udpServer;
         
         /// <summary>
         /// 客户端
         /// </summary>
-        private UdpClient udpClient;
+        private System.Net.Sockets.UdpClient udpClient;
         
         /// <summary>
         /// 寻找到的响应服务器
@@ -136,7 +136,7 @@ namespace JFramework.Net
             }
 
             StopDiscovery();
-            udpServer = new UdpClient(broadcastPort)
+            udpServer = new System.Net.Sockets.UdpClient(broadcastPort)
             {
                 EnableBroadcast = true,
                 MulticastLoopback = false
@@ -240,7 +240,7 @@ namespace JFramework.Net
 
             try
             {
-                udpClient = new UdpClient(0)
+                udpClient = new System.Net.Sockets.UdpClient(0)
                 {
                     EnableBroadcast = true,
                     MulticastLoopback = false

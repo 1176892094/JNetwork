@@ -7,7 +7,7 @@ namespace JFramework.Net
     /// <summary>
     /// 仅在主机或者客户端模式下创建
     /// </summary>
-    public class ServerEntity : Connection
+    public class UdpServer : UdpPeer
     {
         /// <summary>
         /// 存储写入队列的字典
@@ -37,7 +37,7 @@ namespace JFramework.Net
         /// <summary>
         /// 构造函数初始化
         /// </summary>
-        public ServerEntity()
+        public UdpServer()
         {
             settingData = NetworkManager.Instance.setting;
             driftEma = new NetworkEma(NetworkManager.Instance.tickRate * settingData.driftEmaDuration);

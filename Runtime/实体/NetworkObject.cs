@@ -66,7 +66,7 @@ namespace JFramework.Net
         /// <summary>
         /// 连接的客户端 (客户端不可用)
         /// </summary>
-        internal ClientEntity connection;
+        internal UdpClient connection;
         
         /// <summary>
         /// 是否为第一次生成
@@ -173,7 +173,7 @@ namespace JFramework.Net
         /// <summary>
         /// 处理Rpc事件
         /// </summary>
-        internal void InvokeRpcMessage(byte index, ushort function, RpcType rpcType, NetworkReader reader, ClientEntity client = null)
+        internal void InvokeRpcMessage(byte index, ushort function, RpcType rpcType, NetworkReader reader, UdpClient client = null)
         {
             if (this == null)
             {

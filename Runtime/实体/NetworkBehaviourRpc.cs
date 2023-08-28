@@ -96,7 +96,7 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendTargetRpcInternal(ClientEntity client, string methodName, int methodHash, NetworkWriter writer, sbyte channel)
+        protected void SendTargetRpcInternal(UdpClient client, string methodName, int methodHash, NetworkWriter writer, sbyte channel)
         {
             if (!NetworkServer.isActive)
             {

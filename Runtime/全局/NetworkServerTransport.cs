@@ -47,7 +47,7 @@ namespace JFramework.Net
             }
             else
             {
-                OnClientConnect(new ClientEntity(clientId));
+                OnClientConnect(new UdpClient(clientId));
             }
         }
 
@@ -55,7 +55,7 @@ namespace JFramework.Net
         /// 当客户端连接到服务器
         /// </summary>
         /// <param name="client">连接的客户端实体</param>
-        internal static void OnClientConnect(ClientEntity client)
+        internal static void OnClientConnect(UdpClient client)
         {
             clients.TryAdd(client.clientId, client);
             if (client.clientId == NetworkConst.HostId)

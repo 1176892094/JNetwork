@@ -16,7 +16,7 @@ namespace JFramework.Net
         /// <summary>
         /// 连接的的客户端字典
         /// </summary>
-        internal static readonly Dictionary<int, ClientEntity> clients = new Dictionary<int, ClientEntity>();
+        internal static readonly Dictionary<int, UdpClient> clients = new Dictionary<int, UdpClient>();
         
         /// <summary>
         /// 服务器生成的游戏对象字典
@@ -26,7 +26,7 @@ namespace JFramework.Net
         /// <summary>
         /// 用来拷贝当前连接的所有客户端
         /// </summary>
-        private static readonly List<ClientEntity> copies = new List<ClientEntity>();
+        private static readonly List<UdpClient> copies = new List<UdpClient>();
         
         /// <summary>
         /// 最大连接数量
@@ -66,22 +66,22 @@ namespace JFramework.Net
         /// <summary>
         /// 连接到的主机客户端
         /// </summary>
-        public static ClientEntity connection { get; internal set; }
+        public static UdpClient connection { get; internal set; }
 
         /// <summary>
         /// 有客户端连接到服务器的事件
         /// </summary>
-        public static event Action<ClientEntity> OnServerConnect;
+        public static event Action<UdpClient> OnServerConnect;
 
         /// <summary>
         /// 有客户端从服务器断开的事件
         /// </summary>
-        public static event Action<ClientEntity> OnServerDisconnect;
+        public static event Action<UdpClient> OnServerDisconnect;
 
         /// <summary>
         /// 客户端在服务器准备就绪的事件
         /// </summary>
-        public static event Action<ClientEntity> OnServerReady;
+        public static event Action<UdpClient> OnServerReady;
 
         /// <summary>
         /// 开启服务器
@@ -110,7 +110,7 @@ namespace JFramework.Net
         /// 设置客户端准备好 为客户端生成服务器的所有对象
         /// </summary>
         /// <param name="client"></param>
-        private static void SetReadyForClient(ClientEntity client)
+        private static void SetReadyForClient(UdpClient client)
         {
             client.isReady = true;
             var enumerable = spawns.Values.Where(@object => @object.gameObject.activeSelf);
@@ -124,7 +124,7 @@ namespace JFramework.Net
         /// 设置客户端未准备(不能进行消息接收)
         /// </summary>
         /// <param name="client"></param>
-        internal static void NotReadyForClient(ClientEntity client)
+        internal static void NotReadyForClient(UdpClient client)
         {
             Debug.Log($"设置客户端 {client.clientId} 取消准备");
             client.isReady = false;

@@ -67,7 +67,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络对象连接的客户端(服务器不为空，客户端为空)
         /// </summary>
-        public ClientEntity connection => @object.connection;
+        public UdpClient connection => @object.connection;
 
         /// <summary>
         /// 是否能够改变网络值

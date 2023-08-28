@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -8,7 +7,7 @@ namespace JFramework.Net
     /// <summary>
     /// 仅在服务器上被创建
     /// </summary>
-    public sealed class ClientEntity : Connection
+    public sealed class UdpClient : UdpPeer
     {
         /// <summary>
         /// 可靠Rpc列表
@@ -64,7 +63,7 @@ namespace JFramework.Net
         /// 初始化设置客户端Id
         /// </summary>
         /// <param name="clientId">传入客户端的Id</param>
-        public ClientEntity(int clientId)
+        public UdpClient(int clientId)
         {
             this.clientId = clientId;
             isHost = clientId == NetworkConst.HostId;

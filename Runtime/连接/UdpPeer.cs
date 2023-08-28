@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using JFramework.Interface;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -10,7 +9,7 @@ namespace JFramework.Net
     /// <summary>
     /// 网络连接 (Server or Client)
     /// </summary>
-    public abstract class Connection
+    public abstract class UdpPeer
     {
         /// <summary>
         /// 存储不同传输通道写入的网络信息

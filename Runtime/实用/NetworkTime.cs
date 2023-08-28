@@ -46,7 +46,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器发送Pong消息给指定客户端
         /// </summary>
-        public static void OnPingByServer(ClientEntity client, PingMessage message)
+        public static void OnPingByServer(UdpClient client, PingMessage message)
         {
             PongMessage pongMessage = new PongMessage(message.clientTime); //服务器将客户端时间传回到客户端
             client.SendMessage(pongMessage, Channel.Unreliable);

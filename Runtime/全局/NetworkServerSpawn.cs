@@ -38,7 +38,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="obj">生成的游戏物体</param>
         /// <param name="client">客户端Id</param>
-        public static void Spawn(GameObject obj, ClientEntity client = null)
+        public static void Spawn(GameObject obj, UdpClient client = null)
         {
             if (!isActive)
             {
@@ -97,7 +97,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="client">指定的客户端</param>
         /// <param name="object">生成的游戏对象</param>
-        private static void SendSpawnMessage(ClientEntity client, NetworkObject @object)
+        private static void SendSpawnMessage(UdpClient client, NetworkObject @object)
         {
             using NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
             var isOwner = @object.connection == client;

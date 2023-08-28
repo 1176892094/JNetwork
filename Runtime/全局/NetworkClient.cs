@@ -66,7 +66,7 @@ namespace JFramework.Net
         /// <summary>
         /// 连接到的服务器
         /// </summary>
-        public static ServerEntity connection { get; private set; }
+        public static UdpServer connection { get; private set; }
 
         /// <summary>
         /// 客户端连接的事件(包含主机)
@@ -94,7 +94,7 @@ namespace JFramework.Net
             RegisterMessage(false);
             state = ConnectState.Connecting;
             Transport.current.ClientConnect(address, port);
-            connection = new ServerEntity();
+            connection = new UdpServer();
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace JFramework.Net
             RegisterMessage(false);
             state = ConnectState.Connecting;
             Transport.current.ClientConnect(uri);
-            connection = new ServerEntity();
+            connection = new UdpServer();
         }
 
         /// <summary>
@@ -117,8 +117,8 @@ namespace JFramework.Net
         {
             RegisterMessage(true);
             state = ConnectState.Connected;
-            connection = new ServerEntity();
-            var client = new ClientEntity(NetworkConst.HostId);
+            connection = new UdpServer();
+            var client = new UdpClient(NetworkConst.HostId);
             NetworkServer.OnClientConnect(client);
             Ready();
         }
