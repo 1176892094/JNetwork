@@ -1,6 +1,7 @@
 using System;
 using JFramework.Interface;
 using UnityEngine;
+// ReSharper disable All
 
 namespace JFramework.Net
 {
@@ -18,7 +19,7 @@ namespace JFramework.Net
             {
                 try
                 {
-                    entity.GetComponent<IStartClient>()?.OnStartClient();
+                    (entity as IStartClient)?.OnStartClient();
                 }
                 catch (Exception e)
                 {
@@ -38,7 +39,7 @@ namespace JFramework.Net
             {
                 try
                 {
-                    entity.GetComponent<IStopClient>()?.OnStopClient();
+                    (entity as IStopClient)?.OnStopClient();
                 }
                 catch (Exception e)
                 {
@@ -56,7 +57,7 @@ namespace JFramework.Net
             {
                 try
                 {
-                    entity.GetComponent<IStartServer>()?.OnStartServer();
+                    (entity as IStartServer)?.OnStartServer();
                 }
                 catch (Exception e)
                 {
@@ -64,7 +65,7 @@ namespace JFramework.Net
                 }
             }
         }
-        
+
         /// <summary>
         /// 仅在服务器上调用，当在服务器生成时调用
         /// </summary>
@@ -74,7 +75,7 @@ namespace JFramework.Net
             {
                 try
                 {
-                    entity.GetComponent<IStopServer>()?.OnStopServer();
+                    (entity as IStopServer)?.OnStopServer();
                 }
                 catch (Exception e)
                 {
@@ -82,7 +83,7 @@ namespace JFramework.Net
                 }
             }
         }
-        
+
         /// <summary>
         /// 仅在客户端调用，触发Notify则进行权限认证
         /// </summary>
@@ -109,7 +110,7 @@ namespace JFramework.Net
             {
                 try
                 {
-                    entity.GetComponent<IStartAuthority>()?.OnStartAuthority();
+                    (entity as IStartAuthority)?.OnStartAuthority();
                 }
                 catch (Exception e)
                 {
@@ -127,7 +128,7 @@ namespace JFramework.Net
             {
                 try
                 {
-                    entity.GetComponent<IStopAuthority>()?.OnStopAuthority();
+                    (entity as IStopAuthority)?.OnStopAuthority();
                 }
                 catch (Exception e)
                 {
