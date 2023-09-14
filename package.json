@@ -1,7 +1,7 @@
 {
   "name": "com.jinyijie.net",
   "displayName": "JNetwork",
-  "version": "1.0.2",
+  "version": "1.0.7",
   "unity": "2022.3",
   "description": "This is the JNetwork package",
   "dependencies": {
