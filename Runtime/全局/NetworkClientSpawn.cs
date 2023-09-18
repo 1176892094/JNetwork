@@ -63,7 +63,7 @@ namespace JFramework.Net
             var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
             foreach (var @object in objects)
             {
-                if (NetworkUtils.IsSceneObject(@object) && !@object.gameObject.activeSelf)
+                if (NetworkUtils.IsSceneObject(@object))
                 {
                     if (scenes.TryGetValue(@object.sceneId, out var sceneObject))
                     {
@@ -97,22 +97,7 @@ namespace JFramework.Net
                 return false;
             }
 
-            if (message.sceneId != 0 && !scenes.TryGetValue(message.sceneId, out @object))
-            {
-                Debug.LogError($"无法生成有效场景对象。 sceneId：{message.sceneId}");
-                scenes.Remove(message.sceneId);
-                return false;
-            }
-
-            scenes.Remove(message.sceneId);
-
-            if (!prefabs.TryGetValue(message.assetId, out GameObject prefab))
-            {
-                Debug.LogError($"无法生成有效预置体 {@object}。 assetId：{message.assetId} sceneId：{message.sceneId}");
-                return false;
-            }
-
-            @object = Object.Instantiate(prefab, message.position, message.rotation).GetComponent<NetworkObject>();
+            @object = message.sceneId == 0 ? SpawnPrefab(message) : SpawnSceneObject(message);
 
             if (@object == null)
             {
@@ -121,6 +106,43 @@ namespace JFramework.Net
             }
 
             return true;
+        }
+        
+        /// <summary>
+        /// 生成网络预置体
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private static NetworkObject SpawnPrefab(SpawnMessage message)
+        {
+            if (!prefabs.TryGetValue(message.assetId, out GameObject prefab))
+            {
+                Debug.LogError($"无法生成有效预置体。 assetId：{message.assetId} sceneId：{message.sceneId}");
+                return null;
+            }
+
+            var @object = Object.Instantiate(prefab, message.position, message.rotation);
+            return @object.GetComponent<NetworkObject>();
+        }
+
+        /// <summary>
+        /// 生成网络场景对象
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private static NetworkObject SpawnSceneObject(SpawnMessage message)
+        {
+            NetworkObject @object = null;
+            
+            if (message.sceneId != 0 && !scenes.TryGetValue(message.sceneId, out @object))
+            {
+                Debug.LogError($"无法生成有效场景对象。 sceneId：{message.sceneId}");
+                scenes.Remove(message.sceneId);
+                return null;
+            }
+            
+            scenes.Remove(message.sceneId);
+            return @object;
         }
 
         /// <summary>
