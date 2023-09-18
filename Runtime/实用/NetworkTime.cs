@@ -14,11 +14,6 @@ namespace JFramework.Net
         /// 客户端回传往返时间
         /// </summary>
         private static NetworkEma roundTripTime = new NetworkEma(NetworkConst.PingWindow);
-        
-        /// <summary>
-        /// Ping值
-        /// </summary>
-        public static double ping => roundTripTime.value;
 
         /// <summary>
         /// 当前网络时间
@@ -64,6 +59,7 @@ namespace JFramework.Net
         public static void OnPongByClient(PongMessage message)
         { 
             roundTripTime.Calculate(localTime - message.clientTime);
+            NetworkManager.ClientPingUpdate(roundTripTime.value);
         }
 
         /// <summary>

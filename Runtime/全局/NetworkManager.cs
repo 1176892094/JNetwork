@@ -251,6 +251,15 @@ namespace JFramework.Net
         }
 
         /// <summary>
+        /// 客户端 Ping
+        /// </summary>
+        /// <param name="ping"></param>
+        internal static void ClientPingUpdate(double ping)
+        {
+            OnClientPingUpdate?.Invoke(ping);
+        }
+
+        /// <summary>
         /// 当程序退出，停止服务器和客户端
         /// </summary>
         private void OnQuit()

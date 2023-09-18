@@ -90,6 +90,11 @@ namespace JFramework.Net
         public static event Action<string> OnServerSceneChanged;
 
         /// <summary>
+        /// 当接收Ping
+        /// </summary>
+        public static event Action<double> OnClientPingUpdate;
+
+        /// <summary>
         /// 运行初始化
         /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -109,6 +114,7 @@ namespace JFramework.Net
             OnServerLoadScene = null;
             OnClientSceneChanged = null;
             OnServerSceneChanged = null;
+            OnClientPingUpdate = null;
         }
     }
 }
