@@ -42,6 +42,11 @@ namespace JFramework.Net
         /// 连接的状态
         /// </summary>
         private static ConnectState state;
+        
+        /// <summary>
+        /// 客户端的Ping值
+        /// </summary>
+        public static double ping => NetworkTime.ping;
 
         /// <summary>
         /// 是否活跃
