@@ -13,7 +13,12 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端回传往返时间
         /// </summary>
-        private static NetworkEma smooth = new NetworkEma(NetworkConst.PingWindow);
+        private static NetworkEma roundTripTime = new NetworkEma(NetworkConst.PingWindow);
+        
+        /// <summary>
+        /// Ping值
+        /// </summary>
+        public static double ping => roundTripTime.value;
 
         /// <summary>
         /// 当前网络时间
@@ -58,7 +63,7 @@ namespace JFramework.Net
         /// <param name="message"></param>
         public static void OnPongByClient(PongMessage message)
         { 
-            // TODO: smooth.Add( localTime - message.clientTime);
+            roundTripTime.Calculate(localTime - message.clientTime);
         }
 
         /// <summary>
@@ -67,7 +72,7 @@ namespace JFramework.Net
         public static void ResetStatic()
         {
             lastSendTime = 0;
-            smooth = new NetworkEma(NetworkConst.PingWindow);
+            roundTripTime = new NetworkEma(NetworkConst.PingWindow);
         }
     }
 }
