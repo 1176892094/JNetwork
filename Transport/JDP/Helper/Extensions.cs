@@ -35,7 +35,7 @@ namespace JFramework.Udp
         }
 
         /// <summary>
-        /// 用于在非阻塞模式下从已连接的Client接收数据
+        /// 用于在非阻塞模式下从已连接的Server接收数据
         /// </summary>
         public static bool ReceiveFormServer(this Socket socket, byte[] buffer, out ArraySegment<byte> data)
         {
@@ -89,7 +89,7 @@ namespace JFramework.Udp
         }
 
         /// <summary>
-        /// 用于在非阻塞模式下从指定的Server接收数据
+        /// 用于在非阻塞模式下从指定的Client接收数据
         /// </summary>
         public static bool ReceiveFormClient(this Socket socket, byte[] buffer, out ArraySegment<byte> data,
             ref EndPoint endPoint)
