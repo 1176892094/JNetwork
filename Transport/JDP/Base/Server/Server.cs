@@ -96,7 +96,6 @@ namespace JFramework.Udp
             }
 
             socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
-            socket.Blocking = false;
             socket.SetBufferSize(setting.sendBufferSize, setting.receiveBufferSize);
         }
 
@@ -106,9 +105,9 @@ namespace JFramework.Udp
         /// <param name="clientId">断开的客户端Id</param>
         public void Disconnect(int clientId)
         {
-            if (clients.TryGetValue(clientId, out var connection))
+            if (clients.TryGetValue(clientId, out var client))
             {
-                connection.peer.Disconnect();
+                client.peer.Disconnect();
             }
         }
 
@@ -117,9 +116,9 @@ namespace JFramework.Udp
         /// </summary>
         public void Send(int clientId, ArraySegment<byte> segment, Channel channel)
         {
-            if (clients.TryGetValue(clientId, out var connection))
+            if (clients.TryGetValue(clientId, out var client))
             {
-                connection.peer.Send(segment, channel);
+                client.peer.Send(segment, channel);
             }
         }
 
@@ -204,21 +203,21 @@ namespace JFramework.Udp
         {
             while (TryReceive(out var clientId, out var segment))
             {
-                if (!clients.TryGetValue(clientId, out var connection))
+                if (!clients.TryGetValue(clientId, out var client))
                 {
-                    connection = Connection(clientId);
-                    connection.peer.Input(segment);
-                    connection.peer.EarlyUpdate();
+                    client = Connection(clientId);
+                    client.peer.Input(segment);
+                    client.peer.EarlyUpdate();
                 }
                 else
                 {
-                    connection.peer.Input(segment);
+                    client.peer.Input(segment);
                 }
             }
 
-            foreach (var connection in clients.Values)
+            foreach (var client in clients.Values)
             {
-                connection.peer.EarlyUpdate();
+                client.peer.EarlyUpdate();
             }
 
             foreach (var clientId in removes)
@@ -234,9 +233,9 @@ namespace JFramework.Udp
         /// </summary>
         public void AfterUpdate()
         {
-            foreach (var connection in clients.Values)
+            foreach (var client in clients.Values)
             {
-                connection.peer.AfterUpdate();
+                client.peer.AfterUpdate();
             }
         }
 

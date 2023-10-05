@@ -91,8 +91,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 用于在非阻塞模式下从指定的Client接收数据
         /// </summary>
-        public static bool ReceiveFormClient(this Socket socket, byte[] buffer, out ArraySegment<byte> data,
-            ref EndPoint endPoint)
+        public static bool ReceiveFormClient(this Socket socket, byte[] buffer, out ArraySegment<byte> data, ref EndPoint endPoint)
         {
             data = default;
             try
@@ -125,8 +124,9 @@ namespace JFramework.Udp
         /// <param name="receiveSize"></param>
         public static void SetBufferSize(this Socket socket, int sendSize, int receiveSize)
         {
-            int sendBase = socket.SendBufferSize;
-            int receiveBase = socket.ReceiveBufferSize;
+            socket.Blocking = false;
+            int sendBuffer = socket.SendBufferSize;
+            int receiveBuffer = socket.ReceiveBufferSize;
             try
             {
                 socket.SendBufferSize = sendSize;
@@ -134,8 +134,8 @@ namespace JFramework.Udp
             }
             catch (SocketException)
             {
-                Log.Info($"发送缓存: {sendSize} => {sendBase} : {(sendBase / sendSize).ToString("F")}");
-                Log.Info($"接收缓存: {receiveSize} => {receiveSize} : {(receiveBase / receiveSize).ToString("F")}");
+                Log.Info($"发送缓存: {sendSize} => {sendBuffer} : {(sendBuffer / sendSize).ToString("F")}");
+                Log.Info($"接收缓存: {receiveSize} => {receiveBuffer} : {(receiveBuffer / receiveSize).ToString("F")}");
             }
         }
     }

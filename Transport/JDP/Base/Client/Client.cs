@@ -95,7 +95,6 @@ namespace JFramework.Udp
             endPoint = new IPEndPoint(addresses[0], port);
             Log.Info($"客户端连接到：{addresses[0]} 端口：{port}。");
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-            socket.Blocking = false;
             socket.SetBufferSize(setting.sendBufferSize, setting.receiveBufferSize);
             socket.Connect(endPoint);
             peer.Handshake();

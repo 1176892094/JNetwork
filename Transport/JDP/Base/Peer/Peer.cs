@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+
 // ReSharper disable All
 
 namespace JFramework.Udp
@@ -10,82 +11,82 @@ namespace JFramework.Udp
         /// 端对端状态
         /// </summary>
         private State state;
-        
+
         /// <summary>
         /// 上一次发送Ping的时间
         /// </summary>
         private uint lastPingTime;
-        
+
         /// <summary>
         /// 上一次接收消息的时间
         /// </summary>
         private uint lastReceiveTime;
-        
+
         /// <summary>
         /// 可靠Udp协议
         /// </summary>
         private readonly Jdp jdp;
-        
+
         /// <summary>
         /// 缓存Id
         /// </summary>
         private readonly int cookie;
-        
+
         /// <summary>
         /// 超时时间
         /// </summary>
         private readonly int timeout;
-        
+
         /// <summary>
         /// 可靠消息大小
         /// </summary>
         private readonly int reliableSize;
-        
+
         /// <summary>
         /// 不可靠消息大小
         /// </summary>
         private readonly int unreliableSize;
-        
+
         /// <summary>
         /// 消息缓冲区
         /// </summary>
         private readonly byte[] messageBuffer;
-        
+
         /// <summary>
         /// 发送协议缓冲区
         /// </summary>
         private readonly byte[] jdpSendBuffer;
-        
+
         /// <summary>
         /// 低等级发送缓存区
         /// </summary>
         private readonly byte[] rawSendBuffer;
-        
+
         /// <summary>
         /// 接收的缓存Id
         /// </summary>
         private readonly byte[] receiveCookie = new byte[4];
-        
+
         /// <summary>
         /// 计时器
         /// </summary>
         private readonly Stopwatch watch = new Stopwatch();
-        
+
         /// <summary>
         /// 当客户端通过验证
         /// </summary>
         private event Action OnAuthority;
-        
+
         /// <summary>
         /// 当客户端或服务器断开连接
         /// </summary>
         private event Action OnDisconnected;
-        
+
         /// <summary>
         /// 当服务器或客户端发送消息
         /// </summary>
         private event Action<ArraySegment<byte>> OnSend;
-        
+
         /// <summary>
         /// 当服务器或客户端接收消息
         /// </summary>
@@ -157,12 +158,12 @@ namespace JFramework.Udp
             }
 
             jdpSendBuffer[0] = (byte)header; //设置传输的头部
-           
+
             if (segment.Count > 0)
             {
                 Buffer.BlockCopy(segment.Array, segment.Offset, jdpSendBuffer, 1, segment.Count);
             }
-            
+
             int sent = jdp.Send(jdpSendBuffer, 0, segment.Count + 1);
             if (sent < 0)
             {
@@ -230,7 +231,7 @@ namespace JFramework.Udp
                 Disconnect();
                 return false;
             }
-            
+
             header = (Header)messageBuffer[0];
             segment = new ArraySegment<byte>(messageBuffer, 1, messageSize - 1);
             lastReceiveTime = (uint)watch.ElapsedMilliseconds;
@@ -247,7 +248,7 @@ namespace JFramework.Udp
             var segment = new ArraySegment<byte>(cookieBytes);
             SendReliable(Header.Handshake, segment);
         }
-        
+
         /// <summary>
         /// 断开连接
         /// </summary>
@@ -268,8 +269,8 @@ namespace JFramework.Udp
             state = State.Disconnected;
             OnDisconnected?.Invoke();
         }
-        
-         /// <summary>
+
+        /// <summary>
         /// 当有消息被输入
         /// </summary>
         /// <param name="segment"></param>
@@ -290,44 +291,21 @@ namespace JFramework.Udp
             switch (channel)
             {
                 case (byte)Channel.Reliable:
-                    OnInputReliable(message);
+                    int input = jdp.Input(message.Array, message.Offset, message.Count);
+                    if (input != 0)
+                    {
+                        Log.Warn($"P2P输入消息失败。错误代码：{input}。消息大小：{message.Count - 1}");
+                    }
+
                     break;
                 case (byte)Channel.Unreliable:
-                    OnInputUnreliable(message);
-                    break;
-                default:
-                    Log.Warn($"P2P不是有效的消息类型：{channel}");
-                    break;
-            }
-        }
+                    if (state == State.Authority)
+                    {
+                        OnReceive?.Invoke(message, Channel.Unreliable);
+                        lastReceiveTime = (uint)watch.ElapsedMilliseconds;
+                    }
 
-        /// <summary>
-        /// 当有可靠消息输入的方法
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnInputReliable(ArraySegment<byte> message)
-        {
-            int input = jdp.Input(message.Array, message.Offset, message.Count);
-            if (input != 0)
-            {
-                Log.Warn($"P2P输入消息失败。错误代码：{input}。消息大小：{message.Count - 1}");
-            }
-        }
-        
-        /// <summary>
-        /// 当有不可靠消息输入的方法
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnInputUnreliable(ArraySegment<byte> message)
-        {
-            if (state == State.Authority)
-            {
-                OnReceive?.Invoke(message, Channel.Unreliable);
-                lastReceiveTime = (uint)watch.ElapsedMilliseconds;
-            }
-            else
-            {
-                Log.Warn($"P2P收到没有通过验证的不可靠消息。");
+                    break;
             }
         }
     }
