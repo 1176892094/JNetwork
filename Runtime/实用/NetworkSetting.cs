@@ -4,6 +4,7 @@ using JFramework.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
+using JFramework.Editor;
 using UnityEditor;
 #endif
 
@@ -48,7 +49,7 @@ namespace JFramework.Net
         [Button]
         private void FindPrefabs()
         {
-            string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { GlobalSetting.FILE_PATH });
+            string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { AssetSetting.Instance.assetPath });
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
