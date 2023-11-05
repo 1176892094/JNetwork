@@ -17,11 +17,11 @@ namespace JFramework.Udp
         (
             int sendBufferSize = 1024 * 1024 * 7,
             int receiveBufferSize = 1024 * 1024 * 7,
-            int maxTransferUnit = Jdp.MTU_DEF,
-            int timeout = Jdp.TIME_OUT,
-            uint receivePacketSize = Jdp.WIN_RCV,
-            uint sendPacketSize = Jdp.WIN_SND,
-            uint interval = Jdp.INTERVAL,
+            int maxTransferUnit = Protocol.MTU_DEF,
+            int timeout = Protocol.TIME_OUT,
+            uint receivePacketSize = Protocol.WIN_RCV,
+            uint sendPacketSize = Protocol.WIN_SND,
+            uint interval = Protocol.INTERVAL,
             int resend = 0,
             bool noDelay = true,
             bool congestion = false)

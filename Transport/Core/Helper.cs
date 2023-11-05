@@ -113,7 +113,7 @@ namespace JFramework.Udp
         /// </summary>
         public static int ReliableSize(int maxTransferUnit, uint receivePacketSize)
         {
-            return ReliableSizeInternal(maxTransferUnit, Math.Min(receivePacketSize, Jdp.FRG_MAX));
+            return ReliableSizeInternal(maxTransferUnit, Math.Min(receivePacketSize, Protocol.FRG_MAX));
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace JFramework.Udp
         /// </summary>
         private static int ReliableSizeInternal(int maxTransferUnit, uint receivePacketSize)
         {
-            return (maxTransferUnit - Jdp.OVERHEAD - METADATA_SIZE) * ((int)receivePacketSize - 1) - 1;
+            return (maxTransferUnit - Protocol.OVERHEAD - METADATA_SIZE) * ((int)receivePacketSize - 1) - 1;
         }
 
         /// <summary>

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace JFramework.Udp
 {
-    internal sealed class Jdp
+    internal sealed class Protocol
     {
         private struct Packet
         {
@@ -73,7 +73,7 @@ namespace JFramework.Udp
         public readonly Queue<Segment> sendQueue = new Queue<Segment>(16); 
         private readonly Queue<Segment> receiveQueue = new Queue<Segment>(16);
         
-        public Jdp(uint conversation, Action<byte[], int> onOutput)
+        public Protocol(uint conversation, Action<byte[], int> onOutput)
         {
             this.conversation = conversation;
             this.onOutput = onOutput;
