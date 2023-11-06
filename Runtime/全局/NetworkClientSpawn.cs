@@ -1,6 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using JFramework.Core;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -8,52 +9,6 @@ namespace JFramework.Net
 {
     public static partial class NetworkClient
     {
-        /// <summary>
-        /// 注册预置体
-        /// </summary>
-        /// <param name="objects">传入预置体</param>
-        internal static void RegisterPrefab(IEnumerable<GameObject> objects)
-        {
-            foreach (var prefab in objects)
-            {
-                if (prefab == null)
-                {
-                    Debug.LogError("不能注册预置体，因为它是空的。");
-                    return;
-                }
-
-                if (!prefab.TryGetComponent(out NetworkObject @object))
-                {
-                    Debug.LogError($"预置体 {prefab.name} 没有 NetworkObject 组件");
-                    return;
-                }
-
-                if (@object.assetId == 0)
-                {
-                    Debug.LogError($"不能注册预置体 {@object.name} 因为 assetId 为零！");
-                    return;
-                }
-
-                if (@object.sceneId != 0)
-                {
-                    Debug.LogError($"不能注册预置体 {@object.name} 因为 sceneId 不为零");
-                    return;
-                }
-                
-                if (@object.GetComponentsInChildren<NetworkObject>().Length > 1)
-                {
-                    Debug.LogError($"不能注册预置体 {@object.name} 因为它拥有多个 NetworkObject 组件");
-                }
-
-                if (prefabs.TryGetValue(@object.assetId, out var gameObject))
-                {
-                    Debug.LogWarning($"旧的预置体 {gameObject.name} 被新的预置体 {@object.name} 所取代。");
-                }
-
-                prefabs[@object.assetId] = @object.gameObject;
-            }
-        }
-
         /// <summary>
         /// 网络对象生成开始 (标记场景中的NetworkObject)
         /// </summary>
@@ -91,23 +46,17 @@ namespace JFramework.Net
                 return true;
             }
 
-            if (message is { assetId: 0, sceneId: 0 })
-            {
-                Debug.LogError($"生成游戏对象 {message.objectId} 需要保证 assetId 和 sceneId 其中一个不为零");
-                return false;
-            }
-
             @object = message.sceneId == 0 ? SpawnPrefab(message) : SpawnSceneObject(message);
 
             if (@object == null)
             {
-                Debug.LogError($"无法获取网络组件 {@object}。 assetId：{message.assetId} sceneId：{message.sceneId}");
+                Debug.LogError($"无法获取网络组件 {@object}。 sceneId：{message.sceneId}");
                 return false;
             }
 
             return true;
         }
-        
+
         /// <summary>
         /// 生成网络预置体
         /// </summary>
@@ -115,14 +64,30 @@ namespace JFramework.Net
         /// <returns></returns>
         private static NetworkObject SpawnPrefab(SpawnMessage message)
         {
-            if (!prefabs.TryGetValue(message.assetId, out GameObject prefab))
+            var prefab = AssetManager.Load<GameObject>(Encoding.UTF8.GetString(message.assetId));
+            if (!prefab.TryGetComponent(out NetworkObject @object))
             {
-                Debug.LogError($"无法生成有效预置体。 assetId：{message.assetId} sceneId：{message.sceneId}");
+                Debug.LogError($"预置体 {prefab.name} 没有 NetworkObject 组件");
                 return null;
             }
 
-            var @object = Object.Instantiate(prefab, message.position, message.rotation);
-            return @object.GetComponent<NetworkObject>();
+            if (@object.sceneId != 0)
+            {
+                Debug.LogError($"不能注册预置体 {@object.name} 因为 sceneId 不为零");
+                return null;
+            }
+
+            if (@object.GetComponentsInChildren<NetworkObject>().Length > 1)
+            {
+                Debug.LogError($"不能注册预置体 {@object.name} 因为它拥有多个 NetworkObject 组件");
+                return null;
+            }
+
+            var transform = prefab.transform;
+            transform.position = message.position;
+            transform.rotation = message.rotation;
+            transform.localScale = message.localScale;
+            return @object;
         }
 
         /// <summary>
@@ -133,14 +98,14 @@ namespace JFramework.Net
         private static NetworkObject SpawnSceneObject(SpawnMessage message)
         {
             NetworkObject @object = null;
-            
+
             if (message.sceneId != 0 && !scenes.TryGetValue(message.sceneId, out @object))
             {
                 Debug.LogError($"无法生成有效场景对象。 sceneId：{message.sceneId}");
                 scenes.Remove(message.sceneId);
                 return null;
             }
-            
+
             scenes.Remove(message.sceneId);
             return @object;
         }
@@ -152,16 +117,12 @@ namespace JFramework.Net
         /// <param name="message"></param>
         private static void Spawn(NetworkObject @object, SpawnMessage message)
         {
-            if (message.assetId != 0)
-            {
-                @object.assetId = message.assetId;
-            }
-
             if (!@object.gameObject.activeSelf)
             {
                 @object.gameObject.SetActive(true);
             }
 
+            @object.assetId = Encoding.UTF8.GetString(message.assetId);
             @object.objectId = message.objectId;
             @object.isOwner = message.isOwner;
             @object.isClient = true;
@@ -170,13 +131,13 @@ namespace JFramework.Net
             transform.localPosition = message.position;
             transform.localRotation = message.rotation;
             transform.localScale = message.localScale;
-            
+
             if (message.segment.Count > 0)
             {
                 using var reader = NetworkReader.Pop(message.segment);
                 @object.ClientDeserialize(reader, true);
             }
-            
+
             spawns[message.objectId] = @object;
             if (isSpawn)
             {

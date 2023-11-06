@@ -168,7 +168,6 @@ namespace JFramework.Net
 
 
             NetworkClient.StartClient(address, port);
-            NetworkClient.RegisterPrefab(setting.prefabs);
             OnStartClient?.Invoke();
         }
 
@@ -185,7 +184,6 @@ namespace JFramework.Net
             }
 
             NetworkClient.StartClient(uri);
-            NetworkClient.RegisterPrefab(setting.prefabs);
             OnStartClient?.Invoke();
         }
 
@@ -223,7 +221,6 @@ namespace JFramework.Net
 
             NetworkServer.StartServer(isListen);
             NetworkClient.StartClient();
-            NetworkClient.RegisterPrefab(setting.prefabs);
             OnStartHost?.Invoke();
         }
 

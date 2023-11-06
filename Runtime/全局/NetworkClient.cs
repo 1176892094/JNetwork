@@ -12,12 +12,7 @@ namespace JFramework.Net
         /// 网络消息委托字典
         /// </summary>
         internal static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
-
-        /// <summary>
-        /// 注册的预置体
-        /// </summary>
-        internal static readonly Dictionary<uint, GameObject> prefabs = new Dictionary<uint, GameObject>();
-
+        
         /// <summary>
         /// 场景中包含的网络对象
         /// </summary>
@@ -195,7 +190,6 @@ namespace JFramework.Net
             OnClientDisconnect?.Invoke();
             lastSendTime = 0;
             scenes.Clear();
-            prefabs.Clear();
             messages.Clear();
             isReady = false;
             connection = null;

@@ -45,8 +45,9 @@ namespace JFramework.Net
         {
             if (!string.IsNullOrWhiteSpace(path))
             {
-                Guid guid = new Guid(AssetDatabase.AssetPathToGUID(path));
-                assetId = (uint)guid.GetHashCode();
+                var importer = AssetImporter.GetAtPath(path);
+                if (importer == null) return;
+                assetId = importer.assetBundleName + "/" + name;
             }
         }
 

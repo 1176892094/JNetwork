@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using JFramework.Interface;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace JFramework.Net
 {
@@ -94,12 +95,12 @@ namespace JFramework.Net
     internal struct SpawnMessage : Message
     {
         public bool isOwner;
-        public uint assetId;
         public uint objectId;
         public ulong sceneId;
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 localScale;
+        public ArraySegment<byte> assetId;
         public ArraySegment<byte> segment;
     }
     

@@ -1,19 +1,12 @@
-using System.Collections.Generic;
-using System.Linq;
-using JFramework.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
-using JFramework.Editor;
-using UnityEditor;
 #endif
 
 namespace JFramework.Net
 {
     internal sealed class NetworkSetting : AssetSingleton<NetworkSetting>
     {
-        public List<GameObject> prefabs = new List<GameObject>();
-
         [InfoBox("本地模拟相对于发送间隔 * 缓冲时间乘数 的滞后时间")]
         public double bufferTimeMultiplier = 2;
 
@@ -40,38 +33,5 @@ namespace JFramework.Net
         
         [InfoBox("动态调整通过 n 秒的指数移动平均标准差计算")]
         public int deliveryTimeEmaDuration = 2;
-
-#if UNITY_EDITOR
-
-        /// <summary>
-        /// 寻找预置体的方法
-        /// </summary>
-        [Button]
-        private void FindPrefabs()
-        {
-            string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { AssetSetting.Instance.assetPath });
-            foreach (string guid in guids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-                if (prefab != null && prefab.GetComponent<NetworkObject>() != null)
-                {
-                    if (!prefabs.Contains(prefab))
-                    {
-                        prefabs.Add(prefab);
-                    }
-                }
-            }
-
-            var copies = prefabs.ToList();
-            foreach (var prefab in copies.Where(prefab => prefab == null))
-            {
-                prefabs.Remove(prefab);
-            }
-
-            EditorUtility.SetDirty(this);
-            AssetDatabase.Refresh();
-        }
-#endif
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Sirenix.OdinInspector;
@@ -34,9 +33,9 @@ namespace JFramework.Net
         private static readonly Dictionary<ulong, NetworkObject> sceneIds = new Dictionary<ulong, NetworkObject>();
         
         /// <summary>
-        /// 作为预置体的资源Id
+        /// 作为资源的路径
         /// </summary>
-        [ReadOnly, SerializeField] internal uint assetId;
+        [ReadOnly, SerializeField] internal string assetId;
         
         /// <summary>
         /// 作为场景资源的Id

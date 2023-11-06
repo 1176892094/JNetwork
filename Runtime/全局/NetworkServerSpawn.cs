@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -17,7 +18,7 @@ namespace JFramework.Net
                 Debug.LogError($"服务器不是活跃的。");
                 return;
             }
-            
+
             NetworkObject[] objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
 
             foreach (var @object in objects)
@@ -32,7 +33,7 @@ namespace JFramework.Net
                 }
             }
         }
-        
+
         /// <summary>
         /// 仅在Server和Host能使用，生成物体的方法
         /// </summary>
@@ -57,9 +58,9 @@ namespace JFramework.Net
                 Debug.LogWarning($"网络对象 {@object} 已经被生成。", @object.gameObject);
                 return;
             }
-            
+
             @object.connection = client;
-            
+
             if (NetworkManager.mode == NetworkMode.Host)
             {
                 if (@object.connection?.clientId == NetworkConst.HostId)
@@ -67,7 +68,7 @@ namespace JFramework.Net
                     @object.isOwner = true;
                 }
             }
-            
+
             if (!@object.isServer && @object.objectId == 0)
             {
                 @object.objectId = ++objectId;
@@ -76,7 +77,7 @@ namespace JFramework.Net
                 spawns[@object.objectId] = @object;
                 @object.OnStartServer();
             }
-            
+
             SpawnForClient(@object);
         }
 
@@ -106,14 +107,13 @@ namespace JFramework.Net
             {
                 isOwner = isOwner,
                 sceneId = @object.sceneId,
-                assetId = @object.assetId,
                 objectId = @object.objectId,
                 position = transform.localPosition,
                 rotation = transform.localRotation,
                 localScale = transform.localScale,
-                segment = SerializeNetworkObject(@object, isOwner, owner, observer)
+                segment = SerializeNetworkObject(@object, isOwner, owner, observer),
+                assetId = (ArraySegment<byte>)Encoding.UTF8.GetBytes(@object.assetId)
             };
-
             client.SendMessage(message);
         }
 
