@@ -86,7 +86,6 @@ namespace JFramework.Net
             var transform = prefab.transform;
             transform.position = message.position;
             transform.rotation = message.rotation;
-            transform.localScale = message.localScale;
             return @object;
         }
 
