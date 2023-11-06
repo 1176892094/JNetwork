@@ -1,11 +1,11 @@
+using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
-#if UNITY_EDITOR
-#endif
 
 namespace JFramework.Net
 {
-    internal sealed class NetworkSetting : AssetSingleton<NetworkSetting>
+    [Serializable]
+    internal sealed class NetworkSetting
     {
         [InfoBox("本地模拟相对于发送间隔 * 缓冲时间乘数 的滞后时间")]
         public double bufferTimeMultiplier = 2;
