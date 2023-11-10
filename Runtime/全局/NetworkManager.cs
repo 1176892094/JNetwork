@@ -110,12 +110,6 @@ namespace JFramework.Net
                 return;
             }
 
-            if (setting == null)
-            {
-                Debug.LogError("NetworkManager 的 Setting 为空");
-                return;
-            }
-
             Application.runInBackground = true;
 #if UNITY_SERVER
             Application.targetFrameRate = tickRate;
