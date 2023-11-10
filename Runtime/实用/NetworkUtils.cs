@@ -13,7 +13,8 @@ namespace JFramework.Net
         public static bool IsSceneObject(NetworkObject @object)
         {
             if (@object.sceneId == 0) return false;
-            return @object.gameObject.hideFlags is not (HideFlags.HideAndDontSave or HideFlags.NotEditable);
+            if (@object.gameObject.hideFlags == HideFlags.NotEditable) return false;
+            return @object.gameObject.hideFlags != HideFlags.HideAndDontSave;
         }
 
         /// <summary>
@@ -39,7 +40,7 @@ namespace JFramework.Net
                 NetworkServer.spawns.TryGetValue(objectId, out var @object);
                 return @object;
             }
-            
+
             if (NetworkClient.isActive)
             {
                 NetworkClient.spawns.TryGetValue(objectId, out var @object);
@@ -48,7 +49,7 @@ namespace JFramework.Net
 
             return null;
         }
-        
+
         /// <summary>
         /// 生成随机种子
         /// </summary>
