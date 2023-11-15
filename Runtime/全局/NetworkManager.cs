@@ -232,7 +232,7 @@ namespace JFramework.Net
         /// 生成玩家预置体
         /// </summary>
         /// <param name="client"></param>
-        internal void SpawnPrefab(UdpClient client)
+        internal void SpawnPrefab(UnityClient client)
         {
             if (client.isSpawn && playerPrefab != null)
             {

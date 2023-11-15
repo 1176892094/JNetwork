@@ -20,7 +20,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        private static void RegisterMessage<T>(Action<UdpClient, T> handle) where T : struct, Message
+        private static void RegisterMessage<T>(Action<UnityClient, T> handle) where T : struct, Message
         {
             messages[NetworkMessage<T>.Id] = NetworkMessage.Register(handle);
         }
@@ -28,7 +28,7 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        private static void RegisterMessage<T>(Action<UdpClient, T, Channel> handle) where T : struct, Message
+        private static void RegisterMessage<T>(Action<UnityClient, T, Channel> handle) where T : struct, Message
         {
             messages[NetworkMessage<T>.Id] = NetworkMessage.Register(handle);
         }
@@ -36,7 +36,7 @@ namespace JFramework.Net
         /// <summary>
         /// 当从Transport接收到一条ServerRpc消息
         /// </summary>
-        private static void OnServerRpcByServer(UdpClient client, ServerRpcMessage message, Channel channel)
+        private static void OnServerRpcByServer(UnityClient client, ServerRpcMessage message, Channel channel)
         {
             if (!client.isReady)
             {
@@ -65,7 +65,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="client"></param>
         /// <param name="message"></param>
-        private static void OnSnapshotByServer(UdpClient client, SnapshotMessage message)
+        private static void OnSnapshotByServer(UnityClient client, SnapshotMessage message)
         {
             client?.OnSnapshotMessage(new SnapshotTime(client.remoteTime, NetworkTime.localTime));
         }
@@ -75,7 +75,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="client"></param>
         /// <param name="message"></param>
-        private static void OnEntityByServer(UdpClient client, EntityMessage message)
+        private static void OnEntityByServer(UnityClient client, EntityMessage message)
         {
             if (spawns.TryGetValue(message.objectId, out var @object) && @object != null)
             {
@@ -101,7 +101,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="client"></param>
         /// <param name="message"></param>
-        private static void OnSetReadyByServer(UdpClient client, SetReadyMessage message)
+        private static void OnSetReadyByServer(UnityClient client, SetReadyMessage message)
         {
             SetReadyForClient(client);
             NetworkManager.Instance.SpawnPrefab(client);

@@ -18,7 +18,7 @@ namespace JFramework.Net
         private Dictionary<uint, NetworkObject> serverSpawns => NetworkServer.spawns;
 
         [FoldoutGroup("服务器设置"), ShowInInspector]
-        private Dictionary<int, UdpClient> connections => NetworkServer.clients;
+        private Dictionary<int, UnityClient> connections => NetworkServer.clients;
         
         // [FoldoutGroup("客户端设置"), ShowInInspector]
         // private ServerEntity clientConnection => NetworkClient.connection;

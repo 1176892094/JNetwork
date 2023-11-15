@@ -217,7 +217,7 @@ namespace JFramework.Editor
                 return false;
             }
 
-            bool connection = param.ParameterType.Is<UdpPeer>();
+            bool connection = param.ParameterType.Is<UnityPeer>();
             bool sendTarget = NetworkRpcProcess.IsSendTarget(param, rpcType);
 
             if (param.IsOut)

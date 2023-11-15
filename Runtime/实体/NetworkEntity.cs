@@ -5,8 +5,13 @@ namespace JFramework.Net
     /// <summary>
     /// 实体的抽象类
     /// </summary>
-    public abstract class NetworkEntity : NetworkBehaviour, IEntity
+    public abstract class NetworkEntity : NetworkBehaviour, IInject
     {
+        /// <summary>
+        /// 实体初始化注入
+        /// </summary>
+        protected virtual void Awake() => this.Inject();
+
         /// <summary>
         /// 实体启用
         /// </summary>

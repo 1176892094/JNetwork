@@ -61,7 +61,7 @@ namespace JFramework.Net
         /// <summary>
         /// 连接到的服务器
         /// </summary>
-        public static UdpServer connection { get; private set; }
+        public static UnityServer connection { get; private set; }
 
         /// <summary>
         /// 客户端连接的事件(包含主机)
@@ -89,7 +89,7 @@ namespace JFramework.Net
             RegisterMessage(false);
             state = ConnectState.Connecting;
             Transport.current.ClientConnect(address, port);
-            connection = new UdpServer();
+            connection = new UnityServer();
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace JFramework.Net
             RegisterMessage(false);
             state = ConnectState.Connecting;
             Transport.current.ClientConnect(uri);
-            connection = new UdpServer();
+            connection = new UnityServer();
         }
 
         /// <summary>
@@ -112,8 +112,8 @@ namespace JFramework.Net
         {
             RegisterMessage(true);
             state = ConnectState.Connected;
-            connection = new UdpServer();
-            var client = new UdpClient(NetworkConst.HostId);
+            connection = new UnityServer();
+            var client = new UnityClient(NetworkConst.HostId);
             NetworkServer.OnClientConnect(client);
             Ready();
         }

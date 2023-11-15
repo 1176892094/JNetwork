@@ -95,7 +95,7 @@ namespace JFramework.Net
         /// 调用远程函数
         /// </summary>
         /// <returns>返回是否调用成功</returns>
-        internal static bool Invoke(ushort hash, RpcType rpcType, NetworkReader reader, NetworkBehaviour behaviour, UdpClient client = null)
+        internal static bool Invoke(ushort hash, RpcType rpcType, NetworkReader reader, NetworkBehaviour behaviour, UnityClient client = null)
         {
             if (!messages.TryGetValue(hash, out var message) || message == null || message.rpcType != rpcType) // 没有注册进字典
             {

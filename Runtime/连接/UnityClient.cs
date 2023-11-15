@@ -7,7 +7,7 @@ namespace JFramework.Net
     /// <summary>
     /// 仅在服务器上被创建
     /// </summary>
-    public sealed class UdpClient : UdpPeer
+    public sealed class UnityClient : UnityPeer
     {
         /// <summary>
         /// 可靠Rpc列表
@@ -63,7 +63,7 @@ namespace JFramework.Net
         /// 初始化设置客户端Id
         /// </summary>
         /// <param name="clientId">传入客户端的Id</param>
-        public UdpClient(int clientId)
+        public UnityClient(int clientId)
         {
             this.clientId = clientId;
             isHost = clientId == NetworkConst.HostId;

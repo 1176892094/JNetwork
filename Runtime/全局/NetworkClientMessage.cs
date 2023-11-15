@@ -51,7 +51,7 @@ namespace JFramework.Net
         private static void OnEmptyByHost<T>(T message) where T : Message
         {
         }
-        
+
         /// <summary>
         /// 主机模式下生成物体的消息
         /// </summary>
@@ -104,17 +104,9 @@ namespace JFramework.Net
         /// <param name="message"></param>
         private static void OnSpawnByClient(SpawnMessage message)
         {
-            isSpawn = false;
-            SpawnStart();
-            if (TrySpawn(message, out var @object))
-            {
-                Spawn(@object, message);
-            }
-            
-            SpawnFinish();
-            isSpawn = true;
+            SpawnExecute(message);
         }
-        
+
         /// <summary>
         /// 接收 远程过程调用(RPC) 缓存的消息
         /// </summary>
@@ -128,7 +120,7 @@ namespace JFramework.Net
                 OnClientRpcEvent(clientRpc);
             }
         }
-        
+
         /// <summary>
         /// 当接收到 ClientRpc 的消息
         /// </summary>
@@ -145,7 +137,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="message"></param>
         private static void OnSnapshotByClient(SnapshotMessage message)
-        { 
+        {
             connection.OnSnapshotMessage(new SnapshotTime(connection.remoteTime, NetworkTime.localTime));
         }
 
@@ -177,7 +169,7 @@ namespace JFramework.Net
                 NetworkManager.ClientLoadScene(message.sceneName);
             }
         }
-        
+
         /// <summary>
         /// 客户端未准备就绪的消息 (不能接收和发送消息)
         /// </summary>

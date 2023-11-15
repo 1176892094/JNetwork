@@ -62,7 +62,7 @@ namespace JFramework.Net
         /// 被广播的指定客户端
         /// </summary>
         /// <param name="client">指定的客户端</param>
-        private static void BroadcastToClient(UdpClient client)
+        private static void BroadcastToClient(UnityClient client)
         {
             foreach (var @object in spawns.Values)
             {
@@ -87,7 +87,7 @@ namespace JFramework.Net
         /// <param name="object"></param>
         /// <param name="client"></param>
         /// <returns></returns>
-        private static NetworkWriter SerializeForClient(NetworkObject @object, UdpClient client)
+        private static NetworkWriter SerializeForClient(NetworkObject @object, UnityClient client)
         {
             var serialize = @object.ServerSerializeTick(Time.frameCount);
             

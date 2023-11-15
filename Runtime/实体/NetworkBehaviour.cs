@@ -66,7 +66,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络对象连接的客户端(服务器不为空，客户端为空)
         /// </summary>
-        public UdpClient connection => @object.connection;
+        public UnityClient connection => @object.connection;
 
         /// <summary>
         /// 是否能够改变网络值

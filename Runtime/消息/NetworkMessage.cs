@@ -75,7 +75,7 @@ namespace JFramework.Net
         /// <typeparam name="T1">网络连接(Server or Client)</typeparam>
         /// <typeparam name="T2">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static MessageDelegate Register<T1, T2>(Action<T1, T2, Channel> handle) where T1 : UdpPeer where T2 : struct, Message
+        internal static MessageDelegate Register<T1, T2>(Action<T1, T2, Channel> handle) where T1 : UnityPeer where T2 : struct, Message
         {
             return (connection, reader, channel) =>
             {
@@ -86,7 +86,7 @@ namespace JFramework.Net
                 }
                 catch (Exception e)
                 {
-                    if (connection is UdpClient client)
+                    if (connection is UnityClient client)
                     {
                         Debug.LogError($"断开连接。客户端：{client.clientId}\n{e}");
                     }
@@ -107,7 +107,7 @@ namespace JFramework.Net
         /// <typeparam name="T1">网络连接(Server or Client)</typeparam>
         /// <typeparam name="T2">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static MessageDelegate Register<T1, T2>(Action<T1, T2> handle) where T1 : UdpPeer where T2 : struct, Message
+        internal static MessageDelegate Register<T1, T2>(Action<T1, T2> handle) where T1 : UnityPeer where T2 : struct, Message
         {
             return Register((Action<T1, T2, Channel>)Handle);
 
@@ -125,9 +125,9 @@ namespace JFramework.Net
         /// <returns>返回一个消息委托</returns>
         internal static MessageDelegate Register<T1>(Action<T1> handle) where T1 : struct, Message
         {
-            return Register((Action<UdpPeer, T1>)Handle);
+            return Register((Action<UnityPeer, T1>)Handle);
 
-            void Handle(UdpPeer connection, T1 @event)
+            void Handle(UnityPeer connection, T1 @event)
             {
                 handle?.Invoke(@event);
             }
