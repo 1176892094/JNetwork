@@ -155,7 +155,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkWriter Pop()
         {
-            var writer = PoolManager.Pop<NetworkWriter>();
+            var writer = StreamPool.Pop<NetworkWriter>();
             writer.Reset();
             return writer;
         }
@@ -165,7 +165,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="writer">传入NetworkWriter类</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Push(NetworkWriter writer) => PoolManager.Push(writer);
+        public static void Push(NetworkWriter writer) => StreamPool.Push(writer);
         
         /// <summary>
         /// 重写字符串转化方法

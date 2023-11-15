@@ -189,7 +189,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkReader Pop(ArraySegment<byte> segment)
         {
-            var reader = PoolManager.Pop<NetworkReader>();
+            var reader = StreamPool.Pop<NetworkReader>();
             reader.SetBuffer(segment);
             return reader;
         }
@@ -199,7 +199,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="reader">传入NetworkReader</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Push(NetworkReader reader) => PoolManager.Push(reader);
+        public static void Push(NetworkReader reader) => StreamPool.Push(reader);
 
         /// <summary>
         /// 重写字符串转化方法

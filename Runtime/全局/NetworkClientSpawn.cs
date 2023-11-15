@@ -16,7 +16,6 @@ namespace JFramework.Net
         /// <returns>返回是否能获取</returns>
         private static void SpawnExecute(SpawnMessage message)
         {
-            isSpawning = false;
             scenes.Clear();
             var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
             foreach (var obj in objects)
@@ -35,6 +34,7 @@ namespace JFramework.Net
 
             if (spawns.TryGetValue(message.objectId, out var @object))
             {
+                isSpawning = false;
                 Spawn(@object, message);
                 SpawnFinish();
                 isSpawning = true;
@@ -61,10 +61,8 @@ namespace JFramework.Net
                     {
                         Debug.LogError($"不能注册预置体 {@object.name} 因为它拥有多个 NetworkObject 组件");
                     }
-
-                    var transform = prefab.transform;
-                    transform.position = message.position;
-                    transform.rotation = message.rotation;
+                    
+                    isSpawning = false;
                     Spawn(@object, message);
                     SpawnFinish();
                     isSpawning = true;
@@ -72,7 +70,7 @@ namespace JFramework.Net
             }
             else
             {
-                if (message.sceneId != 0 && !scenes.TryGetValue(message.sceneId, out @object))
+                if (!scenes.TryGetValue(message.sceneId, out @object))
                 {
                     Debug.LogError($"无法生成有效场景对象。 sceneId：{message.sceneId}");
                     scenes.Remove(message.sceneId);
@@ -80,6 +78,7 @@ namespace JFramework.Net
                 }
 
                 scenes.Remove(message.sceneId);
+                isSpawning = false;
                 Spawn(@object, message);
                 SpawnFinish();
                 isSpawning = true;
