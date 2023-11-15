@@ -27,11 +27,6 @@ namespace JFramework.Net
         /// 用来拷贝当前连接的所有客户端
         /// </summary>
         private static readonly List<UnityClient> copies = new List<UnityClient>();
-        
-        /// <summary>
-        /// 最大连接数量
-        /// </summary>
-        private static uint maxConnection => NetworkManager.Instance.maxConnection;
 
         /// <summary>
         /// 上一次发送消息的时间
@@ -42,6 +37,11 @@ namespace JFramework.Net
         /// 当前网络对象Id
         /// </summary>
         private static uint objectId;
+        
+        /// <summary>
+        /// 最大连接数量
+        /// </summary>
+        private static uint maxConnection => NetworkManager.Instance.maxConnection;
 
         /// <summary>
         /// 所有客户端都准备
@@ -147,15 +147,15 @@ namespace JFramework.Net
         internal static void StopServer()
         {
             if (!isActive) return;
-            isActive = false;
             Debug.Log("停止服务器。");
+            isActive = false;
             if (Transport.current != null)
             {
                 Transport.current.StopServer();
             }
 
-            var copyList = clients.Values.ToList();
-            foreach (var client in copyList)
+            var copies = clients.Values.ToList();
+            foreach (var client in copies)
             {
                 client.Disconnect();
                 if (client.clientId != NetworkConst.HostId)

@@ -16,7 +16,7 @@ namespace JFramework.Net
         /// <returns>返回是否能获取</returns>
         private static void SpawnExecute(SpawnMessage message)
         {
-            isSpawn = false;
+            isSpawning = false;
             scenes.Clear();
             var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
             foreach (var obj in objects)
@@ -37,7 +37,7 @@ namespace JFramework.Net
             {
                 Spawn(@object, message);
                 SpawnFinish();
-                isSpawn = true;
+                isSpawning = true;
                 return;
             }
 
@@ -67,7 +67,7 @@ namespace JFramework.Net
                     transform.rotation = message.rotation;
                     Spawn(@object, message);
                     SpawnFinish();
-                    isSpawn = true;
+                    isSpawning = true;
                 });
             }
             else
@@ -82,7 +82,7 @@ namespace JFramework.Net
                 scenes.Remove(message.sceneId);
                 Spawn(@object, message);
                 SpawnFinish();
-                isSpawn = true;
+                isSpawning = true;
             }
         }
 
@@ -115,7 +115,7 @@ namespace JFramework.Net
             }
 
             spawns[message.objectId] = @object;
-            if (isSpawn)
+            if (isSpawning)
             {
                 @object.OnNotifyAuthority();
                 @object.OnStartClient();

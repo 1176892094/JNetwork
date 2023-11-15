@@ -70,7 +70,7 @@ namespace JFramework.Net
         /// <param name="lastTime">上次发送的时间</param>
         /// <returns>返回是否能够进行传输</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TimeTick(double current, double sendRate, ref double lastTime)
+        public static bool HeartBeat(double current, double sendRate, ref double lastTime)
         {
             if (current < lastTime + sendRate) return false;
             var clientTime = (long)(current / sendRate);

@@ -38,9 +38,9 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        private static void RegisterMessage<T>(Action<T> handle) where T : struct, Message
+        private static void RegisterMessage<TMessage>(Action<TMessage> handle) where TMessage : struct, Message
         {
-            messages[NetworkMessage<T>.Id] = NetworkMessage.Register(handle);
+            messages[NetworkMessage<TMessage>.Id] = NetworkMessage.Register(handle);
         }
 
         /// <summary>

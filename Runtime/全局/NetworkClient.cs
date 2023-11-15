@@ -31,7 +31,7 @@ namespace JFramework.Net
         /// <summary>
         /// 是否在生成物体中
         /// </summary>
-        private static bool isSpawn;
+        private static bool isSpawning;
 
         /// <summary>
         /// 连接的状态

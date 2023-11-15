@@ -20,17 +20,17 @@ namespace JFramework.Net
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        private static void RegisterMessage<T>(Action<UnityClient, T> handle) where T : struct, Message
+        private static void RegisterMessage<TMessage>(Action<UnityClient, TMessage> handle) where TMessage : struct, Message
         {
-            messages[NetworkMessage<T>.Id] = NetworkMessage.Register(handle);
+            messages[NetworkMessage<TMessage>.Id] = NetworkMessage.Register(handle);
         }
 
         /// <summary>
         /// 注册网络消息
         /// </summary>
-        private static void RegisterMessage<T>(Action<UnityClient, T, Channel> handle) where T : struct, Message
+        private static void RegisterMessage<TMessage>(Action<UnityClient, TMessage, Channel> handle) where TMessage : struct, Message
         {
-            messages[NetworkMessage<T>.Id] = NetworkMessage.Register(handle);
+            messages[NetworkMessage<TMessage>.Id] = NetworkMessage.Register(handle);
         }
 
         /// <summary>
@@ -40,7 +40,11 @@ namespace JFramework.Net
         {
             if (!client.isReady)
             {
-                Debug.LogWarning("接收到 ServerRpc 但客户端没有准备就绪");
+                if (channel == Channel.Reliable)
+                {
+                    Debug.LogWarning("接收到 ServerRpc 但客户端没有准备就绪");
+                }
+
                 return;
             }
 

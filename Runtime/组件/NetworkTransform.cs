@@ -297,7 +297,7 @@ namespace JFramework.Net
                 sendIntervalCounter = 0;
             }
 
-            if (NetworkUtils.TimeTick(NetworkTime.localTime, NetworkManager.sendRate, ref lastSendIntervalTime))
+            if (NetworkUtils.HeartBeat(NetworkTime.localTime, NetworkManager.sendRate, ref lastSendIntervalTime))
             {
                 sendIntervalCounter++;
             }
