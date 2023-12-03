@@ -139,7 +139,7 @@ namespace JFramework.Editor
 
             if (variable.IsAbstract)
             {
-                logger.Error($"无法为抽象类 {tr.Name} 生成 Reader", tr);
+                logger.Error($"无法为抽象或泛型 {tr.Name} 生成 Reader", tr);
                 failed = true;
                 return null;
             }

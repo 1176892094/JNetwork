@@ -129,7 +129,7 @@ namespace JFramework.Editor
 
             if (variable.IsAbstract)
             {
-                logger.Error($"无法为抽象类 {tr.Name} 生成 Writer", tr);
+                logger.Error($"无法为抽象或泛型 {tr.Name} 生成 Writer", tr);
                 return null;
             }
 
