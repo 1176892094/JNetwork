@@ -104,6 +104,22 @@ namespace JFramework.Net
         /// <param name="message"></param>
         private static void OnSpawnByClient(SpawnMessage message)
         {
+            scenes.Clear();
+            var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
+            foreach (var obj in objects)
+            {
+                if (!NetworkUtils.IsSceneObject(obj)) continue;
+                if (scenes.TryGetValue(obj.sceneId, out var o))
+                {
+                    var gameObject = obj.gameObject;
+                    Debug.LogWarning($"复制 {gameObject.name} 到 {o.gameObject.name} 上检测到 sceneId", gameObject);
+                }
+                else
+                {
+                    scenes.Add(obj.sceneId, obj);
+                }
+            }
+
             SpawnExecute(message);
         }
 

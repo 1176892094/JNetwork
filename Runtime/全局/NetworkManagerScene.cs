@@ -1,4 +1,3 @@
-using JFramework.Core;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -8,7 +7,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器加载场景
         /// </summary>
-        public static void LoadScene(string newSceneName)
+        public static async void LoadScene(string newSceneName)
         {
             if (string.IsNullOrWhiteSpace(newSceneName))
             {
@@ -21,7 +20,7 @@ namespace JFramework.Net
                 Debug.LogError($"服务器已经在加载 {newSceneName} 场景");
                 return;
             }
-            
+
             foreach (var client in NetworkServer.clients.Values)
             {
                 NetworkServer.NotReadyForClient(client);
@@ -40,13 +39,14 @@ namespace JFramework.Net
                 }
             }
 
-            SceneManager.LoadSceneAsync(newSceneName, OnLoadComplete);
+            await GlobalManager.Scene.LoadSceneAsync(newSceneName);
+            OnLoadComplete();
         }
 
         /// <summary>
         /// 客户端加载场景
         /// </summary>
-        internal static void ClientLoadScene(string newSceneName)
+        internal static async void ClientLoadScene(string newSceneName)
         {
             if (string.IsNullOrWhiteSpace(newSceneName))
             {
@@ -59,7 +59,8 @@ namespace JFramework.Net
             if (NetworkServer.isActive) return; //Host不做处理
             sceneName = newSceneName;
             NetworkClient.isLoadScene = true;
-            SceneManager.LoadSceneAsync(newSceneName, OnLoadComplete);
+            await GlobalManager.Scene.LoadSceneAsync(newSceneName);
+            OnLoadComplete();
         }
 
 
@@ -107,7 +108,7 @@ namespace JFramework.Net
                 NetworkClient.Ready();
             }
 
-            OnClientSceneChanged?.Invoke(SceneManager.localScene);
+            OnClientSceneChanged?.Invoke(GlobalManager.Scene.ToString());
         }
     }
 }

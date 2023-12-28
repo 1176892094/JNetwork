@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Text;
-using JFramework.Core;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -14,24 +13,8 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="message">传入网络消息</param>
         /// <returns>返回是否能获取</returns>
-        private static void SpawnExecute(SpawnMessage message)
+        private static async void SpawnExecute(SpawnMessage message)
         {
-            scenes.Clear();
-            var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
-            foreach (var obj in objects)
-            {
-                if (!NetworkUtils.IsSceneObject(obj)) continue;
-                if (scenes.TryGetValue(obj.sceneId, out var o))
-                {
-                    var gameObject = obj.gameObject;
-                    Debug.LogWarning($"复制 {gameObject.name} 到 {o.gameObject.name} 上检测到 sceneId", gameObject);
-                }
-                else
-                {
-                    scenes.Add(obj.sceneId, obj);
-                }
-            }
-
             if (spawns.TryGetValue(message.objectId, out var @object))
             {
                 isSpawning = false;
@@ -43,30 +26,28 @@ namespace JFramework.Net
 
             if (message.sceneId == 0)
             {
-                AssetManager.LoadAsync<GameObject>(Encoding.UTF8.GetString(message.assetId), prefab =>
+                var prefab = await GlobalManager.Asset.Load<GameObject>(Encoding.UTF8.GetString(message.assetId));
+                if (!prefab.TryGetComponent(out @object))
                 {
-                    if (!prefab.TryGetComponent(out @object))
-                    {
-                        Debug.LogError($"预置体 {prefab.name} 没有 NetworkObject 组件");
-                        return;
-                    }
+                    Debug.LogError($"预置体 {prefab.name} 没有 NetworkObject 组件");
+                    return;
+                }
 
-                    if (@object.sceneId != 0)
-                    {
-                        Debug.LogError($"不能注册预置体 {@object.name} 因为 sceneId 不为零");
-                        return;
-                    }
+                if (@object.sceneId != 0)
+                {
+                    Debug.LogError($"不能注册预置体 {@object.name} 因为 sceneId 不为零");
+                    return;
+                }
 
-                    if (@object.GetComponentsInChildren<NetworkObject>().Length > 1)
-                    {
-                        Debug.LogError($"不能注册预置体 {@object.name} 因为它拥有多个 NetworkObject 组件");
-                    }
-                    
-                    isSpawning = false;
-                    Spawn(@object, message);
-                    SpawnFinish();
-                    isSpawning = true;
-                });
+                if (@object.GetComponentsInChildren<NetworkObject>().Length > 1)
+                {
+                    Debug.LogError($"不能注册预置体 {@object.name} 因为它拥有多个 NetworkObject 组件");
+                }
+
+                isSpawning = false;
+                Spawn(@object, message);
+                SpawnFinish();
+                isSpawning = true;
             }
             else
             {
