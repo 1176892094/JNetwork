@@ -6,7 +6,7 @@ namespace JFramework.Net
 {
     public partial class NetworkManager
     {
-        public partial class NetworkServer
+        public partial class ServerManager
         {
             /// <summary>
             /// 添加传输事件
@@ -43,13 +43,13 @@ namespace JFramework.Net
                 {
                     Transport.current.ServerDisconnect(clientId);
                 }
-                else if (clients.Count >= maxConnection)
+                else if (clients.Count >= Instance.maxConnection)
                 {
                     Transport.current.ServerDisconnect(clientId);
                 }
                 else
                 {
-                    OnClientConnect(new UnityClient(clientId));
+                    OnClientConnect(new NetworkClient(clientId));
                 }
             }
 
@@ -57,7 +57,7 @@ namespace JFramework.Net
             /// 当客户端连接到服务器
             /// </summary>
             /// <param name="client">连接的客户端实体</param>
-            internal void OnClientConnect(UnityClient client)
+            internal void OnClientConnect(NetworkClient client)
             {
                 clients.TryAdd(client.clientId, client);
                 if (client.clientId == NetworkConst.HostId)
@@ -66,7 +66,7 @@ namespace JFramework.Net
                 }
 
                 client.isSpawn = true;
-                OnServerConnect?.Invoke(client);
+                OnConnect?.Invoke(client);
             }
 
             /// <summary>
@@ -77,7 +77,7 @@ namespace JFramework.Net
             {
                 if (clients.TryGetValue(clientId, out var client))
                 {
-                    OnServerDisconnect?.Invoke(client);
+                    OnDisconnect?.Invoke(client);
                     var copyList = spawns.Values.Where(@object => @object.connection == client).ToList();
                     foreach (var @object in copyList)
                     {

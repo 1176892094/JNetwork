@@ -1,35 +1,18 @@
 using System;
+using JFramework.Interface;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
+// ReSharper disable All
+
 namespace JFramework.Net
 {
-    public sealed partial class NetworkManager : MonoBehaviour
+    public sealed partial class NetworkManager : MonoBehaviour, IInject
     {
         /// <summary>
         /// NetworkManager 单例
         /// </summary>
         public static NetworkManager Instance;
-
-        /// <summary>
-        /// NetworkClient 控制器
-        /// </summary>
-        public static NetworkClient Client;
-
-        /// <summary>
-        /// NetworkServer 控制器
-        /// </summary>
-        public static NetworkServer Server;
-
-        /// <summary>
-        /// 服务器场景
-        /// </summary>
-        private string sceneName;
-
-        /// <summary>
-        /// 消息发送率
-        /// </summary>
-        internal float sendRate => tickRate < int.MaxValue ? 1f / tickRate : 0;
 
         /// <summary>
         /// 网络传输组件
@@ -39,12 +22,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络发现组件
         /// </summary>
-        [SerializeField] public NetworkDiscovery discovery;
-
-        /// <summary>
-        /// 网络设置和预置体
-        /// </summary>
-        [SerializeField] internal NetworkSetting setting = new NetworkSetting();
+        [SerializeField] internal NetworkDiscovery discovery;
 
         /// <summary>
         /// 玩家预置体
@@ -60,6 +38,11 @@ namespace JFramework.Net
         /// 客户端最大连接数量
         /// </summary>
         [SerializeField] internal uint maxConnection = 100;
+
+        /// <summary>
+        /// 消息发送率
+        /// </summary>
+        internal float sendRate => tickRate < int.MaxValue ? 1f / tickRate : 0;
 
         /// <summary>
         /// 传输连接地址
@@ -89,6 +72,11 @@ namespace JFramework.Net
         {
             get
             {
+                if (!Application.isPlaying)
+                {
+                    return NetworkMode.None;
+                }
+
                 if (Server.isActive)
                 {
                     return Client.isActive ? NetworkMode.Host : NetworkMode.Server;
@@ -99,20 +87,39 @@ namespace JFramework.Net
         }
 
         /// <summary>
+        /// SceneManager 控制器
+        /// </summary>
+        [Inject, ShowInInspector] public static SceneManager Scene;
+
+        /// <summary>
+        /// ClientManager 控制器
+        /// </summary>
+        [Inject, ShowInInspector] public static ClientManager Client;
+
+        /// <summary>
+        /// ServerManager 控制器
+        /// </summary>
+        [Inject, ShowInInspector] public static ServerManager Server;
+
+        /// <summary>
+        /// SettingManager 控制器
+        /// </summary>
+        [Inject, ShowInInspector] internal static SettingManager Setting;
+
+        /// <summary>
+        /// TimerManager 控制器
+        /// </summary>
+        [Inject, ShowInInspector] internal static TimeManager Time;
+
+        /// <summary>
         /// 初始化配置传输
         /// </summary>
         private void Awake()
         {
+            this.Inject();
             Instance = this;
             DontDestroyOnLoad(gameObject);
             GlobalManager.OnQuit += OnQuit;
-
-            if (transport == null)
-            {
-                Debug.LogError("NetworkManager 没有 Transport 组件。");
-                return;
-            }
-
             Application.runInBackground = true;
 #if UNITY_SERVER
             Application.targetFrameRate = tickRate;
@@ -131,9 +138,8 @@ namespace JFramework.Net
                 return;
             }
 
-            sceneName = "";
+            Scene.sceneName = "";
             Server.StartServer(true);
-            OnStartServer?.Invoke();
         }
 
         /// <summary>
@@ -147,8 +153,7 @@ namespace JFramework.Net
                 return;
             }
 
-            sceneName = "";
-            OnStopServer?.Invoke();
+            Scene.sceneName = "";
             Server.StopServer();
         }
 
@@ -163,9 +168,7 @@ namespace JFramework.Net
                 return;
             }
 
-
             Client.StartClient(address, port);
-            OnStartClient?.Invoke();
         }
 
         /// <summary>
@@ -181,7 +184,6 @@ namespace JFramework.Net
             }
 
             Client.StartClient(uri);
-            OnStartClient?.Invoke();
         }
 
         /// <summary>
@@ -200,7 +202,6 @@ namespace JFramework.Net
                 Server.OnServerDisconnected(Server.connection.clientId);
             }
 
-            OnStopClient?.Invoke();
             Client.StopClient();
         }
 
@@ -218,7 +219,6 @@ namespace JFramework.Net
 
             Server.StartServer(isListen);
             Client.StartClient();
-            OnStartHost?.Invoke();
         }
 
         /// <summary>
@@ -226,31 +226,8 @@ namespace JFramework.Net
         /// </summary>
         public void StopHost()
         {
-            OnStopHost?.Invoke();
             StopClient();
             StopServer();
-        }
-
-        /// <summary>
-        /// 生成玩家预置体
-        /// </summary>
-        /// <param name="client"></param>
-        private void SpawnPrefab(UnityClient client)
-        {
-            if (client.isSpawn && playerPrefab != null)
-            {
-                Server.Spawn(Instantiate(playerPrefab), client);
-                client.isSpawn = false;
-            }
-        }
-
-        /// <summary>
-        /// 客户端 Ping
-        /// </summary>
-        /// <param name="ping"></param>
-        internal void ClientPingUpdate(double ping)
-        {
-            OnClientPingUpdate?.Invoke(ping);
         }
 
         /// <summary>
@@ -258,7 +235,7 @@ namespace JFramework.Net
         /// </summary>
         private void OnQuit()
         {
-            if (Client.isConnect)
+            if (Client.isAuthority)
             {
                 StopClient();
             }

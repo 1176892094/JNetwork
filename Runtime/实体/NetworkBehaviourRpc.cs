@@ -46,7 +46,7 @@ namespace JFramework.Net
                 segment = writer.ToArraySegment()
             };
 
-            NetworkManager.Client.connection.SendMessage(message, (Channel)channel);
+            NetworkManager.Client.connection.Send(message, (Channel)channel);
         }
 
 
@@ -96,7 +96,7 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendTargetRpcInternal(UnityClient client, string methodName, int methodHash, NetworkWriter writer, sbyte channel)
+        protected void SendTargetRpcInternal(NetworkClient client, string methodName, int methodHash, NetworkWriter writer, sbyte channel)
         {
             if (!NetworkManager.Server.isActive)
             {

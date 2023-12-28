@@ -1,84 +1,89 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Sirenix.OdinInspector;
 using UnityEngine;
-
-// ReSharper disable All
 
 namespace JFramework.Net
 {
     public partial class NetworkManager
     {
-        public partial class NetworkClient : Controller
+        public partial class ClientManager : Controller
         {
             /// <summary>
             /// 网络消息委托字典
             /// </summary>
-            internal readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
+            [ShowInInspector] internal readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
 
             /// <summary>
             /// 场景中包含的网络对象
             /// </summary>
-            internal readonly Dictionary<ulong, NetworkObject> scenes = new Dictionary<ulong, NetworkObject>();
+            [ShowInInspector] internal readonly Dictionary<ulong, NetworkObject> scenes = new Dictionary<ulong, NetworkObject>();
 
             /// <summary>
             /// 客户端生成的网络对象
             /// </summary>
-            internal readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
-
-            /// <summary>
-            /// 上一次发送信息的时间
-            /// </summary>
-            private double lastSendTime;
-
-            /// <summary>
-            /// 是否在生成物体中
-            /// </summary>
-            private bool isSpawning;
+            [ShowInInspector] internal readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
 
             /// <summary>
             /// 连接的状态
             /// </summary>
-            private ConnectState state;
+            [ShowInInspector] private ConnectState state;
+            
+            /// <summary>
+            /// 上一次发送信息的时间
+            /// </summary>
+            [ShowInInspector] private double sendTime;
 
             /// <summary>
-            /// 是否活跃
+            /// 是否在生成物体中
             /// </summary>
-            public bool isActive => state is ConnectState.Connected or ConnectState.Connecting;
-
-            /// <summary>
-            /// 是否已经连接成功
-            /// </summary>
-            public bool isConnect => state == ConnectState.Connected;
+            [ShowInInspector] private bool isSpawning;
 
             /// <summary>
             /// 是否已经准备完成(能进行和Server的信息传输)
             /// </summary>
+            [ShowInInspector]
             public bool isReady { get; internal set; }
 
             /// <summary>
             /// 是否正在加载场景
             /// </summary>
+            [ShowInInspector]
             public bool isLoadScene { get; internal set; }
 
             /// <summary>
             /// 连接到的服务器
             /// </summary>
-            public UnityServer connection { get; private set; }
+            [ShowInInspector]
+            public NetworkServer connection { get; private set; }
+
+            /// <summary>
+            /// 是否活跃
+            /// </summary>
+            [ShowInInspector]
+            public bool isActive => state is ConnectState.Connected or ConnectState.Connecting;
+
+            /// <summary>
+            /// 是否已经连接成功
+            /// </summary>
+            [ShowInInspector]
+            public bool isAuthority => state == ConnectState.Connected;
 
             /// <summary>
             /// 客户端连接的事件(包含主机)
             /// </summary>
-            public event Action OnClientConnect;
+            public event Action OnConnect;
 
             /// <summary>
             /// 客户端断开的事件
             /// </summary>
-            public event Action OnClientDisconnect;
+            public event Action OnDisconnect;
 
             /// <summary>
             /// 客户端取消准备的事件
             /// </summary>
-            public event Action OnClientNotReady;
+            public event Action OnNotReady;
 
             /// <summary>
             /// 开启客户端
@@ -88,10 +93,10 @@ namespace JFramework.Net
             internal void StartClient(string address, ushort port)
             {
                 RegisterTransport();
-                RegisterMessage(false);
+                Register(false);
                 state = ConnectState.Connecting;
                 Transport.current.ClientConnect(address, port);
-                connection = new UnityServer();
+                connection = new NetworkServer();
             }
 
             /// <summary>
@@ -101,10 +106,10 @@ namespace JFramework.Net
             internal void StartClient(Uri uri)
             {
                 RegisterTransport();
-                RegisterMessage(false);
+                Register(false);
                 state = ConnectState.Connecting;
                 Transport.current.ClientConnect(uri);
-                connection = new UnityServer();
+                connection = new NetworkServer();
             }
 
             /// <summary>
@@ -112,10 +117,10 @@ namespace JFramework.Net
             /// </summary>
             internal void StartClient()
             {
-                RegisterMessage(true);
+                Register(true);
                 state = ConnectState.Connected;
-                connection = new UnityServer();
-                var client = new UnityClient(NetworkConst.HostId);
+                connection = new NetworkServer();
+                var client = new NetworkClient(NetworkConst.HostId);
                 Server.OnClientConnect(client);
                 Ready();
             }
@@ -139,7 +144,7 @@ namespace JFramework.Net
 
                 isReady = true;
                 connection.isReady = true;
-                connection.SendMessage(new SetReadyMessage());
+                connection.Send(new SetReadyMessage());
             }
 
             /// <summary>
@@ -148,7 +153,7 @@ namespace JFramework.Net
             /// <param name="message">网络事件</param>
             /// <param name="channel">传输通道</param>
             /// <typeparam name="T"></typeparam>
-            internal void SendMessage<T>(T message, Channel channel = Channel.Reliable) where T : struct, Message
+            internal void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, Message
             {
                 if (connection == null)
                 {
@@ -162,7 +167,7 @@ namespace JFramework.Net
                     return;
                 }
 
-                connection.SendMessage(message, channel);
+                connection.Send(message, channel);
             }
 
             /// <summary>
@@ -172,30 +177,47 @@ namespace JFramework.Net
             {
                 if (!isActive) return;
                 Debug.Log("停止客户端。");
-                DestroyForClient();
                 state = ConnectState.Disconnected;
+                foreach (var @object in spawns.Values.Where(@object => @object != null))
+                {
+                    if (Instance.mode is NetworkMode.Client)
+                    {
+                        @object.OnStopClient();
+                        if (@object.sceneId != 0)
+                        {
+                            @object.gameObject.SetActive(false);
+                            @object.Reset();
+                        }
+                        else
+                        {
+                            Destroy(@object.gameObject);
+                        }
+                    }
+                }
+
                 if (Transport.current != null)
                 {
                     Transport.current.ClientDisconnect();
                 }
 
-                OnClientDisconnect?.Invoke();
-                lastSendTime = 0;
+                OnDisconnect?.Invoke();
+                spawns.Clear();
                 scenes.Clear();
                 messages.Clear();
+                sendTime = 0;
                 isReady = false;
                 connection = null;
                 isLoadScene = false;
             }
-            
+
             /// <summary>
             /// 清除事件
             /// </summary>
             private void OnDestroy()
             {
-                OnClientConnect = null;
-                OnClientDisconnect = null;
-                OnClientNotReady = null;
+                OnConnect = null;
+                OnDisconnect = null;
+                OnNotReady = null;
             }
         }
     }

@@ -304,7 +304,7 @@ namespace JFramework.Net
         {
             if (udpClient == null) return;
 
-            if (NetworkManager.Client.isConnect)
+            if (NetworkManager.Client.isAuthority)
             {
                 StopDiscovery();
                 return;

@@ -193,9 +193,9 @@ namespace JFramework.Editor
             var ArraySegmentType = Import(typeof(ArraySegment<>));
             ArraySegmentRef = Helper.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CTOR, ref failed);
 
-            var NetworkClientType = Import(typeof(NetworkManager.NetworkClient));
+            var NetworkClientType = Import(typeof(NetworkManager.ClientManager));
             NetworkClientActiveRef = Helper.ResolveMethod(NetworkClientType, assembly, logger, "get_isActive", ref failed);
-            var NetworkServerType = Import(typeof(NetworkManager.NetworkServer));
+            var NetworkServerType = Import(typeof(NetworkManager.ServerManager));
             NetworkServerActiveRef = Helper.ResolveMethod(NetworkServerType, assembly, logger, "get_isActive", ref failed);
 
             var StreamExtensionType = Import(typeof(StreamExtensions));

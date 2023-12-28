@@ -9,7 +9,7 @@ namespace JFramework.Net
     /// <summary>
     /// 网络连接 (Server or Client)
     /// </summary>
-    public abstract class UnityPeer
+    public abstract class NetworkPeer
     {
         /// <summary>
         /// 存储不同传输通道写入的网络信息
@@ -39,17 +39,17 @@ namespace JFramework.Net
         /// <summary>
         /// 移动指数平均值
         /// </summary>
-        internal NetworkEma driftEma;
+        internal NetworkAverage driftEma;
         
         /// <summary>
         /// 发送时间移动指数平均值
         /// </summary>
-        internal NetworkEma deliveryTimeEma;
+        internal NetworkAverage deliveryTimeEma;
 
         /// <summary>
         /// 网络消息更新
         /// </summary>
-        internal virtual void Update()
+        internal virtual void OnUpdate()
         {
             foreach (var (channel, writerPack) in writerPacks) // 遍历可靠和不可靠消息
             {
@@ -97,11 +97,11 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T">传入NetworkMessage</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SendMessage<T>(T message, Channel channel = Channel.Reliable) where T : struct, Message
+        public void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, Message
         {
             using var writer = NetworkWriter.Pop();
             NetworkMessage.WriteMessage(writer, message);
-            SendMessage(writer.ToArraySegment(), channel);
+            Send(writer.ToArraySegment(), channel);
         }
         
         /// <summary>
@@ -110,7 +110,7 @@ namespace JFramework.Net
         /// <param name="segment">数据分段</param>
         /// <param name="channel">传输通道</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal abstract void SendMessage(ArraySegment<byte> segment, Channel channel = Channel.Reliable);
+        internal abstract void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable);
         
         /// <summary>
         /// 网络消息发送

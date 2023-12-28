@@ -4,7 +4,7 @@ namespace JFramework.Net
 {
     public partial class NetworkManager
     {
-        public partial class NetworkServer
+        public partial class ServerManager
         {
             /// <summary>
             /// 在Update之前调用
@@ -29,7 +29,7 @@ namespace JFramework.Net
             {
                 if (isActive)
                 {
-                    if (NetworkUtils.HeartBeat(NetworkTime.localTime, Instance.sendRate, ref lastSendTime))
+                    if (NetworkUtils.HeartBeat(Time.localTime, Instance.sendRate, ref sendTime))
                     {
                         Broadcast();
                     }
@@ -52,11 +52,11 @@ namespace JFramework.Net
                 {
                     if (client.isReady)
                     {
-                        client.SendMessage(new SnapshotMessage(), Channel.Unreliable);
+                        client.Send(new SnapshotMessage(), Channel.Unreliable);
                         BroadcastToClient(client);
                     }
 
-                    client.Update();
+                    client.OnUpdate();
                 }
             }
 
@@ -64,7 +64,7 @@ namespace JFramework.Net
             /// 被广播的指定客户端
             /// </summary>
             /// <param name="client">指定的客户端</param>
-            private void BroadcastToClient(UnityClient client)
+            private void BroadcastToClient(NetworkClient client)
             {
                 foreach (var @object in spawns.Values)
                 {
@@ -73,7 +73,7 @@ namespace JFramework.Net
                         NetworkWriter writer = SerializeForClient(@object, client);
                         if (writer != null)
                         {
-                            client.SendMessage(new EntityMessage(@object.objectId, writer.ToArraySegment()));
+                            client.Send(new EntityMessage(@object.objectId, writer.ToArraySegment()));
                         }
                     }
                     else
@@ -89,9 +89,9 @@ namespace JFramework.Net
             /// <param name="object"></param>
             /// <param name="client"></param>
             /// <returns></returns>
-            private NetworkWriter SerializeForClient(NetworkObject @object, UnityClient client)
+            private NetworkWriter SerializeForClient(NetworkObject @object, NetworkClient client)
             {
-                var serialize = @object.ServerSerializeTick(Time.frameCount);
+                var serialize = @object.ServerSerializeTick(UnityEngine.Time.frameCount);
 
                 if (@object.connection == client)
                 {

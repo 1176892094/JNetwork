@@ -5,7 +5,7 @@ namespace JFramework.Net
 {
     public partial class NetworkManager
     {
-        public partial class NetworkClient
+        public partial class ClientManager
         {
             /// <summary>
             /// 添加传输事件
@@ -40,9 +40,9 @@ namespace JFramework.Net
 
                 Debug.Log("客户端连接成功。");
                 state = ConnectState.Connected;
-                OnClientConnect?.Invoke();
-                NetworkTime.ResetStatic();
-                NetworkTime.Update();
+                OnConnect?.Invoke();
+                Time.Reset();
+                Time.OnUpdate();
                 Ready();
             }
 

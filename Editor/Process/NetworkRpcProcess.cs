@@ -250,7 +250,7 @@ namespace JFramework.Editor
         {
             if (md.Parameters.Count <= 0) return false;
             TypeReference td = md.Parameters[0].ParameterType;
-            return td.Is<UnityPeer>() || td.IsDerivedFrom<UnityPeer>();
+            return td.Is<NetworkPeer>() || td.IsDerivedFrom<NetworkPeer>();
         }
 
         /// <summary>
@@ -366,7 +366,7 @@ namespace JFramework.Editor
             }
 
             TypeReference type = param.ParameterType;
-            return type.Is<UnityClient>() || type.Resolve().IsDerivedFrom<UnityClient>();
+            return type.Is<NetworkClient>() || type.Resolve().IsDerivedFrom<NetworkClient>();
         }
 
         /// <summary>

@@ -3,10 +3,10 @@ namespace JFramework.Net
     /// <summary>
     /// 远程呼叫的委托
     /// </summary>
-    public delegate void RpcDelegate(NetworkBehaviour behaviour, NetworkReader reader, UnityClient client);
+    public delegate void RpcDelegate(NetworkBehaviour behaviour, NetworkReader reader, NetworkClient client);
     
     /// <summary>
     /// 网络消息的委托
     /// </summary>
-    internal delegate void MessageDelegate(UnityPeer peer, NetworkReader reader, Channel channel);
+    internal delegate void MessageDelegate(NetworkPeer peer, NetworkReader reader, Channel channel);
 }

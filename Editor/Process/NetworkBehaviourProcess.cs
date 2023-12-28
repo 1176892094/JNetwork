@@ -99,7 +99,7 @@ namespace JFramework.Editor
         {
             collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, models.Import<NetworkBehaviour>()));
             collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<NetworkReader>()));
-            collection.Add(new ParameterDefinition("target", ParameterAttributes.None, models.Import<UnityClient>()));
+            collection.Add(new ParameterDefinition("target", ParameterAttributes.None, models.Import<NetworkClient>()));
         }
     }
 }

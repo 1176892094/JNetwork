@@ -7,7 +7,7 @@ namespace JFramework.Net
     /// <summary>
     /// 仅在服务器上被创建
     /// </summary>
-    public sealed class UnityClient : UnityPeer
+    public sealed class NetworkClient : NetworkPeer
     {
         /// <summary>
         /// 可靠Rpc列表
@@ -63,13 +63,13 @@ namespace JFramework.Net
         /// 初始化设置客户端Id
         /// </summary>
         /// <param name="clientId">传入客户端的Id</param>
-        public UnityClient(int clientId)
+        public NetworkClient(int clientId)
         {
             this.clientId = clientId;
             isHost = clientId == NetworkConst.HostId;
-            driftEma = new NetworkEma(NetworkManager.Instance.tickRate * NetworkManager.Instance.setting.driftEmaDuration);
-            deliveryTimeEma = new NetworkEma(NetworkManager.Instance.tickRate * NetworkManager.Instance.setting.deliveryTimeEmaDuration);
-            snapshotBufferSizeLimit = Mathf.Max((int)NetworkManager.Instance.setting.bufferTimeMultiplier, snapshotBufferSizeLimit);
+            driftEma = new NetworkAverage(NetworkManager.Instance.tickRate * NetworkManager.Setting.driftEmaDuration);
+            deliveryTimeEma = new NetworkAverage(NetworkManager.Instance.tickRate * NetworkManager.Setting.deliveryTimeEmaDuration);
+            snapshotBufferSizeLimit = Mathf.Max((int)NetworkManager.Setting.bufferTimeMultiplier, snapshotBufferSizeLimit);
         }
         
         /// <summary>
@@ -79,9 +79,9 @@ namespace JFramework.Net
         internal void OnSnapshotMessage(SnapshotTime snapshot)
         {
             if (snapshots.Count >= snapshotBufferSizeLimit) return;
-            if (NetworkManager.Instance.setting.dynamicAdjustment)
+            if (NetworkManager.Setting.dynamicAdjustment)
             {
-                bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.Instance.sendRate, deliveryTimeEma.deviation, NetworkManager.Instance.setting.dynamicAdjustmentTolerance);
+                bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.Instance.sendRate, deliveryTimeEma.deviation, NetworkManager.Setting.dynamicAdjustmentTolerance);
             }
 
             SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref remoteTimeline, ref remoteTimescale, NetworkManager.Instance.sendRate, bufferTime, ref driftEma, ref deliveryTimeEma);
@@ -102,11 +102,11 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器更新
         /// </summary>
-        internal override void Update()
+        internal override void OnUpdate()
         {
             SendRpc(reliableRpc, Channel.Reliable);
             SendRpc(unreliableRpc, Channel.Unreliable);
-            base.Update();
+            base.OnUpdate();
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace JFramework.Net
         private void SendRpc(NetworkWriter writer, Channel channel)
         {
             if (writer.position <= 0) return;
-            SendMessage(new InvokeRpcMessage(writer), channel);
+            Send(new InvokeRpcMessage(writer), channel);
             writer.position = 0;
         }
 
@@ -172,7 +172,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="segment">消息分段</param>
         /// <param name="channel">传输通道</param>
-        internal override void SendMessage(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
+        internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             if (isHost)
             {
@@ -182,7 +182,7 @@ namespace JFramework.Net
                 return;
             }
 
-            GetWriterPack(channel).WriteEnqueue(segment, NetworkTime.localTime);
+            GetWriterPack(channel).WriteEnqueue(segment, NetworkManager.Time.localTime);
         }
 
         /// <summary>

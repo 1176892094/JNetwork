@@ -5,24 +5,24 @@ namespace JFramework.Net
 {
     public partial class NetworkManager
     {
-        public partial class NetworkServer
+        public partial class ServerManager
         {
             /// <summary>
             /// 注册服务器消息消息
             /// </summary>
-            private void RegisterMessage()
+            private void Register()
             {
-                RegisterMessage<EntityMessage>(OnEntityByServer);
-                RegisterMessage<SetReadyMessage>(OnSetReadyByServer);
-                RegisterMessage<ServerRpcMessage>(OnServerRpcByServer);
-                RegisterMessage<PingMessage>(NetworkTime.OnPingByServer);
-                RegisterMessage<SnapshotMessage>(OnSnapshotByServer);
+                Register<EntityMessage>(OnEntityByServer);
+                Register<SetReadyMessage>(OnSetReadyByServer);
+                Register<ServerRpcMessage>(OnServerRpcByServer);
+                Register<PingMessage>(Time.OnPingByServer);
+                Register<SnapshotMessage>(OnSnapshotByServer);
             }
 
             /// <summary>
             /// 注册网络消息
             /// </summary>
-            private void RegisterMessage<TMessage>(Action<UnityClient, TMessage> handle) where TMessage : struct, Message
+            private void Register<TMessage>(Action<NetworkClient, TMessage> handle) where TMessage : struct, Message
             {
                 messages[NetworkMessage<TMessage>.Id] = NetworkMessage.Register(handle);
             }
@@ -30,7 +30,7 @@ namespace JFramework.Net
             /// <summary>
             /// 注册网络消息
             /// </summary>
-            private void RegisterMessage<TMessage>(Action<UnityClient, TMessage, Channel> handle) where TMessage : struct, Message
+            private void Register<TMessage>(Action<NetworkClient, TMessage, Channel> handle) where TMessage : struct, Message
             {
                 messages[NetworkMessage<TMessage>.Id] = NetworkMessage.Register(handle);
             }
@@ -38,7 +38,7 @@ namespace JFramework.Net
             /// <summary>
             /// 当从Transport接收到一条ServerRpc消息
             /// </summary>
-            private void OnServerRpcByServer(UnityClient client, ServerRpcMessage message, Channel channel)
+            private void OnServerRpcByServer(NetworkClient client, ServerRpcMessage message, Channel channel)
             {
                 if (!client.isReady)
                 {
@@ -71,9 +71,9 @@ namespace JFramework.Net
             /// </summary>
             /// <param name="client"></param>
             /// <param name="message"></param>
-            private void OnSnapshotByServer(UnityClient client, SnapshotMessage message)
+            private void OnSnapshotByServer(NetworkClient client, SnapshotMessage message)
             {
-                client?.OnSnapshotMessage(new SnapshotTime(client.remoteTime, NetworkTime.localTime));
+                client?.OnSnapshotMessage(new SnapshotTime(client.remoteTime, Time.localTime));
             }
 
             /// <summary>
@@ -81,7 +81,7 @@ namespace JFramework.Net
             /// </summary>
             /// <param name="client"></param>
             /// <param name="message"></param>
-            private void OnEntityByServer(UnityClient client, EntityMessage message)
+            private void OnEntityByServer(NetworkClient client, EntityMessage message)
             {
                 if (spawns.TryGetValue(message.objectId, out var @object) && @object != null)
                 {
@@ -107,11 +107,11 @@ namespace JFramework.Net
             /// </summary>
             /// <param name="client"></param>
             /// <param name="message"></param>
-            private void OnSetReadyByServer(UnityClient client, SetReadyMessage message)
+            private void OnSetReadyByServer(NetworkClient client, SetReadyMessage message)
             {
-                SetReadyForClient(client);
+                SetReady(client, true);
                 Instance.SpawnPrefab(client);
-                OnServerReady?.Invoke(client);
+                OnSetReady?.Invoke(client);
             }
         }
     }

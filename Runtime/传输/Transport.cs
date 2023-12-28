@@ -148,7 +148,7 @@ namespace JFramework.Net
         /// <summary>
         /// 运行初始化
         /// </summary>
-        public static void RestStatic()
+        public static void ResetStatic()
         {
             OnClientConnected = null;
             OnClientDisconnected = null;

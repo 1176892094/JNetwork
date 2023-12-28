@@ -1,26 +1,23 @@
-using System;
-using System.Linq;
 using System.Text;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace JFramework.Net
 {
     public partial class NetworkManager
     {
-        public partial class NetworkClient
+        public partial class ClientManager
         {
             /// <summary>
             /// 获取网络对象
             /// </summary>
             /// <param name="message">传入网络消息</param>
             /// <returns>返回是否能获取</returns>
-            private async void SpawnExecute(SpawnMessage message)
+            private async void SpawnObject(SpawnMessage message)
             {
                 if (spawns.TryGetValue(message.objectId, out var @object))
                 {
                     isSpawning = false;
-                    Spawn(@object, message);
+                    Spawn(message, @object);
                     SpawnFinish();
                     isSpawning = true;
                     return;
@@ -28,7 +25,8 @@ namespace JFramework.Net
 
                 if (message.sceneId == 0)
                 {
-                    var prefab = await GlobalManager.Asset.Load<GameObject>(Encoding.UTF8.GetString(message.assetId));
+                    var path = Encoding.UTF8.GetString(message.assetId);
+                    var prefab = await GlobalManager.Asset.Load<GameObject>(path);
                     if (!prefab.TryGetComponent(out @object))
                     {
                         Debug.LogError($"预置体 {prefab.name} 没有 NetworkObject 组件");
@@ -47,7 +45,7 @@ namespace JFramework.Net
                     }
 
                     isSpawning = false;
-                    Spawn(@object, message);
+                    Spawn(message, @object);
                     SpawnFinish();
                     isSpawning = true;
                 }
@@ -62,7 +60,7 @@ namespace JFramework.Net
 
                     scenes.Remove(message.sceneId);
                     isSpawning = false;
-                    Spawn(@object, message);
+                    Spawn(message, @object);
                     SpawnFinish();
                     isSpawning = true;
                 }
@@ -73,7 +71,7 @@ namespace JFramework.Net
             /// </summary>
             /// <param name="object"></param>
             /// <param name="message"></param>
-            private void Spawn(NetworkObject @object, SpawnMessage message)
+            private void Spawn(SpawnMessage message, NetworkObject @object)
             {
                 if (!@object.gameObject.activeSelf)
                 {
@@ -120,41 +118,6 @@ namespace JFramework.Net
                     @object.isClient = true;
                     @object.OnNotifyAuthority();
                     @object.OnStartClient();
-                }
-            }
-
-            /// <summary>
-            /// 销毁客户端物体
-            /// </summary>
-            private void DestroyForClient()
-            {
-                try
-                {
-                    var enumerable = spawns.Values.Where(@object => @object != null);
-                    foreach (var @object in enumerable)
-                    {
-                        @object.OnStopClient();
-                        if (Instance.mode is NetworkMode.Client)
-                        {
-                            if (@object.sceneId != 0)
-                            {
-                                @object.Reset();
-                                @object.gameObject.SetActive(false);
-                            }
-                            else
-                            {
-                                Object.Destroy(@object.gameObject);
-                            }
-                        }
-                    }
-                }
-                catch (InvalidOperationException e)
-                {
-                    Debug.LogException(e);
-                }
-                finally
-                {
-                    spawns.Clear();
                 }
             }
         }

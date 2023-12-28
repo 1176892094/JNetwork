@@ -5,13 +5,14 @@ namespace JFramework.Net
     /// <summary>
     /// 网络移动指数平均值
     /// </summary>
-    internal struct NetworkEma
+    [Serializable]
+    internal struct NetworkAverage
     {
         /// <summary>
         /// 平滑因子
         /// </summary>
         private readonly double alpha;
-        
+
         /// <summary>
         /// 是否初始化
         /// </summary>
@@ -21,12 +22,12 @@ namespace JFramework.Net
         /// 数值
         /// </summary>
         public double value;
-        
+
         /// <summary>
         /// 偏差
         /// </summary>
         private double variance;
-        
+
         /// <summary>
         /// 标准差
         /// </summary>
@@ -36,7 +37,7 @@ namespace JFramework.Net
         /// 初始化平滑因子
         /// </summary>
         /// <param name="n"></param>
-        public NetworkEma(int n)
+        public NetworkAverage(int n)
         {
             alpha = 2.0 / (n + 1);
             start = false;

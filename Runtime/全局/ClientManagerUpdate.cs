@@ -2,7 +2,7 @@ namespace JFramework.Net
 {
     public partial class NetworkManager
     {
-        public partial class NetworkClient
+        public partial class ClientManager
         {
             /// <summary>
             /// 在Update前调用
@@ -24,7 +24,7 @@ namespace JFramework.Net
             {
                 if (isActive)
                 {
-                    if (NetworkUtils.HeartBeat(NetworkTime.localTime, Instance.sendRate, ref lastSendTime))
+                    if (NetworkUtils.HeartBeat(Time.localTime, Instance.sendRate, ref sendTime))
                     {
                         Broadcast();
                     }
@@ -34,14 +34,14 @@ namespace JFramework.Net
                 {
                     if (Instance.mode == NetworkMode.Host)
                     {
-                        connection.Update();
+                        connection.OnUpdate();
                     }
                     else
                     {
-                        if (isActive && isConnect)
+                        if (isActive && isAuthority)
                         {
-                            NetworkTime.Update();
-                            connection.Update();
+                            Time.OnUpdate();
+                            connection.OnUpdate();
                         }
                     }
                 }
@@ -65,12 +65,12 @@ namespace JFramework.Net
                     @object.ClientSerialize(writer);
                     if (writer.position > 0)
                     {
-                        SendMessage(new EntityMessage(@object.objectId, writer.ToArraySegment()));
+                        Send(new EntityMessage(@object.objectId, writer.ToArraySegment()));
                         @object.ClearDirty();
                     }
                 }
 
-                SendMessage(new SnapshotMessage(), Channel.Unreliable);
+                Send(new SnapshotMessage(), Channel.Unreliable);
             }
         }
     }

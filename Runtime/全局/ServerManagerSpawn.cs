@@ -2,13 +2,12 @@ using System;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace JFramework.Net
 {
     public partial class NetworkManager
     {
-        public partial class NetworkServer
+        public partial class ServerManager
         {
             /// <summary>
             /// 生成物体
@@ -21,8 +20,7 @@ namespace JFramework.Net
                     return;
                 }
 
-                NetworkObject[] objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
-
+                var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
                 foreach (var @object in objects)
                 {
                     if (NetworkUtils.IsSceneObject(@object) && @object.objectId == 0)
@@ -41,7 +39,7 @@ namespace JFramework.Net
             /// </summary>
             /// <param name="obj">生成的游戏物体</param>
             /// <param name="client">客户端Id</param>
-            public void Spawn(GameObject obj, UnityClient client = null)
+            public void Spawn(GameObject obj, NetworkClient client = null)
             {
                 if (!isActive)
                 {
@@ -63,7 +61,7 @@ namespace JFramework.Net
 
                 @object.connection = client;
 
-                if (NetworkManager.Instance.mode == NetworkMode.Host)
+                if (Instance.mode == NetworkMode.Host)
                 {
                     if (@object.connection?.clientId == NetworkConst.HostId)
                     {
@@ -75,7 +73,7 @@ namespace JFramework.Net
                 {
                     @object.objectId = ++objectId;
                     @object.isServer = true;
-                    @object.isClient = NetworkManager.Client.isActive;
+                    @object.isClient = Client.isActive;
                     spawns[@object.objectId] = @object;
                     @object.OnStartServer();
                 }
@@ -100,7 +98,7 @@ namespace JFramework.Net
             /// </summary>
             /// <param name="client">指定的客户端</param>
             /// <param name="object">生成的游戏对象</param>
-            private void SendSpawnMessage(UnityClient client, NetworkObject @object)
+            private void SendSpawnMessage(NetworkClient client, NetworkObject @object)
             {
                 using NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
                 var isOwner = @object.connection == client;
@@ -116,7 +114,7 @@ namespace JFramework.Net
                     segment = SerializeNetworkObject(@object, isOwner, owner, observer),
                     assetId = (ArraySegment<byte>)Encoding.UTF8.GetBytes(@object.assetId)
                 };
-                client.SendMessage(message);
+                client.Send(message);
             }
 
             /// <summary>
@@ -127,8 +125,7 @@ namespace JFramework.Net
             /// <param name="owner"></param>
             /// <param name="observer"></param>
             /// <returns></returns>
-            private ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, bool isOwner, NetworkWriter owner,
-                NetworkWriter observer)
+            private ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observer)
             {
                 if (@object.entities.Length == 0) return default;
                 @object.ServerSerialize(true, owner, observer);
@@ -145,15 +142,15 @@ namespace JFramework.Net
                 foreach (var client in clients.Values)
                 {
                     Debug.Log($"服务器为客户端 {client.clientId} 重置 {@object}");
-                    client.SendMessage(new DespawnMessage(@object.objectId));
+                    client.Send(new DespawnMessage(@object.objectId));
                 }
 
-                if (NetworkManager.Instance.mode == NetworkMode.Host)
+                if (Instance.mode == NetworkMode.Host)
                 {
                     @object.OnStopClient();
                     @object.isOwner = false;
                     @object.OnNotifyAuthority();
-                    NetworkManager.Client.spawns.Remove(@object.objectId);
+                    Client.spawns.Remove(@object.objectId);
                 }
 
                 @object.OnStopServer();
@@ -172,19 +169,19 @@ namespace JFramework.Net
                 foreach (var client in clients.Values)
                 {
                     Debug.Log($"服务器为客户端 {client.clientId} 销毁 {@object}");
-                    client.SendMessage(new DestroyMessage(@object.objectId));
+                    client.Send(new DestroyMessage(@object.objectId));
                 }
 
-                if (NetworkManager.Instance.mode == NetworkMode.Host)
+                if (Instance.mode == NetworkMode.Host)
                 {
                     @object.OnStopClient();
                     @object.isOwner = false;
                     @object.OnNotifyAuthority();
-                    NetworkManager.Client.spawns.Remove(@object.objectId);
+                    Client.spawns.Remove(@object.objectId);
                 }
 
                 @object.OnStopServer();
-                Object.Destroy(@object.gameObject);
+                Destroy(@object.gameObject);
             }
         }
     }

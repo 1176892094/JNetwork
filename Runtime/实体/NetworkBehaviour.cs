@@ -66,7 +66,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络对象连接的客户端(服务器不为空，客户端为空)
         /// </summary>
-        public UnityClient connection => @object.connection;
+        public NetworkClient connection => @object.connection;
 
         /// <summary>
         /// 是否能够改变网络值
@@ -75,7 +75,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsDirty()
         {
-            return syncVarDirty != 0UL && NetworkTime.localTime - lastSyncTime >= syncInterval;
+            return syncVarDirty != 0UL && NetworkManager.Time.localTime - lastSyncTime >= syncInterval;
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace JFramework.Net
         
         public void ClearDirty()
         {
-            lastSyncTime = NetworkTime.localTime;
+            lastSyncTime = NetworkManager.Time.localTime;
             syncVarDirty= 0L;
         }
 

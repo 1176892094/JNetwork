@@ -1,90 +1,89 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Sirenix.OdinInspector;
 using UnityEngine;
-
-// ReSharper disable All
 
 namespace JFramework.Net
 {
     public partial class NetworkManager
     {
-        public partial class NetworkServer : Controller
+        public partial class ServerManager : Controller
         {
             /// <summary>
             /// 网络消息委托字典
             /// </summary>
-            internal readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
+            [ShowInInspector] internal readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
 
             /// <summary>
             /// 连接的的客户端字典
             /// </summary>
-            internal readonly Dictionary<int, UnityClient> clients = new Dictionary<int, UnityClient>();
+            [ShowInInspector] internal readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
 
             /// <summary>
             /// 服务器生成的游戏对象字典
             /// </summary>
-            internal readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
+            [ShowInInspector] internal readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
 
             /// <summary>
             /// 用来拷贝当前连接的所有客户端
             /// </summary>
-            private readonly List<UnityClient> copies = new List<UnityClient>();
+            private readonly List<NetworkClient> copies = new List<NetworkClient>();
 
             /// <summary>
             /// 上一次发送消息的时间
             /// </summary>
-            private double lastSendTime;
+            [ShowInInspector] private double sendTime;
 
             /// <summary>
             /// 当前网络对象Id
             /// </summary>
-            private uint objectId;
-
-            /// <summary>
-            /// 最大连接数量
-            /// </summary>
-            private uint maxConnection => NetworkManager.Instance.maxConnection;
-
-            /// <summary>
-            /// 所有客户端都准备
-            /// </summary>
-            public bool isReady => clients.Values.All(entity => entity.isReady);
-
-            /// <summary>
-            /// 连接客户端数量
-            /// </summary>
-            public int connections => clients.Count;
+            [ShowInInspector] private uint objectId;
 
             /// <summary>
             /// 是否是启动的
             /// </summary>
+            [ShowInInspector]
             public bool isActive { get; private set; }
 
             /// <summary>
             /// 是否在加载场景
             /// </summary>
+            [ShowInInspector]
             public bool isLoadScene { get; internal set; }
 
             /// <summary>
             /// 连接到的主机客户端
             /// </summary>
-            public UnityClient connection { get; internal set; }
+            [ShowInInspector]
+            public NetworkClient connection { get; internal set; }
+
+            /// <summary>
+            /// 连接客户端数量
+            /// </summary>
+            [ShowInInspector]
+            public int connections => clients.Count;
+
+            /// <summary>
+            /// 所有客户端都准备
+            /// </summary>
+            [ShowInInspector]
+            public bool isReady => clients.Values.All(client => client.isReady);
 
             /// <summary>
             /// 有客户端连接到服务器的事件
             /// </summary>
-            public event Action<UnityClient> OnServerConnect;
+            public event Action<NetworkClient> OnConnect;
 
             /// <summary>
             /// 有客户端从服务器断开的事件
             /// </summary>
-            public event Action<UnityClient> OnServerDisconnect;
+            public event Action<NetworkClient> OnDisconnect;
 
             /// <summary>
             /// 客户端在服务器准备就绪的事件
             /// </summary>
-            public event Action<UnityClient> OnServerReady;
+            public event Action<NetworkClient> OnSetReady;
 
             /// <summary>
             /// 开启服务器
@@ -101,9 +100,9 @@ namespace JFramework.Net
                 {
                     isActive = true;
                     clients.Clear();
-                    RegisterMessage();
+                    Register();
                     RegisterTransport();
-                    NetworkTime.ResetStatic();
+                    Time.Reset();
                 }
 
                 SpawnObjects();
@@ -113,35 +112,23 @@ namespace JFramework.Net
             /// 设置客户端准备好 为客户端生成服务器的所有对象
             /// </summary>
             /// <param name="client"></param>
-            private void SetReadyForClient(UnityClient client)
+            /// <param name="isReady"></param>
+            internal void SetReady(NetworkClient client, bool isReady)
             {
-                client.isReady = true;
-                var enumerable = spawns.Values.Where(@object => @object.gameObject.activeSelf);
-                foreach (var @object in enumerable)
+                if (isReady)
                 {
-                    SendSpawnMessage(client, @object);
+                    client.isReady = true;
+                    foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
+                    {
+                        SendSpawnMessage(client, @object);
+                    }
                 }
-            }
-
-            /// <summary>
-            /// 设置客户端未准备(不能进行消息接收)
-            /// </summary>
-            /// <param name="client"></param>
-            internal void NotReadyForClient(UnityClient client)
-            {
-                Debug.Log($"设置客户端 {client.clientId} 取消准备");
-                client.isReady = false;
-                client.SendMessage(new NotReadyMessage());
-            }
-
-            /// <summary>
-            /// 清除事件
-            /// </summary>
-            internal void ClearEvent()
-            {
-                OnServerConnect = null;
-                OnServerDisconnect = null;
-                OnServerReady = null;
+                else
+                {
+                    Debug.Log($"设置客户端 {client.clientId} 取消准备");
+                    client.isReady = false;
+                    client.Send(new NotReadyMessage());
+                }
             }
 
             /// <summary>
@@ -152,11 +139,6 @@ namespace JFramework.Net
                 if (!isActive) return;
                 Debug.Log("停止服务器。");
                 isActive = false;
-                if (Transport.current != null)
-                {
-                    Transport.current.StopServer();
-                }
-
                 var copies = clients.Values.ToList();
                 foreach (var client in copies)
                 {
@@ -167,14 +149,29 @@ namespace JFramework.Net
                     }
                 }
 
+                if (Transport.current != null)
+                {
+                    Transport.current.StopServer();
+                }
+
                 UnRegisterTransport();
-                lastSendTime = 0;
-                objectId = 0;
                 spawns.Clear();
-                messages.Clear();
                 clients.Clear();
+                messages.Clear();
+                sendTime = 0;
+                objectId = 0;
                 connection = null;
                 isLoadScene = false;
+            }
+
+            /// <summary>
+            /// 清除事件
+            /// </summary>
+            private void OnDestroy()
+            {
+                OnConnect = null;
+                OnDisconnect = null;
+                OnSetReady = null;
             }
         }
     }

@@ -29,7 +29,7 @@ namespace JFramework.Net
         /// <param name="driftEma"></param>
         /// <param name="deliveryTimeEma"></param>
         /// <typeparam name="T"></typeparam>
-        public static void InsertAndAdjust<T>(SortedList<double, T> buffer, T snapshot, ref double localTimeline, ref double localTimescale, float sendRate, double bufferTime, ref NetworkEma driftEma, ref NetworkEma deliveryTimeEma) where T : Snapshot
+        public static void InsertAndAdjust<T>(SortedList<double, T> buffer, T snapshot, ref double localTimeline, ref double localTimescale, float sendRate, double bufferTime, ref NetworkAverage driftEma, ref NetworkAverage deliveryTimeEma) where T : Snapshot
         {
             if (buffer.Count == 0)
             {
@@ -49,9 +49,9 @@ namespace JFramework.Net
                 double timeDiff = latestRemoteTime - localTimeline;
                 driftEma.Calculate(timeDiff);
                 double drift = driftEma.value - bufferTime;
-                double absoluteNegativeThreshold = sendRate * NetworkManager.Instance.setting.catchupNegativeThreshold;
-                double absolutePositiveThreshold = sendRate * NetworkManager.Instance.setting.catchupPositiveThreshold;
-                localTimescale = Timescale(drift, NetworkManager.Instance.setting.catchupSpeed, NetworkManager.Instance.setting.slowdownSpeed, absoluteNegativeThreshold, absolutePositiveThreshold);
+                double absoluteNegativeThreshold = sendRate * NetworkManager.Setting.catchupNegativeThreshold;
+                double absolutePositiveThreshold = sendRate * NetworkManager.Setting.catchupPositiveThreshold;
+                localTimescale = Timescale(drift, NetworkManager.Setting.catchupSpeed, NetworkManager.Setting.slowdownSpeed, absoluteNegativeThreshold, absolutePositiveThreshold);
             }
         }
         

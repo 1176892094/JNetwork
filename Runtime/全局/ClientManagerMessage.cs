@@ -1,46 +1,45 @@
 using System;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace JFramework.Net
 {
     public partial class NetworkManager
     {
-        public partial class NetworkClient
+        public partial class ClientManager
         {
             /// <summary>
             /// 注册网络消息
             /// </summary>
             /// <param name="isHost">是否是基于主机的连接</param>
-            private void RegisterMessage(bool isHost)
+            private void Register(bool isHost)
             {
                 if (isHost)
                 {
-                    RegisterMessage<SpawnMessage>(OnSpawnByHost);
-                    RegisterMessage<DestroyMessage>(OnEmptyByHost);
-                    RegisterMessage<DespawnMessage>(OnEmptyByHost);
-                    RegisterMessage<PongMessage>(OnEmptyByHost);
-                    RegisterMessage<EntityMessage>(OnEmptyByHost);
+                    Register<SpawnMessage>(OnSpawnByHost);
+                    Register<DestroyMessage>(OnEmptyByHost);
+                    Register<DespawnMessage>(OnEmptyByHost);
+                    Register<PongMessage>(OnEmptyByHost);
+                    Register<EntityMessage>(OnEmptyByHost);
                 }
                 else
                 {
-                    RegisterMessage<SpawnMessage>(OnSpawnByClient);
-                    RegisterMessage<DestroyMessage>(OnDestroyByClient);
-                    RegisterMessage<DespawnMessage>(OnDespawnByClient);
-                    RegisterMessage<PongMessage>(NetworkTime.OnPongByClient);
-                    RegisterMessage<EntityMessage>(OnEntityEvent);
+                    Register<SpawnMessage>(OnSpawnByClient);
+                    Register<DestroyMessage>(OnDestroyByClient);
+                    Register<DespawnMessage>(OnDespawnByClient);
+                    Register<PongMessage>(Time.OnPongByClient);
+                    Register<EntityMessage>(OnEntityEvent);
                 }
 
-                RegisterMessage<NotReadyMessage>(OnNotReadyByClient);
-                RegisterMessage<SceneMessage>(OnSceneByClient);
-                RegisterMessage<SnapshotMessage>(OnSnapshotByClient);
-                RegisterMessage<InvokeRpcMessage>(OnInvokeRpcByClient);
+                Register<NotReadyMessage>(OnNotReadyByClient);
+                Register<SceneMessage>(OnSceneByClient);
+                Register<SnapshotMessage>(OnSnapshotByClient);
+                Register<InvokeRpcMessage>(OnInvokeRpcByClient);
             }
 
             /// <summary>
             /// 注册网络消息
             /// </summary>
-            private void RegisterMessage<TMessage>(Action<TMessage> handle) where TMessage : struct, Message
+            private void Register<TMessage>(Action<TMessage> handle) where TMessage : struct, Message
             {
                 messages[NetworkMessage<TMessage>.Id] = NetworkMessage.Register(handle);
             }
@@ -95,7 +94,7 @@ namespace JFramework.Net
                 if (spawns.TryGetValue(message.objectId, out var @object))
                 {
                     @object.OnStopClient();
-                    Object.Destroy(@object.gameObject);
+                    Destroy(@object.gameObject);
                     spawns.Remove(message.objectId);
                 }
             }
@@ -122,7 +121,7 @@ namespace JFramework.Net
                     }
                 }
 
-                SpawnExecute(message);
+                SpawnObject(message);
             }
 
             /// <summary>
@@ -156,7 +155,7 @@ namespace JFramework.Net
             /// <param name="message"></param>
             private void OnSnapshotByClient(SnapshotMessage message)
             {
-                connection.OnSnapshotMessage(new SnapshotTime(connection.remoteTime, NetworkTime.localTime));
+                connection.OnSnapshotMessage(new SnapshotTime(connection.remoteTime, Time.localTime));
             }
 
             /// <summary>
@@ -182,9 +181,9 @@ namespace JFramework.Net
             /// <param name="message"></param>
             private void OnSceneByClient(SceneMessage message)
             {
-                if (isConnect)
+                if (isAuthority)
                 {
-                    Instance.ClientLoadScene(message.sceneName);
+                    Scene.ClientLoadScene(message.sceneName);
                 }
             }
 
@@ -195,7 +194,7 @@ namespace JFramework.Net
             private void OnNotReadyByClient(NotReadyMessage message)
             {
                 isReady = false;
-                OnClientNotReady?.Invoke();
+                OnNotReady?.Invoke();
             }
         }
     }

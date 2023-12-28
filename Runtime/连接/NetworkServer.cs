@@ -7,7 +7,7 @@ namespace JFramework.Net
     /// <summary>
     /// 仅在主机或者客户端模式下创建
     /// </summary>
-    public class UnityServer : UnityPeer
+    public class NetworkServer : NetworkPeer
     {
         /// <summary>
         /// 存储写入队列的字典
@@ -17,7 +17,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络设置
         /// </summary>
-        private readonly NetworkSetting settingData;
+        private readonly NetworkManager.SettingManager setting;
         
         /// <summary>
         /// 当前时间线
@@ -32,16 +32,16 @@ namespace JFramework.Net
         /// <summary>
         /// 缓存时间
         /// </summary>
-        private double bufferTime => NetworkManager.Instance.sendRate * settingData.bufferTimeMultiplier;
+        private double bufferTime => NetworkManager.Instance.sendRate * setting.bufferTimeMultiplier;
 
         /// <summary>
         /// 构造函数初始化
         /// </summary>
-        public UnityServer()
+        public NetworkServer()
         {
-            settingData = NetworkManager.Instance.setting;
-            driftEma = new NetworkEma(NetworkManager.Instance.tickRate * settingData.driftEmaDuration);
-            deliveryTimeEma = new NetworkEma(NetworkManager.Instance.tickRate  * settingData.deliveryTimeEmaDuration);
+            setting = NetworkManager.Setting;
+            driftEma = new NetworkAverage(NetworkManager.Instance.tickRate * setting.driftEmaDuration);
+            deliveryTimeEma = new NetworkAverage(NetworkManager.Instance.tickRate  * setting.deliveryTimeEmaDuration);
         }
 
         /// <summary>
@@ -50,9 +50,9 @@ namespace JFramework.Net
         /// <param name="snapshot">新的快照</param>
         internal void OnSnapshotMessage(SnapshotTime snapshot)
         {
-            if (settingData.dynamicAdjustment)
+            if (setting.dynamicAdjustment)
             {
-                settingData.bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.Instance.sendRate, deliveryTimeEma.deviation, settingData.dynamicAdjustmentTolerance);
+                setting.bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.Instance.sendRate, deliveryTimeEma.deviation, setting.dynamicAdjustmentTolerance);
             }
             
             SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref localTimeline, ref localTimescale, NetworkManager.Instance.sendRate, bufferTime, ref driftEma, ref deliveryTimeEma);
@@ -83,9 +83,9 @@ namespace JFramework.Net
         /// <summary>
         /// 重写Update方法
         /// </summary>
-        internal override void Update()
+        internal override void OnUpdate()
         {
-            base.Update();
+            base.OnUpdate();
             LocalUpdate();
         }
 
@@ -100,7 +100,7 @@ namespace JFramework.Net
                 using var writer = writeQueue.Dequeue(); // 从队列中取出
                 var segment = writer.ToArraySegment(); //转化成数据分段
                 var writers = GetWriterPack(Channel.Reliable); // 获取可靠传输
-                writers.WriteEnqueue(segment, NetworkTime.localTime); // 将数据写入到队列
+                writers.WriteEnqueue(segment, NetworkManager.Time.localTime); // 将数据写入到队列
                 using var template = NetworkWriter.Pop(); // 取出新的 writer
                 if (writers.WriteDequeue(template)) // 将 writer 拷贝到 template
                 {
@@ -114,7 +114,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="segment">消息分段</param>
         /// <param name="channel">传输通道</param>
-        internal override void SendMessage(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
+        internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             if (NetworkManager.Instance.mode == NetworkMode.Host)
             {
@@ -125,7 +125,7 @@ namespace JFramework.Net
                 }
 
                 var send = GetWriterPack(channel);
-                send.WriteEnqueue(segment, NetworkTime.localTime); // 添加到队列末尾并写入数据
+                send.WriteEnqueue(segment, NetworkManager.Time.localTime); // 添加到队列末尾并写入数据
 
                 using var writer = NetworkWriter.Pop();
                 if (send.WriteDequeue(writer)) // 尝试从队列中取出元素并写入到目标
@@ -139,7 +139,7 @@ namespace JFramework.Net
             }
             else
             {
-                GetWriterPack(channel).WriteEnqueue(segment, NetworkTime.localTime);
+                GetWriterPack(channel).WriteEnqueue(segment, NetworkManager.Time.localTime);
             }
         }
 

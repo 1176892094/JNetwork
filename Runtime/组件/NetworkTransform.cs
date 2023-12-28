@@ -201,7 +201,7 @@ namespace JFramework.Net
         private void UpdateClientInterpolation()
         {
             if (clientSnapshots.Count == 0) return;
-            SnapshotUtils.StepInterpolation(clientSnapshots, NetworkTime.fixedTime, out SnapshotTransform start, out SnapshotTransform end, out double t);
+            SnapshotUtils.StepInterpolation(clientSnapshots, NetworkManager.Time.fixedTime, out SnapshotTransform start, out SnapshotTransform end, out double t);
             Apply(SnapshotTransform.Interpolate(start, end, t), end);
         }
         
@@ -297,7 +297,7 @@ namespace JFramework.Net
                 sendIntervalCounter = 0;
             }
 
-            if (NetworkUtils.HeartBeat(NetworkTime.localTime, NetworkManager.Instance.sendRate, ref lastSendIntervalTime))
+            if (NetworkUtils.HeartBeat(NetworkManager.Time.localTime, NetworkManager.Instance.sendRate, ref lastSendIntervalTime))
             {
                 sendIntervalCounter++;
             }
@@ -309,7 +309,7 @@ namespace JFramework.Net
         /// <returns></returns>
         private SnapshotTransform Construct()
         {
-            return new SnapshotTransform(NetworkTime.localTime, 0, target.localPosition, target.localRotation, target.localScale);
+            return new SnapshotTransform(NetworkManager.Time.localTime, 0, target.localPosition, target.localRotation, target.localScale);
         }
         
         /// <summary>
@@ -405,7 +405,7 @@ namespace JFramework.Net
             position ??= snapshots.Count > 0 ? snapshots.Values[snapshots.Count - 1].position : target.localPosition;
             rotation ??= snapshots.Count > 0 ? snapshots.Values[snapshots.Count - 1].rotation : target.localRotation;
             scale ??= snapshots.Count > 0 ? snapshots.Values[snapshots.Count - 1].localScale : target.localScale;
-            SnapshotUtils.InsertIfNotExists(snapshots, new SnapshotTransform(timeStamp, NetworkTime.localTime, position.Value, rotation.Value, scale.Value));
+            SnapshotUtils.InsertIfNotExists(snapshots, new SnapshotTransform(timeStamp, NetworkManager.Time.localTime, position.Value, rotation.Value, scale.Value));
         }
         
         /// <summary>
