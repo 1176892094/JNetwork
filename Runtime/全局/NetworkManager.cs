@@ -38,6 +38,16 @@ namespace JFramework.Net
         /// 客户端最大连接数量
         /// </summary>
         [SerializeField] internal uint maxConnection = 100;
+        
+        /// <summary>
+        /// 客户端管理
+        /// </summary>
+        [Inject, SerializeField] private ClientManager client;
+        
+        /// <summary>
+        /// 服务器管理
+        /// </summary>
+        [Inject, SerializeField] private ServerManager server;
 
         /// <summary>
         /// 消息发送率
@@ -92,16 +102,6 @@ namespace JFramework.Net
         [Inject, ShowInInspector] public static SceneManager Scene;
 
         /// <summary>
-        /// ClientManager 控制器
-        /// </summary>
-        [Inject, ShowInInspector] public static ClientManager Client;
-
-        /// <summary>
-        /// ServerManager 控制器
-        /// </summary>
-        [Inject, ShowInInspector] public static ServerManager Server;
-
-        /// <summary>
         /// SettingManager 控制器
         /// </summary>
         [Inject, ShowInInspector] internal static SettingManager Setting;
@@ -110,6 +110,16 @@ namespace JFramework.Net
         /// TimerManager 控制器
         /// </summary>
         [Inject, ShowInInspector] internal static TimeManager Time;
+        
+        /// <summary>
+        /// ClientManager 控制器
+        /// </summary>
+        public static ClientManager Client => Instance.client;
+
+        /// <summary>
+        /// ServerManager 控制器
+        /// </summary>
+        public static ServerManager Server => Instance.server;
 
         /// <summary>
         /// 初始化配置传输

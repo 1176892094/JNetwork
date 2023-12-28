@@ -32,6 +32,16 @@ namespace JFramework.Editor
         /// 日志出现错误
         /// </summary>
         public readonly MethodReference logErrorRef;
+        
+        /// <summary>
+        /// 获取NetworkClient.isActive
+        /// </summary>
+        public readonly MethodReference NetworkClientRef;
+
+        /// <summary>
+        /// 获取NetworkServer.isActive
+        /// </summary>
+        public readonly MethodReference NetworkServerRef;
 
         /// <summary>
         /// 获取NetworkClient.isActive
@@ -193,6 +203,10 @@ namespace JFramework.Editor
             var ArraySegmentType = Import(typeof(ArraySegment<>));
             ArraySegmentRef = Helper.ResolveMethod(ArraySegmentType, assembly, logger, CONST.CTOR, ref failed);
 
+            var NetworkManagerType = Import(typeof(NetworkManager));
+            NetworkClientRef = Helper.ResolveMethod(NetworkManagerType, assembly, logger, "get_Client", ref failed);
+            NetworkServerRef = Helper.ResolveMethod(NetworkManagerType, assembly, logger, "get_Server", ref failed);
+            
             var NetworkClientType = Import(typeof(NetworkManager.ClientManager));
             NetworkClientActiveRef = Helper.ResolveMethod(NetworkClientType, assembly, logger, "get_isActive", ref failed);
             var NetworkServerType = Import(typeof(NetworkManager.ServerManager));

@@ -379,7 +379,8 @@ namespace JFramework.Editor
         /// <param name="error"></param>
         private static void NetworkClientActive(ILProcessor worker, Models models, string mdName, Instruction label, string error)
         {
-            worker.Emit(OpCodes.Call, models.NetworkClientActiveRef);
+            worker.Emit(OpCodes.Call, models.NetworkClientRef);
+            worker.Emit(OpCodes.Callvirt, models.NetworkClientActiveRef);
             worker.Emit(OpCodes.Brtrue, label);
             worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是客户端不是活跃的。");
             worker.Emit(OpCodes.Call, models.logErrorRef);
@@ -397,9 +398,9 @@ namespace JFramework.Editor
         /// <param name="error"></param>
         private static void NetworkServerActive(ILProcessor worker, Models models, string mdName, Instruction label, string error)
         {
-            worker.Emit(OpCodes.Call, models.NetworkServerActiveRef);
+            worker.Emit(OpCodes.Call, models.NetworkServerRef);
+            worker.Emit(OpCodes.Callvirt, models.NetworkServerActiveRef);
             worker.Emit(OpCodes.Brtrue, label);
-
             worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是服务器不是活跃的。");
             worker.Emit(OpCodes.Call, models.logErrorRef);
             worker.Emit(OpCodes.Ret);
