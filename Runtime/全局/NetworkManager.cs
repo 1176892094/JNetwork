@@ -17,27 +17,57 @@ namespace JFramework.Net
         /// <summary>
         /// 网络传输组件
         /// </summary>
-        [SerializeField] private Transport transport;
+        [LabelText("网络传输"), SerializeField] private Transport transport;
 
         /// <summary>
         /// 网络发现组件
         /// </summary>
-        [SerializeField] internal NetworkDiscovery discovery;
+        [LabelText("网络发现"), SerializeField] internal NetworkDiscovery discovery;
 
         /// <summary>
         /// 玩家预置体
         /// </summary>
-        [SerializeField] internal GameObject playerPrefab;
+        [LabelText("玩家实例"), SerializeField] internal GameObject playerPrefab;
+
+        /// <summary>
+        /// 网络客户端
+        /// </summary>
+        [LabelText("客户端"), Inject, SerializeField]
+        private ClientManager client;
+
+        /// <summary>
+        /// 网络服务器
+        /// </summary>
+        [LabelText("服务器"), Inject, SerializeField]
+        private ServerManager server;
+        
+        /// <summary>
+        /// 网络场景
+        /// </summary>
+        [LabelText("网络场景"), Inject, SerializeField]
+        private SceneManager scene;
+        
+        /// <summary>
+        /// 网络设置
+        /// </summary>
+        [LabelText("网络配置"), Inject, SerializeField]
+        private SettingManager setting;
+
+        /// <summary>
+        /// 网络时间
+        /// </summary>
+        [LabelText("网络时间"), Inject, SerializeField]
+        private TimeManager time;
 
         /// <summary>
         /// 心跳传输率
         /// </summary>
-        [SerializeField] internal int tickRate = 30;
+        [LabelText("心跳"), SerializeField] internal int tickRate = 30;
 
         /// <summary>
         /// 客户端最大连接数量
         /// </summary>
-        [SerializeField] internal uint maxConnection = 100;
+        [LabelText("最大连接"), SerializeField] internal uint maxConnection = 100;
 
         /// <summary>
         /// 消息发送率
@@ -47,7 +77,7 @@ namespace JFramework.Net
         /// <summary>
         /// 传输连接地址
         /// </summary>
-        [ShowInInspector]
+        [LabelText("地址"), ShowInInspector]
         public string address
         {
             get => transport ? transport.address : NetworkConst.Address;
@@ -57,7 +87,7 @@ namespace JFramework.Net
         /// <summary>
         /// 传输连接端口
         /// </summary>
-        [ShowInInspector]
+        [LabelText("端口"), ShowInInspector]
         public ushort port
         {
             get => transport ? transport.port : NetworkConst.Port;
@@ -67,7 +97,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络运行模式
         /// </summary>
-        [ShowInInspector]
+        [LabelText("模式"), ShowInInspector]
         public NetworkMode mode
         {
             get
@@ -85,31 +115,31 @@ namespace JFramework.Net
                 return Client.isActive ? NetworkMode.Client : NetworkMode.None;
             }
         }
+        
+        /// <summary>
+        /// TimerManager 控制器
+        /// </summary>
+        internal static TimeManager Time => Instance.time;
 
         /// <summary>
         /// SceneManager 控制器
         /// </summary>
-        [Inject, ShowInInspector] public static SceneManager Scene;
+        public static SceneManager Scene => Instance.scene;
 
         /// <summary>
         /// ClientManager 控制器
         /// </summary>
-        [Inject, ShowInInspector] public static ClientManager Client;
+        public static ClientManager Client => Instance.client;
 
         /// <summary>
         /// ServerManager 控制器
         /// </summary>
-        [Inject, ShowInInspector] public static ServerManager Server;
-
+        public static ServerManager Server => Instance.server;
+        
         /// <summary>
         /// SettingManager 控制器
         /// </summary>
-        [Inject, ShowInInspector] internal static SettingManager Setting;
-
-        /// <summary>
-        /// TimerManager 控制器
-        /// </summary>
-        [Inject, ShowInInspector] internal static TimeManager Time;
+        internal static SettingManager Setting => Instance.setting;
 
         /// <summary>
         /// 初始化配置传输
@@ -152,8 +182,7 @@ namespace JFramework.Net
                 Debug.LogWarning("服务器已经停止！");
                 return;
             }
-
-            Scene.sceneName = "";
+            
             Server.StopServer();
         }
 
