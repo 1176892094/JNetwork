@@ -35,15 +35,15 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkObject GetNetworkObject(uint objectId)
         {
-            if (NetworkServer.isActive)
+            if (NetworkManager.Server.isActive)
             {
-                NetworkServer.spawns.TryGetValue(objectId, out var @object);
+                NetworkManager.Server.spawns.TryGetValue(objectId, out var @object);
                 return @object;
             }
 
-            if (NetworkClient.isActive)
+            if (NetworkManager.Client.isActive)
             {
-                NetworkClient.spawns.TryGetValue(objectId, out var @object);
+                NetworkManager.Client.spawns.TryGetValue(objectId, out var @object);
                 return @object;
             }
 

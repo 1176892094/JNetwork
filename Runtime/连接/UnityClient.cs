@@ -57,7 +57,7 @@ namespace JFramework.Net
         /// <summary>
         /// 缓存时间
         /// </summary>
-        private double bufferTime => NetworkManager.sendRate * bufferTimeMultiplier;
+        private double bufferTime => NetworkManager.Instance.sendRate * bufferTimeMultiplier;
 
         /// <summary>
         /// 初始化设置客户端Id
@@ -81,10 +81,10 @@ namespace JFramework.Net
             if (snapshots.Count >= snapshotBufferSizeLimit) return;
             if (NetworkManager.Instance.setting.dynamicAdjustment)
             {
-                bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.sendRate, deliveryTimeEma.deviation, NetworkManager.Instance.setting.dynamicAdjustmentTolerance);
+                bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.Instance.sendRate, deliveryTimeEma.deviation, NetworkManager.Instance.setting.dynamicAdjustmentTolerance);
             }
 
-            SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref remoteTimeline, ref remoteTimescale, NetworkManager.sendRate, bufferTime, ref driftEma, ref deliveryTimeEma);
+            SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref remoteTimeline, ref remoteTimescale, NetworkManager.Instance.sendRate, bufferTime, ref driftEma, ref deliveryTimeEma);
         }
 
         /// <summary>
@@ -178,7 +178,7 @@ namespace JFramework.Net
             {
                 NetworkWriter writer = NetworkWriter.Pop();
                 writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
-                NetworkClient.connection.writeQueue.Enqueue(writer);
+                NetworkManager.Client.connection.writeQueue.Enqueue(writer);
                 return;
             }
 

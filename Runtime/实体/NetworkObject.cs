@@ -73,7 +73,7 @@ namespace JFramework.Net
         private bool isSpawn;
 
         /// <summary>
-        /// NetworkServer.Destroy
+        /// NetworkManager.Server.Destroy
         /// </summary>
         internal bool isDestroy;
         
@@ -371,12 +371,12 @@ namespace JFramework.Net
         {
             if (isServer && !isDestroy)
             {
-                NetworkServer.Destroy(this);
+                NetworkManager.Server.Destroy(this);
             }
 
             if (isClient)
             {
-                NetworkClient.spawns.Remove(objectId);
+                NetworkManager.Client.spawns.Remove(objectId);
             }
         }
     }

@@ -7,7 +7,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器加载场景
         /// </summary>
-        public static async void LoadScene(string newSceneName)
+        public async void LoadScene(string newSceneName)
         {
             if (string.IsNullOrWhiteSpace(newSceneName))
             {
@@ -15,25 +15,25 @@ namespace JFramework.Net
                 return;
             }
 
-            if (NetworkServer.isLoadScene && newSceneName == sceneName)
+            if (Server.isLoadScene && newSceneName == sceneName)
             {
                 Debug.LogError($"服务器已经在加载 {newSceneName} 场景");
                 return;
             }
 
-            foreach (var client in NetworkServer.clients.Values)
+            foreach (var client in Server.clients.Values)
             {
-                NetworkServer.NotReadyForClient(client);
+                Server.NotReadyForClient(client);
             }
 
             OnServerLoadScene?.Invoke(newSceneName);
             sceneName = newSceneName;
-            NetworkServer.isLoadScene = true;
-            if (NetworkServer.isActive)
+            Server.isLoadScene = true;
+            if (Server.isActive)
             {
                 using var writer = NetworkWriter.Pop();
                 NetworkMessage.WriteMessage(writer, new SceneMessage(newSceneName));
-                foreach (var client in NetworkServer.clients.Values)
+                foreach (var client in Server.clients.Values)
                 {
                     client.SendMessage(writer.ToArraySegment());
                 }
@@ -46,7 +46,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端加载场景
         /// </summary>
-        internal static async void ClientLoadScene(string newSceneName)
+        internal async void ClientLoadScene(string newSceneName)
         {
             if (string.IsNullOrWhiteSpace(newSceneName))
             {
@@ -56,9 +56,9 @@ namespace JFramework.Net
 
             Debug.Log("客户端器开始加载场景");
             OnClientLoadScene?.Invoke(newSceneName);
-            if (NetworkServer.isActive) return; //Host不做处理
+            if (Server.isActive) return; //Host不做处理
             sceneName = newSceneName;
-            NetworkClient.isLoadScene = true;
+            Client.isLoadScene = true;
             await GlobalManager.Scene.LoadSceneAsync(newSceneName);
             OnLoadComplete();
         }
@@ -67,7 +67,7 @@ namespace JFramework.Net
         /// <summary>
         /// 场景加载完成
         /// </summary>
-        private static void OnLoadComplete()
+        private void OnLoadComplete()
         {
             switch (mode)
             {
@@ -87,25 +87,25 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器端场景加载完成
         /// </summary>
-        private static void OnServerSceneLoadCompleted()
+        private void OnServerSceneLoadCompleted()
         {
             Debug.Log("服务器加载场景完成");
-            NetworkServer.isLoadScene = false;
-            NetworkServer.SpawnObjects();
+            Server.isLoadScene = false;
+            Server.SpawnObjects();
             OnServerSceneChanged?.Invoke(sceneName);
         }
 
         /// <summary>
         /// 客户端场景加载完成
         /// </summary>
-        private static void OnClientSceneLoadCompleted()
+        private void OnClientSceneLoadCompleted()
         {
-            NetworkClient.isLoadScene = false;
-            if (!NetworkClient.isConnect) return;
+            Client.isLoadScene = false;
+            if (!Client.isConnect) return;
             Debug.Log("客户端加载场景完成");
-            if (!NetworkClient.isReady)
+            if (!Client.isReady)
             {
-                NetworkClient.Ready();
+                Client.Ready();
             }
 
             OnClientSceneChanged?.Invoke(GlobalManager.Scene.ToString());

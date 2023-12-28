@@ -32,7 +32,7 @@ namespace JFramework.Net
         /// <summary>
         /// 缓存时间
         /// </summary>
-        private double bufferTime => NetworkManager.sendRate * settingData.bufferTimeMultiplier;
+        private double bufferTime => NetworkManager.Instance.sendRate * settingData.bufferTimeMultiplier;
 
         /// <summary>
         /// 构造函数初始化
@@ -52,10 +52,10 @@ namespace JFramework.Net
         {
             if (settingData.dynamicAdjustment)
             {
-                settingData.bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.sendRate, deliveryTimeEma.deviation, settingData.dynamicAdjustmentTolerance);
+                settingData.bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.Instance.sendRate, deliveryTimeEma.deviation, settingData.dynamicAdjustmentTolerance);
             }
             
-            SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref localTimeline, ref localTimescale, NetworkManager.sendRate, bufferTime, ref driftEma, ref deliveryTimeEma);
+            SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref localTimeline, ref localTimescale, NetworkManager.Instance.sendRate, bufferTime, ref driftEma, ref deliveryTimeEma);
         }
         
         /// <summary>
@@ -94,7 +94,7 @@ namespace JFramework.Net
         /// </summary>
         private void LocalUpdate()
         {
-            if (NetworkManager.mode != NetworkMode.Host) return;
+            if (NetworkManager.Instance.mode != NetworkMode.Host) return;
             while (writeQueue.Count > 0)
             {
                 using var writer = writeQueue.Dequeue(); // 从队列中取出
@@ -104,7 +104,7 @@ namespace JFramework.Net
                 using var template = NetworkWriter.Pop(); // 取出新的 writer
                 if (writers.WriteDequeue(template)) // 将 writer 拷贝到 template
                 {
-                    NetworkClient.OnClientReceive(template.ToArraySegment(), Channel.Reliable);
+                    NetworkManager.Client.OnClientReceive(template.ToArraySegment(), Channel.Reliable);
                 }
             }
         }
@@ -116,7 +116,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         internal override void SendMessage(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            if (NetworkManager.mode == NetworkMode.Host)
+            if (NetworkManager.Instance.mode == NetworkMode.Host)
             {
                 if (segment.Count == 0)
                 {
@@ -130,7 +130,7 @@ namespace JFramework.Net
                 using var writer = NetworkWriter.Pop();
                 if (send.WriteDequeue(writer)) // 尝试从队列中取出元素并写入到目标
                 {
-                    NetworkServer.OnServerReceive(NetworkConst.HostId, writer.ToArraySegment(), channel);
+                    NetworkManager.Server.OnServerReceive(NetworkConst.HostId, writer.ToArraySegment(), channel);
                 }
                 else
                 {
@@ -149,7 +149,7 @@ namespace JFramework.Net
         public override void Disconnect()
         {
             isReady = false;
-            NetworkClient.isReady = false;
+            NetworkManager.Client.isReady = false;
             Transport.current.ClientDisconnect();
         }
     }

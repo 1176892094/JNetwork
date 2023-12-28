@@ -12,55 +12,59 @@ namespace JFramework.Net
         public static NetworkManager Instance;
 
         /// <summary>
+        /// NetworkClient 控制器
+        /// </summary>
+        public static NetworkClient Client;
+
+        /// <summary>
+        /// NetworkServer 控制器
+        /// </summary>
+        public static NetworkServer Server;
+
+        /// <summary>
         /// 服务器场景
         /// </summary>
-        private static string sceneName;
+        private string sceneName;
 
         /// <summary>
         /// 消息发送率
         /// </summary>
-        internal static float sendRate => Instance.tickRate < int.MaxValue ? 1f / Instance.tickRate : 0;
+        internal float sendRate => tickRate < int.MaxValue ? 1f / tickRate : 0;
 
         /// <summary>
         /// 网络传输组件
         /// </summary>
-        [FoldoutGroup("网络管理器"), SerializeField]
-        private Transport transport;
+        [SerializeField] private Transport transport;
 
         /// <summary>
         /// 网络发现组件
         /// </summary>
-        [FoldoutGroup("网络管理器"), SerializeField]
-        public NetworkDiscovery discovery;
+        [SerializeField] public NetworkDiscovery discovery;
 
         /// <summary>
         /// 网络设置和预置体
         /// </summary>
-        [FoldoutGroup("网络管理器"), SerializeField]
-        internal NetworkSetting setting = new NetworkSetting();
+        [SerializeField] internal NetworkSetting setting = new NetworkSetting();
 
         /// <summary>
         /// 玩家预置体
         /// </summary>
-        [FoldoutGroup("网络管理器"), SerializeField]
-        internal GameObject playerPrefab;
+        [SerializeField] internal GameObject playerPrefab;
 
         /// <summary>
         /// 心跳传输率
         /// </summary>
-        [FoldoutGroup("网络管理器"), SerializeField]
-        internal int tickRate = 30;
+        [SerializeField] internal int tickRate = 30;
 
         /// <summary>
         /// 客户端最大连接数量
         /// </summary>
-        [FoldoutGroup("网络管理器"), SerializeField]
-        internal uint maxConnection = 100;
+        [SerializeField] internal uint maxConnection = 100;
 
         /// <summary>
         /// 传输连接地址
         /// </summary>
-        [FoldoutGroup("网络管理器"), ShowInInspector]
+        [ShowInInspector]
         public string address
         {
             get => transport ? transport.address : NetworkConst.Address;
@@ -70,7 +74,7 @@ namespace JFramework.Net
         /// <summary>
         /// 传输连接端口
         /// </summary>
-        [FoldoutGroup("网络管理器"), ShowInInspector]
+        [ShowInInspector]
         public ushort port
         {
             get => transport ? transport.port : NetworkConst.Port;
@@ -80,17 +84,17 @@ namespace JFramework.Net
         /// <summary>
         /// 网络运行模式
         /// </summary>
-        [FoldoutGroup("网络管理器"), ShowInInspector]
-        public static NetworkMode mode
+        [ShowInInspector]
+        public NetworkMode mode
         {
             get
             {
-                if (NetworkServer.isActive)
+                if (Server.isActive)
                 {
-                    return NetworkClient.isActive ? NetworkMode.Host : NetworkMode.Server;
+                    return Client.isActive ? NetworkMode.Host : NetworkMode.Server;
                 }
 
-                return NetworkClient.isActive ? NetworkMode.Client : NetworkMode.None;
+                return Client.isActive ? NetworkMode.Client : NetworkMode.None;
             }
         }
 
@@ -121,14 +125,14 @@ namespace JFramework.Net
         /// </summary>
         public void StartServer()
         {
-            if (NetworkServer.isActive)
+            if (Server.isActive)
             {
                 Debug.LogWarning("服务器已经连接！");
                 return;
             }
 
             sceneName = "";
-            NetworkServer.StartServer(true);
+            Server.StartServer(true);
             OnStartServer?.Invoke();
         }
 
@@ -137,7 +141,7 @@ namespace JFramework.Net
         /// </summary>
         public void StopServer()
         {
-            if (!NetworkServer.isActive)
+            if (!Server.isActive)
             {
                 Debug.LogWarning("服务器已经停止！");
                 return;
@@ -145,7 +149,7 @@ namespace JFramework.Net
 
             sceneName = "";
             OnStopServer?.Invoke();
-            NetworkServer.StopServer();
+            Server.StopServer();
         }
 
         /// <summary>
@@ -153,14 +157,14 @@ namespace JFramework.Net
         /// </summary>
         public void StartClient()
         {
-            if (NetworkClient.isActive)
+            if (Client.isActive)
             {
                 Debug.LogWarning("客户端已经连接！");
                 return;
             }
 
 
-            NetworkClient.StartClient(address, port);
+            Client.StartClient(address, port);
             OnStartClient?.Invoke();
         }
 
@@ -170,13 +174,13 @@ namespace JFramework.Net
         /// <param name="uri">传入Uri</param>
         public void StartClient(Uri uri)
         {
-            if (NetworkClient.isActive)
+            if (Client.isActive)
             {
                 Debug.LogWarning("客户端已经连接！");
                 return;
             }
 
-            NetworkClient.StartClient(uri);
+            Client.StartClient(uri);
             OnStartClient?.Invoke();
         }
 
@@ -185,7 +189,7 @@ namespace JFramework.Net
         /// </summary>
         public void StopClient()
         {
-            if (!NetworkClient.isActive)
+            if (!Client.isActive)
             {
                 Debug.LogWarning("客户端已经停止！");
                 return;
@@ -193,11 +197,11 @@ namespace JFramework.Net
 
             if (mode == NetworkMode.Host)
             {
-                NetworkServer.OnServerDisconnected(NetworkServer.connection.clientId);
+                Server.OnServerDisconnected(Server.connection.clientId);
             }
 
             OnStopClient?.Invoke();
-            NetworkClient.StopClient();
+            Client.StopClient();
         }
 
         /// <summary>
@@ -206,14 +210,14 @@ namespace JFramework.Net
         /// <param name="isListen">设置false则为单机模式，不进行网络传输</param>
         public void StartHost(bool isListen = true)
         {
-            if (NetworkServer.isActive || NetworkClient.isActive)
+            if (Server.isActive || Client.isActive)
             {
                 Debug.LogWarning("客户端或服务器已经连接！");
                 return;
             }
 
-            NetworkServer.StartServer(isListen);
-            NetworkClient.StartClient();
+            Server.StartServer(isListen);
+            Client.StartClient();
             OnStartHost?.Invoke();
         }
 
@@ -231,11 +235,11 @@ namespace JFramework.Net
         /// 生成玩家预置体
         /// </summary>
         /// <param name="client"></param>
-        internal void SpawnPrefab(UnityClient client)
+        private void SpawnPrefab(UnityClient client)
         {
             if (client.isSpawn && playerPrefab != null)
             {
-                NetworkServer.Spawn(Instantiate(playerPrefab), client);
+                Server.Spawn(Instantiate(playerPrefab), client);
                 client.isSpawn = false;
             }
         }
@@ -244,7 +248,7 @@ namespace JFramework.Net
         /// 客户端 Ping
         /// </summary>
         /// <param name="ping"></param>
-        internal static void ClientPingUpdate(double ping)
+        internal void ClientPingUpdate(double ping)
         {
             OnClientPingUpdate?.Invoke(ping);
         }
@@ -254,16 +258,16 @@ namespace JFramework.Net
         /// </summary>
         private void OnQuit()
         {
-            if (NetworkClient.isConnect)
+            if (Client.isConnect)
             {
                 StopClient();
             }
 
-            if (NetworkServer.isActive)
+            if (Server.isActive)
             {
                 StopServer();
             }
-            
+
             RuntimeInitializeOnLoad();
             GlobalManager.OnQuit -= OnQuit;
         }

@@ -8,35 +8,31 @@ namespace JFramework.Net
     public sealed partial class NetworkManager
     {
 #if UNITY_EDITOR
-        // [FoldoutGroup("服务器设置"), ShowInInspector]
-        // private ClientEntity serverConnection => NetworkServer.connection;
+        // [ShowInInspector]
+        // private ClientEntity serverConnection => Server.connection;
         //
-        // [FoldoutGroup("服务器设置"), ShowInInspector]
-        // private Dictionary<ushort, EventDelegate> serverEvent => NetworkServer.events;
+        // [ShowInInspector]
+        // private Dictionary<ushort, EventDelegate> serverEvent => Server.events;
 
-        [FoldoutGroup("服务器设置"), ShowInInspector]
-        private Dictionary<uint, NetworkObject> serverSpawns => NetworkServer.spawns;
+        [ShowInInspector] private Dictionary<uint, NetworkObject> serverSpawns => Server.spawns;
 
-        [FoldoutGroup("服务器设置"), ShowInInspector]
-        private Dictionary<int, UnityClient> connections => NetworkServer.clients;
-        
-        // [FoldoutGroup("客户端设置"), ShowInInspector]
-        // private ServerEntity clientConnection => NetworkClient.connection;
+        [ShowInInspector] private Dictionary<int, UnityClient> connections => Server.clients;
+
+        // [ShowInInspector]
+        // private ServerEntity clientConnection => NetworkManager.Client.connection;
         //
-        // [FoldoutGroup("客户端设置"), ShowInInspector]
-        // private NetworkReaderPack readers => NetworkClient.readers;
+        // [ShowInInspector]
+        // private NetworkReaderPack readers => NetworkManager.Client.readers;
         //
-        // [FoldoutGroup("客户端设置"), ShowInInspector]
-        // private Dictionary<ushort, EventDelegate> clientEvent => NetworkClient.events;
+        // [ShowInInspector]
+        // private Dictionary<ushort, EventDelegate> clientEvent => NetworkManager.Client.events;
 
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private Dictionary<uint, NetworkObject> clientSpawns => NetworkClient.spawns;
+        [ShowInInspector] private Dictionary<uint, NetworkObject> clientSpawns => Client.spawns;
         //
-        // [FoldoutGroup("客户端设置"), ShowInInspector]
-        // private Dictionary<uint, GameObject> assetPrefabs => NetworkClient.prefabs;
+        // [ShowInInspector]
+        // private Dictionary<uint, GameObject> assetPrefabs => NetworkManager.Client.prefabs;
 
-        [FoldoutGroup("客户端设置"), ShowInInspector]
-        private Dictionary<ulong, NetworkObject> scenePrefabs => NetworkClient.scenes;
+        [ShowInInspector] private Dictionary<ulong, NetworkObject> scenePrefabs => Client.scenes;
 #endif
 
         /// <summary>
@@ -102,8 +98,6 @@ namespace JFramework.Net
         {
             Transport.RestStatic();
             NetworkTime.ResetStatic();
-            NetworkServer.ClearEvent();
-            NetworkClient.ClearEvent();
             OnStartHost = null;
             OnStopHost = null;
             OnStartClient = null;

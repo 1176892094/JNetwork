@@ -27,7 +27,7 @@ namespace JFramework.Net
         public static double fixedTime
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => NetworkServer.isActive ? localTime : NetworkClient.connection.localTimeline;
+            get => NetworkManager.Server.isActive ? localTime : NetworkManager.Client.connection.localTimeline;
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace JFramework.Net
             if (localTime - lastSendTime >= NetworkConst.PingInterval)
             {
                 PingMessage message = new PingMessage(localTime); // 传入客户端时间到服务器
-                NetworkClient.SendMessage(message, Channel.Unreliable);
+                NetworkManager.Client.SendMessage(message, Channel.Unreliable);
                 lastSendTime = localTime;
             }
         }
@@ -59,7 +59,7 @@ namespace JFramework.Net
         public static void OnPongByClient(PongMessage message)
         { 
             roundTripTime.Calculate(localTime - message.clientTime);
-            NetworkManager.ClientPingUpdate(roundTripTime.value);
+            NetworkManager.Instance.ClientPingUpdate(roundTripTime.value);
         }
 
         /// <summary>

@@ -24,7 +24,7 @@ namespace JFramework.Net
         /// <summary>
         /// 时间戳调整
         /// </summary>
-        private double timeStampAdjustment => NetworkManager.sendRate * (sendIntervalMultiplier - 1);
+        private double timeStampAdjustment => NetworkManager.Instance.sendRate * (sendIntervalMultiplier - 1);
 
         /// <summary>
         /// 位置是否变化
@@ -262,7 +262,7 @@ namespace JFramework.Net
         /// </summary>
         private void UpdateClientBroadcast()
         {
-            if (!NetworkClient.isReady) return;
+            if (!NetworkManager.Client.isReady) return;
             CheckSendTime();
             if (sendIntervalCounter == sendIntervalMultiplier)
             {
@@ -297,7 +297,7 @@ namespace JFramework.Net
                 sendIntervalCounter = 0;
             }
 
-            if (NetworkUtils.HeartBeat(NetworkTime.localTime, NetworkManager.sendRate, ref lastSendIntervalTime))
+            if (NetworkUtils.HeartBeat(NetworkTime.localTime, NetworkManager.Instance.sendRate, ref lastSendIntervalTime))
             {
                 sendIntervalCounter++;
             }
@@ -352,7 +352,7 @@ namespace JFramework.Net
             if (syncDirection != SyncMode.ClientToServer) return;
             if (serverSnapshots.Count >= connection.snapshotBufferSizeLimit) return;
             double remoteTime = connection.remoteTime;
-            double timeIntervalCheck = bufferResetMultiplier * sendIntervalMultiplier * NetworkManager.sendRate;
+            double timeIntervalCheck = bufferResetMultiplier * sendIntervalMultiplier * NetworkManager.Instance.sendRate;
 
             if (serverSnapshots.Count > 0 && serverSnapshots.Values[serverSnapshots.Count - 1].remoteTime + timeIntervalCheck < remoteTime)
             {
@@ -382,14 +382,14 @@ namespace JFramework.Net
         private void OnServerToClientSync(Vector3? position, Quaternion? rotation, Vector3? scale)
         {
             if (isServer || isAuthority) return;
-            double remote = NetworkClient.connection.remoteTime;
-            double timeIntervalCheck = bufferResetMultiplier * sendIntervalMultiplier * NetworkManager.sendRate;
+            double remote = NetworkManager.Client.connection.remoteTime;
+            double timeIntervalCheck = bufferResetMultiplier * sendIntervalMultiplier * NetworkManager.Instance.sendRate;
             if (clientSnapshots.Count > 0 && clientSnapshots.Values[clientSnapshots.Count - 1].remoteTime + timeIntervalCheck < remote)
             {
                 Reset();
             }
             
-            AddSnapshot(clientSnapshots, NetworkClient.connection.remoteTime + timeStampAdjustment, position, rotation, scale);
+            AddSnapshot(clientSnapshots, NetworkManager.Client.connection.remoteTime + timeStampAdjustment, position, rotation, scale);
         }
         
         /// <summary>

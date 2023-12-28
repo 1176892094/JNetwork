@@ -6,194 +6,197 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public static partial class NetworkClient
+    public partial class NetworkManager
     {
-        /// <summary>
-        /// 网络消息委托字典
-        /// </summary>
-        internal static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
-        
-        /// <summary>
-        /// 场景中包含的网络对象
-        /// </summary>
-        internal static readonly Dictionary<ulong, NetworkObject> scenes = new Dictionary<ulong, NetworkObject>();
-
-        /// <summary>
-        /// 客户端生成的网络对象
-        /// </summary>
-        internal static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
-
-        /// <summary>
-        /// 上一次发送信息的时间
-        /// </summary>
-        private static double lastSendTime;
-
-        /// <summary>
-        /// 是否在生成物体中
-        /// </summary>
-        private static bool isSpawning;
-
-        /// <summary>
-        /// 连接的状态
-        /// </summary>
-        private static ConnectState state;
-
-        /// <summary>
-        /// 是否活跃
-        /// </summary>
-        public static bool isActive => state is ConnectState.Connected or ConnectState.Connecting;
-
-        /// <summary>
-        /// 是否已经连接成功
-        /// </summary>
-        public static bool isConnect => state == ConnectState.Connected;
-
-        /// <summary>
-        /// 是否已经准备完成(能进行和Server的信息传输)
-        /// </summary>
-        public static bool isReady { get; internal set; }
-
-        /// <summary>
-        /// 是否正在加载场景
-        /// </summary>
-        public static bool isLoadScene { get; internal set; }
-
-        /// <summary>
-        /// 连接到的服务器
-        /// </summary>
-        public static UnityServer connection { get; private set; }
-
-        /// <summary>
-        /// 客户端连接的事件(包含主机)
-        /// </summary>
-        public static event Action OnClientConnect;
-
-        /// <summary>
-        /// 客户端断开的事件
-        /// </summary>
-        public static event Action OnClientDisconnect;
-
-        /// <summary>
-        /// 客户端取消准备的事件
-        /// </summary>
-        public static event Action OnClientNotReady;
-
-        /// <summary>
-        /// 开启客户端
-        /// </summary>
-        /// <param name="address">传入连接地址</param>
-        /// <param name="port">传入连接端口</param>
-        internal static void StartClient(string address, ushort port)
+        public partial class NetworkClient : Controller
         {
-            RegisterTransport();
-            RegisterMessage(false);
-            state = ConnectState.Connecting;
-            Transport.current.ClientConnect(address, port);
-            connection = new UnityServer();
-        }
+            /// <summary>
+            /// 网络消息委托字典
+            /// </summary>
+            internal readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
 
-        /// <summary>
-        /// 开启客户端
-        /// </summary>
-        /// <param name="uri">传入Uri</param>
-        internal static void StartClient(Uri uri)
-        {
-            RegisterTransport();
-            RegisterMessage(false);
-            state = ConnectState.Connecting;
-            Transport.current.ClientConnect(uri);
-            connection = new UnityServer();
-        }
+            /// <summary>
+            /// 场景中包含的网络对象
+            /// </summary>
+            internal readonly Dictionary<ulong, NetworkObject> scenes = new Dictionary<ulong, NetworkObject>();
 
-        /// <summary>
-        /// 开启主机，使用Server的Transport
-        /// </summary>
-        internal static void StartClient()
-        {
-            RegisterMessage(true);
-            state = ConnectState.Connected;
-            connection = new UnityServer();
-            var client = new UnityClient(NetworkConst.HostId);
-            NetworkServer.OnClientConnect(client);
-            Ready();
-        }
+            /// <summary>
+            /// 客户端生成的网络对象
+            /// </summary>
+            internal readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
 
-        /// <summary>
-        /// 设置客户端准备(能够进行消息传输)
-        /// </summary>
-        public static void Ready()
-        {
-            if (connection == null)
+            /// <summary>
+            /// 上一次发送信息的时间
+            /// </summary>
+            private double lastSendTime;
+
+            /// <summary>
+            /// 是否在生成物体中
+            /// </summary>
+            private bool isSpawning;
+
+            /// <summary>
+            /// 连接的状态
+            /// </summary>
+            private ConnectState state;
+
+            /// <summary>
+            /// 是否活跃
+            /// </summary>
+            public bool isActive => state is ConnectState.Connected or ConnectState.Connecting;
+
+            /// <summary>
+            /// 是否已经连接成功
+            /// </summary>
+            public bool isConnect => state == ConnectState.Connected;
+
+            /// <summary>
+            /// 是否已经准备完成(能进行和Server的信息传输)
+            /// </summary>
+            public bool isReady { get; internal set; }
+
+            /// <summary>
+            /// 是否正在加载场景
+            /// </summary>
+            public bool isLoadScene { get; internal set; }
+
+            /// <summary>
+            /// 连接到的服务器
+            /// </summary>
+            public UnityServer connection { get; private set; }
+
+            /// <summary>
+            /// 客户端连接的事件(包含主机)
+            /// </summary>
+            public event Action OnClientConnect;
+
+            /// <summary>
+            /// 客户端断开的事件
+            /// </summary>
+            public event Action OnClientDisconnect;
+
+            /// <summary>
+            /// 客户端取消准备的事件
+            /// </summary>
+            public event Action OnClientNotReady;
+
+            /// <summary>
+            /// 开启客户端
+            /// </summary>
+            /// <param name="address">传入连接地址</param>
+            /// <param name="port">传入连接端口</param>
+            internal void StartClient(string address, ushort port)
             {
-                Debug.LogError("没有连接到有效的服务器！");
-                return;
+                RegisterTransport();
+                RegisterMessage(false);
+                state = ConnectState.Connecting;
+                Transport.current.ClientConnect(address, port);
+                connection = new UnityServer();
             }
 
-            if (isReady)
+            /// <summary>
+            /// 开启客户端
+            /// </summary>
+            /// <param name="uri">传入Uri</param>
+            internal void StartClient(Uri uri)
             {
-                Debug.LogError("客户端已经准备就绪！");
-                return;
+                RegisterTransport();
+                RegisterMessage(false);
+                state = ConnectState.Connecting;
+                Transport.current.ClientConnect(uri);
+                connection = new UnityServer();
+            }
+
+            /// <summary>
+            /// 开启主机，使用Server的Transport
+            /// </summary>
+            internal void StartClient()
+            {
+                RegisterMessage(true);
+                state = ConnectState.Connected;
+                connection = new UnityServer();
+                var client = new UnityClient(NetworkConst.HostId);
+                Server.OnClientConnect(client);
+                Ready();
+            }
+
+            /// <summary>
+            /// 设置客户端准备(能够进行消息传输)
+            /// </summary>
+            public void Ready()
+            {
+                if (connection == null)
+                {
+                    Debug.LogError("没有连接到有效的服务器！");
+                    return;
+                }
+
+                if (isReady)
+                {
+                    Debug.LogError("客户端已经准备就绪！");
+                    return;
+                }
+
+                isReady = true;
+                connection.isReady = true;
+                connection.SendMessage(new SetReadyMessage());
+            }
+
+            /// <summary>
+            /// 客户端发送消息到服务器 (对发送消息的封装)
+            /// </summary>
+            /// <param name="message">网络事件</param>
+            /// <param name="channel">传输通道</param>
+            /// <typeparam name="T"></typeparam>
+            internal void SendMessage<T>(T message, Channel channel = Channel.Reliable) where T : struct, Message
+            {
+                if (connection == null)
+                {
+                    Debug.LogError("没有连接到有效的服务器！");
+                    return;
+                }
+
+                if (state != ConnectState.Connected)
+                {
+                    Debug.LogError("客户端没有连接成功就向服务器发送消息！");
+                    return;
+                }
+
+                connection.SendMessage(message, channel);
+            }
+
+            /// <summary>
+            /// 停止客户端
+            /// </summary>
+            internal void StopClient()
+            {
+                if (!isActive) return;
+                Debug.Log("停止客户端。");
+                DestroyForClient();
+                state = ConnectState.Disconnected;
+                if (Transport.current != null)
+                {
+                    Transport.current.ClientDisconnect();
+                }
+
+                OnClientDisconnect?.Invoke();
+                lastSendTime = 0;
+                scenes.Clear();
+                messages.Clear();
+                isReady = false;
+                connection = null;
+                isLoadScene = false;
             }
             
-            isReady = true;
-            connection.isReady = true;
-            connection.SendMessage(new SetReadyMessage());
-        }
-
-        /// <summary>
-        /// 客户端发送消息到服务器 (对发送消息的封装)
-        /// </summary>
-        /// <param name="message">网络事件</param>
-        /// <param name="channel">传输通道</param>
-        /// <typeparam name="T"></typeparam>
-        internal static void SendMessage<T>(T message, Channel channel = Channel.Reliable) where T : struct, Message
-        {
-            if (connection == null)
+            /// <summary>
+            /// 清除事件
+            /// </summary>
+            private void OnDestroy()
             {
-                Debug.LogError("没有连接到有效的服务器！");
-                return;
+                OnClientConnect = null;
+                OnClientDisconnect = null;
+                OnClientNotReady = null;
             }
-
-            if (state != ConnectState.Connected)
-            {
-                Debug.LogError("客户端没有连接成功就向服务器发送消息！");
-                return;
-            }
-
-            connection.SendMessage(message, channel);
-        }
-
-        /// <summary>
-        /// 清除事件
-        /// </summary>
-        internal static void ClearEvent()
-        {
-            OnClientConnect = null;
-            OnClientDisconnect = null;
-            OnClientNotReady = null;
-        }
-
-        /// <summary>
-        /// 停止客户端
-        /// </summary>
-        internal static void StopClient()
-        {
-            if (!isActive) return;
-            Debug.Log("停止客户端。");
-            DestroyForClient();
-            state = ConnectState.Disconnected;
-            if (Transport.current != null)
-            {
-                Transport.current.ClientDisconnect();
-            }
-            
-            OnClientDisconnect?.Invoke();
-            lastSendTime = 0;
-            scenes.Clear();
-            messages.Clear();
-            isReady = false;
-            connection = null;
-            isLoadScene = false;
         }
     }
 }

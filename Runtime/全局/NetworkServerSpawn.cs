@@ -6,182 +6,186 @@ using Object = UnityEngine.Object;
 
 namespace JFramework.Net
 {
-    public static partial class NetworkServer
+    public partial class NetworkManager
     {
-        /// <summary>
-        /// 生成物体
-        /// </summary>
-        internal static void SpawnObjects()
+        public partial class NetworkServer
         {
-            if (!isActive)
+            /// <summary>
+            /// 生成物体
+            /// </summary>
+            internal void SpawnObjects()
             {
-                Debug.LogError($"服务器不是活跃的。");
-                return;
-            }
-
-            NetworkObject[] objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
-
-            foreach (var @object in objects)
-            {
-                if (NetworkUtils.IsSceneObject(@object) && @object.objectId == 0)
+                if (!isActive)
                 {
-                    @object.gameObject.SetActive(true);
-                    if (NetworkUtils.IsValidParent(@object))
+                    Debug.LogError($"服务器不是活跃的。");
+                    return;
+                }
+
+                NetworkObject[] objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
+
+                foreach (var @object in objects)
+                {
+                    if (NetworkUtils.IsSceneObject(@object) && @object.objectId == 0)
                     {
-                        Spawn(@object.gameObject, @object.connection);
+                        @object.gameObject.SetActive(true);
+                        if (NetworkUtils.IsValidParent(@object))
+                        {
+                            Spawn(@object.gameObject, @object.connection);
+                        }
                     }
                 }
             }
-        }
 
-        /// <summary>
-        /// 仅在Server和Host能使用，生成物体的方法
-        /// </summary>
-        /// <param name="obj">生成的游戏物体</param>
-        /// <param name="client">客户端Id</param>
-        public static void Spawn(GameObject obj, UnityClient client = null)
-        {
-            if (!isActive)
+            /// <summary>
+            /// 仅在Server和Host能使用，生成物体的方法
+            /// </summary>
+            /// <param name="obj">生成的游戏物体</param>
+            /// <param name="client">客户端Id</param>
+            public void Spawn(GameObject obj, UnityClient client = null)
             {
-                Debug.LogError($"服务器不是活跃的。", obj);
-                return;
-            }
-
-            if (!obj.TryGetComponent(out NetworkObject @object))
-            {
-                Debug.LogError($"生成对象 {obj} 没有 NetworkObject 组件", obj);
-                return;
-            }
-
-            if (spawns.ContainsKey(@object.objectId))
-            {
-                Debug.LogWarning($"网络对象 {@object} 已经被生成。", @object.gameObject);
-                return;
-            }
-
-            @object.connection = client;
-
-            if (NetworkManager.mode == NetworkMode.Host)
-            {
-                if (@object.connection?.clientId == NetworkConst.HostId)
+                if (!isActive)
                 {
-                    @object.isOwner = true;
+                    Debug.LogError($"服务器不是活跃的。", obj);
+                    return;
+                }
+
+                if (!obj.TryGetComponent(out NetworkObject @object))
+                {
+                    Debug.LogError($"生成对象 {obj} 没有 NetworkObject 组件", obj);
+                    return;
+                }
+
+                if (spawns.ContainsKey(@object.objectId))
+                {
+                    Debug.LogWarning($"网络对象 {@object} 已经被生成。", @object.gameObject);
+                    return;
+                }
+
+                @object.connection = client;
+
+                if (NetworkManager.Instance.mode == NetworkMode.Host)
+                {
+                    if (@object.connection?.clientId == NetworkConst.HostId)
+                    {
+                        @object.isOwner = true;
+                    }
+                }
+
+                if (!@object.isServer && @object.objectId == 0)
+                {
+                    @object.objectId = ++objectId;
+                    @object.isServer = true;
+                    @object.isClient = NetworkManager.Client.isActive;
+                    spawns[@object.objectId] = @object;
+                    @object.OnStartServer();
+                }
+
+                SpawnForClient(@object);
+            }
+
+            /// <summary>
+            /// 遍历所有客户端，发送生成物体的消息
+            /// </summary>
+            /// <param name="object">传入对象</param>
+            private void SpawnForClient(NetworkObject @object)
+            {
+                foreach (var client in clients.Values.Where(client => client.isReady))
+                {
+                    SendSpawnMessage(client, @object);
                 }
             }
 
-            if (!@object.isServer && @object.objectId == 0)
+            /// <summary>
+            /// 服务器向指定客户端发送生成对象的消息
+            /// </summary>
+            /// <param name="client">指定的客户端</param>
+            /// <param name="object">生成的游戏对象</param>
+            private void SendSpawnMessage(UnityClient client, NetworkObject @object)
             {
-                @object.objectId = ++objectId;
-                @object.isServer = true;
-                @object.isClient = NetworkClient.isActive;
-                spawns[@object.objectId] = @object;
-                @object.OnStartServer();
+                using NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
+                var isOwner = @object.connection == client;
+                var transform = @object.transform;
+                var message = new SpawnMessage
+                {
+                    isOwner = isOwner,
+                    sceneId = @object.sceneId,
+                    objectId = @object.objectId,
+                    position = transform.localPosition,
+                    rotation = transform.localRotation,
+                    localScale = transform.localScale,
+                    segment = SerializeNetworkObject(@object, isOwner, owner, observer),
+                    assetId = (ArraySegment<byte>)Encoding.UTF8.GetBytes(@object.assetId)
+                };
+                client.SendMessage(message);
             }
 
-            SpawnForClient(@object);
-        }
-
-        /// <summary>
-        /// 遍历所有客户端，发送生成物体的消息
-        /// </summary>
-        /// <param name="object">传入对象</param>
-        private static void SpawnForClient(NetworkObject @object)
-        {
-            foreach (var client in clients.Values.Where(client => client.isReady))
+            /// <summary>
+            /// 序列化网络对象，并将数据转发给客户端
+            /// </summary>
+            /// <param name="object">网络对象生成</param>
+            /// <param name="isOwner"></param>
+            /// <param name="owner"></param>
+            /// <param name="observer"></param>
+            /// <returns></returns>
+            private ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, bool isOwner, NetworkWriter owner,
+                NetworkWriter observer)
             {
-                SendSpawnMessage(client, @object);
-            }
-        }
-
-        /// <summary>
-        /// 服务器向指定客户端发送生成对象的消息
-        /// </summary>
-        /// <param name="client">指定的客户端</param>
-        /// <param name="object">生成的游戏对象</param>
-        private static void SendSpawnMessage(UnityClient client, NetworkObject @object)
-        {
-            using NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
-            var isOwner = @object.connection == client;
-            var transform = @object.transform;
-            var message = new SpawnMessage
-            {
-                isOwner = isOwner,
-                sceneId = @object.sceneId,
-                objectId = @object.objectId,
-                position = transform.localPosition,
-                rotation = transform.localRotation,
-                localScale = transform.localScale,
-                segment = SerializeNetworkObject(@object, isOwner, owner, observer),
-                assetId = (ArraySegment<byte>)Encoding.UTF8.GetBytes(@object.assetId)
-            };
-            client.SendMessage(message);
-        }
-
-        /// <summary>
-        /// 序列化网络对象，并将数据转发给客户端
-        /// </summary>
-        /// <param name="object">网络对象生成</param>
-        /// <param name="isOwner"></param>
-        /// <param name="owner"></param>
-        /// <param name="observer"></param>
-        /// <returns></returns>
-        private static ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observer)
-        {
-            if (@object.entities.Length == 0) return default;
-            @object.ServerSerialize(true, owner, observer);
-            return isOwner ? owner.ToArraySegment() : observer.ToArraySegment();
-        }
-
-        /// <summary>
-        /// 将网络对象重置并隐藏
-        /// </summary>
-        /// <param name="object"></param>
-        public static void Despawn(NetworkObject @object)
-        {
-            spawns.Remove(@object.objectId);
-            foreach (var client in clients.Values)
-            {
-                Debug.Log($"服务器为客户端 {client.clientId} 重置 {@object}");
-                client.SendMessage(new DespawnMessage(@object.objectId));
+                if (@object.entities.Length == 0) return default;
+                @object.ServerSerialize(true, owner, observer);
+                return isOwner ? owner.ToArraySegment() : observer.ToArraySegment();
             }
 
-            if (NetworkManager.mode == NetworkMode.Host)
+            /// <summary>
+            /// 将网络对象重置并隐藏
+            /// </summary>
+            /// <param name="object"></param>
+            public void Despawn(NetworkObject @object)
             {
-                @object.OnStopClient();
-                @object.isOwner = false;
-                @object.OnNotifyAuthority();
-                NetworkClient.spawns.Remove(@object.objectId);
+                spawns.Remove(@object.objectId);
+                foreach (var client in clients.Values)
+                {
+                    Debug.Log($"服务器为客户端 {client.clientId} 重置 {@object}");
+                    client.SendMessage(new DespawnMessage(@object.objectId));
+                }
+
+                if (NetworkManager.Instance.mode == NetworkMode.Host)
+                {
+                    @object.OnStopClient();
+                    @object.isOwner = false;
+                    @object.OnNotifyAuthority();
+                    NetworkManager.Client.spawns.Remove(@object.objectId);
+                }
+
+                @object.OnStopServer();
+                @object.gameObject.SetActive(false);
+                @object.Reset();
             }
 
-            @object.OnStopServer();
-            @object.gameObject.SetActive(false);
-            @object.Reset();
-        }
-
-        /// <summary>
-        /// 将网络对象销毁
-        /// </summary>
-        /// <param name="object"></param>
-        public static void Destroy(NetworkObject @object)
-        {
-            spawns.Remove(@object.objectId);
-            @object.isDestroy = true;
-            foreach (var client in clients.Values)
+            /// <summary>
+            /// 将网络对象销毁
+            /// </summary>
+            /// <param name="object"></param>
+            public void Destroy(NetworkObject @object)
             {
-                Debug.Log($"服务器为客户端 {client.clientId} 销毁 {@object}");
-                client.SendMessage(new DestroyMessage(@object.objectId));
-            }
+                spawns.Remove(@object.objectId);
+                @object.isDestroy = true;
+                foreach (var client in clients.Values)
+                {
+                    Debug.Log($"服务器为客户端 {client.clientId} 销毁 {@object}");
+                    client.SendMessage(new DestroyMessage(@object.objectId));
+                }
 
-            if (NetworkManager.mode == NetworkMode.Host)
-            {
-                @object.OnStopClient();
-                @object.isOwner = false;
-                @object.OnNotifyAuthority();
-                NetworkClient.spawns.Remove(@object.objectId);
-            }
+                if (NetworkManager.Instance.mode == NetworkMode.Host)
+                {
+                    @object.OnStopClient();
+                    @object.isOwner = false;
+                    @object.OnNotifyAuthority();
+                    NetworkManager.Client.spawns.Remove(@object.objectId);
+                }
 
-            @object.OnStopServer();
-            Object.Destroy(@object.gameObject);
+                @object.OnStopServer();
+                Object.Destroy(@object.gameObject);
+            }
         }
     }
 }

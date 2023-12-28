@@ -1,74 +1,77 @@
 namespace JFramework.Net
 {
-    public static partial class NetworkClient
+    public partial class NetworkManager
     {
-        /// <summary>
-        /// 在Update前调用
-        /// </summary>
-        internal static void EarlyUpdate()
+        public partial class NetworkClient
         {
-            if (Transport.current != null)
+            /// <summary>
+            /// 在Update前调用
+            /// </summary>
+            internal void EarlyUpdate()
             {
-                Transport.current.ClientEarlyUpdate();
-            }
-            
-            connection?.UpdateInterpolation();
-        }
+                if (Transport.current != null)
+                {
+                    Transport.current.ClientEarlyUpdate();
+                }
 
-        /// <summary>
-        /// 在Update之后调用
-        /// </summary>
-        internal static void AfterUpdate()
-        {
-            if (isActive)
-            {
-                if (NetworkUtils.HeartBeat(NetworkTime.localTime, NetworkManager.sendRate, ref lastSendTime))
-                {
-                    Broadcast();
-                }
+                connection?.UpdateInterpolation();
             }
-        
-            if (connection != null)
+
+            /// <summary>
+            /// 在Update之后调用
+            /// </summary>
+            internal void AfterUpdate()
             {
-                if (NetworkManager.mode == NetworkMode.Host)
+                if (isActive)
                 {
-                    connection.Update();
-                }
-                else
-                {
-                    if (isActive && isConnect)
+                    if (NetworkUtils.HeartBeat(NetworkTime.localTime, Instance.sendRate, ref lastSendTime))
                     {
-                        NetworkTime.Update();
-                        connection.Update();
+                        Broadcast();
                     }
                 }
-            }
-            
-            if (Transport.current != null)
-            {
-                Transport.current.ClientAfterUpdate();
-            }
-        }
 
-        /// <summary>
-        /// 客户端进行广播
-        /// </summary>
-        private static void Broadcast()
-        {
-            if (!connection.isReady) return;
-            if (NetworkServer.isActive) return;
-            foreach (var @object in spawns.Values)
-            {
-                using var writer = NetworkWriter.Pop();
-                @object.ClientSerialize(writer);
-                if (writer.position > 0)
+                if (connection != null)
                 {
-                    SendMessage(new EntityMessage(@object.objectId, writer.ToArraySegment()));
-                    @object.ClearDirty();
+                    if (Instance.mode == NetworkMode.Host)
+                    {
+                        connection.Update();
+                    }
+                    else
+                    {
+                        if (isActive && isConnect)
+                        {
+                            NetworkTime.Update();
+                            connection.Update();
+                        }
+                    }
+                }
+
+                if (Transport.current != null)
+                {
+                    Transport.current.ClientAfterUpdate();
                 }
             }
 
-            SendMessage(new SnapshotMessage(), Channel.Unreliable);
+            /// <summary>
+            /// 客户端进行广播
+            /// </summary>
+            private void Broadcast()
+            {
+                if (!connection.isReady) return;
+                if (Server.isActive) return;
+                foreach (var @object in spawns.Values)
+                {
+                    using var writer = NetworkWriter.Pop();
+                    @object.ClientSerialize(writer);
+                    if (writer.position > 0)
+                    {
+                        SendMessage(new EntityMessage(@object.objectId, writer.ToArraySegment()));
+                        @object.ClearDirty();
+                    }
+                }
+
+                SendMessage(new SnapshotMessage(), Channel.Unreliable);
+            }
         }
     }
 }

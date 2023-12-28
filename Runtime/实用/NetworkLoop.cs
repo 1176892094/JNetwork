@@ -54,8 +54,8 @@ namespace JFramework.Net
         private static void EarlyUpdate()
         {
             if (!Application.isPlaying) return;
-            NetworkServer.EarlyUpdate();
-            NetworkClient.EarlyUpdate();
+            NetworkManager.Server.EarlyUpdate();
+            NetworkManager.Client.EarlyUpdate();
         }
 
         /// <summary>
@@ -64,8 +64,8 @@ namespace JFramework.Net
         private static void AfterUpdate()
         {
             if (!Application.isPlaying) return;
-            NetworkServer.AfterUpdate();
-            NetworkClient.AfterUpdate();
+            NetworkManager.Server.AfterUpdate();
+            NetworkManager.Client.AfterUpdate();
         }
         
         /// <summary>

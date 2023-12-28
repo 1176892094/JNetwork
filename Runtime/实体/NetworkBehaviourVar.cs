@@ -27,7 +27,7 @@ namespace JFramework.Net
                 SetSyncVarGeneral(value, ref field, dirty);
                 if (OnChanged != null)
                 {
-                    if (NetworkManager.mode == NetworkMode.Host && !GetSyncVarHook(dirty))
+                    if (NetworkManager.Instance.mode == NetworkMode.Host && !GetSyncVarHook(dirty))
                     {
                         SetSyncVarHook(dirty, true);
                         OnChanged(oldValue, value);
@@ -102,7 +102,7 @@ namespace JFramework.Net
                 SetSyncVarGameObject(value, ref field, dirty, ref objectId);
                 if (OnChanged != null)
                 {
-                    if (NetworkManager.mode == NetworkMode.Host && !GetSyncVarHook(dirty))
+                    if (NetworkManager.Instance.mode == NetworkMode.Host && !GetSyncVarHook(dirty))
                     {
                         SetSyncVarHook(dirty, true);
                         OnChanged(oldValue, value);
@@ -170,7 +170,7 @@ namespace JFramework.Net
                 return field;
             }
             
-            if (NetworkClient.spawns.TryGetValue(objectId,out var oldObject) && oldObject != null)
+            if (NetworkManager.Client.spawns.TryGetValue(objectId,out var oldObject) && oldObject != null)
             {
                 return field = oldObject.gameObject;
             }
@@ -226,7 +226,7 @@ namespace JFramework.Net
                 SetSyncVarNetworkObject(value, ref field, dirty, ref objectId);
                 if (OnChanged != null)
                 {
-                    if (NetworkManager.mode == NetworkMode.Host  && !GetSyncVarHook(dirty))
+                    if (NetworkManager.Instance.mode == NetworkMode.Host  && !GetSyncVarHook(dirty))
                     {
                         SetSyncVarHook(dirty, true);
                         OnChanged(oldValue, value);
@@ -287,7 +287,7 @@ namespace JFramework.Net
         private NetworkObject GetSyncVarNetworkObject(uint objectId, ref NetworkObject @object)
         {
             if (isServer || !isClient) return @object;
-            NetworkClient.spawns.TryGetValue(objectId, out @object);
+            NetworkManager.Client.spawns.TryGetValue(objectId, out @object);
             return @object;
         }
 
@@ -339,7 +339,7 @@ namespace JFramework.Net
                 SetSyncVarNetworkBehaviour(value, ref field, dirty, ref objectId);
                 if (OnChanged != null)
                 {
-                    if (NetworkManager.mode == NetworkMode.Host && !GetSyncVarHook(dirty))
+                    if (NetworkManager.Instance.mode == NetworkMode.Host && !GetSyncVarHook(dirty))
                     {
                         SetSyncVarHook(dirty, true);
                         OnChanged(oldValue, value);
@@ -408,7 +408,7 @@ namespace JFramework.Net
                 return field;
             }
             
-            if (!NetworkClient.spawns.TryGetValue(value.objectId,out var oldObject))
+            if (!NetworkManager.Client.spawns.TryGetValue(value.objectId,out var oldObject))
             {
                 return null;
             }
