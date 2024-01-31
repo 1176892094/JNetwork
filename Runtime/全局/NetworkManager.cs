@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public sealed partial class NetworkManager : MonoBehaviour, IInject
+    public sealed partial class NetworkManager : MonoBehaviour, IEntity
     {
         /// <summary>
         /// NetworkManager 单例

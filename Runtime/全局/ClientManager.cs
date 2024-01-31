@@ -8,7 +8,7 @@ namespace JFramework.Net
 {
     public partial class NetworkManager
     {
-        public partial class ClientManager : Controller
+        public partial class ClientManager : Controller<NetworkManager>
         {
             /// <summary>
             /// 网络消息委托字典

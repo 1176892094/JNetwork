@@ -5,7 +5,7 @@ namespace JFramework.Net
 {
     public partial class NetworkManager
     {
-        internal sealed class SettingManager : Controller
+        internal sealed class SettingManager : Controller<NetworkManager>
         {
             [InfoBox("本地模拟相对于发送间隔 * 缓冲时间乘数 的滞后时间")]
             public double bufferTimeMultiplier = 2;

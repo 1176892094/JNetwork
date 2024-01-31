@@ -5,7 +5,7 @@ namespace JFramework.Net
     /// <summary>
     /// 实体的抽象类
     /// </summary>
-    public abstract class NetworkEntity : NetworkBehaviour, IInject
+    public abstract class NetworkEntity : NetworkBehaviour, IEntity
     {
         /// <summary>
         /// 实体初始化注入

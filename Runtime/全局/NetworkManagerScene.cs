@@ -4,7 +4,7 @@ namespace JFramework.Net
 {
     public sealed partial class NetworkManager
     {
-        public class SceneManager : Controller
+        public class SceneManager : Controller<NetworkManager>
         {
             /// <summary>
             /// 服务器场景
