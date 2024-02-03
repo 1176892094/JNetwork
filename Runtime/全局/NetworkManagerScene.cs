@@ -46,7 +46,7 @@ namespace JFramework.Net
                     }
                 }
 
-                await GlobalManager.Scene.LoadSceneAsync(newSceneName);
+                await GlobalManager.Scene.LoadScene(newSceneName);
                 OnLoadComplete();
             }
 
@@ -66,7 +66,7 @@ namespace JFramework.Net
                 if (Server.isActive) return; //Host不做处理
                 sceneName = newSceneName;
                 Client.isLoadScene = true;
-                await GlobalManager.Scene.LoadSceneAsync(newSceneName);
+                await GlobalManager.Scene.LoadScene(newSceneName);
                 OnLoadComplete();
             }
 

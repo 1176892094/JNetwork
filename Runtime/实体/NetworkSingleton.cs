@@ -22,7 +22,7 @@ namespace JFramework.Net
         {
             get
             {
-                if (!GlobalManager.Runtime) return null;
+                if (!GlobalManager.Instance) return null;
                 if (instance == null)
                 {
                     lock (locked)
