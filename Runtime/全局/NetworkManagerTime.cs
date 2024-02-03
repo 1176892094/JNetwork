@@ -20,7 +20,7 @@ namespace JFramework.Net
 {
     public partial class NetworkManager
     {
-        internal class TimeManager : Controller<NetworkManager>
+        internal class TimeManager : Component<NetworkManager>
         {
             /// <summary>
             /// 上一次发送Ping的时间

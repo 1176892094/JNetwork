@@ -22,7 +22,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络发现组件
         /// </summary>
-        [LabelText("网络发现"), SerializeField] internal NetworkDiscovery discovery;
+        [LabelText("网络发现"), SerializeField] public NetworkDiscovery discovery;
 
         /// <summary>
         /// 玩家预置体
