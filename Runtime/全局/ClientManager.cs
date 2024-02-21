@@ -29,7 +29,7 @@ namespace JFramework.Net
             /// 连接的状态
             /// </summary>
             [ShowInInspector] private ConnectState state;
-            
+
             /// <summary>
             /// 上一次发送信息的时间
             /// </summary>
@@ -177,7 +177,6 @@ namespace JFramework.Net
             {
                 if (!isActive) return;
                 Debug.Log("停止客户端。");
-                state = ConnectState.Disconnected;
                 foreach (var @object in spawns.Values.Where(@object => @object != null))
                 {
                     if (Instance.mode is NetworkMode.Client)
@@ -195,6 +194,7 @@ namespace JFramework.Net
                     }
                 }
 
+                state = ConnectState.Disconnected;
                 if (Transport.current != null)
                 {
                     Transport.current.ClientDisconnect();
