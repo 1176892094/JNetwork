@@ -168,7 +168,6 @@ namespace JFramework.Net
                 @object.isDestroy = true;
                 foreach (var client in clients.Values)
                 {
-                    Debug.Log($"服务器为客户端 {client.clientId} 销毁 {@object}");
                     client.Send(new DestroyMessage(@object.objectId));
                 }
 
