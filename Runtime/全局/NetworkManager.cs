@@ -138,7 +138,7 @@ namespace JFramework.Net
         /// <summary>
         /// TimerManager 控制器
         /// </summary>
-        public static Transport Transport => Instance.transport;
+        internal static Transport Transport => Instance.transport;
 
         /// <summary>
         /// 初始化配置传输
@@ -147,7 +147,6 @@ namespace JFramework.Net
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Transport.current = transport;
             Application.runInBackground = true;
 #if UNITY_SERVER
             Application.targetFrameRate = tickRate;

@@ -74,7 +74,7 @@ namespace JFramework.Net
         /// <returns>返回是否有效</returns>
         private static bool IsValid(ArraySegment<byte> segment, Channel channel)
         {
-            int maxPacketSize = Transport.current.GetMaxPacketSize(channel);
+            int maxPacketSize = NetworkManager.Transport.GetMaxPacketSize(channel);
             if (segment.Count > maxPacketSize)
             {
                 Debug.LogError($"发送消息大小不能超过{maxPacketSize}。消息大小：{segment.Count}");
@@ -121,7 +121,7 @@ namespace JFramework.Net
         internal NetworkWriterPack GetWriterPack(Channel channel)
         {
             if (writerPacks.TryGetValue(channel, out var writerPack)) return writerPack;
-            var threshold = Transport.current.UnreliableSize();
+            var threshold = NetworkManager.Transport.UnreliableSize();
             return writerPacks[channel] = new NetworkWriterPack(threshold);
         }
         

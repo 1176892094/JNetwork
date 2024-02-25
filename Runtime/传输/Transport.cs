@@ -6,11 +6,6 @@ namespace JFramework.Net
     public abstract class Transport : MonoBehaviour
     {
         /// <summary>
-        /// 当前传输协议
-        /// </summary>
-        public static Transport current;
-
-        /// <summary>
         /// 网络传输地址
         /// </summary>
         [HideInInspector] public string address = "localhost";

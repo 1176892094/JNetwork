@@ -151,7 +151,7 @@ namespace JFramework.Net
         /// <param name="channel"></param>
         internal void InvokeRpc(ClientRpcMessage message, Channel channel)
         {
-            int maxSize = Transport.current.GetMaxPacketSize(channel);
+            int maxSize = NetworkManager.Transport.GetMaxPacketSize(channel);
             switch (channel)
             {
                 case Channel.Reliable:
@@ -188,7 +188,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         protected override void SendToTransport(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            Transport.current.ServerSend(clientId, segment, channel);
+            NetworkManager.Transport.ServerSend(clientId, segment, channel);
         }
 
         /// <summary>
@@ -197,7 +197,7 @@ namespace JFramework.Net
         public override void Disconnect()
         {
             isReady = false;
-            Transport.current.ServerDisconnect(clientId);
+            NetworkManager.Transport.ServerDisconnect(clientId);
         }
     }
 }

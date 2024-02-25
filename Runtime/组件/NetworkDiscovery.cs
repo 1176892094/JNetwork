@@ -87,7 +87,7 @@ namespace JFramework.Net
             serverId = RandomLong();
             if (transport == null)
             {
-                transport = Transport.current;
+                transport = NetworkManager.Transport;
             }
 #if UNITY_SERVER
             AdvertiseServer();

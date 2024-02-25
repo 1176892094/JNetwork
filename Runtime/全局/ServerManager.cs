@@ -86,7 +86,7 @@ namespace JFramework.Net
         {
             if (isListen)
             {
-                Transport.current.StartServer();
+                NetworkManager.Transport.StartServer();
             }
 
             if (!isActive)
@@ -141,9 +141,9 @@ namespace JFramework.Net
                 }
             }
 
-            if (Transport.current != null)
+            if (NetworkManager.Transport != null)
             {
-                Transport.current.StopServer();
+                NetworkManager.Transport.StopServer();
             }
 
             UnRegisterTransport();
@@ -316,15 +316,15 @@ namespace JFramework.Net
             if (clientId == 0)
             {
                 Debug.LogError($"无效的客户端连接。客户端：{clientId}");
-                Transport.current.ServerDisconnect(clientId);
+                NetworkManager.Transport.ServerDisconnect(clientId);
             }
             else if (clients.ContainsKey(clientId))
             {
-                Transport.current.ServerDisconnect(clientId);
+                NetworkManager.Transport.ServerDisconnect(clientId);
             }
             else if (clients.Count >= NetworkManager.Instance.connection)
             {
-                Transport.current.ServerDisconnect(clientId);
+                NetworkManager.Transport.ServerDisconnect(clientId);
             }
             else
             {
@@ -599,9 +599,9 @@ namespace JFramework.Net
         /// </summary>
         internal void EarlyUpdate()
         {
-            if (Transport.current != null)
+            if (NetworkManager.Transport != null)
             {
-                Transport.current.ServerEarlyUpdate();
+                NetworkManager.Transport.ServerEarlyUpdate();
             }
 
             foreach (var client in clients.Values)
@@ -623,9 +623,9 @@ namespace JFramework.Net
                 }
             }
 
-            if (Transport.current != null)
+            if (NetworkManager.Transport != null)
             {
-                Transport.current.ServerAfterUpdate();
+                NetworkManager.Transport.ServerAfterUpdate();
             }
         }
 

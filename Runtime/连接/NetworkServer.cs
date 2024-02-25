@@ -80,7 +80,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         protected override void SendToTransport(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            Transport.current.ClientSend(segment, channel);
+            NetworkManager.Transport.ClientSend(segment, channel);
         }
 
         /// <summary>
@@ -152,7 +152,7 @@ namespace JFramework.Net
         {
             isReady = false;
             NetworkManager.Client.isReady = false;
-            Transport.current.ClientDisconnect();
+            NetworkManager.Transport.ClientDisconnect();
         }
     }
 }

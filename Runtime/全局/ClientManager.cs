@@ -94,7 +94,7 @@ namespace JFramework.Net
             RegisterTransport();
             Register(false);
             state = ConnectState.Connecting;
-            Transport.current.ClientConnect(address, port);
+            NetworkManager.Transport.ClientConnect(address, port);
             connection = new NetworkServer();
         }
 
@@ -107,7 +107,7 @@ namespace JFramework.Net
             RegisterTransport();
             Register(false);
             state = ConnectState.Connecting;
-            Transport.current.ClientConnect(uri);
+            NetworkManager.Transport.ClientConnect(uri);
             connection = new NetworkServer();
         }
 
@@ -194,9 +194,9 @@ namespace JFramework.Net
             }
 
             state = ConnectState.Disconnected;
-            if (Transport.current != null)
+            if (NetworkManager.Transport != null)
             {
-                Transport.current.ClientDisconnect();
+                NetworkManager.Transport.ClientDisconnect();
             }
 
             OnDisconnect?.Invoke();
@@ -652,9 +652,9 @@ namespace JFramework.Net
         /// </summary>
         internal void EarlyUpdate()
         {
-            if (Transport.current != null)
+            if (NetworkManager.Transport != null)
             {
-                Transport.current.ClientEarlyUpdate();
+                NetworkManager.Transport.ClientEarlyUpdate();
             }
 
             connection?.UpdateInterpolation();
@@ -689,9 +689,9 @@ namespace JFramework.Net
                 }
             }
 
-            if (Transport.current != null)
+            if (NetworkManager.Transport != null)
             {
-                Transport.current.ClientAfterUpdate();
+                NetworkManager.Transport.ClientAfterUpdate();
             }
         }
 
