@@ -88,7 +88,7 @@ namespace JFramework.Net
         /// <summary>
         /// 初始化动画控制器
         /// </summary>
-        protected override void Awake()
+        private void Awake()
         {
             animatorParams = animator.parameters.Where(parameter => !animator.IsParameterControlledByCurve(parameter.nameHash)).ToArray();
             lastIntParams = new int[animatorParams.Length];

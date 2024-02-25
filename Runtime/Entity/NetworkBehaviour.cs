@@ -76,26 +76,6 @@ namespace JFramework.Net
         public NetworkClient connection => @object.connection;
 
         /// <summary>
-        /// 实体初始化注入
-        /// </summary>
-        protected virtual void Awake() => this.Inject();
-
-        /// <summary>
-        /// 实体启用
-        /// </summary>
-        protected virtual void OnEnable() => GetComponent<IUpdate>()?.Listen();
-
-        /// <summary>
-        /// 实体禁用
-        /// </summary>
-        protected virtual void OnDisable() => GetComponent<IUpdate>()?.Remove();
-
-        /// <summary>
-        /// 实体销毁 (如果能获取到角色接口 则销毁角色的控制器)
-        /// </summary>
-        protected virtual void OnDestroy() => this.Destroy();
-
-        /// <summary>
         /// 是否能够改变网络值
         /// </summary>
         /// <returns></returns>
