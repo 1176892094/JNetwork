@@ -84,7 +84,7 @@ namespace JFramework.Editor
 
         public readonly Dictionary<FieldDefinition, MethodDefinition> getter = new Dictionary<FieldDefinition, MethodDefinition>();
 
-        public int GetSyncVar(string className) => syncVars.TryGetValue(className, out int value) ? value : 0;
+        public int GetSyncVar(string className) => syncVars.GetValueOrDefault(className, 0);
         public void SetSyncVar(string className, int index) => syncVars[className] = index;
 
         public void Clear()
