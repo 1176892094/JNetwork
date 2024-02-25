@@ -216,7 +216,7 @@ namespace JFramework.Net
                 Debug.LogWarning($"没有找到发送 ServerRpc 的对象。对象网络Id：{message.objectId}");
                 return;
             }
-
+            
             if (NetworkRpc.HasAuthority(message.methodHash) && @object.connection != client)
             {
                 Debug.LogWarning($"接收到 ServerRpc 但对象没有通过验证。对象网络Id：{message.objectId}");
@@ -226,7 +226,7 @@ namespace JFramework.Net
             using var reader = NetworkReader.Pop(message.segment);
             @object.InvokeRpcMessage(message.serialId, message.methodHash, RpcType.ServerRpc, reader, client);
         }
-        
+
         /// <summary>
         /// 服务器发送Pong消息给指定客户端
         /// </summary>

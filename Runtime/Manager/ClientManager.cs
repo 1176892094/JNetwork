@@ -178,7 +178,7 @@ namespace JFramework.Net
             Debug.Log("停止客户端。");
             foreach (var @object in spawns.Values.Where(@object => @object != null))
             {
-                if (NetworkManager.Instance.mode is NetworkMode.Client)
+                if (NetworkManager.Instance.mode != NetworkMode.Server)
                 {
                     @object.OnStopClient();
                     if (@object.sceneId != 0)

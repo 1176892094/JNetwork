@@ -170,9 +170,9 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            if (NetworkManager.Instance.mode is NetworkMode.Host)
+            if (clientId == NetworkConst.HostId)
             {
-                NetworkWriter writer = NetworkWriter.Pop();
+                var writer = NetworkWriter.Pop();
                 writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
                 NetworkManager.Client.connection.writeQueue.Enqueue(writer);
                 return;

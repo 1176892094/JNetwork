@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public abstract class NetworkSingleton<T> : MonoBehaviour where T : NetworkSingleton<T>
+    public abstract class NetworkSingleton<T> : NetworkBehaviour where T : NetworkSingleton<T>
     {
         private static readonly object locked = typeof(T);
 
