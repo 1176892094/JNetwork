@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using JFramework.Net;
 using Mono.Cecil;
@@ -38,25 +39,25 @@ namespace JFramework.Editor
                 {
                     return true;
                 }
-
+                
                 access = new SyncVarAccess();
                 models = new Models(assembly, logger, ref failed);
                 generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NAME, CONST.GEN_ATTRS, models.Import<object>());
                 writers = new Writers(assembly, models, generate, logger);
                 readers = new Readers(assembly, models, generate, logger);
                 change = StreamingProcess.Process(assembly, resolver, logger, writers, readers, ref failed);
-
+                
                 var mainModule = assembly.MainModule;
-
+                
                 change |= ProcessModule(mainModule);
                 if (failed)
                 {
                     return false;
                 }
-
+                
                 if (change)
                 {
-                    SyncVarProcessReplace.Process(mainModule, access);
+                    SyncVarReplace.Process(mainModule, access);
                     mainModule.Types.Add(generate);
                     StreamingProcess.StreamingInitialize(assembly, models, writers, readers, generate);
                 }

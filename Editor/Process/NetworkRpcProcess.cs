@@ -11,7 +11,7 @@ namespace JFramework.Editor
         TargetRpc,
     }
 
-    internal static partial class NetworkRpcProcess
+    internal static class NetworkRpcProcess
     {
         /// <summary>
         /// ClientRpc方法
@@ -289,7 +289,7 @@ namespace JFramework.Editor
                     continue;
                 }
 
-                MethodReference writeFunc = writers.GetWriteFunc(pd.ParameterType, ref failed);
+                MethodReference writeFunc = writers.GetFunction(pd.ParameterType, ref failed);
                 if (writeFunc == null)
                 {
                     logger.Error($"{method.Name} 有无效的参数 {pd}。不支持类型 {pd.ParameterType}。", method);
@@ -335,7 +335,7 @@ namespace JFramework.Editor
                     continue;
                 }
 
-                MethodReference readFunc = readers.GetReadFunc(pd.ParameterType, ref failed);
+                MethodReference readFunc = readers.GetFunction(pd.ParameterType, ref failed);
 
                 if (readFunc == null)
                 {
@@ -414,10 +414,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ret);
             worker.Append(label);
         }
-    }
 
-    internal static partial class NetworkRpcProcess
-    {
         /// <summary>
         /// 处理基本的Rpc方法
         /// </summary>

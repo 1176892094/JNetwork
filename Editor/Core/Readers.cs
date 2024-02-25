@@ -12,8 +12,7 @@ namespace JFramework.Editor
 {
     internal class Readers
     {
-        private readonly Dictionary<TypeReference, MethodReference> readFuncList = new Dictionary<TypeReference, MethodReference>(new Comparer());
-
+        private readonly Dictionary<TypeReference, MethodReference> funcs = new Dictionary<TypeReference, MethodReference>(new Comparer());
         private readonly Models models;
         private readonly Logger logger;
         private readonly TypeDefinition generate;
@@ -27,27 +26,21 @@ namespace JFramework.Editor
             this.generate = generate;
         }
 
-        internal void Register(TypeReference dataType, MethodReference md)
+        internal void Register(TypeReference tr, MethodReference md)
         {
-            var imported = assembly.MainModule.ImportReference(dataType);
-            readFuncList[imported] = md;
+            var imported = assembly.MainModule.ImportReference(tr);
+            funcs[imported] = md;
         }
 
-        private void RegisterReadFunc(TypeReference td, MethodDefinition newReaderFunc)
+        public MethodReference GetFunction(TypeReference tr, ref bool failed)
         {
-            Register(td, newReaderFunc);
-            generate.Methods.Add(newReaderFunc);
-        }
-
-        public MethodReference GetReadFunc(TypeReference variable, ref bool failed)
-        {
-            if (readFuncList.TryGetValue(variable, out MethodReference foundFunc))
+            if (funcs.TryGetValue(tr, out var mr))
             {
-                return foundFunc;
+                return mr;
             }
 
-            var importedVariable = assembly.MainModule.ImportReference(variable);
-            return GenerateReader(importedVariable, ref failed);
+            var reference = assembly.MainModule.ImportReference(tr);
+            return GenerateReader(reference, ref failed);
         }
 
         private MethodReference GenerateReader(TypeReference tr, ref bool failed)
@@ -61,11 +54,11 @@ namespace JFramework.Editor
                     return null;
                 }
 
-                return GenerateReadCollection(tr, tr.GetElementType(), nameof(StreamExtensions.ReadArray), ref failed);
+                return GenerateCollection(tr, tr.GetElementType(), nameof(StreamExtensions.ReadArray), ref failed);
             }
 
-            var variable = tr.Resolve();
-            if (variable == null)
+            var td = tr.Resolve();
+            if (td == null)
             {
                 logger.Error($"无法为Null {tr.Name} 生成 Reader", tr);
                 failed = true;
@@ -79,30 +72,29 @@ namespace JFramework.Editor
                 return null;
             }
 
-            if (variable.IsEnum)
+            if (td.IsEnum)
             {
-                return GenerateEnumReadFunc(tr, ref failed);
+                return GenerateEnum(tr, ref failed);
             }
 
-            if (variable.Is(typeof(ArraySegment<>)))
+            if (td.Is(typeof(ArraySegment<>)))
             {
-                return GenerateArraySegmentReadFunc(tr, ref failed);
+                return GenerateArraySegment(tr, ref failed);
             }
 
-            if (variable.Is(typeof(List<>)))
+            if (td.Is(typeof(List<>)))
             {
                 var genericInstance = (GenericInstanceType)tr;
                 var elementType = genericInstance.GenericArguments[0];
-
-                return GenerateReadCollection(tr, elementType, nameof(StreamExtensions.ReadList), ref failed);
+                return GenerateCollection(tr, elementType, nameof(StreamExtensions.ReadList), ref failed);
             }
 
             if (tr.IsDerivedFrom<NetworkBehaviour>() || tr.Is<NetworkBehaviour>())
             {
-                return GetNetworkBehaviourReader(tr);
+                return GetNetworkBehaviour(tr);
             }
 
-            if (variable.IsDerivedFrom<Component>())
+            if (td.IsDerivedFrom<Component>())
             {
                 logger.Error($"无法为组件 {tr.Name} 生成 Reader", tr);
                 failed = true;
@@ -123,166 +115,156 @@ namespace JFramework.Editor
                 return null;
             }
 
-            if (variable.HasGenericParameters)
+            if (td.HasGenericParameters)
             {
                 logger.Error($"无法为通用变量 {tr.Name} 生成 Reader", tr);
                 failed = true;
                 return null;
             }
 
-            if (variable.IsInterface)
+            if (td.IsInterface)
             {
                 logger.Error($"无法为接口 {tr.Name} 生成 Reader", tr);
                 failed = true;
                 return null;
             }
 
-            if (variable.IsAbstract)
+            if (td.IsAbstract)
             {
                 logger.Error($"无法为抽象或泛型 {tr.Name} 生成 Reader", tr);
                 failed = true;
                 return null;
             }
 
-            return GenerateClassOrStructReadFunction(tr, ref failed);
+            return GenerateClassOrStruct(tr, ref failed);
         }
 
-        private MethodDefinition GenerateReadCollection(TypeReference variable, TypeReference elementType, string readerFunction, ref bool failed)
-        {
-            var readerFunc = GenerateReaderFunction(variable);
-            GetReadFunc(elementType, ref failed);
-            var module = assembly.MainModule;
-            var readerExtensions = module.ImportReference(typeof(StreamExtensions));
-            var listReader = Helper.ResolveMethod(readerExtensions, assembly, logger, readerFunction, ref failed);
-            var methodRef = new GenericInstanceMethod(listReader);
-            methodRef.GenericArguments.Add(elementType);
-            var worker = readerFunc.Body.GetILProcessor();
-            worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Call, methodRef);
-            worker.Emit(OpCodes.Ret);
-            return readerFunc;
-        }
-
-        private MethodDefinition GenerateReaderFunction(TypeReference variable)
-        {
-            var functionName = $"Read{NetworkMessage.GetHashByName(variable.FullName)}";
-            var readerFunc = new MethodDefinition(functionName, CONST.RAW_ATTRS, variable);
-            readerFunc.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<NetworkReader>()));
-            readerFunc.Body.InitLocals = true;
-            RegisterReadFunc(variable, readerFunc);
-            return readerFunc;
-        }
-
-        private MethodDefinition GenerateEnumReadFunc(TypeReference variable, ref bool failed)
-        {
-            var readerFunc = GenerateReaderFunction(variable);
-            var worker = readerFunc.Body.GetILProcessor();
-            worker.Emit(OpCodes.Ldarg_0);
-            var underlyingType = variable.Resolve().GetEnumUnderlyingType();
-            var underlyingFunc = GetReadFunc(underlyingType, ref failed);
-            worker.Emit(OpCodes.Call, underlyingFunc);
-            worker.Emit(OpCodes.Ret);
-            return readerFunc;
-        }
-
-        private MethodDefinition GenerateArraySegmentReadFunc(TypeReference variable, ref bool failed)
-        {
-            var genericInstance = (GenericInstanceType)variable;
-            var elementType = genericInstance.GenericArguments[0];
-            var readerFunc = GenerateReaderFunction(variable);
-            var worker = readerFunc.Body.GetILProcessor();
-            var arrayType = new ArrayType(elementType);
-            worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Call, GetReadFunc(arrayType, ref failed));
-            worker.Emit(OpCodes.Newobj, models.ArraySegmentRef.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
-            worker.Emit(OpCodes.Ret);
-            return readerFunc;
-        }
-
-        private MethodReference GetNetworkBehaviourReader(TypeReference variableReference)
+        private MethodReference GetNetworkBehaviour(TypeReference tr)
         {
             var generic = models.ReadNetworkBehaviourGeneric;
-            var readFunc = generic.MakeGeneric(assembly.MainModule, variableReference);
-            Register(variableReference, readFunc);
-            return readFunc;
+            var mr = generic.MakeGeneric(assembly.MainModule, tr);
+            Register(tr, mr);
+            return mr;
         }
 
-        private MethodDefinition GenerateClassOrStructReadFunction(TypeReference variable, ref bool failed)
+        private MethodDefinition GenerateEnum(TypeReference tr, ref bool failed)
         {
-            var readerFunc = GenerateReaderFunction(variable);
+            var md = GenerateFunction(tr);
+            var worker = md.Body.GetILProcessor();
+            var mr = GetFunction(tr.Resolve().GetEnumUnderlyingType(), ref failed);
+            worker.Emit(OpCodes.Ldarg_0);
+            worker.Emit(OpCodes.Call, mr);
+            worker.Emit(OpCodes.Ret);
+            return md;
+        }
 
-            readerFunc.Body.Variables.Add(new VariableDefinition(variable));
+        private MethodDefinition GenerateCollection(TypeReference tr, TypeReference element, string name, ref bool failed)
+        {
+            var md = GenerateFunction(tr);
+            GetFunction(element, ref failed);
+            var extensions = assembly.MainModule.ImportReference(typeof(StreamExtensions));
+            var mr = Helper.GetMethod(extensions, assembly, logger, name, ref failed);
 
-            var worker = readerFunc.Body.GetILProcessor();
+            var method = new GenericInstanceMethod(mr);
+            method.GenericArguments.Add(element);
+            var worker = md.Body.GetILProcessor();
+            worker.Emit(OpCodes.Ldarg_0);
+            worker.Emit(OpCodes.Call, method);
+            worker.Emit(OpCodes.Ret);
+            return md;
+        }
 
-            var td = variable.Resolve();
+        private MethodDefinition GenerateClassOrStruct(TypeReference tr, ref bool failed)
+        {
+            var md = GenerateFunction(tr);
+            md.Body.Variables.Add(new VariableDefinition(tr));
+            var worker = md.Body.GetILProcessor();
+            var td = tr.Resolve();
 
             if (!td.IsValueType)
             {
-                GenerateNullCheck(worker, ref failed);
+                IsNullCheck(worker, ref failed);
             }
 
-            CreateNew(variable, worker, td, ref failed);
-            ReadAllFields(variable, worker, ref failed);
-
-            worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ret);
-            return readerFunc;
-        }
-
-        private void GenerateNullCheck(ILProcessor worker, ref bool failed)
-        {
-            worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Call, GetReadFunc(models.Import<bool>(), ref failed));
-            var labelEmptyArray = worker.Create(OpCodes.Nop);
-            worker.Emit(OpCodes.Brtrue, labelEmptyArray);
-            worker.Emit(OpCodes.Ldnull);
-            worker.Emit(OpCodes.Ret);
-            worker.Append(labelEmptyArray);
-        }
-
-        private void CreateNew(TypeReference variable, ILProcessor worker, TypeDefinition td, ref bool failed)
-        {
-            if (variable.IsValueType)
+            if (tr.IsValueType)
             {
                 worker.Emit(OpCodes.Ldloca, 0);
-                worker.Emit(OpCodes.Initobj, variable);
+                worker.Emit(OpCodes.Initobj, tr);
             }
             else if (td.IsDerivedFrom<ScriptableObject>())
             {
-                var genericInstanceMethod = new GenericInstanceMethod(models.CreateInstanceMethodRef);
-                genericInstanceMethod.GenericArguments.Add(variable);
-                worker.Emit(OpCodes.Call, genericInstanceMethod);
+                var generic = new GenericInstanceMethod(models.CreateInstanceMethodRef);
+                generic.GenericArguments.Add(tr);
+                worker.Emit(OpCodes.Call, generic);
                 worker.Emit(OpCodes.Stloc_0);
             }
             else
             {
-                MethodDefinition ctor = Helper.ResolveDefaultPublicCtor(variable);
+                var ctor = Helper.ResolveDefaultPublicCtor(tr);
                 if (ctor == null)
                 {
-                    logger.Error($"{variable.Name} 不能被反序列化，因为它没有默认的构造函数", variable);
+                    logger.Error($"{tr.Name} 不能被反序列化，因为它没有默认的构造函数", tr);
                     failed = true;
-                    return;
                 }
+                else
+                {
+                    var ctorRef = assembly.MainModule.ImportReference(ctor);
 
-                var ctorRef = assembly.MainModule.ImportReference(ctor);
-
-                worker.Emit(OpCodes.Newobj, ctorRef);
-                worker.Emit(OpCodes.Stloc_0);
+                    worker.Emit(OpCodes.Newobj, ctorRef);
+                    worker.Emit(OpCodes.Stloc_0);
+                }
             }
+
+            GetFields(tr, worker, ref failed);
+            worker.Emit(OpCodes.Ldloc_0);
+            worker.Emit(OpCodes.Ret);
+            return md;
         }
 
-        private void ReadAllFields(TypeReference variable, ILProcessor worker, ref bool failed)
+        private MethodDefinition GenerateFunction(TypeReference tr)
         {
-            foreach (var field in variable.FindAllPublicFields())
+            var md = new MethodDefinition($"Read{NetworkMessage.GetHashByName(tr.FullName)}", CONST.RAW_ATTRS, tr);
+            md.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<NetworkReader>()));
+            md.Body.InitLocals = true;
+            Register(tr, md);
+            generate.Methods.Add(md);
+            return md;
+        }
+
+        private MethodDefinition GenerateArraySegment(TypeReference tr, ref bool failed)
+        {
+            var generic = (GenericInstanceType)tr;
+            var element = generic.GenericArguments[0];
+            var md = GenerateFunction(tr);
+            var worker = md.Body.GetILProcessor();
+            worker.Emit(OpCodes.Ldarg_0);
+            worker.Emit(OpCodes.Call, GetFunction(new ArrayType(element), ref failed));
+            worker.Emit(OpCodes.Newobj, models.ArraySegmentRef.MakeHostInstanceGeneric(assembly.MainModule, generic));
+            worker.Emit(OpCodes.Ret);
+            return md;
+        }
+
+        private void IsNullCheck(ILProcessor worker, ref bool failed)
+        {
+            var nop = worker.Create(OpCodes.Nop);
+            worker.Emit(OpCodes.Ldarg_0);
+            worker.Emit(OpCodes.Call, GetFunction(models.Import<bool>(), ref failed));
+            worker.Emit(OpCodes.Brtrue, nop);
+            worker.Emit(OpCodes.Ldnull);
+            worker.Emit(OpCodes.Ret);
+            worker.Append(nop);
+        }
+
+        private void GetFields(TypeReference tr, ILProcessor worker, ref bool failed)
+        {
+            foreach (var field in tr.FindAllPublicFields())
             {
-                var opcode = variable.IsValueType ? OpCodes.Ldloca : OpCodes.Ldloc;
-                worker.Emit(opcode, 0);
-                var readFunc = GetReadFunc(field.FieldType, ref failed);
-                if (readFunc != null)
+                worker.Emit(tr.IsValueType ? OpCodes.Ldloca : OpCodes.Ldloc, 0);
+                var mr = GetFunction(field.FieldType, ref failed);
+                if (mr != null)
                 {
                     worker.Emit(OpCodes.Ldarg_0);
-                    worker.Emit(OpCodes.Call, readFunc);
+                    worker.Emit(OpCodes.Call, mr);
                 }
                 else
                 {
@@ -290,30 +272,26 @@ namespace JFramework.Editor
                     failed = true;
                 }
 
-                var fieldRef = assembly.MainModule.ImportReference(field);
-                worker.Emit(OpCodes.Stfld, fieldRef);
+                worker.Emit(OpCodes.Stfld, assembly.MainModule.ImportReference(field));
             }
         }
 
         internal void InitializeReaders(ILProcessor worker)
         {
             var module = assembly.MainModule;
-            var genericReaderClassRef = module.ImportReference(typeof(Reader<>));
-            var fieldInfo = typeof(Reader<>).GetField(nameof(Reader<object>.read));
-            var fieldRef = module.ImportReference(fieldInfo);
-            var networkReaderRef = module.ImportReference(typeof(NetworkReader));
-            var funcRef = module.ImportReference(typeof(Func<,>));
-            var funcConstructorRef = module.ImportReference(typeof(Func<,>).GetConstructors()[0]);
-            foreach (var (type, method) in readFuncList)
+            var reader = module.ImportReference(typeof(Reader<>));
+            var func = module.ImportReference(typeof(Func<,>));
+            var tr = module.ImportReference(typeof(NetworkReader));
+            var fr = module.ImportReference(typeof(Reader<>).GetField(nameof(Reader<object>.read)));
+            var mr = module.ImportReference(typeof(Func<,>).GetConstructors()[0]);
+            foreach (var (type, method) in funcs)
             {
                 worker.Emit(OpCodes.Ldnull);
                 worker.Emit(OpCodes.Ldftn, method);
-                var funcGenericInstance = funcRef.MakeGenericInstanceType(networkReaderRef, type);
-                var funcConstructorInstance = funcConstructorRef.MakeHostInstanceGeneric(assembly.MainModule, funcGenericInstance);
-                worker.Emit(OpCodes.Newobj, funcConstructorInstance);
-                var genericInstance = genericReaderClassRef.MakeGenericInstanceType(type);
-                var specializedField = fieldRef.SpecializeField(assembly.MainModule, genericInstance);
-                worker.Emit(OpCodes.Stsfld, specializedField);
+                var instance = func.MakeGenericInstanceType(tr, type);
+                worker.Emit(OpCodes.Newobj, mr.MakeHostInstanceGeneric(assembly.MainModule, instance));
+                instance = reader.MakeGenericInstanceType(type);
+                worker.Emit(OpCodes.Stsfld, fr.SpecializeField(assembly.MainModule, instance));
             }
         }
     }

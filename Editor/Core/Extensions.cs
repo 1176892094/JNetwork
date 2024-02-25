@@ -9,29 +9,61 @@ namespace JFramework.Editor
 {
     internal static class Extensions
     {
-        public static bool Is(this TypeReference td, Type type)
+        public static bool Is(this TypeReference self, Type type)
         {
-            return type.IsGenericType ? td.GetElementType().FullName == type.FullName : td.FullName == type.FullName;
+            return type.IsGenericType ? self.GetElementType().FullName == type.FullName : self.FullName == type.FullName;
         }
 
-        public static bool Is<T>(this TypeReference td)
+        public static bool Is<T>(this TypeReference self)
         {
-            return Is(td, typeof(T));
+            return Is(self, typeof(T));
         }
-        
-        public static bool IsDerivedFrom<T>(this TypeReference tr) => IsDerivedFrom(tr, typeof(T));
 
-        private static bool IsDerivedFrom(this TypeReference tr, Type type)
+        private static bool IsDerivedFrom(this TypeReference self, Type type)
         {
-            TypeDefinition td = tr.Resolve();
+            var td = self.Resolve();
             if (!td.IsClass) return false;
-            TypeReference parent = td.BaseType;
-            if (parent == null) return false;
-            if (parent.Is(type)) return true;
-            return parent.CanBeResolved() && IsDerivedFrom(parent.Resolve(), type);
+            var tr = td.BaseType;
+            if (tr == null) return false;
+            if (tr.Is(type)) return true;
+            return tr.CanBeResolved() && IsDerivedFrom(tr.Resolve(), type);
         }
 
-        public static MethodReference MakeHostInstanceGeneric(this MethodReference self, ModuleDefinition md, GenericInstanceType declaringType)
+        public static bool IsDerivedFrom<T>(this TypeReference self)
+        {
+            return IsDerivedFrom(self, typeof(T));
+        }
+
+        public static bool CanBeResolved(this TypeReference self)
+        {
+            while (self != null)
+            {
+                if (self.Scope.Name == "Windows")
+                {
+                    return false;
+                }
+
+                if (self.Scope.Name == "mscorlib")
+                {
+                    var resolved = self.Resolve();
+                    return resolved != null;
+                }
+
+                try
+                {
+                    self = self.Resolve().BaseType;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public static MethodReference MakeHostInstanceGeneric(this MethodReference self, ModuleDefinition md,
+            GenericInstanceType declaringType)
         {
             var mr = new MethodReference(self.Name, self.ReturnType, declaringType)
             {
@@ -52,7 +84,7 @@ namespace JFramework.Editor
 
             return md.ImportReference(mr);
         }
-        
+
         public static GenericInstanceType MakeGenericInstanceType(this TypeReference self, params TypeReference[] arguments)
         {
             if (self == null)
@@ -76,9 +108,9 @@ namespace JFramework.Editor
             }
 
             var instanceType = new GenericInstanceType(self);
-            foreach (var typeReference in arguments)
+            foreach (var tr in arguments)
             {
-                instanceType.GenericArguments.Add(typeReference);
+                instanceType.GenericArguments.Add(tr);
             }
 
             return instanceType;
@@ -86,48 +118,49 @@ namespace JFramework.Editor
 
         public static FieldReference SpecializeField(this FieldReference self, ModuleDefinition md, GenericInstanceType declaringType)
         {
-            var reference = new FieldReference(self.Name, self.FieldType, declaringType);
-            return md.ImportReference(reference);
+            var fr = new FieldReference(self.Name, self.FieldType, declaringType);
+            return md.ImportReference(fr);
         }
-        
+
         public static IEnumerable<MethodDefinition> GetConstructors(this TypeDefinition self)
         {
             if (self == null)
             {
                 throw new ArgumentNullException(nameof(self));
             }
-            
+
             return !self.HasMethods ? Array.Empty<MethodDefinition>() : self.Methods.Where(method => method.IsConstructor);
         }
-        
-        public static bool Contains(this ModuleDefinition md, string nameSpace, string className)
+
+        public static bool Contains(this ModuleDefinition self, string @namespace, string className)
         {
-            return md.GetTypes().Any(typeDefinition => typeDefinition.Namespace == nameSpace && typeDefinition.Name == className);
+            return self.GetTypes().Any(typeDefinition => typeDefinition.Namespace == @namespace && typeDefinition.Name == className);
         }
-        
-        public static AssemblyNameReference FindReference(this ModuleDefinition md, string name)
+
+        public static AssemblyNameReference FindReference(this ModuleDefinition self, string name)
         {
-            return md.AssemblyReferences.FirstOrDefault(reference => reference.Name == name);
+            return self.AssemblyReferences.FirstOrDefault(reference => reference.Name == name);
         }
-        
-        public static bool HasCustomAttribute<T>(this ICustomAttributeProvider ar)
+
+        public static bool HasCustomAttribute<T>(this ICustomAttributeProvider self)
         {
-            return ar.CustomAttributes.Any(attribute => attribute.AttributeType.Is<T>());
+            return self.CustomAttributes.Any(attribute => attribute.AttributeType.Is<T>());
         }
-        
-        public static bool ImplementsInterface<T>(this TypeDefinition td)
+
+        public static bool ImplementsInterface<T>(this TypeDefinition self)
         {
-            var typeDefinition = td;
-            while (typeDefinition != null)
+            var td = self;
+            while (td != null)
             {
-                if (typeDefinition.Interfaces.Any(implementation => implementation.InterfaceType.Is<T>()))
+                if (td.Interfaces.Any(implementation => implementation.InterfaceType.Is<T>()))
                 {
                     return true;
                 }
+
                 try
                 {
-                    var parent = typeDefinition.BaseType;
-                    typeDefinition = parent?.Resolve();
+                    var tr = td.BaseType;
+                    td = tr?.Resolve();
                 }
                 catch (AssemblyResolutionException)
                 {
@@ -137,63 +170,40 @@ namespace JFramework.Editor
 
             return false;
         }
-        
-        public static TypeReference GetEnumUnderlyingType(this TypeDefinition td)
+
+        public static TypeReference GetEnumUnderlyingType(this TypeDefinition self)
         {
-            foreach (var field in td.Fields.Where(field => !field.IsStatic))
+            foreach (var field in self.Fields.Where(field => !field.IsStatic))
             {
                 return field.FieldType;
             }
 
-            throw new ArgumentException($"无效的枚举类型：{td.FullName}");
+            throw new ArgumentException($"无效的枚举类型：{self.FullName}");
         }
 
-        internal static bool CanBeResolved(this TypeReference parent)
+        public static bool IsMultidimensionalArray(this TypeReference self)
         {
-            while (parent != null)
-            {
-                if (parent.Scope.Name == "Windows")
-                {
-                    return false;
-                }
-
-                if (parent.Scope.Name == "mscorlib")
-                {
-                    var resolved = parent.Resolve();
-                    return resolved != null;
-                }
-
-                try
-                {
-                    parent = parent.Resolve().BaseType;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-            return true;
+            return self is ArrayType { Rank: > 1 };
         }
-        
-        public static bool IsMultidimensionalArray(this TypeReference tr) => tr is ArrayType { Rank: > 1 };
-        
-        public static MethodReference MakeGeneric(this MethodReference mr, ModuleDefinition md, TypeReference variableReference)
+
+        public static MethodReference MakeGeneric(this MethodReference self, ModuleDefinition md, TypeReference tr)
         {
-            var instance = new GenericInstanceMethod(mr);
-            instance.GenericArguments.Add(variableReference);
+            var instance = new GenericInstanceMethod(self);
+            instance.GenericArguments.Add(tr);
             var readFunc = md.ImportReference(instance);
             return readFunc;
         }
-        
-        public static IEnumerable<FieldDefinition> FindAllPublicFields(this TypeReference variable)
+
+        public static IEnumerable<FieldDefinition> FindAllPublicFields(this TypeReference self)
         {
-            return FindAllPublicFields(variable.Resolve());
+            return FindAllPublicFields(self.Resolve());
         }
-        private static IEnumerable<FieldDefinition> FindAllPublicFields(this TypeDefinition typeDefinition)
+
+        private static IEnumerable<FieldDefinition> FindAllPublicFields(this TypeDefinition self)
         {
-            while (typeDefinition != null)
+            while (self != null)
             {
-                foreach (FieldDefinition field in typeDefinition.Fields)
+                foreach (FieldDefinition field in self.Fields)
                 {
                     if (field.IsStatic || field.IsPrivate || field.IsFamily) continue;
                     if (field.IsAssembly) continue;
@@ -203,7 +213,7 @@ namespace JFramework.Editor
 
                 try
                 {
-                    typeDefinition = typeDefinition.BaseType?.Resolve();
+                    self = self.BaseType?.Resolve();
                 }
                 catch (AssemblyResolutionException)
                 {
@@ -211,45 +221,46 @@ namespace JFramework.Editor
                 }
             }
         }
-        
-        public static MethodDefinition GetMethod(this TypeDefinition type, string methodName)
+
+        public static MethodDefinition GetMethod(this TypeDefinition self, string methodName)
         {
-            return type.Methods.FirstOrDefault(method => method.Name == methodName);
+            return self.Methods.FirstOrDefault(method => method.Name == methodName);
         }
-        
-        public static List<MethodDefinition> GetMethods(this TypeDefinition td, string methodName)
+
+        public static List<MethodDefinition> GetMethods(this TypeDefinition self, string methodName)
         {
-            return td.Methods.Where(method => method.Name == methodName).ToList();
+            return self.Methods.Where(method => method.Name == methodName).ToList();
         }
-        
-        public static CustomAttribute GetCustomAttribute<TAttribute>(this ICustomAttributeProvider method)
+
+        public static CustomAttribute GetCustomAttribute<TAttribute>(this ICustomAttributeProvider self)
         {
-            return method.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<TAttribute>());
+            return self.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<TAttribute>());
         }
-        
-        public static T GetField<T>(this CustomAttribute attribute, T defaultValue)
+
+        public static T GetField<T>(this CustomAttribute self, T value)
         {
-            foreach (var custom in attribute.ConstructorArguments)
+            foreach (var custom in self.ConstructorArguments)
             {
                 return (T)custom.Value;
             }
-            return defaultValue;
+
+            return value;
         }
 
-        public static MethodDefinition GetMethodInBaseType(this TypeDefinition td, string methodName)
+        public static MethodDefinition GetMethodInBaseType(this TypeDefinition self, string methodName)
         {
-            TypeDefinition typedef = td;
-            while (typedef != null)
+            var td = self;
+            while (td != null)
             {
-                foreach (var definition in typedef.Methods.Where(method => method.Name == methodName))
+                foreach (var definition in td.Methods.Where(method => method.Name == methodName))
                 {
                     return definition;
                 }
 
                 try
                 {
-                    TypeReference parent = typedef.BaseType;
-                    typedef = parent?.Resolve();
+                    var tr = td.BaseType;
+                    td = tr?.Resolve();
                 }
                 catch (AssemblyResolutionException)
                 {
@@ -259,47 +270,49 @@ namespace JFramework.Editor
 
             return null;
         }
-        
-        public static TypeReference ApplyGenericParameters(this TypeReference parentReference, TypeReference childReference)
+
+        public static TypeReference ApplyGenericParameters(this TypeReference self, TypeReference child)
         {
-            if (!parentReference.IsGenericInstance) return parentReference;
-            GenericInstanceType parentGeneric = (GenericInstanceType)parentReference;
-            GenericInstanceType generic = new GenericInstanceType(parentReference.Resolve());
-            foreach (TypeReference arg in parentGeneric.GenericArguments)
+            if (!self.IsGenericInstance) return self;
+            var arguments = (GenericInstanceType)self;
+            var generic = new GenericInstanceType(self.Resolve());
+            foreach (var tr in arguments.GenericArguments)
             {
-                generic.GenericArguments.Add(arg);
+                generic.GenericArguments.Add(tr);
             }
 
             for (int i = 0; i < generic.GenericArguments.Count; i++)
             {
                 if (!generic.GenericArguments[i].IsGenericParameter) continue;
-                string name = generic.GenericArguments[i].Name;
-                TypeReference arg = FindMatchingGenericArgument(childReference, name);
-                TypeReference imported = parentReference.Module.ImportReference(arg);
-                generic.GenericArguments[i] = imported;
+                var tr = child.FindMatchingGenericArgument(generic.GenericArguments[i].Name);
+                generic.GenericArguments[i] = self.Module.ImportReference(tr);
             }
 
             return generic;
         }
-        
-        private static TypeReference FindMatchingGenericArgument(TypeReference childReference, string paramName)
+
+        private static TypeReference FindMatchingGenericArgument(this TypeReference self, string paramName)
         {
-            TypeDefinition def = childReference.Resolve();
-            if (!def.HasGenericParameters) throw new InvalidOperationException("基类有泛型参数，但在子类中找不到它们。");
-            for (int i = 0; i < def.GenericParameters.Count; i++)
+            var td = self.Resolve();
+            if (!td.HasGenericParameters)
             {
-                GenericParameter param = def.GenericParameters[i];
+                throw new InvalidOperationException("方法带有泛型参数，在子类中找不到它们。");
+            }
+
+            for (int i = 0; i < td.GenericParameters.Count; i++)
+            {
+                var param = td.GenericParameters[i];
                 if (param.Name == paramName)
                 {
-                    GenericInstanceType generic = (GenericInstanceType)childReference;
+                    GenericInstanceType generic = (GenericInstanceType)self;
                     return generic.GenericArguments[i];
                 }
             }
-            
+
             throw new InvalidOperationException("没有找到匹配的泛型");
         }
-        
-                
+
+
         public static FieldReference MakeHostInstanceGeneric(this FieldReference self)
         {
             var declaringType = new GenericInstanceType(self.DeclaringType);
@@ -307,9 +320,13 @@ namespace JFramework.Editor
             {
                 declaringType.GenericArguments.Add(parameter);
             }
+
             return new FieldReference(self.Name, self.FieldType, declaringType);
         }
-        
-        public static bool IsNetworkObjectField(this TypeReference tr) => tr.Is<GameObject>() || tr.Is<NetworkObject>() || tr.IsDerivedFrom<NetworkBehaviour>() || tr.Is<NetworkBehaviour>();
+
+        public static bool IsNetworkObjectField(this TypeReference tr)
+        {
+            return tr.Is<GameObject>() || tr.Is<NetworkObject>() || tr.IsDerivedFrom<NetworkBehaviour>() || tr.Is<NetworkBehaviour>();
+        }
     }
 }

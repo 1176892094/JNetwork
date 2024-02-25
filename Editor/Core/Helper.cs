@@ -7,91 +7,72 @@ namespace JFramework.Editor
 {
     internal static class Helper
     {
-        public static bool IsEditorAssembly(AssemblyDefinition assembly)
+        public static bool IsEditorAssembly(AssemblyDefinition ad)
         {
-            return assembly.MainModule.AssemblyReferences.Any(reference => reference.Name.StartsWith(nameof(UnityEditor)));
+            return ad.MainModule.AssemblyReferences.Any(reference => reference.Name.StartsWith(nameof(UnityEditor)));
         }
-        
-        public static MethodReference ResolveMethod(TypeReference type, AssemblyDefinition assembly, Logger logger, string name,ref bool failed)
+
+        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Logger log, string name, ref bool failed)
         {
-            if (type == null)
+            if (tr == null)
             {
-                logger.Error($"没有无法解析方法: {name}");
+                log.Error($"没有无法解析方法: {name}");
                 failed = true;
                 return null;
             }
 
-            MethodReference method = ResolveMethod(type, assembly, logger, method => method.Name == name,ref failed);
-            if (method == null)
+            var mr = GetMethod(tr, ad, log, method => method.Name == name, ref failed);
+            if (mr == null)
             {
-                logger.Error($"在类型 {type.Name} 中没有找到名称 {name} 的方法", type);
+                log.Error($"在类型 {tr.Name} 中没有找到名称 {name} 的方法", tr);
                 failed = true;
             }
 
-            return method;
+            return mr;
         }
 
-        public static MethodReference ResolveMethod(TypeReference type, AssemblyDefinition assembly, Logger logger, Func<MethodDefinition, bool> predicate,ref bool failed)
+        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Logger log, Func<MethodDefinition, bool> func,
+            ref bool failed)
         {
-            foreach (var method in type.Resolve().Methods.Where(predicate))
+            foreach (var md in tr.Resolve().Methods.Where(func))
             {
-                return assembly.MainModule.ImportReference(method);
+                return ad.MainModule.ImportReference(md);
             }
 
-            logger.Error($"在类型 {type.Name} 中没有找到方法", type);
+            log.Error($"在类型 {tr.Name} 中没有找到方法", tr);
             failed = true;
             return null;
         }
-        
-        public static MethodReference TryResolveMethodInParents(TypeReference tr, AssemblyDefinition assembly, string name)
+
+        public static MethodReference TryResolveMethodInParents(TypeReference tr, AssemblyDefinition ad, string name)
         {
             if (tr == null)
             {
                 return null;
             }
-            foreach (var md in tr.Resolve().Methods)
+
+            foreach (var md in tr.Resolve().Methods.Where(md => md.Name == name))
             {
-                if (md.Name == name)
+                MethodReference mr = md;
+                if (tr.IsGenericInstance)
                 {
-                    MethodReference mr = md;
-                    if (tr.IsGenericInstance)
-                    {
-                        mr = mr.MakeHostInstanceGeneric(tr.Module, (GenericInstanceType)tr);
-                    }
-                    return assembly.MainModule.ImportReference(mr);
+                    mr = mr.MakeHostInstanceGeneric(tr.Module, (GenericInstanceType)tr);
                 }
+
+                return ad.MainModule.ImportReference(mr);
             }
-            
-            return TryResolveMethodInParents(tr.Resolve().BaseType.ApplyGenericParameters(tr), assembly, name);
-        }
-        
-        public static MethodDefinition ResolveDefaultPublicCtor(TypeReference variable)
-        {
-            return variable.Resolve().Methods.FirstOrDefault(method => method.Name == CONST.CTOR && method.Resolve().IsPublic && method.Parameters.Count == 0);
+
+            return TryResolveMethodInParents(tr.Resolve().BaseType.ApplyGenericParameters(tr), ad, name);
         }
 
-        public static MethodReference ResolveProperty(TypeReference tr, AssemblyDefinition assembly, string name)
+        public static MethodDefinition ResolveDefaultPublicCtor(TypeReference tr)
         {
-            return (from property in tr.Resolve().Properties where property.Name == name select assembly.MainModule.ImportReference(property.GetMethod)).FirstOrDefault();
+            return tr.Resolve().Methods.FirstOrDefault(md => md.Name == CONST.CTOR && md.Resolve().IsPublic && md.Parameters.Count == 0);
         }
-    }
-    
-    public class SyncVarAccess
-    {
-        private readonly Dictionary<string, int> syncVars = new Dictionary<string, int>();
 
-        public readonly Dictionary<FieldDefinition, MethodDefinition> setter = new Dictionary<FieldDefinition, MethodDefinition>();
-
-        public readonly Dictionary<FieldDefinition, MethodDefinition> getter = new Dictionary<FieldDefinition, MethodDefinition>();
-
-        public int GetSyncVar(string className) => syncVars.GetValueOrDefault(className, 0);
-        public void SetSyncVar(string className, int index) => syncVars[className] = index;
-
-        public void Clear()
+        public static MethodReference ResolveProperty(TypeReference tr, AssemblyDefinition ad, string name)
         {
-            setter.Clear();
-            getter.Clear();
-            syncVars.Clear();
+            return (from pd in tr.Resolve().Properties where pd.Name == name select ad.MainModule.ImportReference(pd.GetMethod)).FirstOrDefault();
         }
     }
 

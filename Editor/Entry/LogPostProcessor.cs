@@ -4,6 +4,12 @@ using Unity.CompilationPipeline.Common.Diagnostics;
 
 namespace JFramework.Editor
 {
+    internal interface Logger
+    {
+        void Warn(string message, MemberReference member = null);
+        void Error(string message, MemberReference member = null);
+    }
+    
     /// <summary>
     /// 网络代码注入日志
     /// </summary>

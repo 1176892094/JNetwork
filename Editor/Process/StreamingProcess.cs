@@ -166,8 +166,8 @@ namespace JFramework.Editor
             bool change = false;
             if (!td.IsAbstract && !td.IsInterface && td.ImplementsInterface<Message>())
             {
-                readers.GetReadFunc(module.ImportReference(td), ref failed);
-                writers.GetWriteFunc(module.ImportReference(td), ref failed);
+                readers.GetFunction(module.ImportReference(td), ref failed);
+                writers.GetFunction(module.ImportReference(td), ref failed);
                 change = true;
             }
 

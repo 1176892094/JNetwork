@@ -26,8 +26,7 @@ namespace JFramework.Editor
         private readonly List<MethodDefinition> targetRpcList = new List<MethodDefinition>();
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
 
-        public NetworkBehaviourProcess(AssemblyDefinition assembly, SyncVarAccess access, Models models, Writers writers, Readers readers,
-            Logger logger, TypeDefinition type)
+        public NetworkBehaviourProcess(AssemblyDefinition assembly, SyncVarAccess access, Models models, Writers writers, Readers readers, Logger logger, TypeDefinition type)
         {
             generate = type;
             this.type = type;
@@ -488,7 +487,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
                 var writeFunc =
-                    writers.GetWriteFunc(
+                    writers.GetFunction(
                         syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? models.Import<NetworkBehaviour>() : syncVar.FieldType,
                         ref failed);
 
@@ -509,7 +508,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Call, models.NetworkBehaviourDirtyRef);
-            var writeUint64Func = writers.GetWriteFunc(models.Import<ulong>(), ref failed);
+            var writeUint64Func = writers.GetFunction(models.Import<ulong>(), ref failed);
             worker.Emit(OpCodes.Call, writeUint64Func);
             int dirty = access.GetSyncVar(generate.BaseType.FullName);
             foreach (var syncVarDef in syncVars)
@@ -531,7 +530,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldfld, syncVar);
 
                 var writeFunc =
-                    writers.GetWriteFunc(
+                    writers.GetFunction(
                         syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? models.Import<NetworkBehaviour>() : syncVar.FieldType,
                         ref failed);
 
@@ -592,7 +591,7 @@ namespace JFramework.Editor
             worker.Append(worker.Create(OpCodes.Ret));
             worker.Append(isStart);
             worker.Append(worker.Create(OpCodes.Ldarg_1));
-            worker.Append(worker.Create(OpCodes.Call, readers.GetReadFunc(models.Import<ulong>(), ref failed)));
+            worker.Append(worker.Create(OpCodes.Call, readers.GetFunction(models.Import<ulong>(), ref failed)));
             worker.Append(worker.Create(OpCodes.Stloc_0));
 
             int dirtyBits = access.GetSyncVar(generate.BaseType.FullName);
@@ -663,7 +662,7 @@ namespace JFramework.Editor
             }
             else
             {
-                var readFunc = readers.GetReadFunc(syncVar.FieldType, ref failed);
+                var readFunc = readers.GetFunction(syncVar.FieldType, ref failed);
                 if (readFunc == null)
                 {
                     logger.Error($"不支持 {syncVar.Name} 的类型。", syncVar);
