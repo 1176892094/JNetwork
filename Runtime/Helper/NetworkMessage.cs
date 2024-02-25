@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using JFramework.Interface;
 using UnityEngine;
 
 namespace JFramework.Net

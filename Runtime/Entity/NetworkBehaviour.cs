@@ -13,7 +13,7 @@ namespace JFramework.Net
     /// <summary>
     /// 网络行为对象
     /// </summary>
-    public abstract partial class NetworkBehaviour : MonoBehaviour, NetworkEvent
+    public abstract partial class NetworkBehaviour : MonoBehaviour, NetworkEvent, IEntity
     {
         /// <summary>
         /// 服务器变量的改变选项
@@ -74,6 +74,26 @@ namespace JFramework.Net
         /// 网络对象连接的客户端(服务器不为空，客户端为空)
         /// </summary>
         public NetworkClient connection => @object.connection;
+
+        /// <summary>
+        /// 实体初始化注入
+        /// </summary>
+        protected virtual void Awake() => this.Inject();
+
+        /// <summary>
+        /// 实体启用
+        /// </summary>
+        protected virtual void OnEnable() => GetComponent<IUpdate>()?.Listen();
+
+        /// <summary>
+        /// 实体禁用
+        /// </summary>
+        protected virtual void OnDisable() => GetComponent<IUpdate>()?.Remove();
+
+        /// <summary>
+        /// 实体销毁 (如果能获取到角色接口 则销毁角色的控制器)
+        /// </summary>
+        protected virtual void OnDestroy() => this.Destroy();
 
         /// <summary>
         /// 是否能够改变网络值
