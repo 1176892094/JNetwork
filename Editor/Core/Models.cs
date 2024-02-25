@@ -207,9 +207,9 @@ namespace JFramework.Editor
             NetworkClientRef = Helper.ResolveMethod(NetworkManagerType, assembly, logger, "get_Client", ref failed);
             NetworkServerRef = Helper.ResolveMethod(NetworkManagerType, assembly, logger, "get_Server", ref failed);
             
-            var NetworkClientType = Import(typeof(NetworkManager.ClientManager));
+            var NetworkClientType = Import(typeof(ClientManager));
             NetworkClientActiveRef = Helper.ResolveMethod(NetworkClientType, assembly, logger, "get_isActive", ref failed);
-            var NetworkServerType = Import(typeof(NetworkManager.ServerManager));
+            var NetworkServerType = Import(typeof(ServerManager));
             NetworkServerActiveRef = Helper.ResolveMethod(NetworkServerType, assembly, logger, "get_isActive", ref failed);
 
             var StreamExtensionType = Import(typeof(StreamExtensions));

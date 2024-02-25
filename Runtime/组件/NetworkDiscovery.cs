@@ -3,12 +3,13 @@ using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
 using Random = UnityEngine.Random;
+
 // ReSharper disable All
 
 namespace JFramework.Net
 {
     [DisallowMultipleComponent]
-    public class NetworkDiscovery : MonoBehaviour
+    public sealed class NetworkDiscovery : MonoBehaviour
     {
         /// <summary>
         /// 服务器请求
@@ -31,27 +32,27 @@ namespace JFramework.Net
         /// 传输组件
         /// </summary>
         [SerializeField] private Transport transport;
-        
+
         /// <summary>
         /// 远端服务器地址
         /// </summary>
         [SerializeField] private string broadcastAddress = "";
-        
+
         /// <summary>
         /// 服务器广播端口
         /// </summary>
         [SerializeField] private ushort broadcastPort = 47777;
-        
+
         /// <summary>
         /// 广播间隔
         /// </summary>
         [SerializeField, Range(1, 60)] private float broadcastRate = 3;
-     
+
         /// <summary>
         /// 秘密握手
         /// </summary>
         private long handshakeRequest;
-        
+
         /// <summary>
         /// 服务器Id
         /// </summary>
@@ -60,13 +61,13 @@ namespace JFramework.Net
         /// <summary>
         /// 主机
         /// </summary>
-        private System.Net.Sockets.UdpClient udpServer;
-        
+        private UdpClient udpServer;
+
         /// <summary>
         /// 客户端
         /// </summary>
-        private System.Net.Sockets.UdpClient udpClient;
-        
+        private UdpClient udpClient;
+
         /// <summary>
         /// 寻找到的响应服务器
         /// </summary>
@@ -92,7 +93,7 @@ namespace JFramework.Net
             AdvertiseServer();
 #endif
         }
-        
+
         private void OnApplicationQuit()
         {
             StopDiscovery();
@@ -123,7 +124,7 @@ namespace JFramework.Net
             udpClient = null;
             CancelInvoke();
         }
-        
+
         /// <summary>
         /// 服务器广播
         /// </summary>
@@ -136,7 +137,7 @@ namespace JFramework.Net
             }
 
             StopDiscovery();
-            udpServer = new System.Net.Sockets.UdpClient(broadcastPort)
+            udpServer = new UdpClient(broadcastPort)
             {
                 EnableBroadcast = true,
                 MulticastLoopback = false
@@ -165,7 +166,7 @@ namespace JFramework.Net
                         Debug.LogError("无效的握手请求！");
                         return;
                     }
-                    
+
                     ProcessClientRequest(reader.Read<ServerRequest>(), result.RemoteEndPoint);
                 }
                 catch (ObjectDisposedException)
@@ -208,7 +209,7 @@ namespace JFramework.Net
         /// <param name="request"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        protected virtual ServerResponse ProcessRequest(ServerRequest request, IPEndPoint endpoint)
+        private ServerResponse ProcessRequest(ServerRequest request, IPEndPoint endpoint)
         {
             try
             {
@@ -240,7 +241,7 @@ namespace JFramework.Net
 
             try
             {
-                udpClient = new System.Net.Sockets.UdpClient(0)
+                udpClient = new UdpClient(0)
                 {
                     EnableBroadcast = true,
                     MulticastLoopback = false
@@ -296,7 +297,7 @@ namespace JFramework.Net
             response.uri = builder.Uri;
             OnServerFound?.Invoke(response);
         }
-        
+
         /// <summary>
         /// 广播发现请求
         /// </summary>
@@ -338,7 +339,7 @@ namespace JFramework.Net
                 // ignored
             }
         }
-        
+
 #if UNITY_ANDROID
         /// <summary>
         /// 多播锁
@@ -358,7 +359,8 @@ namespace JFramework.Net
             if (hasMulticastLock) return;
             if (Application.platform == RuntimePlatform.Android)
             {
-                using (AndroidJavaObject activity = new AndroidJavaClass("com.unity3d.player.UnityPlayer").GetStatic<AndroidJavaObject>("currentActivity"))
+                using (AndroidJavaObject activity =
+ new AndroidJavaClass("com.unity3d.player.UnityPlayer").GetStatic<AndroidJavaObject>("currentActivity"))
                 {
                     using (var wifiManager = activity.Call<AndroidJavaObject>("getSystemService", "wifi"))
                     {

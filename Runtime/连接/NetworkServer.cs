@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -17,12 +18,12 @@ namespace JFramework.Net
         /// <summary>
         /// 网络设置
         /// </summary>
-        private readonly NetworkManager.SettingManager setting;
-        
+        private readonly SettingManager setting;
+
         /// <summary>
         /// 当前时间线
         /// </summary>
-        internal double localTimeline;
+        [ShowInInspector] internal double localTimeline;
 
         /// <summary>
         /// 当前时间量程
@@ -41,7 +42,7 @@ namespace JFramework.Net
         {
             setting = NetworkManager.Setting;
             driftEma = new NetworkAverage(NetworkManager.Instance.tickRate * setting.driftEmaDuration);
-            deliveryTimeEma = new NetworkAverage(NetworkManager.Instance.tickRate  * setting.deliveryTimeEmaDuration);
+            deliveryTimeEma = new NetworkAverage(NetworkManager.Instance.tickRate * setting.deliveryTimeEmaDuration);
         }
 
         /// <summary>
@@ -52,12 +53,14 @@ namespace JFramework.Net
         {
             if (setting.dynamicAdjustment)
             {
-                setting.bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.Instance.sendRate, deliveryTimeEma.deviation, setting.dynamicAdjustmentTolerance);
+                setting.bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.Instance.sendRate, deliveryTimeEma.deviation,
+                    setting.dynamicAdjustmentTolerance);
             }
-            
-            SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref localTimeline, ref localTimescale, NetworkManager.Instance.sendRate, bufferTime, ref driftEma, ref deliveryTimeEma);
+
+            SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref localTimeline, ref localTimescale, NetworkManager.Instance.sendRate,
+                bufferTime, ref driftEma, ref deliveryTimeEma);
         }
-        
+
         /// <summary>
         /// 快照更新
         /// </summary>
@@ -69,7 +72,7 @@ namespace JFramework.Net
                 SnapshotUtils.StepInterpolation(snapshots, localTimeline);
             }
         }
-        
+
         /// <summary>
         /// 客户端发送到传输
         /// </summary>
@@ -98,13 +101,12 @@ namespace JFramework.Net
             while (writeQueue.Count > 0)
             {
                 using var writer = writeQueue.Dequeue(); // 从队列中取出
-                var segment = writer.ToArraySegment(); //转化成数据分段
                 var writers = GetWriterPack(Channel.Reliable); // 获取可靠传输
-                writers.WriteEnqueue(segment, NetworkManager.Time.localTime); // 将数据写入到队列
-                using var template = NetworkWriter.Pop(); // 取出新的 writer
-                if (writers.WriteDequeue(template)) // 将 writer 拷贝到 template
+                writers.WriteEnqueue(writer, NetworkManager.Time.localTime); // 将数据写入到队列
+                using var data = NetworkWriter.Pop(); // 取出新的 writer
+                if (writers.WriteDequeue(data)) // 将 writer 拷贝到 data
                 {
-                    NetworkManager.Client.OnClientReceive(template.ToArraySegment(), Channel.Reliable);
+                    NetworkManager.Client.OnClientReceive(data, Channel.Reliable);
                 }
             }
         }
@@ -116,7 +118,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            if (NetworkManager.Instance.mode == NetworkMode.Host)
+            if (NetworkManager.Instance.mode is NetworkMode.Host)
             {
                 if (segment.Count == 0)
                 {
@@ -130,7 +132,7 @@ namespace JFramework.Net
                 using var writer = NetworkWriter.Pop();
                 if (send.WriteDequeue(writer)) // 尝试从队列中取出元素并写入到目标
                 {
-                    NetworkManager.Server.OnServerReceive(NetworkConst.HostId, writer.ToArraySegment(), channel);
+                    NetworkManager.Server.OnServerReceive(NetworkConst.HostId, writer, channel);
                 }
                 else
                 {

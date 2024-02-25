@@ -22,12 +22,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端的Id
         /// </summary>
-        [ShowInInspector] public readonly int clientId;
-
-        /// <summary>
-        /// 是主机客户端
-        /// </summary>
-        [ShowInInspector] private readonly bool isHost;
+        public readonly int clientId;
 
         /// <summary>
         /// 是否生成 PlayerPrefab
@@ -37,23 +32,23 @@ namespace JFramework.Net
         /// <summary>
         /// 远端时间线
         /// </summary>
-        internal double remoteTimeline;
-        
+        [ShowInInspector] internal double remoteTimeline;
+
         /// <summary>
         /// 远端时间量程
         /// </summary>
-        private double remoteTimescale;
-        
+        [ShowInInspector] private double remoteTimescale;
+
         /// <summary>
         /// 缓存时间的倍率
         /// </summary>
         private double bufferTimeMultiplier = 2;
-        
+
         /// <summary>
         /// 快照缓存极限大小
         /// </summary>
         internal readonly int snapshotBufferSizeLimit = 64;
-        
+
         /// <summary>
         /// 缓存时间
         /// </summary>
@@ -66,12 +61,11 @@ namespace JFramework.Net
         public NetworkClient(int clientId)
         {
             this.clientId = clientId;
-            isHost = clientId == NetworkConst.HostId;
             driftEma = new NetworkAverage(NetworkManager.Instance.tickRate * NetworkManager.Setting.driftEmaDuration);
             deliveryTimeEma = new NetworkAverage(NetworkManager.Instance.tickRate * NetworkManager.Setting.deliveryTimeEmaDuration);
             snapshotBufferSizeLimit = Mathf.Max((int)NetworkManager.Setting.bufferTimeMultiplier, snapshotBufferSizeLimit);
         }
-        
+
         /// <summary>
         /// 接收到快照消息
         /// </summary>
@@ -81,10 +75,12 @@ namespace JFramework.Net
             if (snapshots.Count >= snapshotBufferSizeLimit) return;
             if (NetworkManager.Setting.dynamicAdjustment)
             {
-                bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.Instance.sendRate, deliveryTimeEma.deviation, NetworkManager.Setting.dynamicAdjustmentTolerance);
+                bufferTimeMultiplier = SnapshotUtils.DynamicAdjust(NetworkManager.Instance.sendRate, deliveryTimeEma.deviation,
+                    NetworkManager.Setting.dynamicAdjustmentTolerance);
             }
 
-            SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref remoteTimeline, ref remoteTimescale, NetworkManager.Instance.sendRate, bufferTime, ref driftEma, ref deliveryTimeEma);
+            SnapshotUtils.InsertAndAdjust(snapshots, snapshot, ref remoteTimeline, ref remoteTimescale, NetworkManager.Instance.sendRate,
+                bufferTime, ref driftEma, ref deliveryTimeEma);
         }
 
         /// <summary>
@@ -98,7 +94,7 @@ namespace JFramework.Net
                 SnapshotUtils.StepInterpolation(snapshots, remoteTimeline);
             }
         }
-        
+
         /// <summary>
         /// 服务器更新
         /// </summary>
@@ -174,7 +170,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         internal override void Send(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
-            if (isHost)
+            if (NetworkManager.Instance.mode is NetworkMode.Host)
             {
                 NetworkWriter writer = NetworkWriter.Pop();
                 writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);

@@ -23,42 +23,32 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端连接事件
         /// </summary>
-        public static Action OnClientConnected;
+        public Action OnClientConnected;
 
         /// <summary>
         /// 客户端断开事件
         /// </summary>
-        public static Action OnClientDisconnected;
-
-        /// <summary>
-        /// 客户端传输事件
-        /// </summary>
-        protected static Action<ArraySegment<byte>, Channel> OnClientSend;
+        public Action OnClientDisconnected;
 
         /// <summary>
         /// 客户端接收事件
         /// </summary>
-        public static Action<ArraySegment<byte>, Channel> OnClientReceive;
+        public Action<ArraySegment<byte>, Channel> OnClientReceive;
 
         /// <summary>
         /// 客户端连接到服务器的事件
         /// </summary>
-        public static Action<int> OnServerConnected;
+        public Action<int> OnServerConnected;
 
         /// <summary>
         /// 客户端从服务器断开的事件
         /// </summary>
-        public static Action<int> OnServerDisconnected;
-
-        /// <summary>
-        /// 服务器向客户端传输的事件
-        /// </summary>
-        protected static Action<int, ArraySegment<byte>, Channel> OnServerSend;
+        public Action<int> OnServerDisconnected;
 
         /// <summary>
         /// 服务器接收客户端消息的事件
         /// </summary>
-        public static Action<int, ArraySegment<byte>, Channel> OnServerReceive;
+        public Action<int, ArraySegment<byte>, Channel> OnServerReceive;
 
         /// <summary>
         /// 根据地址连接
@@ -144,20 +134,5 @@ namespace JFramework.Net
         /// 服务器Update之后
         /// </summary>
         public abstract void ServerAfterUpdate();
-
-        /// <summary>
-        /// 运行初始化
-        /// </summary>
-        public static void ResetStatic()
-        {
-            OnClientConnected = null;
-            OnClientDisconnected = null;
-            OnClientSend = null;
-            OnClientReceive = null;
-            OnServerConnected = null;
-            OnServerDisconnected = null;
-            OnServerReceive = null;
-            OnServerSend = null;
-        }
     }
 }

@@ -29,36 +29,19 @@ namespace JFramework.Net
             setting = new Setting(sendBufferSize, receiveBufferSize, maxTransmitUnit, timeout, receivePacketSize, sendPacketSize, interval, resend, noDelay, congestion);
             client = new Client(setting, ClientConnected, ClientDisconnected, ClientDataReceived);
             server = new Server(setting, ServerConnected, ServerDisconnected, ServerDataReceived);
+            return;
 
-            void ClientConnected()
-            {
-                OnClientConnected.Invoke();
-            }
+            void ClientConnected() => OnClientConnected.Invoke();
 
-            void ClientDataReceived(ArraySegment<byte> message, Udp.Channel channel)
-            {
-                OnClientReceive.Invoke(message, (Channel)channel);
-            }
+            void ClientDataReceived(ArraySegment<byte> message, Udp.Channel channel) => OnClientReceive.Invoke(message, (Channel)channel);
 
-            void ClientDisconnected()
-            {
-                OnClientDisconnected.Invoke();
-            }
+            void ClientDisconnected() => OnClientDisconnected.Invoke();
 
-            void ServerConnected(int connectionId)
-            {
-                OnServerConnected.Invoke(connectionId);
-            }
+            void ServerConnected(int clientId) => OnServerConnected.Invoke(clientId);
 
-            void ServerDataReceived(int connectionId, ArraySegment<byte> message, Udp.Channel channel)
-            {
-                OnServerReceive.Invoke(connectionId, message, (Channel)channel);
-            }
+            void ServerDataReceived(int clientId, ArraySegment<byte> message, Udp.Channel channel) => OnServerReceive.Invoke(clientId, message, (Channel)channel);
 
-            void ServerDisconnected(int connectionId)
-            {
-                OnServerDisconnected.Invoke(connectionId);
-            }
+            void ServerDisconnected(int clientId) => OnServerDisconnected.Invoke(clientId);
         }
 
         public override void ClientConnect(string address, ushort port) => client.Connect(address, port);
@@ -72,7 +55,6 @@ namespace JFramework.Net
         public override void ClientSend(ArraySegment<byte> segment, Channel channel)
         {
             client.Send(segment, (Udp.Channel)channel);
-            OnClientSend?.Invoke(segment, channel);
         }
 
         public override void ClientDisconnect() => client.Disconnect();
@@ -82,7 +64,6 @@ namespace JFramework.Net
         public override void ServerSend(int clientId, ArraySegment<byte> segment, Channel channel)
         {
             server.Send(clientId, segment, (Udp.Channel)channel);
-            OnServerSend?.Invoke(clientId, segment, channel);
         }
 
         public override void ServerDisconnect(int clientId) => server.Disconnect(clientId);
@@ -106,23 +87,11 @@ namespace JFramework.Net
 
         public override void StopServer() => server.StopServer();
 
-        public override void ClientEarlyUpdate()
-        {
-            if (enabled)
-            {
-                client.EarlyUpdate();
-            }
-        }
+        public override void ClientEarlyUpdate() => client.EarlyUpdate();
 
         public override void ClientAfterUpdate() => client.AfterUpdate();
 
-        public override void ServerEarlyUpdate()
-        {
-            if (enabled)
-            {
-                server.EarlyUpdate();
-            }
-        }
+        public override void ServerEarlyUpdate() => server.EarlyUpdate();
 
         public override void ServerAfterUpdate() => server.AfterUpdate();
     }
