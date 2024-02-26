@@ -64,7 +64,7 @@ namespace JFramework.Net
                 client.Send(writer.ToArraySegment());
             }
 
-            await GlobalManager.Scene.LoadScene(sceneName);
+            await GlobalManager.Scene.Load(sceneName);
             OnLoadComplete();
         }
 
@@ -84,7 +84,7 @@ namespace JFramework.Net
             if (NetworkManager.Server.isActive) return; //主机不做处理
             this.sceneName = sceneName;
             NetworkManager.Client.isLoadScene = true;
-            await GlobalManager.Scene.LoadScene(sceneName);
+            await GlobalManager.Scene.Load(sceneName);
             OnLoadComplete();
         }
 
