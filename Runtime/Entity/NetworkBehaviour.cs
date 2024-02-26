@@ -13,7 +13,7 @@ namespace JFramework.Net
     /// <summary>
     /// 网络行为对象
     /// </summary>
-    public abstract partial class NetworkBehaviour : MonoBehaviour, NetworkEvent, IEntity
+    public abstract partial class NetworkBehaviour : MonoBehaviour, NetworkEvent
     {
         /// <summary>
         /// 服务器变量的改变选项
