@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public class SceneManager : ScriptableObject
+    public class SceneManager : Component<NetworkManager>
     {
         /// <summary>
         /// 服务器场景
         /// </summary>
-        [SerializeField] internal string sceneName;
+        [SerializeField] private string sceneName;
 
         /// <summary>
         /// 客户端加载场景的事件
@@ -132,18 +132,6 @@ namespace JFramework.Net
             }
 
             OnClientSceneChanged?.Invoke(GlobalManager.Scene.ToString());
-        }
-
-        /// <summary>
-        /// 当对象被销毁
-        /// </summary>
-        internal void Reset()
-        {
-            sceneName = "";
-            OnClientChangeScene = null;
-            OnServerChangeScene = null;
-            OnClientSceneChanged = null;
-            OnServerSceneChanged = null;
         }
     }
 }

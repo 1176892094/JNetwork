@@ -39,17 +39,23 @@ namespace JFramework.Net
 
             void ServerConnected(int clientId) => OnServerConnected.Invoke(clientId);
 
-            void ServerDataReceived(int clientId, ArraySegment<byte> message, Udp.Channel channel) => OnServerReceive.Invoke(clientId, message, (Channel)channel);
+            void ServerDataReceived(int clientId, ArraySegment<byte> message, Udp.Channel channel) =>
+                OnServerReceive.Invoke(clientId, message, (Channel)channel);
 
             void ServerDisconnected(int clientId) => OnServerDisconnected.Invoke(clientId);
         }
 
-        public override void ClientConnect(string address, ushort port) => client.Connect(address, port);
-
         public override void ClientConnect(Uri uri)
         {
-            int newPort = uri.IsDefaultPort ? port : uri.Port;
-            client.Connect(uri.Host, (ushort)newPort);
+            if (uri != null)
+            {
+                int newPort = uri.IsDefaultPort ? port : uri.Port;
+                client.Connect(uri.Host, (ushort)newPort);
+            }
+            else
+            {
+                client.Connect(address, port);
+            }
         }
 
         public override void ClientSend(ArraySegment<byte> segment, Channel channel)
@@ -67,6 +73,7 @@ namespace JFramework.Net
         }
 
         public override void ServerDisconnect(int clientId) => server.Disconnect(clientId);
+
         public override Uri GetServerUri()
         {
             var builder = new UriBuilder

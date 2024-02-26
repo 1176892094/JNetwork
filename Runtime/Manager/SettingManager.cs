@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    internal sealed class SettingManager : ScriptableObject
+    internal sealed class SettingManager : Component<NetworkManager>
     {
         [InfoBox("本地模拟相对于发送间隔 * 缓冲时间乘数 的滞后时间")]
         public double bufferTimeMultiplier = 2;

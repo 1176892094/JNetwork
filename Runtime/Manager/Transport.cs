@@ -46,13 +46,6 @@ namespace JFramework.Net
         public Action<int, ArraySegment<byte>, Channel> OnServerReceive;
 
         /// <summary>
-        /// 根据地址连接
-        /// </summary>
-        /// <param name="address">传入地址</param>
-        /// <param name="port">传入端口</param>
-        public abstract void ClientConnect(string address, ushort port);
-
-        /// <summary>
         /// 根据Uri连接
         /// </summary>
         /// <param name="uri">传入Uri</param>

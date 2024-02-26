@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public partial class ServerManager : ScriptableObject
+    public partial class ServerManager : Component<NetworkManager>
     {
         /// <summary>
         /// 网络消息委托字典
@@ -154,16 +154,6 @@ namespace JFramework.Net
             objectId = 0;
             isLoadScene = false;
         }
-
-        /// <summary>
-        /// 清除事件
-        /// </summary>
-        internal void Reset()
-        {
-            OnConnect = null;
-            OnDisconnect = null;
-            OnSetReady = null;
-        }
     }
 
     public partial class ServerManager
@@ -232,8 +222,7 @@ namespace JFramework.Net
         /// </summary>
         internal void OnPingByServer(NetworkClient client, PingMessage message)
         {
-            var pongMessage = new PongMessage(message.clientTime); //服务器将客户端时间传回到客户端
-            client.Send(pongMessage, Channel.Unreliable);
+            client.Send(new PongMessage(message.clientTime), Channel.Unreliable);
         }
 
         /// <summary>

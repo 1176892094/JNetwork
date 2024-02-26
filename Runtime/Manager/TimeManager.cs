@@ -18,7 +18,7 @@ using UpdateFunction = UnityEngine.LowLevel.PlayerLoopSystem.UpdateFunction;
 
 namespace JFramework.Net
 {
-    public class TimeManager : ScriptableObject
+    public class TimeManager : Component<NetworkManager>
     {
         /// <summary>
         /// 上一次发送Ping的时间
@@ -74,7 +74,7 @@ namespace JFramework.Net
         /// <summary>
         /// 添加侦听
         /// </summary>
-        internal void Init()
+        private void Awake()
         {
             if (!Application.isPlaying) return;
             var playerLoop = PlayerLoop.GetCurrentPlayerLoop();

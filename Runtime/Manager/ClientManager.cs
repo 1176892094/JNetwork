@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public partial class ClientManager : ScriptableObject
+    public partial class ClientManager : Component<NetworkManager>
     {
         /// <summary>
         /// 网络消息委托字典
@@ -83,20 +83,6 @@ namespace JFramework.Net
         /// 客户端取消准备的事件
         /// </summary>
         public event Action OnNotReady;
-
-        /// <summary>
-        /// 开启客户端
-        /// </summary>
-        /// <param name="address">传入连接地址</param>
-        /// <param name="port">传入连接端口</param>
-        internal void StartClient(string address, ushort port)
-        {
-            RegisterTransport();
-            Register(false);
-            state = ConnectState.Connecting;
-            NetworkManager.Transport.ClientConnect(address, port);
-            connection = new NetworkServer();
-        }
 
         /// <summary>
         /// 开启客户端
@@ -207,16 +193,6 @@ namespace JFramework.Net
             isReady = false;
             connection = null;
             isLoadScene = false;
-        }
-
-        /// <summary>
-        /// 清除事件
-        /// </summary>
-        internal void Reset()
-        {
-            OnConnect = null;
-            OnDisconnect = null;
-            OnNotReady = null;
         }
     }
 
@@ -454,8 +430,7 @@ namespace JFramework.Net
                 Debug.LogError("没有有效的服务器连接！");
                 return;
             }
-
-            Debug.Log("客户端连接成功。");
+            
             state = ConnectState.Connected;
             OnConnect?.Invoke();
             NetworkManager.Time.Reset();
@@ -468,7 +443,6 @@ namespace JFramework.Net
         /// </summary>
         private void OnClientDisconnected()
         {
-            Debug.Log("客户端断开连接。");
             UnRegisterTransport();
             StopClient();
         }
@@ -574,14 +548,12 @@ namespace JFramework.Net
             }
             else
             {
-                if (!scenes.TryGetValue(message.sceneId, out @object))
+                if (!scenes.Remove(message.sceneId, out @object))
                 {
                     Debug.LogError($"无法生成有效场景对象。 sceneId：{message.sceneId}");
-                    scenes.Remove(message.sceneId);
                     return;
                 }
 
-                scenes.Remove(message.sceneId);
                 isSpawning = false;
                 Spawn(message, @object);
                 SpawnFinish();

@@ -1,4 +1,5 @@
 using System;
+using JFramework.Interface;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -6,7 +7,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public sealed partial class NetworkManager : MonoBehaviour
+    public sealed partial class NetworkManager : MonoBehaviour, IEntity
     {
         /// <summary>
         /// NetworkManager 单例
@@ -21,7 +22,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络发现组件
         /// </summary>
-        [SerializeField] public NetworkDiscovery discovery;
+        [SerializeField] private NetworkDiscovery discovery;
 
         /// <summary>
         /// 玩家预置体
@@ -31,27 +32,27 @@ namespace JFramework.Net
         /// <summary>
         /// 网络时间
         /// </summary>
-        [SerializeField] private TimeManager time;
+        [Inject, SerializeField] private TimeManager time;
 
         /// <summary>
         /// 网络客户端
         /// </summary>
-        [SerializeField] private ClientManager client;
+        [Inject, SerializeField] private ClientManager client;
 
         /// <summary>
         /// 网络服务器
         /// </summary>
-        [SerializeField] private ServerManager server;
+        [Inject, SerializeField] private ServerManager server;
 
         /// <summary>
         /// 网络场景
         /// </summary>
-        [SerializeField] private SceneManager scene;
+        [Inject, SerializeField] private SceneManager scene;
 
         /// <summary>
         /// 网络设置
         /// </summary>
-        [SerializeField] private SettingManager setting;
+        [Inject, SerializeField] private SettingManager setting;
 
         /// <summary>
         /// 心跳传输率
@@ -131,6 +132,11 @@ namespace JFramework.Net
         public static ServerManager Server => Instance.server;
 
         /// <summary>
+        /// ServerManager 控制器
+        /// </summary>
+        public static NetworkDiscovery Discovery => Instance.discovery;
+
+        /// <summary>
         /// SettingManager 控制器
         /// </summary>
         internal static SettingManager Setting => Instance.setting;
@@ -146,19 +152,12 @@ namespace JFramework.Net
         private void Awake()
         {
             Instance = this;
+            this.Inject();
             DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
 #if UNITY_SERVER
             Application.targetFrameRate = tickRate;
 #endif
-        }
-
-        /// <summary>
-        /// 启动网络循环
-        /// </summary>
-        private void Start()
-        {
-            Time.Init();
         }
 
         /// <summary>
@@ -188,7 +187,6 @@ namespace JFramework.Net
                 return;
             }
 
-            Scene.sceneName = "";
             Server.StartServer(true);
         }
 
@@ -209,22 +207,7 @@ namespace JFramework.Net
         /// <summary>
         /// 开启客户端
         /// </summary>
-        public void StartClient()
-        {
-            if (Client.isActive)
-            {
-                Debug.LogWarning("客户端已经连接！");
-                return;
-            }
-
-            Client.StartClient(address, port);
-        }
-
-        /// <summary>
-        /// 开启客户端 (根据Uri来连接)
-        /// </summary>
-        /// <param name="uri">传入Uri</param>
-        public void StartClient(Uri uri)
+        public void StartClient(Uri uri = default)
         {
             if (Client.isActive)
             {
@@ -306,14 +289,6 @@ namespace JFramework.Net
                 Server.Spawn(Instantiate(player), client);
                 client.isSpawn = false;
             }
-        }
-
-        private void OnDestroy()
-        {
-            time.Reset();
-            scene.Reset();
-            client.Reset();
-            server.Reset();
         }
     }
 }
