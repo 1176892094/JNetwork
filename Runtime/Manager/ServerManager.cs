@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -423,7 +422,8 @@ namespace JFramework.Net
                 if (NetworkUtils.IsSceneObject(@object) && @object.objectId == 0)
                 {
                     @object.gameObject.SetActive(true);
-                    if (NetworkUtils.IsValidParent(@object))
+                    var parent = @object.transform.parent;
+                    if (parent == null || parent.gameObject.activeInHierarchy)
                     {
                         Spawn(@object.gameObject, @object.connection);
                     }
@@ -504,12 +504,12 @@ namespace JFramework.Net
             {
                 isOwner = isOwner,
                 sceneId = @object.sceneId,
+                assetId = @object.assetId,
                 objectId = @object.objectId,
                 position = transform.localPosition,
                 rotation = transform.localRotation,
                 localScale = transform.localScale,
-                segment = SerializeNetworkObject(@object, isOwner, owner, observer),
-                assetId = (ArraySegment<byte>)Encoding.UTF8.GetBytes(@object.assetId)
+                segment = SerializeObject(@object, isOwner, owner, observer)
             };
             client.Send(message);
         }
@@ -522,7 +522,7 @@ namespace JFramework.Net
         /// <param name="owner"></param>
         /// <param name="observer"></param>
         /// <returns></returns>
-        private ArraySegment<byte> SerializeNetworkObject(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observer)
+        private ArraySegment<byte> SerializeObject(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observer)
         {
             if (@object.entities.Length == 0) return default;
             @object.ServerSerialize(true, owner, observer);

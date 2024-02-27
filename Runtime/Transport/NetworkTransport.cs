@@ -39,8 +39,7 @@ namespace JFramework.Net
 
             void ServerConnected(int clientId) => OnServerConnected.Invoke(clientId);
 
-            void ServerDataReceived(int clientId, ArraySegment<byte> message, Udp.Channel channel) =>
-                OnServerReceive.Invoke(clientId, message, (Channel)channel);
+            void ServerDataReceived(int clientId, ArraySegment<byte> message, Udp.Channel channel) => OnServerReceive.Invoke(clientId, message, (Channel)channel);
 
             void ServerDisconnected(int clientId) => OnServerDisconnected.Invoke(clientId);
         }

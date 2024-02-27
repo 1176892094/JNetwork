@@ -18,16 +18,6 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 拥有有效的父物体
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsValidParent(NetworkObject @object)
-        {
-            var parent = @object.transform.parent;
-            return parent == null || parent.gameObject.activeInHierarchy;
-        }
-
-        /// <summary>
         /// 获取网络对象
         /// </summary>
         /// <param name="objectId">传入网络Id</param>

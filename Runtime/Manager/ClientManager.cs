@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -522,8 +521,7 @@ namespace JFramework.Net
 
             if (message.sceneId == 0)
             {
-                var path = Encoding.UTF8.GetString(message.assetId);
-                var prefab = await GlobalManager.Asset.Load<GameObject>(path);
+                var prefab = await GlobalManager.Asset.Load<GameObject>(message.assetId);
                 if (!prefab.TryGetComponent(out @object))
                 {
                     Debug.LogError($"预置体 {prefab.name} 没有 NetworkObject 组件");
@@ -572,8 +570,7 @@ namespace JFramework.Net
             {
                 @object.gameObject.SetActive(true);
             }
-
-            @object.assetId = Encoding.UTF8.GetString(message.assetId);
+            
             @object.objectId = message.objectId;
             @object.isOwner = message.isOwner;
             @object.isClient = true;

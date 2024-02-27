@@ -94,10 +94,10 @@ namespace JFramework.Net
         public bool isOwner;
         public uint objectId;
         public ulong sceneId;
+        public string assetId;
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 localScale;
-        public ArraySegment<byte> assetId;
         public ArraySegment<byte> segment;
     }
     
