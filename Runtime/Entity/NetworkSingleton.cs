@@ -18,7 +18,6 @@ namespace JFramework.Net
                     lock (locked)
                     {
                         instance ??= FindObjectOfType<T>();
-                        instance ??= new GameObject(typeof(T).Name).AddComponent<T>();
                         instance.Register();
                     }
                 }
