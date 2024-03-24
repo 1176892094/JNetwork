@@ -18,7 +18,10 @@ namespace JFramework.Net
                     lock (locked)
                     {
                         instance ??= FindObjectOfType<T>();
-                        instance.Register();
+                        if (instance != null)
+                        {
+                            instance.Register();
+                        }
                     }
                 }
 
