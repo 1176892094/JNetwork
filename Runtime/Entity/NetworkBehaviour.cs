@@ -753,7 +753,7 @@ namespace JFramework.Net
         /// <param name="field"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        private T GetSyncVarNetworkBehaviour<T>(NetworkValue value, ref T field) where T : NetworkBehaviour
+        public T GetSyncVarNetworkBehaviour<T>(NetworkValue value, ref T field) where T : NetworkBehaviour
         {
             if (isServer || !isClient)
             {
