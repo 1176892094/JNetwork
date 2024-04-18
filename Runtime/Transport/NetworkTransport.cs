@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    internal class NetworkTransport : Transport
+    public class NetworkTransport : Transport
     {
         [SerializeField] private bool noDelay = true;
         [SerializeField] private bool congestion = true;
@@ -44,7 +44,7 @@ namespace JFramework.Net
             void ServerDisconnected(int clientId) => OnServerDisconnected.Invoke(clientId);
         }
 
-        public override void ClientConnect(Uri uri)
+        public override void ClientConnect(Uri uri = null)
         {
             if (uri != null)
             {
@@ -57,7 +57,7 @@ namespace JFramework.Net
             }
         }
 
-        public override void ClientSend(ArraySegment<byte> segment, Channel channel)
+        public override void ClientSend(ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             client.Send(segment, (Udp.Channel)channel);
         }
@@ -66,7 +66,7 @@ namespace JFramework.Net
 
         public override void StartServer() => server.Connect(port);
 
-        public override void ServerSend(int clientId, ArraySegment<byte> segment, Channel channel)
+        public override void ServerSend(int clientId, ArraySegment<byte> segment, Channel channel = Channel.Reliable)
         {
             server.Send(clientId, segment, (Udp.Channel)channel);
         }
