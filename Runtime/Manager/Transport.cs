@@ -49,14 +49,14 @@ namespace JFramework.Net
         /// 根据Uri连接
         /// </summary>
         /// <param name="uri">传入Uri</param>
-        public abstract void ClientConnect(Uri uri);
+        public abstract void ClientConnect(Uri uri = null);
 
         /// <summary>
         /// 客户端向服务器传输信息
         /// </summary>
         /// <param name="segment">传入发送的数据</param>
         /// <param name="channel">传入通道</param>
-        public abstract void ClientSend(ArraySegment<byte> segment, Channel channel);
+        public abstract void ClientSend(ArraySegment<byte> segment, Channel channel = Channel.Reliable);
 
         /// <summary>
         /// 客户端断开连接
@@ -71,38 +71,38 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器传输信息给客户端
         /// </summary>
-        public abstract void ServerSend(int clientId, ArraySegment<byte> segment, Channel channel);
+        public abstract void ServerSend(int clientId, ArraySegment<byte> segment, Channel channel = Channel.Reliable);
 
         /// <summary>
         /// 服务器断开指定客户端连接
         /// </summary>
         /// <param name="clientId">传入要断开的客户端Id</param>
         public abstract void ServerDisconnect(int clientId);
-        
+
         /// <summary>
         /// 获取服务器的Uri
         /// </summary>
         /// <returns></returns>
         public abstract Uri GetServerUri();
-        
+
         /// <summary>
         /// 当服务器停止
         /// </summary>
         public abstract void StopServer();
-        
+
         /// <summary>
         /// 获取最大网络消息大小
         /// </summary>
         /// <param name="channel">传输通道</param>
         /// <returns></returns>
         public abstract int GetMaxPacketSize(Channel channel = Channel.Reliable);
-        
+
         /// <summary>
         /// 网络消息合批阈值
         /// </summary>
         /// <returns>返回阈值</returns>
         public abstract int UnreliableSize();
-        
+
         /// <summary>
         /// 客户端Update之前
         /// </summary>
