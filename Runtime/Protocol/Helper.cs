@@ -16,7 +16,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 编码8位无符号整型
         /// </summary>
-        internal static int Encode8u(byte[] p, int offset, byte value)
+        internal static int Encode8U(byte[] p, int offset, byte value)
         {
             p[0 + offset] = value;
             return 1;
@@ -25,7 +25,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 解码8位无符号整型
         /// </summary>
-        internal static int Decode8u(byte[] p, int offset, out byte value)
+        internal static int Decode8U(byte[] p, int offset, out byte value)
         {
             value = p[0 + offset];
             return 1;

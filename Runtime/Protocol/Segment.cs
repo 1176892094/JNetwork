@@ -77,8 +77,8 @@ namespace JFramework.Udp
         {
             int previousPosition = offset;
             offset += Helper.Encode32U(ptr, offset, conversation);
-            offset += Helper.Encode8u(ptr, offset, (byte)command);
-            offset += Helper.Encode8u(ptr, offset, (byte)fragment);
+            offset += Helper.Encode8U(ptr, offset, (byte)command);
+            offset += Helper.Encode8U(ptr, offset, (byte)fragment);
             offset += Helper.Encode16U(ptr, offset, (ushort)windowSize);
             offset += Helper.Encode32U(ptr, offset, timestamp);
             offset += Helper.Encode32U(ptr, offset, serialNumber);

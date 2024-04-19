@@ -431,8 +431,8 @@ namespace JFramework.Udp
                 
                 offset += Helper.Decode32U(data, offset, out uint conv);
                 if (conv != conversation) return -1;
-                offset += Helper.Decode8u(data, offset, out byte command);
-                offset += Helper.Decode8u(data, offset, out byte fragment);
+                offset += Helper.Decode8U(data, offset, out byte command);
+                offset += Helper.Decode8U(data, offset, out byte fragment);
                 offset += Helper.Decode16U(data, offset, out ushort windowSize);
                 offset += Helper.Decode32U(data, offset, out uint timestamp);
                 offset += Helper.Decode32U(data, offset, out uint serialNumber);
