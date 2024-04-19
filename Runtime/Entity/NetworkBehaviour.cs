@@ -759,7 +759,7 @@ namespace JFramework.Net
                 return null;
             }
 
-            field = (T)oldObject.entities[variable.serialId];
+            field = (T)oldObject.entities[variable.componentId];
             return field;
         }
 
