@@ -17,16 +17,18 @@
         
         NetworkManager.Instance.StartClient(); // 开启客户端
         
-        NetworkManager.Instance.StartClient(); // 停止客户端
+        NetworkManager.Instance.StartClient(new Uri("127.0.0.1")); // 开启客户端
+        
+        NetworkManager.Instance.StopClient(); // 停止客户端
     }
 ```
 2.NetworkServer的使用
 ```c#
     private void Start()
     {
-        NetworkManager.Server.OnServerConnect += OnServerConnect; // 当有客户端连接到服务器(客户端使用无效)
+        NetworkManager.Server.OnConnect += OnServerConnect; // 当有客户端连接到服务器(客户端使用无效)
         
-        NetworkManager.Server.OnServerDisconnect += OnServerDisconnect; // 当有客户端从服务器断开(客户端使用无效)
+        NetworkManager.Server.OnDisconnect += OnServerDisconnect; // 当有客户端从服务器断开(客户端使用无效)
         
         NetworkManager.Server.OnSetReady += OnSetReady; // 当客户端在服务器准备就绪 (可以发送Rpc和网络变量同步)(客户端使用无效)
     }
@@ -51,11 +53,11 @@
 ```c#
    private void Start()
     {
-        NetworkManager.Client.OnClientConnect += OnClientConnect; // 当客户端连接到服务器(服务器使用无效)
+        NetworkManager.Client.OnConnect += OnClientConnect; // 当客户端连接到服务器(服务器使用无效)
         
-        NetworkManager.Client.OnClientDisconnect += OnClientDisconnect; // 当客户端从服务器断开(服务器使用无效)
+        NetworkManager.Client.OnDisconnect += OnClientDisconnect; // 当客户端从服务器断开(服务器使用无效)
         
-        NetworkManager.Client.OnClientNotReady += OnClientNotReady; // 在场景准备加载时会调用该方法(服务器使用无效)
+        NetworkManager.Client.OnNotReady += OnClientNotReady; // 在场景准备加载时会调用该方法(服务器使用无效)
     }
 
     private void OnClientConnect()
@@ -76,30 +78,35 @@
 
 4.NetworkScene的使用
 ```c#
-   private void Start()
+    private void Start()
     {
-        NetworkManager.Scene.OnClientChangeScene += OnClientConnect; // 当客户端连接到服务器(服务器使用无效)
-        
-        NetworkManager.Scene.OnServerChangeScene += OnClientDisconnect; // 当客户端从服务器断开(服务器使用无效)
-        
-        NetworkManager.Scene.OnClientSceneChanged += OnClientNotReady; // 在场景准备加载时会调用该方法(服务器使用无效)
+        NetworkManager.Scene.OnClientChangeScene += OnClientChangeScene; // 当客户端准备改变场景
 
-        NetworkManager.Scene.OnServerSceneChanged += OnClientNotReady; // 在场景准备加载时会调用该方法(服务器使用无效)
+        NetworkManager.Scene.OnClientSceneChanged += OnClientSceneChanged; // 当客户端场景加载完成后(服务器不调用)
+
+        NetworkManager.Scene.OnServerChangeScene += OnServerChangeScene; // 当服务器场景加载完成后
+
+        NetworkManager.Scene.OnServerSceneChanged += OnServerSceneChanged; // 当服务器场景加载完成后(客户端不调用)
     }
 
-    private void OnClientConnect()
+    private void OnClientChangeScene(string newSceneName)
     {
-        Debug.Log("连接成功");
+        Debug.Log("客户端准备改变场景");
     }
 
-    private void OnClientDisconnect()
+    private void OnClientSceneChanged(string sceneName)
     {
-        Debug.Log("连接断开");
+        Debug.Log("客户端场景加载完成");
     }
 
-    private void OnClientNotReady() 
+    private void OnServerChangeScene(string newSceneName)
     {
-        Debug.Log("客户端取消准备");
+        Debug.Log("服务器准备改变场景");
+    }
+
+    private void OnServerSceneChanged(string sceneName)
+    {
+        Debug.Log("服务器场景加载完成");
     }
 ```
 
