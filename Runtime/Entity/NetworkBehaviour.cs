@@ -447,8 +447,7 @@ namespace JFramework.Net
         /// <param name="OnChanged"></param>
         /// <param name="objectId"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarSetterGameObject(GameObject value, ref GameObject field, ulong dirty, Action<GameObject, GameObject> OnChanged,
-            ref uint objectId)
+        public void SyncVarSetterGameObject(GameObject value, ref GameObject field, ulong dirty, Action<GameObject, GameObject> OnChanged, ref uint objectId)
         {
             if (!SyncVarEqualGameObject(value, objectId))
             {
@@ -474,14 +473,13 @@ namespace JFramework.Net
         /// <param name="reader"></param>
         /// <param name="objectId"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterGameObject(ref GameObject field, Action<GameObject, GameObject> OnChanged, NetworkReader reader,
-            ref uint objectId)
+        public void SyncVarGetterGameObject(ref GameObject field, Action<GameObject, GameObject> OnChanged, NetworkReader reader, ref uint objectId)
         {
-            uint oldId = objectId;
+            uint oldValue = objectId;
             GameObject oldObject = field;
             objectId = reader.ReadUInt();
             field = GetSyncVarGameObject(objectId, ref field);
-            if (OnChanged != null && !SyncVarEqualGeneral(oldId, ref objectId))
+            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref objectId))
             {
                 OnChanged(oldObject, field);
             }
@@ -496,20 +494,20 @@ namespace JFramework.Net
         [EditorBrowsable(EditorBrowsableState.Never)]
         private static bool SyncVarEqualGameObject(GameObject newObject, uint objectId)
         {
-            uint newId = 0;
+            uint newValue = 0;
             if (newObject != null)
             {
                 if (newObject.TryGetComponent(out NetworkObject @object))
                 {
-                    newId = @object.objectId;
-                    if (newId == 0)
+                    newValue = @object.objectId;
+                    if (newValue == 0)
                     {
                         Debug.LogWarning($"设置网络变量的对象未生成。对象名称：{newObject.name}");
                     }
                 }
             }
 
-            return newId == objectId;
+            return newValue == objectId;
         }
 
         /// <summary>
@@ -543,13 +541,13 @@ namespace JFramework.Net
         private void SetSyncVarGameObject(GameObject newObject, ref GameObject objectField, ulong dirty, ref uint objectId)
         {
             if (GetSyncVarHook(dirty)) return;
-            uint newId = 0;
+            uint newValue = 0;
             if (newObject != null)
             {
                 if (newObject.TryGetComponent(out NetworkObject entity))
                 {
-                    newId = entity.objectId;
-                    if (newId == 0)
+                    newValue = entity.objectId;
+                    if (newValue == 0)
                     {
                         Debug.LogWarning($"设置网络变量的对象未生成。对象名称：{newObject.name}");
                     }
@@ -558,7 +556,7 @@ namespace JFramework.Net
 
             SetSyncVarDirty(dirty);
             objectField = newObject;
-            objectId = newId;
+            objectId = newValue;
         }
 
         /// <summary>
@@ -570,8 +568,7 @@ namespace JFramework.Net
         /// <param name="OnChanged"></param>
         /// <param name="objectId"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarSetterNetworkObject(NetworkObject value, ref NetworkObject field, ulong dirty,
-            Action<NetworkObject, NetworkObject> OnChanged, ref uint objectId)
+        public void SyncVarSetterNetworkObject(NetworkObject value, ref NetworkObject field, ulong dirty, Action<NetworkObject, NetworkObject> OnChanged, ref uint objectId)
         {
             if (!SyncVarEqualNetworkObject(value, objectId))
             {
@@ -597,14 +594,13 @@ namespace JFramework.Net
         /// <param name="reader"></param>
         /// <param name="objectId"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterNetworkObject(ref NetworkObject field, Action<NetworkObject, NetworkObject> OnChanged,
-            NetworkReader reader, ref uint objectId)
+        public void SyncVarGetterNetworkObject(ref NetworkObject field, Action<NetworkObject, NetworkObject> OnChanged, NetworkReader reader, ref uint objectId)
         {
-            uint oldId = objectId;
+            uint oldValue = objectId;
             NetworkObject oldObject = field;
             objectId = reader.ReadUInt();
             field = GetSyncVarNetworkObject(objectId, ref field);
-            if (OnChanged != null && !SyncVarEqualGeneral(oldId, ref objectId))
+            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref objectId))
             {
                 OnChanged(oldObject, field);
             }
@@ -619,17 +615,17 @@ namespace JFramework.Net
         [EditorBrowsable(EditorBrowsableState.Never)]
         private static bool SyncVarEqualNetworkObject(NetworkObject @object, uint objectId)
         {
-            uint newId = 0;
+            uint newValue = 0;
             if (@object != null)
             {
-                newId = @object.objectId;
-                if (newId == 0)
+                newValue = @object.objectId;
+                if (newValue == 0)
                 {
                     Debug.LogWarning($"设置网络变量的对象未生成。对象名称：{@object.name}");
                 }
             }
 
-            return newId == objectId;
+            return newValue == objectId;
         }
 
         /// <summary>
@@ -656,18 +652,18 @@ namespace JFramework.Net
         private void SetSyncVarNetworkObject(NetworkObject @object, ref NetworkObject field, ulong dirty, ref uint objectId)
         {
             if (GetSyncVarHook(dirty)) return;
-            uint newId = 0;
+            uint newValue = 0;
             if (@object != null)
             {
-                newId = @object.objectId;
-                if (newId == 0)
+                newValue = @object.objectId;
+                if (newValue == 0)
                 {
                     Debug.LogWarning($"设置网络变量的对象未生成。对象名称：{@object.name}");
                 }
             }
 
             SetSyncVarDirty(dirty);
-            objectId = newId;
+            objectId = newValue;
             field = @object;
         }
 
@@ -678,16 +674,15 @@ namespace JFramework.Net
         /// <param name="field"></param>
         /// <param name="dirty"></param>
         /// <param name="OnChanged"></param>
-        /// <param name="objectId"></param>
+        /// <param name="variable"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarSetterNetworkBehaviour<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkValue objectId)
-            where T : NetworkBehaviour
+        public void SyncVarSetterNetworkBehaviour<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkVariable variable) where T : NetworkBehaviour
         {
-            if (!SyncVarEqualNetworkBehaviour(value, objectId))
+            if (!SyncVarEqualNetworkBehaviour(value, variable))
             {
                 T oldValue = field;
-                SetSyncVarNetworkBehaviour(value, ref field, dirty, ref objectId);
+                SetSyncVarNetworkBehaviour(value, ref field, dirty, ref variable);
                 if (OnChanged != null)
                 {
                     if (NetworkManager.Instance.mode == NetworkMode.Host && !GetSyncVarHook(dirty))
@@ -706,17 +701,16 @@ namespace JFramework.Net
         /// <param name="field"></param>
         /// <param name="OnChanged"></param>
         /// <param name="reader"></param>
-        /// <param name="objectId"></param>
+        /// <param name="variable"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterNetworkBehaviour<T>(ref T field, Action<T, T> OnChanged, NetworkReader reader, ref NetworkValue objectId)
-            where T : NetworkBehaviour
+        public void SyncVarGetterNetworkBehaviour<T>(ref T field, Action<T, T> OnChanged, NetworkReader reader, ref NetworkVariable variable) where T : NetworkBehaviour
         {
-            NetworkValue oldId = objectId;
+            var oldValue = variable;
             T oldObject = field;
-            objectId = reader.ReadNetworkValue();
-            field = GetSyncVarNetworkBehaviour(objectId, ref field);
-            if (OnChanged != null && !SyncVarEqualGeneral(oldId, ref objectId))
+            variable = reader.ReadNetworkValue();
+            field = GetSyncVarNetworkBehaviour(variable, ref field);
+            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref variable))
             {
                 OnChanged(oldObject, field);
             }
@@ -726,46 +720,46 @@ namespace JFramework.Net
         /// 网络实体的网络变量的比较器
         /// </summary>
         /// <param name="object"></param>
-        /// <param name="objectId"></param>
+        /// <param name="variable"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        private static bool SyncVarEqualNetworkBehaviour<T>(T @object, NetworkValue objectId) where T : NetworkBehaviour
+        private static bool SyncVarEqualNetworkBehaviour<T>(T @object, NetworkVariable variable) where T : NetworkBehaviour
         {
-            uint newId = 0;
+            uint newValue = 0;
             byte index = 0;
             if (@object != null)
             {
-                newId = @object.objectId;
+                newValue = @object.objectId;
                 index = @object.serialId;
-                if (newId == 0)
+                if (newValue == 0)
                 {
                     Debug.LogWarning($"设置网络变量的对象未生成。对象名称：{@object.name}");
                 }
             }
 
-            return objectId.Equals(newId, index);
+            return variable.Equals(newValue, index);
         }
 
         /// <summary>
         /// 获取网络实体的网络变量
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="variable"></param>
         /// <param name="field"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T GetSyncVarNetworkBehaviour<T>(NetworkValue value, ref T field) where T : NetworkBehaviour
+        public T GetSyncVarNetworkBehaviour<T>(NetworkVariable variable, ref T field) where T : NetworkBehaviour
         {
             if (isServer || !isClient)
             {
                 return field;
             }
 
-            if (!NetworkManager.Client.spawns.TryGetValue(value.objectId, out var oldObject))
+            if (!NetworkManager.Client.spawns.TryGetValue(variable.objectId, out var oldObject))
             {
                 return null;
             }
 
-            field = (T)oldObject.entities[value.serialId];
+            field = (T)oldObject.entities[variable.serialId];
             return field;
         }
 
@@ -775,25 +769,24 @@ namespace JFramework.Net
         /// <param name="object"></param>
         /// <param name="field"></param>
         /// <param name="dirty"></param>
-        /// <param name="netId"></param>
+        /// <param name="variable"></param>
         /// <typeparam name="T"></typeparam>
-        private void SetSyncVarNetworkBehaviour<T>(T @object, ref T field, ulong dirty, ref NetworkValue netId) where T : NetworkBehaviour
+        private void SetSyncVarNetworkBehaviour<T>(T @object, ref T field, ulong dirty, ref NetworkVariable variable) where T : NetworkBehaviour
         {
             if (GetSyncVarHook(dirty)) return;
-
-            uint newId = 0;
+            uint newValue = 0;
             byte index = 0;
             if (@object != null)
             {
-                newId = @object.objectId;
+                newValue = @object.objectId;
                 index = @object.serialId;
-                if (newId == 0)
+                if (newValue == 0)
                 {
                     Debug.LogWarning($"设置网络变量的对象未生成。对象名称：{@object.name}");
                 }
             }
 
-            netId = new NetworkValue(newId, index);
+            variable = new NetworkVariable(newValue, index);
             SetSyncVarDirty(dirty);
             field = @object;
         }

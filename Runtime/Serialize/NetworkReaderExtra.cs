@@ -216,7 +216,7 @@ namespace JFramework.Net
             return reader.ReadNetworkBehaviour() as T;
         }
 
-        public static NetworkValue ReadNetworkValue(this NetworkReader reader)
+        public static NetworkVariable ReadNetworkValue(this NetworkReader reader)
         {
             var id = reader.ReadUInt();
             byte component = 0;
@@ -225,7 +225,7 @@ namespace JFramework.Net
                 component = reader.ReadByte();
             }
 
-            return new NetworkValue(id, component);
+            return new NetworkVariable(id, component);
         }
 
         public static Transform ReadTransform(this NetworkReader reader)

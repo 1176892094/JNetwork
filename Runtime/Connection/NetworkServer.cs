@@ -13,7 +13,7 @@ namespace JFramework.Net
         /// <summary>
         /// 存储写入队列的字典
         /// </summary>
-        internal readonly Queue<NetworkWriter> writeQueue = new Queue<NetworkWriter>();
+        internal readonly Queue<NetworkWriter> writerQueue = new Queue<NetworkWriter>();
 
         /// <summary>
         /// 网络设置
@@ -98,9 +98,9 @@ namespace JFramework.Net
         private void LocalUpdate()
         {
             if (NetworkManager.Instance.mode != NetworkMode.Host) return;
-            while (writeQueue.Count > 0)
+            while (writerQueue.Count > 0)
             {
-                using var writer = writeQueue.Dequeue(); // 从队列中取出
+                using var writer = writerQueue.Dequeue(); // 从队列中取出
                 var writers = GetWriterPack(Channel.Reliable); // 获取可靠传输
                 writers.WriteEnqueue(writer, NetworkManager.Time.localTime); // 将数据写入到队列
                 using var data = NetworkWriter.Pop(); // 取出新的 writer

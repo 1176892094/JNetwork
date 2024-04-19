@@ -2,7 +2,7 @@ using System;
 
 namespace JFramework.Net
 {
-    public readonly struct NetworkValue : IEquatable<NetworkValue>
+    public readonly struct NetworkVariable : IEquatable<NetworkVariable>
     {
         /// <summary>
         /// 网络对象Id
@@ -19,7 +19,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="objectId"></param>
         /// <param name="serialId"></param>
-        public NetworkValue(uint objectId, int serialId) : this()
+        public NetworkVariable(uint objectId, int serialId) : this()
         {
             this.objectId = objectId;
             this.serialId = (byte)serialId;
@@ -30,7 +30,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public bool Equals(NetworkValue other)
+        public bool Equals(NetworkVariable other)
         {
             return other.objectId == objectId && other.serialId == serialId;
         }

@@ -192,7 +192,7 @@ namespace JFramework.Editor
             FieldDefinition objectId = null;
             if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
             {
-                objectId = new FieldDefinition($"{fd.Name}Id", FieldAttributes.Family, models.Import<NetworkValue>())
+                objectId = new FieldDefinition($"{fd.Name}Id", FieldAttributes.Family, models.Import<NetworkVariable>())
                 {
                     DeclaringType = td
                 };

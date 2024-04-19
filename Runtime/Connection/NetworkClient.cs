@@ -174,7 +174,7 @@ namespace JFramework.Net
             {
                 var writer = NetworkWriter.Pop();
                 writer.WriteBytesInternal(segment.Array, segment.Offset, segment.Count);
-                NetworkManager.Client.connection.writeQueue.Enqueue(writer);
+                NetworkManager.Client.connection.writerQueue.Enqueue(writer);
                 return;
             }
 
