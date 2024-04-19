@@ -4,12 +4,12 @@ namespace JFramework.Udp
 {
     internal struct Connection
     {
-        public Peer peer;
+        public Proxy proxy;
         public readonly EndPoint endPoint;
 
         public Connection(EndPoint endPoint)
         {
-            peer = null;
+            proxy = null;
             this.endPoint = endPoint;
         }
     }

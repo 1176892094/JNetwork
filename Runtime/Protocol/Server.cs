@@ -107,7 +107,7 @@ namespace JFramework.Udp
         {
             if (clients.TryGetValue(clientId, out var client))
             {
-                client.peer.Disconnect();
+                client.proxy.Disconnect();
             }
         }
 
@@ -118,7 +118,7 @@ namespace JFramework.Udp
         {
             if (clients.TryGetValue(clientId, out var client))
             {
-                client.peer.Send(segment, channel);
+                client.proxy.Send(segment, channel);
             }
         }
 
@@ -153,13 +153,13 @@ namespace JFramework.Udp
         {
             var client = new Connection(endPoint);
             var cookie = Helper.GenerateCookie();
-            var peer = new Peer(setting, cookie, OnAuthority, OnDisconnected, OnSend, OnReceive);
-            client.peer = peer;
+            var proxy = new Proxy(setting, cookie, OnAuthority, OnDisconnected, OnSend, OnReceive);
+            client.proxy = proxy;
             return client;
 
             void OnAuthority()
             {
-                client.peer.Handshake();
+                client.proxy.Handshake();
                 Log.Info($"客户端 {clientId} 连接到服务器。");
                 clients.Add(clientId, client);
                 OnConnected?.Invoke(clientId);
@@ -206,18 +206,18 @@ namespace JFramework.Udp
                 if (!clients.TryGetValue(clientId, out var client))
                 {
                     client = Connection(clientId);
-                    client.peer.Input(segment);
-                    client.peer.EarlyUpdate();
+                    client.proxy.Input(segment);
+                    client.proxy.EarlyUpdate();
                 }
                 else
                 {
-                    client.peer.Input(segment);
+                    client.proxy.Input(segment);
                 }
             }
 
             foreach (var client in clients.Values)
             {
-                client.peer.EarlyUpdate();
+                client.proxy.EarlyUpdate();
             }
 
             foreach (var clientId in removes)
@@ -235,7 +235,7 @@ namespace JFramework.Udp
         {
             foreach (var client in clients.Values)
             {
-                client.peer.AfterUpdate();
+                client.proxy.AfterUpdate();
             }
         }
 

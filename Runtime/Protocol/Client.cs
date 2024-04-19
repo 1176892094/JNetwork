@@ -13,7 +13,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 端对端
         /// </summary>
-        private Peer peer;
+        private Proxy proxy;
         
         /// <summary>
         /// 客户端状态
@@ -97,7 +97,7 @@ namespace JFramework.Udp
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.SetBufferSize(setting.sendBufferSize, setting.receiveBufferSize);
             socket.Connect(endPoint);
-            peer.Handshake();
+            proxy.Handshake();
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace JFramework.Udp
                 return;
             }
 
-            peer?.Disconnect();
+            proxy?.Disconnect();
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace JFramework.Udp
                 return;
             }
 
-            peer.Send(segment, channel);
+            proxy.Send(segment, channel);
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace JFramework.Udp
             catch (SocketException e)
             {
                 Log.Info($"客户端接收消息失败！\n{e}");
-                peer?.Disconnect();
+                proxy?.Disconnect();
                 return false;
             }
         }
@@ -154,7 +154,7 @@ namespace JFramework.Udp
         /// </summary>
         private void Connection()
         {
-            peer = new Peer(setting, 0, OnAuthority, OnDisconnected, OnSend, OnReceive);
+            proxy = new Proxy(setting, 0, OnAuthority, OnDisconnected, OnSend, OnReceive);
 
             void OnAuthority()
             {
@@ -167,7 +167,7 @@ namespace JFramework.Udp
             {
                 Log.Info($"客户端断开连接。");
                 socket.Close();
-                peer = null;
+                proxy = null;
                 socket = null;
                 endPoint = null;
                 state = State.Disconnected;
@@ -192,17 +192,17 @@ namespace JFramework.Udp
         /// </summary>
         public void EarlyUpdate()
         {
-            if (peer == null)
+            if (proxy == null)
             {
                 return;
             }
 
             while (TryReceive(out var segment))
             {
-                peer.Input(segment);
+                proxy.Input(segment);
             }
 
-            peer?.EarlyUpdate();
+            proxy?.EarlyUpdate();
         }
 
         /// <summary>
@@ -210,7 +210,7 @@ namespace JFramework.Udp
         /// </summary>
         public void AfterUpdate()
         {
-            peer?.AfterUpdate();
+            proxy?.AfterUpdate();
         }
     }
 }
