@@ -256,7 +256,7 @@ namespace JFramework.Editor
         {
             if (md.Parameters.Count <= 0) return false;
             TypeReference td = md.Parameters[0].ParameterType;
-            return td.Is<NetworkPeer>() || td.IsDerivedFrom<NetworkPeer>();
+            return td.Is<NetworkProxy>() || td.IsDerivedFrom<NetworkProxy>();
         }
 
         /// <summary>

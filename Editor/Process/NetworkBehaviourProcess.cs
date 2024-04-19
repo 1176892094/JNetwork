@@ -317,7 +317,7 @@ namespace JFramework.Editor
                 return false;
             }
 
-            bool connection = param.ParameterType.Is<NetworkPeer>();
+            bool connection = param.ParameterType.Is<NetworkProxy>();
             bool sendTarget = NetworkRpcProcess.IsSendTarget(param, rpcType);
 
             if (param.IsOut)

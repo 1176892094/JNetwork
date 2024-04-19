@@ -7,7 +7,7 @@ namespace JFramework.Net
     /// <summary>
     /// 仅在服务器上被创建
     /// </summary>
-    public sealed class NetworkClient : NetworkPeer
+    public sealed class NetworkClient : NetworkProxy
     {
         /// <summary>
         /// 可靠Rpc列表

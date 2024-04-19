@@ -9,7 +9,7 @@ namespace JFramework.Net
     /// <summary>
     /// 网络连接 (Server or Client)
     /// </summary>
-    public abstract class NetworkPeer
+    public abstract class NetworkProxy
     {
         /// <summary>
         /// 存储不同传输通道写入的网络信息
