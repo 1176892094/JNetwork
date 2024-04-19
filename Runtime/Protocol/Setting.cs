@@ -9,26 +9,22 @@ namespace JFramework.Udp
         public readonly int sendBuffer;
         public readonly int receiveBuffer;
         public readonly int maxUnit;
-        public readonly int resend;
+        public readonly uint resend;
         public readonly int timeout;
         public readonly uint receiveSize;
         public readonly uint sendSize;
         public readonly uint interval;
-        public readonly bool noDelay;
-        public readonly bool congestion;
 
         public Setting
         (
             int sendBuffer = 1024 * 1024 * 7,
             int receiveBuffer = 1024 * 1024 * 7,
             int maxUnit = Protocol.MTU_DEF,
-            int timeout = Protocol.TIME_OUT,
+            int timeout = 10000,
             uint receiveSize = Protocol.WIN_RCV,
             uint sendSize = Protocol.WIN_SND,
             uint interval = Protocol.INTERVAL,
-            int resend = 0,
-            bool noDelay = true,
-            bool congestion = false)
+            uint resend = 0)
         {
             this.receiveSize = receiveSize;
             this.sendSize = sendSize;
@@ -38,8 +34,6 @@ namespace JFramework.Udp
             this.receiveBuffer = receiveBuffer;
             this.interval = interval;
             this.resend = resend;
-            this.noDelay = noDelay;
-            this.congestion = congestion;
         }
     }
 

@@ -110,10 +110,10 @@ namespace JFramework.Udp
             this.OnAuthority = OnAuthority;
             this.OnDisconnected = OnDisconnected;
             timeout = setting.timeout;
-            protocol = new Protocol(0, SendReliable);
-            protocol.SetNoDelay(setting.noDelay ? 1U : 0U, setting.interval, setting.resend, setting.congestion);
-            protocol.SetWindowSize(setting.sendSize, setting.receiveSize);
-            protocol.SetTransferUnit((uint)setting.maxUnit - Utility.METADATA_SIZE);
+            protocol = new Protocol(SendReliable);
+            protocol.SetUnit((uint)setting.maxUnit - Utility.METADATA_SIZE);
+            protocol.SetResend(setting.interval, setting.resend);
+            protocol.SetWindow(setting.sendSize, setting.receiveSize);
             reliableSize = Utility.ReliableSize(setting.maxUnit, setting.receiveSize);
             unreliableSize = Utility.UnreliableSize(setting.maxUnit);
             messageBuffer = new byte[reliableSize + 1];
@@ -212,7 +212,7 @@ namespace JFramework.Udp
         {
             segment = default;
             header = Header.Disconnect;
-            int messageSize = protocol.PeekSize();
+            int messageSize = protocol.GetLength();
             if (messageSize <= 0)
             {
                 return false;

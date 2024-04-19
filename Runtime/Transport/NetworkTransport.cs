@@ -7,15 +7,13 @@ namespace JFramework.Net
 {
     public class NetworkTransport : Transport
     {
-        [SerializeField] private bool noDelay = true;
-        [SerializeField] private bool congestion = true;
-        [SerializeField] private int resend = 2;
+        [SerializeField] private uint resend = 2;
         [SerializeField] private int timeout = 10000;
-        [SerializeField] private int maxTransmitUnit = 1200;
-        [SerializeField] private int sendBufferSize = 1024 * 1027 * 7;
-        [SerializeField] private int receiveBufferSize = 1024 * 1027 * 7;
-        [SerializeField] private uint sendPacketSize = 1024 * 4;
-        [SerializeField] private uint receivePacketSize = 1024 * 4;
+        [SerializeField] private int maxUnit = 1200;
+        [SerializeField] private int sendBuffer = 1024 * 1027 * 7;
+        [SerializeField] private int receiveBuffer = 1024 * 1027 * 7;
+        [SerializeField] private uint sendSize = 1024 * 4;
+        [SerializeField] private uint receiveSize = 1024 * 4;
         [SerializeField] private uint interval = 10;
         private Setting setting;
         private Client client;
@@ -26,7 +24,7 @@ namespace JFramework.Net
             Log.Info = Debug.Log;
             Log.Warn = Debug.LogWarning;
             Log.Error = Debug.LogError;
-            setting = new Setting(sendBufferSize, receiveBufferSize, maxTransmitUnit, timeout, receivePacketSize, sendPacketSize, interval, resend, noDelay, congestion);
+            setting = new Setting(sendBuffer, receiveBuffer, maxUnit, timeout, receiveSize, sendSize, interval, resend);
             client = new Client(setting, ClientConnected, ClientDisconnected, ClientDataReceived);
             server = new Server(setting, ServerConnected, ServerDisconnected, ServerDataReceived);
             return;
@@ -86,10 +84,10 @@ namespace JFramework.Net
 
         public override int GetMaxPacketSize(Channel channel = Channel.Reliable)
         {
-            return channel == Channel.Reliable ? Utility.ReliableSize(setting.maxUnit, receivePacketSize) : Utility.UnreliableSize(setting.maxUnit);
+            return channel == Channel.Reliable ? Utility.ReliableSize(setting.maxUnit, receiveSize) : Utility.UnreliableSize(setting.maxUnit);
         }
 
-        public override int UnreliableSize() => Utility.UnreliableSize(maxTransmitUnit);
+        public override int UnreliableSize() => Utility.UnreliableSize(maxUnit);
 
         public override void StopServer() => server.StopServer();
 
