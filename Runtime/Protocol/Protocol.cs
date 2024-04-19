@@ -61,13 +61,14 @@ namespace JFramework.Udp
         private readonly Queue<Segment> receiveQueue = new Queue<Segment>(16);
         private event Action<byte[], int> onRefresh;
 
-        public Protocol(Action<byte[], int> onRefresh)
+        public Protocol(uint current, Action<byte[], int> onRefresh)
         {
             rto = RTO_DEF;
             threshold = THRESHOLD;
             refreshTime = INTERVAL;
             resendLimit = RESEND_LIMIT;
             remoteWindow = WIN_RCV;
+            this.current = current;
             this.onRefresh = onRefresh;
         }
 

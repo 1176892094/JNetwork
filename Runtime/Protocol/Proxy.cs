@@ -103,7 +103,7 @@ namespace JFramework.Udp
             this.OnAuthority = OnAuthority;
             this.OnDisconnected = OnDisconnected;
             timeout = setting.timeout;
-            protocol = new Protocol(SendReliable);
+            protocol = new Protocol(0, SendReliable);
             protocol.SetUnit((uint)setting.maxUnit - Utility.METADATA_SIZE);
             protocol.SetResend(setting.interval, setting.resend);
             protocol.SetWindow(setting.sendSize, setting.receiveSize);

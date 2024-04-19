@@ -94,6 +94,7 @@ namespace JFramework.Udp
             catch (Exception e)
             {
                 Log.Warn($"服务器不能设置成双模式！\n{e}");
+                socket.DualMode = false;
             }
 
             socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
