@@ -8,8 +8,8 @@ namespace JFramework.Udp
     {
         private struct Packet
         {
-            public uint serialNumber;
-            public uint timestamp;
+            public uint sendId;
+            public uint sendTime;
         }
         
         public const int FRG_MAX = 255;            // 分片的最大数量，使用1字节进行编码，最大为255
@@ -33,29 +33,30 @@ namespace JFramework.Udp
         private const int PROBE_INIT = 7000;       // 探测窗口大小的初始时间（7秒）
         private const int PROBE_LIMIT = 120000;    // 探测窗口大小的最长时间（120秒）
         private const int FAST_ACK_LIMIT = 5;      // 触发快速重传的最大次数
-        public int state;                          // Jdp状态
+        public int state;                          // Udp状态
+        
+        private int rtt;                           // 平滑的往返时间（RTT）的加权平均值
+        private int rto;                           // 接收方的RTO
+        private int shake;                         // RTT的平均偏差，用于衡量RTT的抖动
         private uint resend;                       // 快速重传的触发次数
-        private int roundTripTime;                 // RTT的平均偏差，用于衡量RTT的抖动
-        private int roundTripTimeSmooth;           // 平滑的往返时间（RTT）的加权平均值
-        private int receiveRto;                    // 接收方的RTO
         private uint maxUnit;                      // 最大传输单元
+        private uint serialId;                     // 未确认的序号，例为9表示8已经被确认，9和10已经发送。
+        private uint nextSendId;                   // 发送数据的下一个序号，不断增加
+        private uint nextSegment;                  // 接收数据的下一个分段，不断增加
         private uint segmentSize;                  // 最大分段大小
-        private uint receiveCount;                // 未确认的序号，例为9表示8已经被确认，9和10已经发送。
-        private uint sendNextSegment;              // 发送数据的下一个序号，不断增加
-        private uint receiveNextSegment;           // 接收数据的下一个序号，不断增加
-        private uint slowStartThreshold;           // 慢启动阈值
+        private uint threshold;                    // 慢启动阈值
         private uint sendWindow;                   // 发送窗口大小
         private uint receiveWindow;                // 接收窗口大小
-        private uint remoteWindow;             // 远端窗口大小
-        private uint congestionWindow;             // 拥塞窗口大小
+        private uint remoteWindow;                 // 远端窗口大小
+        private uint congestWindow;                // 拥塞窗口大小
         private uint probe;                        // 探测标志
         private uint interval;                     // 内部处理时钟的间隔时间
-        private uint timestampFlush;               // 最后一次刷新数据的时间戳（毫秒）
+        private uint flushTime;                    // 最后一次刷新数据的时间戳（毫秒）
         private bool updated;                      // 是否更新
         private uint probeTimestamp;               // 探测窗口的时间戳
         private uint probeWaitTime;                // 等待探测的时间
         private uint increment;                    // 拥塞窗口增加的步进值
-        private uint currentTime;                  // 当前时间（毫秒），由Update方法设置
+        private uint lateTime;                     // 当前时间（毫秒），由Update方法设置
         private byte[] buffer;                     // 接收缓存
         public readonly uint deadLink;             // 一个分段被认为丢失之前的最大重传次数
         private readonly int fastLimit;            // 快速重传的最大限制次数
@@ -75,10 +76,10 @@ namespace JFramework.Udp
             receiveWindow = WIN_RCV;
             remoteWindow = WIN_RCV;
             segmentSize = maxUnit - OVERHEAD;
-            receiveRto = RTO_DEF;
+            rto = RTO_DEF;
             interval = INTERVAL;
-            timestampFlush = INTERVAL;
-            slowStartThreshold = THRESH_INIT;
+            flushTime = INTERVAL;
+            threshold = THRESH_INIT;
             fastLimit = FAST_ACK_LIMIT;
             deadLink = DEAD_LINK;
         }
@@ -111,11 +112,11 @@ namespace JFramework.Udp
             var removed = 0;
             foreach (var segment in receiveBuffers) // 再接着循环处理存有待接收数据段的buffer
             {
-                if (segment.sendId == receiveNextSegment && receiveQueue.Count < receiveWindow)
+                if (segment.sendId == nextSegment && receiveQueue.Count < receiveWindow)
                 {
                     removed++;
                     receiveQueue.Enqueue(segment);
-                    receiveNextSegment++;
+                    nextSegment++;
                 }
                 else
                 {
@@ -214,57 +215,52 @@ namespace JFramework.Udp
         /// <summary>
         /// 计算新的 RTO 和 RTT
         /// </summary>
-        /// <param name="roundTrip"></param>
-        private void UpdateAcknowledge(int roundTrip)
+        /// <param name="time"></param>
+        private void UpdateRto(int time)
         {
-            if (roundTripTimeSmooth == 0)
+            if (rtt == 0)
             {
-                roundTripTimeSmooth = roundTrip;
-                roundTripTime = roundTrip / 2;
+                rtt = time;
+                shake = time / 2;
             }
             else
             {
-                int delta = Math.Abs(roundTrip - roundTripTimeSmooth);
-                roundTripTime = (3 * roundTripTime + delta) / 4;
-                roundTripTimeSmooth = (7 * roundTripTimeSmooth + roundTrip) / 8;
-                if (roundTripTimeSmooth < 1) roundTripTimeSmooth = 1;
+                int abs = Math.Abs(time - rtt);
+                shake = (3 * shake + abs) / 4;
+                rtt = (7 * rtt + time) / 8;
+                if (rtt < 1)
+                {
+                    rtt = 1;
+                }
             }
 
-            int rto = roundTripTimeSmooth + Math.Max((int)interval, 4 * roundTripTime);
-            receiveRto = Math.Clamp(rto, RTO_MIN, RTO_MAX);
+            int newRto = rtt + Math.Max((int)interval, 4 * shake);
+            rto = Math.Clamp(newRto, RTO_MIN, RTO_MAX);
         }
-        
-        private void RefreshBuffer()
+
+        private void InputSendBuffer(uint sendId)
         {
-            if (sendBuffers.Count > 0)
-            {
-                var segment = sendBuffers[0];
-                receiveCount = segment.sendId;
-            }
-            else
-            {
-                receiveCount = sendNextSegment;
-            }
-        }
-        
-        private void ParseAcknowledge(uint serialNumber)
-        {
-            if (Utility.Subtract(serialNumber, receiveCount) < 0 || Utility.Subtract(serialNumber, sendNextSegment) >= 0)
+            if (Utility.Subtract(sendId, serialId) < 0)
             {
                 return;
             }
-            
+
+            if (Utility.Subtract(sendId, nextSendId) >= 0)
+            {
+                return;
+            }
+
             for (int i = 0; i < sendBuffers.Count; ++i)
             {
                 var segment = sendBuffers[i];
-                if (serialNumber == segment.sendId)
+                if (segment.sendId == sendId)
                 {
                     sendBuffers.RemoveAt(i);
                     pool.Push(segment);
                     break;
                 }
-                
-                if (Utility.Subtract(serialNumber, segment.sendId) < 0)
+
+                if (Utility.Subtract(sendId, segment.sendId) < 0)
                 {
                     break;
                 }
@@ -273,12 +269,12 @@ namespace JFramework.Udp
 
         private void ParseFastAcknowledge(uint serialNumber)
         {
-            if (serialNumber < receiveCount)
+            if (serialNumber < serialId)
             {
                 return;
             }
 
-            if (serialNumber >= sendNextSegment)
+            if (serialNumber >= nextSendId)
             {
                 return;
             }
@@ -293,15 +289,15 @@ namespace JFramework.Udp
         {
             packetList.Add(new Packet
             {
-                serialNumber = serialNumber, 
-                timestamp = timestamp
+                sendId = serialNumber, 
+                sendTime = timestamp
             });
         }
 
         private void ParseSegment(Segment segment)
         {
             uint serialNumber = segment.sendId;
-            if (Utility.Subtract(serialNumber, receiveNextSegment + receiveWindow) >= 0 || Utility.Subtract(serialNumber, receiveNextSegment) < 0)
+            if (Utility.Subtract(serialNumber, nextSegment + receiveWindow) >= 0 || Utility.Subtract(serialNumber, nextSegment) < 0)
             {
                 pool.Push(segment);
                 return;
@@ -352,11 +348,11 @@ namespace JFramework.Udp
             var removed = 0;
             foreach (var segment in receiveBuffers)
             {
-                if (segment.sendId == receiveNextSegment && receiveQueue.Count < receiveWindow)
+                if (segment.sendId == nextSegment && receiveQueue.Count < receiveWindow)
                 {
                     removed++;
                     receiveQueue.Enqueue(segment);
-                    receiveNextSegment++;
+                    nextSegment++;
                 }
                 else
                 {
@@ -372,9 +368,9 @@ namespace JFramework.Udp
         /// </summary>
         public int Input(byte[] data, int offset, int size)
         {
-            uint previous = receiveCount;
-            uint maxAcknowledge = 0;
-            int flag = 0;
+            uint previous = serialId;
+            uint confirm = 0;
+            int isFlag = 0;
 
             if (data == null || size < OVERHEAD)
             {
@@ -387,7 +383,7 @@ namespace JFramework.Udp
                 {
                     break;
                 }
-                
+
                 offset += Utility.Decode32U(data, offset, out var id);
                 if (id != conversation) return -1;
                 offset += Utility.Decode8U(data, offset, out var command);
@@ -397,20 +393,20 @@ namespace JFramework.Udp
                 offset += Utility.Decode32U(data, offset, out var sendId);
                 offset += Utility.Decode32U(data, offset, out var receiveId);
                 offset += Utility.Decode32U(data, offset, out var length);
-                size -= OVERHEAD;// 减去头部大小
-                
+                size -= OVERHEAD; // 减去头部大小
+
                 if (size < length)
                 {
                     return -2;
                 }
-                
+
                 if (command != CMD_PUSH && command != CMD_ACK && command != CMD_WIN_ASK && command != CMD_WIN_INS)
                 {
                     return -3;
                 }
 
                 remoteWindow = window;
-                
+
                 var removed = 0;
                 foreach (var segment in sendBuffers)
                 {
@@ -426,50 +422,49 @@ namespace JFramework.Udp
                 }
 
                 sendBuffers.RemoveRange(0, removed);
-                RefreshBuffer();
+                serialId = sendBuffers.Count > 0 ? sendBuffers[0].sendId : nextSendId;
 
                 switch (command)
                 {
                     case CMD_ACK: // RTT 相关的信息，并解析序列号
-                        if (Utility.Subtract(currentTime, sendTime) >= 0)
+                        if (Utility.Subtract(lateTime, sendTime) >= 0)
                         {
-                            UpdateAcknowledge(Utility.Subtract(currentTime, sendTime));
+                            UpdateRto(Utility.Subtract(lateTime, sendTime));
                         }
-                        ParseAcknowledge(sendId);
-                        RefreshBuffer();
-                        if (flag == 0)
+
+                        InputSendBuffer(sendId);
+                        serialId = sendBuffers.Count > 0 ? sendBuffers[0].sendId : nextSendId;
+                        if (isFlag == 0)
                         {
-                            flag = 1;
-                            maxAcknowledge = sendId;
+                            isFlag = 1;
+                            confirm = sendId;
                         }
-                        else
+                        else if (Utility.Subtract(sendId, confirm) > 0)
                         {
-                            if (Utility.Subtract(sendId, maxAcknowledge) > 0)
-                            {
-                                maxAcknowledge = sendId;
-                            }
+                            confirm = sendId;
                         }
 
                         break;
-                    case CMD_PUSH:// 分片的序列号在接收窗口内，则进行确认并将分片添加到接收缓冲区，然后解析数据分片
-                        if (Utility.Subtract(sendId, receiveNextSegment + receiveWindow) < 0)
+                    case CMD_PUSH: // 分片的序列号在接收窗口内，则进行确认并将分片添加到接收缓冲区，然后解析数据分片
+                        if (Utility.Subtract(sendId, nextSegment + receiveWindow) < 0)
                         {
                             AcknowledgePush(sendId, sendTime);
-                            if (Utility.Subtract(sendId, receiveNextSegment) >= 0)
+                            if (Utility.Subtract(sendId, nextSegment) >= 0)
                             {
-                                Segment seg = pool.Pop();
-                                seg.id = id;
-                                seg.command = command;
-                                seg.fragment = fragment;
-                                seg.window = window;
-                                seg.sendTime  = sendTime;
-                                seg.sendId  = sendId;
-                                seg.receiveId = receiveId;
+                                var segment = pool.Pop();
+                                segment.id = id;
+                                segment.command = command;
+                                segment.fragment = fragment;
+                                segment.window = window;
+                                segment.sendTime = sendTime;
+                                segment.sendId = sendId;
+                                segment.receiveId = receiveId;
                                 if (length > 0)
                                 {
-                                    seg.stream.Write(data, offset, (int)length);
+                                    segment.stream.Write(data, offset, (int)length);
                                 }
-                                ParseSegment(seg);
+
+                                ParseSegment(segment);
                             }
                         }
 
@@ -483,33 +478,34 @@ namespace JFramework.Udp
                 size -= (int)length;
             }
 
-            if (flag != 0)
+            if (isFlag != 0)
             {
-                ParseFastAcknowledge(maxAcknowledge);
+                ParseFastAcknowledge(confirm);
             }
 
             // 根据需要进行拥塞窗口的更新
-            if (Utility.Subtract(receiveCount, previous) > 0)
+            if (Utility.Subtract(serialId, previous) > 0)
             {
-                if (congestionWindow < remoteWindow)
+                if (congestWindow < remoteWindow)
                 {
-                    if (congestionWindow < slowStartThreshold)
+                    if (congestWindow < threshold)
                     {
-                        congestionWindow++;
+                        congestWindow++;
                         increment += segmentSize;
                     }
                     else
                     {
                         if (increment < segmentSize) increment = segmentSize;
                         increment += (segmentSize * segmentSize) / increment + (segmentSize / 16);
-                        if ((congestionWindow + 1) * segmentSize <= increment)
+                        if ((congestWindow + 1) * segmentSize <= increment)
                         {
-                            congestionWindow = (increment + segmentSize - 1) / ((segmentSize > 0) ? segmentSize : 1);
+                            congestWindow = (increment + segmentSize - 1) / ((segmentSize > 0) ? segmentSize : 1);
                         }
                     }
-                    if (congestionWindow > remoteWindow)
+
+                    if (congestWindow > remoteWindow)
                     {
-                        congestionWindow = remoteWindow;
+                        congestWindow = remoteWindow;
                         increment = remoteWindow * segmentSize;
                     }
                 }
@@ -530,14 +526,14 @@ namespace JFramework.Udp
             seg.id = conversation;
             seg.command = CMD_ACK;
             seg.window = WindowUnused();
-            seg.receiveId = receiveNextSegment;
+            seg.receiveId = nextSegment;
 
             // 更新确认
             foreach (var packet in packetList)
             {
                 MakeSpace(ref size, OVERHEAD);
-                seg.sendId = packet.serialNumber;
-                seg.sendTime = packet.timestamp;
+                seg.sendId = packet.sendId;
+                seg.sendTime = packet.sendTime;
                 size += seg.Encode(buffer, size);
             }
             packetList.Clear();
@@ -564,19 +560,19 @@ namespace JFramework.Udp
             var windowSize = Math.Min(sendWindow, remoteWindow);
 
             // 移动拥塞窗口的消息 从 sendQueue 到 sendBuffers
-            while (Utility.Subtract(sendNextSegment, receiveCount + windowSize) < 0)
+            while (Utility.Subtract(nextSendId, serialId + windowSize) < 0)
             {
                 if (sendQueue.Count == 0) break;
                 var segment = sendQueue.Dequeue();
                 segment.id = conversation;
                 segment.command = CMD_PUSH;
                 segment.window = seg.window;
-                segment.sendTime = currentTime;
-                segment.sendId = sendNextSegment;
-                sendNextSegment += 1; // 增加下一段的序号
-                segment.receiveId = receiveNextSegment;
-                segment.resendTime = currentTime;
-                segment.failure = receiveRto;
+                segment.sendTime = lateTime;
+                segment.sendId = nextSendId;
+                nextSendId += 1; // 增加下一段的序号
+                segment.receiveId = nextSegment;
+                segment.resendTime = lateTime;
+                segment.failure = rto;
                 segment.resendId = 0;
                 segment.resendCount = 0;
                 sendBuffers.Add(segment);
@@ -590,15 +586,15 @@ namespace JFramework.Udp
                 {
                     needSend = true;
                     segment.resendCount++;
-                    segment.failure = receiveRto;
-                    segment.resendTime = currentTime + (uint)segment.failure;
+                    segment.failure = rto;
+                    segment.resendTime = lateTime + (uint)segment.failure;
                 }
-                else if (Utility.Subtract(currentTime, segment.resendTime) >= 0) // 重传超时RTO
+                else if (Utility.Subtract(lateTime, segment.resendTime) >= 0) // 重传超时RTO
                 {
                     needSend = true;
                     segment.resendCount++;
                     segment.failure += segment.failure / 2;
-                    segment.resendTime = currentTime + (uint)segment.failure;
+                    segment.resendTime = lateTime + (uint)segment.failure;
                     lost = true;
                 }
                 else if (segment.resendId >= resend) // 快速重传确认
@@ -608,16 +604,16 @@ namespace JFramework.Udp
                         needSend = true;
                         segment.resendCount++;
                         segment.resendId = 0;
-                        segment.resendTime = currentTime + (uint)segment.failure;
+                        segment.resendTime = lateTime + (uint)segment.failure;
                         change++;
                     }
                 }
 
                 if (needSend)
                 {
-                    segment.sendTime = currentTime;
+                    segment.sendTime = lateTime;
                     segment.window = seg.window;
-                    segment.receiveId = receiveNextSegment;
+                    segment.receiveId = nextSegment;
                     int need = OVERHEAD + (int)segment.stream.Position;
                     MakeSpace(ref size, need);
 
@@ -641,32 +637,32 @@ namespace JFramework.Udp
             
             if (change > 0)//更新 慢启动阈值
             {
-                uint inflight = sendNextSegment - receiveCount;
-                slowStartThreshold = inflight / 2;
-                if (slowStartThreshold < THRESH_MIN)
+                uint inflight = nextSendId - serialId;
+                threshold = inflight / 2;
+                if (threshold < THRESH_MIN)
                 {
-                    slowStartThreshold = THRESH_MIN;
+                    threshold = THRESH_MIN;
                 }
 
-                this.congestionWindow = slowStartThreshold + resend;
-                increment = this.congestionWindow * segmentSize;
+                congestWindow = threshold + resend;
+                increment = congestWindow * segmentSize;
             }
             
             if (lost)
             {
-                slowStartThreshold = windowSize / 2;
-                if (slowStartThreshold < THRESH_MIN)
+                threshold = windowSize / 2;
+                if (threshold < THRESH_MIN)
                 {
-                    slowStartThreshold = THRESH_MIN;
+                    threshold = THRESH_MIN;
                 }
 
-                this.congestionWindow = 1;
+                congestWindow = 1;
                 increment = segmentSize;
             }
 
-            if (this.congestionWindow < 1)
+            if (congestWindow < 1)
             {
-                this.congestionWindow = 1;
+                congestWindow = 1;
                 increment = segmentSize;
             }
             
@@ -699,11 +695,11 @@ namespace JFramework.Udp
                     if (probeWaitTime == 0)
                     {
                         probeWaitTime = PROBE_INIT;
-                        probeTimestamp = currentTime + probeWaitTime;
+                        probeTimestamp = lateTime + probeWaitTime;
                     }
                     else
                     {
-                        if (Utility.Subtract(currentTime, probeTimestamp) >= 0)
+                        if (Utility.Subtract(lateTime, probeTimestamp) >= 0)
                         {
                             if (probeWaitTime < PROBE_INIT)
                             {
@@ -716,7 +712,7 @@ namespace JFramework.Udp
                                 probeWaitTime = PROBE_LIMIT;
                             }
 
-                            probeTimestamp = currentTime + probeWaitTime;
+                            probeTimestamp = lateTime + probeWaitTime;
                             probe |= ASK_SEND;
                         }
                     }
@@ -731,29 +727,29 @@ namespace JFramework.Udp
 
         public void Update(long currentTime)
         {
-            this.currentTime = (uint)currentTime;
+            lateTime = (uint)currentTime;
 
             if (!updated)
             {
                 updated = true;
-                timestampFlush = this.currentTime; //当前时间戳，表示最后一次刷新时间
+                flushTime = lateTime; //当前时间戳，表示最后一次刷新时间
             }
 
-            int slap = Utility.Subtract(this.currentTime, timestampFlush); //计算距离上次刷新的时间间隔
+            int slap = Utility.Subtract(lateTime, flushTime); //计算距离上次刷新的时间间隔
 
             if (Math.Abs(slap) > 10000)
             {
-                timestampFlush = this.currentTime;
+                flushTime = lateTime;
                 slap = 0;
             }
 
             if (slap >= 0)
             {
-                timestampFlush += interval;
+                flushTime += interval;
 
-                if (this.currentTime >= timestampFlush)
+                if (lateTime >= flushTime)
                 {
-                    timestampFlush = this.currentTime + interval;
+                    flushTime = lateTime + interval;
                 }
 
                 Flush();
