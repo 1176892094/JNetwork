@@ -47,6 +47,11 @@
     {
         var player = await GlobalManager.Asset.Load<GameObject>("Player");
         NetworkManager.Server.Spawn(player, client); // 在这里为客户端生成玩家
+
+        GlobalManager.Time.Pop(5).Invoke(() => // 等待5秒后销毁
+        {
+            NetworkManager.Server.Destroy(player.GetComponent<NetworkObject>());
+        });
     }
 ```
 3.NetworkClient的使用
