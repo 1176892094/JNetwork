@@ -429,15 +429,15 @@ namespace JFramework.Udp
                     break;
                 }
                 
-                offset += Helper.Decode32U(data, offset, out uint conv);
+                offset += Utility.Decode32U(data, offset, out uint conv);
                 if (conv != conversation) return -1;
-                offset += Helper.Decode8U(data, offset, out byte command);
-                offset += Helper.Decode8U(data, offset, out byte fragment);
-                offset += Helper.Decode16U(data, offset, out ushort windowSize);
-                offset += Helper.Decode32U(data, offset, out uint timestamp);
-                offset += Helper.Decode32U(data, offset, out uint serialNumber);
-                offset += Helper.Decode32U(data, offset, out uint newUnAcknowledge);
-                offset += Helper.Decode32U(data, offset, out uint length);
+                offset += Utility.Decode8U(data, offset, out byte command);
+                offset += Utility.Decode8U(data, offset, out byte fragment);
+                offset += Utility.Decode16U(data, offset, out ushort windowSize);
+                offset += Utility.Decode32U(data, offset, out uint timestamp);
+                offset += Utility.Decode32U(data, offset, out uint serialNumber);
+                offset += Utility.Decode32U(data, offset, out uint newUnAcknowledge);
+                offset += Utility.Decode32U(data, offset, out uint length);
                 size -= OVERHEAD;// 减去头部大小
                 
                 if (size < length)

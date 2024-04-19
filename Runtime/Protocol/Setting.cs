@@ -4,7 +4,7 @@ namespace JFramework.Udp
     {
         public readonly int sendBufferSize;
         public readonly int receiveBufferSize;
-        public readonly int maxTransferUnit;
+        public readonly int maxUnit;
         public readonly int resend;
         public readonly int timeout;
         public readonly uint receivePacketSize;
@@ -17,7 +17,7 @@ namespace JFramework.Udp
         (
             int sendBufferSize = 1024 * 1024 * 7,
             int receiveBufferSize = 1024 * 1024 * 7,
-            int maxTransferUnit = Protocol.MTU_DEF,
+            int maxUnit = Protocol.MTU_DEF,
             int timeout = Protocol.TIME_OUT,
             uint receivePacketSize = Protocol.WIN_RCV,
             uint sendPacketSize = Protocol.WIN_SND,
@@ -29,7 +29,7 @@ namespace JFramework.Udp
             this.receivePacketSize = receivePacketSize;
             this.sendPacketSize = sendPacketSize;
             this.timeout = timeout;
-            this.maxTransferUnit = maxTransferUnit;
+            this.maxUnit = maxUnit;
             this.sendBufferSize = sendBufferSize;
             this.receiveBufferSize = receiveBufferSize;
             this.interval = interval;

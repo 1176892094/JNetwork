@@ -63,14 +63,13 @@ namespace JFramework.Udp
         /// <param name="OnConnected"></param>
         /// <param name="OnDisconnected"></param>
         /// <param name="OnReceive"></param>
-        public Server(Setting setting, Action<int> OnConnected, Action<int> OnDisconnected,
-            Action<int, ArraySegment<byte>, Channel> OnReceive)
+        public Server(Setting setting, Action<int> OnConnected, Action<int> OnDisconnected, Action<int, ArraySegment<byte>, Channel> OnReceive)
         {
             this.setting = setting;
             this.OnReceive = OnReceive;
             this.OnConnected = OnConnected;
             this.OnDisconnected = OnDisconnected;
-            buffer = new byte[setting.maxTransferUnit];
+            buffer = new byte[setting.maxUnit];
             endPoint = new IPEndPoint(IPAddress.IPv6Any, 0);
         }
 
@@ -97,7 +96,7 @@ namespace JFramework.Udp
             }
 
             socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
-            Helper.SetBuffer(socket, setting.sendBufferSize, setting.receiveBufferSize);
+            Utility.SetBuffer(socket, setting.sendBufferSize, setting.receiveBufferSize);
         }
 
         /// <summary>
@@ -151,7 +150,7 @@ namespace JFramework.Udp
         private Proxies Connection(int clientId)
         {
             var client = new Proxies(endPoint);
-            var cookie = Helper.GenerateCookie();
+            var cookie = Utility.GenerateCookie();
             var proxy = new Proxy(setting, cookie, OnAuthority, OnDisconnected, OnSend, OnReceive);
             client.proxy = proxy;
             return client;

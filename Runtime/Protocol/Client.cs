@@ -68,7 +68,7 @@ namespace JFramework.Udp
             this.OnReceive = OnReceive;
             this.OnConnected = OnConnected;
             this.OnDisconnected = OnDisconnected;
-            buffer = new byte[setting.maxTransferUnit];
+            buffer = new byte[setting.maxUnit];
             state = State.Disconnected;
         }
 
@@ -85,7 +85,7 @@ namespace JFramework.Udp
                 return;
             }
 
-            if (!Helper.TryGetAddress(address, out var addresses))
+            if (!Utility.TryGetAddress(address, out var addresses))
             {
                 OnDisconnected?.Invoke();
                 return;
@@ -95,7 +95,7 @@ namespace JFramework.Udp
             endPoint = new IPEndPoint(addresses[0], port);
             Log.Info($"客户端连接到：{addresses[0]} 端口：{port}。");
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-            Helper.SetBuffer(socket, setting.sendBufferSize, setting.receiveBufferSize);
+            Utility.SetBuffer(socket, setting.sendBufferSize, setting.receiveBufferSize);
             socket.Connect(endPoint);
             proxy.Handshake();
         }

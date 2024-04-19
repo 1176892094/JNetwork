@@ -113,12 +113,12 @@ namespace JFramework.Udp
             protocol = new Protocol(0, SendReliable);
             protocol.SetNoDelay(setting.noDelay ? 1U : 0U, setting.interval, setting.resend, setting.congestion);
             protocol.SetWindowSize(setting.sendPacketSize, setting.receivePacketSize);
-            protocol.SetTransferUnit((uint)setting.maxTransferUnit - Helper.METADATA_SIZE);
-            reliableSize = Helper.ReliableSize(setting.maxTransferUnit, setting.receivePacketSize);
-            unreliableSize = Helper.UnreliableSize(setting.maxTransferUnit);
+            protocol.SetTransferUnit((uint)setting.maxUnit - Utility.METADATA_SIZE);
+            reliableSize = Utility.ReliableSize(setting.maxUnit, setting.receivePacketSize);
+            unreliableSize = Utility.UnreliableSize(setting.maxUnit);
             messageBuffer = new byte[reliableSize + 1];
             jdpSendBuffer = new byte[reliableSize + 1];
-            rawSendBuffer = new byte[setting.maxTransferUnit];
+            rawSendBuffer = new byte[setting.maxUnit];
             watch.Start();
         }
 
@@ -444,13 +444,13 @@ namespace JFramework.Udp
                 Disconnect();
             }
 
-            if (time >= lastPingTime + Helper.PING_INTERVAL)
+            if (time >= lastPingTime + Utility.PING_INTERVAL)
             {
                 SendReliable(Header.Ping, default);
                 lastPingTime = time;
             }
 
-            if (protocol.GetBufferQueueCount() >= Helper.QUEUE_DISCONNECTED_THRESHOLD)
+            if (protocol.GetBufferQueueCount() >= Utility.QUEUE_DISCONNECTED_THRESHOLD)
             {
                 Log.Error($"断开连接，因为它处理数据的速度不够快！");
                 protocol.sendQueue.Clear();

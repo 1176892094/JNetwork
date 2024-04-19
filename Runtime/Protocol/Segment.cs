@@ -76,14 +76,14 @@ namespace JFramework.Udp
         public int Encode(byte[] ptr, int offset)
         {
             int previousPosition = offset;
-            offset += Helper.Encode32U(ptr, offset, conversation);
-            offset += Helper.Encode8U(ptr, offset, (byte)command);
-            offset += Helper.Encode8U(ptr, offset, (byte)fragment);
-            offset += Helper.Encode16U(ptr, offset, (ushort)windowSize);
-            offset += Helper.Encode32U(ptr, offset, timestamp);
-            offset += Helper.Encode32U(ptr, offset, serialNumber);
-            offset += Helper.Encode32U(ptr, offset, unAcknowledge);
-            offset += Helper.Encode32U(ptr, offset, (uint)stream.Position);
+            offset += Utility.Encode32U(ptr, offset, conversation);
+            offset += Utility.Encode8U(ptr, offset, (byte)command);
+            offset += Utility.Encode8U(ptr, offset, (byte)fragment);
+            offset += Utility.Encode16U(ptr, offset, (ushort)windowSize);
+            offset += Utility.Encode32U(ptr, offset, timestamp);
+            offset += Utility.Encode32U(ptr, offset, serialNumber);
+            offset += Utility.Encode32U(ptr, offset, unAcknowledge);
+            offset += Utility.Encode32U(ptr, offset, (uint)stream.Position);
             return offset - previousPosition;
         }
 

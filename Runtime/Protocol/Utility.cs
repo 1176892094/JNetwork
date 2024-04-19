@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace JFramework.Udp
 {
-    public static class Helper
+    public static class Utility
     {
         internal const int PING_INTERVAL = 1000;
         internal const int QUEUE_DISCONNECTED_THRESHOLD = 10000;
@@ -78,7 +78,7 @@ namespace JFramework.Udp
             value = result;
             return 4;
         }
-        
+
         /// <summary>
         /// 增加到操作系统限制
         /// </summary>
@@ -134,25 +134,17 @@ namespace JFramework.Udp
         /// <summary>
         /// 可靠传输大小(255, 148716)
         /// </summary>
-        public static int ReliableSize(int maxTransferUnit, uint receivePacketSize)
+        public static int ReliableSize(int maxUnit, uint size)
         {
-            return ReliableSizeInternal(maxTransferUnit, Math.Min(receivePacketSize, Protocol.FRG_MAX));
-        }
-
-        /// <summary>
-        /// 可靠传输大小(内部) 148716
-        /// </summary>
-        private static int ReliableSizeInternal(int maxTransferUnit, uint receivePacketSize)
-        {
-            return (maxTransferUnit - Protocol.OVERHEAD - METADATA_SIZE) * ((int)receivePacketSize - 1) - 1;
+            return (maxUnit - METADATA_SIZE - Protocol.OVERHEAD) * (Math.Min((int)size, Protocol.FRG_MAX) - 1) - 1;
         }
 
         /// <summary>
         /// 不可靠传输大小
         /// </summary>
-        public static int UnreliableSize(int maxTransmissionUnit)
+        public static int UnreliableSize(int maxUnit)
         {
-            return maxTransmissionUnit - METADATA_SIZE;
+            return maxUnit - METADATA_SIZE;
         }
     }
 }
