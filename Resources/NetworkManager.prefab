@@ -1,5 +1,59 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3035671049256496247
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5938792626572117669}
+  - component: {fileID: 7598616653486113179}
+  m_Layer: 0
+  m_Name: NetworkTransport
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5938792626572117669
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3035671049256496247}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4644617694324336356}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7598616653486113179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3035671049256496247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5315d6ba604c9401083f35941ed0ce48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  address: localhost
+  port: 20974
+  maxUnit: 1200
+  timeout: 10000
+  sendBuffer: 1048576
+  receiveBuffer: 1048576
+  sendSize: 1024
+  receiveSize: 1024
+  resend: 2
+  interval: 10
 --- !u!1 &3581406211680017139
 GameObject:
   m_ObjectHideFlags: 0
@@ -11,7 +65,7 @@ GameObject:
   - component: {fileID: 4644617694324336356}
   - component: {fileID: 7422580992536352519}
   - component: {fileID: 8599658370796327600}
-  - component: {fileID: 6377110235760960960}
+  - component: {fileID: 4902456955537657214}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -31,7 +85,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5938792626572117669}
+  - {fileID: 2893039507493342236}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7422580992536352519
@@ -46,8 +102,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56edecc205034234aa78c9f2b56f9b7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  transport: {fileID: 8599658370796327600}
-  discovery: {fileID: 6377110235760960960}
+  transport: {fileID: 4902456955537657214}
+  discovery: {fileID: 5144682077311143366}
   player: {fileID: 0}
   time: {fileID: 0}
   client: {fileID: 0}
@@ -70,23 +126,81 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   address: localhost
   port: 20974
-  noDelay: 1
-  congestion: 1
-  resend: 2
+  maxUnit: 1200
   timeout: 10000
-  maxTransmitUnit: 1200
-  sendBufferSize: 7361536
-  receiveBufferSize: 7361536
-  sendPacketSize: 4096
-  receivePacketSize: 4096
+  sendBuffer: 1048576
+  receiveBuffer: 1048576
+  sendSize: 1024
+  receiveSize: 1024
+  resend: 2
   interval: 10
---- !u!114 &6377110235760960960
+--- !u!114 &4902456955537657214
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3581406211680017139}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31f9ec0e150d54cdc841762a6d31e040, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  address: localhost
+  port: 20974
+  transport: {fileID: 8599658370796327600}
+  serverId: -1
+  isAwake: 1
+  serverIp: 127.0.0.1
+  serverPort: 8080
+  heratBeat: 3
+  authority: Secret Auth Key
+  isPunch: 1
+  punchPort: 7776
+  serverName: Game Room
+  serverData: Map 1
+  maxPlayers: 10
+  isPublic: 1
+  rooms: []
+--- !u!1 &5450830715170972952
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2893039507493342236}
+  - component: {fileID: 5144682077311143366}
+  m_Layer: 0
+  m_Name: NetworkDiscovery
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2893039507493342236
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5450830715170972952}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4644617694324336356}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5144682077311143366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5450830715170972952}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 96653c172f3b4afda54c6f958d922014, type: 3}
