@@ -11,14 +11,14 @@ namespace JFramework.Udp
     public sealed class Client
     {
         /// <summary>
-        /// 端对端
-        /// </summary>
-        private Proxy proxy;
-        
-        /// <summary>
         /// 客户端状态
         /// </summary>
         private State state;
+        
+        /// <summary>
+        /// 代理
+        /// </summary>
+        private Proxy proxy;
 
         /// <summary>
         /// 套接字
