@@ -17,8 +17,8 @@ namespace JFramework.Udp
 
         public Setting
         (
-            int sendBuffer = 1024 * 1024 * 7,
-            int receiveBuffer = 1024 * 1024 * 7,
+            int sendBuffer = 1024 * 1024,
+            int receiveBuffer = 1024 * 1024,
             int maxUnit = Protocol.MTU_DEF,
             int timeout = 10000,
             uint receiveSize = Protocol.WIN_RCV,

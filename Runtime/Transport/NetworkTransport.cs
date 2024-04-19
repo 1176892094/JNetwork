@@ -7,14 +7,14 @@ namespace JFramework.Net
 {
     public class NetworkTransport : Transport
     {
-        [SerializeField] private uint resend = 2;
-        [SerializeField] private int timeout = 10000;
-        [SerializeField] private int maxUnit = 1200;
-        [SerializeField] private int sendBuffer = 1024 * 1027 * 7;
-        [SerializeField] private int receiveBuffer = 1024 * 1027 * 7;
-        [SerializeField] private uint sendSize = 1024 * 4;
-        [SerializeField] private uint receiveSize = 1024 * 4;
-        [SerializeField] private uint interval = 10;
+        public int maxUnit = 1200;
+        public int timeout = 10000;
+        public int sendBuffer = 1024 * 1024;
+        public int receiveBuffer = 1024 * 1024;
+        public uint sendSize = 1024;
+        public uint receiveSize = 1024;
+        public uint resend = 2;
+        public uint interval = 10;
         private Setting setting;
         private Client client;
         private Server server;
