@@ -176,39 +176,36 @@ namespace JFramework.Udp
         /// <returns></returns>
         public int Send(byte[] buffer, int offset, int length)
         {
-            if (length < 0)
+            int count;
+            if (length > segmentSize)
+            {
+                count = (int)((length - 1) / segmentSize) + 1;
+            }
+            else
+            {
+                count = 1;
+            }
+
+            if (count > FRG_MAX)
             {
                 return -1;
             }
 
-            // 根据消息长度和最大传输单元的关系计算出分片数量
-            var count = length <= segmentSize ? 1 : (int)((length + segmentSize - 1) / segmentSize); // 分段数量
-
-            if (count > FRG_MAX)
-            {
-                throw new Exception($"Send len = {length} requires {count} fragments.");
-            }
-            
             if (count >= receiveWindow)
             {
                 return -2; // 不能大于接收窗口的大小
             }
 
-            if (count == 0)
-            {
-                count = 1;
-            }
-            
             for (int i = 0; i < count; i++) // 写入分段数量
             {
-                int size = length > (int)segmentSize ? (int)segmentSize : length;
+                var size = length > segmentSize ? (int)segmentSize : length;
                 var segment = pool.Pop();
 
                 if (length > 0)
                 {
                     segment.stream.Write(buffer, offset, size);
                 }
-               
+
                 segment.fragment = (uint)(count - i - 1);
                 sendQueue.Enqueue(segment);
                 offset += size;

@@ -56,12 +56,12 @@ namespace JFramework.Udp
         /// <summary>
         /// 发送协议缓冲区
         /// </summary>
-        private readonly byte[] jdpSendBuffer;
+        private readonly byte[] udpBuffer;
 
         /// <summary>
         /// 低等级发送缓存区
         /// </summary>
-        private readonly byte[] rawSendBuffer;
+        private readonly byte[] rawBuffer;
 
         /// <summary>
         /// 接收的缓存Id
@@ -102,7 +102,8 @@ namespace JFramework.Udp
         /// <param name="OnDisconnected"></param>
         /// <param name="OnSend"></param>
         /// <param name="OnReceive"></param>
-        public Proxy(Setting setting, int cookie, Action OnAuthority, Action OnDisconnected, Action<ArraySegment<byte>> OnSend, Action<ArraySegment<byte>, Channel> OnReceive)
+        public Proxy(Setting setting, int cookie, Action OnAuthority, Action OnDisconnected, Action<ArraySegment<byte>> OnSend,
+            Action<ArraySegment<byte>, Channel> OnReceive)
         {
             this.cookie = cookie;
             this.OnSend = OnSend;
@@ -117,8 +118,8 @@ namespace JFramework.Udp
             reliableSize = Utility.ReliableSize(setting.maxUnit, setting.receiveSize);
             unreliableSize = Utility.UnreliableSize(setting.maxUnit);
             messageBuffer = new byte[reliableSize + 1];
-            jdpSendBuffer = new byte[reliableSize + 1];
-            rawSendBuffer = new byte[setting.maxUnit];
+            udpBuffer = new byte[reliableSize + 1];
+            rawBuffer = new byte[setting.maxUnit];
             watch.Start();
         }
 
@@ -152,23 +153,21 @@ namespace JFramework.Udp
         /// <param name="segment"></param>
         private void SendReliable(Header header, ArraySegment<byte> segment)
         {
-            if (segment.Count > jdpSendBuffer.Length - 1)
+            if (udpBuffer.Length < segment.Count + 1) // 减去消息头
             {
                 Log.Error($"P2P发送可靠消息失败。消息大小：{segment.Count}");
                 return;
             }
 
-            jdpSendBuffer[0] = (byte)header; //设置传输的头部
-
+            udpBuffer[0] = (byte)header; // 设置缓冲区的头部
             if (segment.Count > 0)
             {
-                Buffer.BlockCopy(segment.Array, segment.Offset, jdpSendBuffer, 1, segment.Count);
+                Buffer.BlockCopy(segment.Array, segment.Offset, udpBuffer, 1, segment.Count);
             }
 
-            int sent = protocol.Send(jdpSendBuffer, 0, segment.Count + 1);
-            if (sent < 0)
+            if (protocol.Send(udpBuffer, 0, segment.Count + 1) < 0) // 加入到发送队列
             {
-                Log.Error($"P2P发送可靠消息失败。消息大小：{segment.Count}。消息类型：{sent}");
+                Log.Error($"P2P发送可靠消息失败。消息大小：{segment.Count}。");
             }
         }
 
@@ -177,11 +176,10 @@ namespace JFramework.Udp
         /// </summary>
         private void SendReliable(byte[] message, int length)
         {
-            rawSendBuffer[0] = (byte)Channel.Reliable;
-            Buffer.BlockCopy(receiveCookie, 0, rawSendBuffer, 1, 4);
-            Buffer.BlockCopy(message, 0, rawSendBuffer, 1 + 4, length);
-            var segment = new ArraySegment<byte>(rawSendBuffer, 0, length + 1 + 4);
-            OnSend.Invoke(segment);
+            rawBuffer[0] = (byte)Channel.Reliable; // 消息通道
+            Buffer.BlockCopy(receiveCookie, 0, rawBuffer, 1, 4); // 消息发送者
+            Buffer.BlockCopy(message, 0, rawBuffer, 1 + 4, length); // 消息内容
+            OnSend.Invoke(new ArraySegment<byte>(rawBuffer, 0, length + 1 + 4));
         }
 
         /// <summary>
@@ -195,11 +193,10 @@ namespace JFramework.Udp
                 return;
             }
 
-            rawSendBuffer[0] = (byte)Channel.Unreliable;
-            Buffer.BlockCopy(receiveCookie, 0, rawSendBuffer, 1, 4);
-            Buffer.BlockCopy(segment.Array, segment.Offset, rawSendBuffer, 1 + 4, segment.Count);
-            var message = new ArraySegment<byte>(rawSendBuffer, 0, segment.Count + 1 + 4);
-            OnSend.Invoke(message);
+            rawBuffer[0] = (byte)Channel.Unreliable;
+            Buffer.BlockCopy(receiveCookie, 0, rawBuffer, 1, 4);
+            Buffer.BlockCopy(segment.Array, segment.Offset, rawBuffer, 1 + 4, segment.Count);
+            OnSend.Invoke(new ArraySegment<byte>(rawBuffer, 0, segment.Count + 1 + 4));
         }
 
         /// <summary>
@@ -246,8 +243,7 @@ namespace JFramework.Udp
         {
             var cookieBytes = BitConverter.GetBytes(cookie);
             Log.Info($"P2P发送握手请求。签名缓存：{cookie}");
-            var segment = new ArraySegment<byte>(cookieBytes);
-            SendReliable(Header.Handshake, segment);
+            SendReliable(Header.Handshake, new ArraySegment<byte>(cookieBytes));
         }
 
         /// <summary>
