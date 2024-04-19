@@ -66,7 +66,7 @@ namespace JFramework.Udp
         private readonly int fastLimit;            // 快速重传的最大限制次数
         private readonly uint conversation;        // 会话Id
         private readonly Action<byte[], int> onOutput;
-        private readonly SegmentPool segmentPool = new SegmentPool(32);
+        private readonly Pool pool = new Pool(32);
         private readonly List<Packet> packetList = new List<Packet>(16);
         private readonly List<Segment> sendBuffers = new List<Segment>(16);
         private readonly List<Segment> receiveBuffers = new List<Segment>(16);
@@ -134,7 +134,7 @@ namespace JFramework.Udp
                 offset += (int)segment.stream.Position;
                 length += (int)segment.stream.Position;
                 var fragment = segment.fragment;
-                segmentPool.Push(segment); // 回收进对象池
+                pool.Push(segment); // 回收进对象池
                 if (fragment == 0)
                 {
                     break;
@@ -218,7 +218,7 @@ namespace JFramework.Udp
             for (int i = 0; i < count; i++) // 写入分段数量
             {
                 int size = length > (int)maxSegmentSize ? (int)maxSegmentSize : length;
-                var segment = segmentPool.Pop();
+                var segment = pool.Pop();
 
                 if (length > 0)
                 {
@@ -283,7 +283,7 @@ namespace JFramework.Udp
                 if (serialNumber == segment.serialNumber)
                 {
                     sendBuffers.RemoveAt(i);
-                    segmentPool.Push(segment);
+                    pool.Push(segment);
                     break;
                 }
                 
@@ -302,7 +302,7 @@ namespace JFramework.Udp
                 if (segment.serialNumber < unAcknowledge)
                 {
                     removed++;
-                    segmentPool.Push(segment);
+                    pool.Push(segment);
                 }
                 else
                 {
@@ -344,7 +344,7 @@ namespace JFramework.Udp
             uint serialNumber = segment.serialNumber;
             if (Subtract(serialNumber, receiveNextSegment + receiveWindowSize) >= 0 || Subtract(serialNumber, receiveNextSegment) < 0)
             {
-                segmentPool.Push(segment);
+                pool.Push(segment);
                 return;
             }
 
@@ -381,7 +381,7 @@ namespace JFramework.Udp
             }
             else
             {
-                segmentPool.Push(segment); // 重复则进行回收
+                pool.Push(segment); // 重复则进行回收
             }
         }
         
@@ -483,7 +483,7 @@ namespace JFramework.Udp
                             AcknowledgePush(serialNumber, timestamp);
                             if (Subtract(serialNumber, receiveNextSegment) >= 0)
                             {
-                                Segment seg = segmentPool.Pop();
+                                Segment seg = pool.Pop();
                                 seg.conversation = conv;
                                 seg.command = command;
                                 seg.fragment = fragment;
@@ -552,7 +552,7 @@ namespace JFramework.Udp
             int size  = 0; // 要刷新的字节大小
             bool lost = false; // 是否有丢失的片段
             
-            Segment seg = segmentPool.Pop();
+            Segment seg = pool.Pop();
             seg.conversation = conversation;
             seg.command = CMD_ACK;
             seg.windowSize = WindowUnused();
@@ -679,7 +679,7 @@ namespace JFramework.Udp
                 }
             }
             
-            segmentPool.Push(seg);
+            pool.Push(seg);
             FlushBuffer(size); // 刷新剩余的Buffer
             
             if (change > 0)//更新 慢启动阈值
