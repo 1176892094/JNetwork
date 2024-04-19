@@ -70,26 +70,6 @@ namespace JFramework.Net
         internal float sendRate => tickRate < int.MaxValue ? 1f / tickRate : 0;
 
         /// <summary>
-        /// 传输连接地址
-        /// </summary>
-        [ShowInInspector]
-        public string address
-        {
-            get => transport ? transport.address : NetworkConst.Address;
-            set => transport.address = transport ? value : NetworkConst.Address;
-        }
-
-        /// <summary>
-        /// 传输连接端口
-        /// </summary>
-        [ShowInInspector]
-        public ushort port
-        {
-            get => transport ? transport.port : NetworkConst.Port;
-            set => transport.port = transport ? value : NetworkConst.Port;
-        }
-
-        /// <summary>
         /// 网络运行模式
         /// </summary>
         [ShowInInspector]
@@ -130,6 +110,11 @@ namespace JFramework.Net
         /// ServerManager 控制器
         /// </summary>
         public static ServerManager Server => Instance.server;
+        
+        /// <summary>
+        /// TimerManager 控制器
+        /// </summary>
+        public static Transport Transport => Instance.transport;
 
         /// <summary>
         /// ServerManager 控制器
@@ -140,11 +125,6 @@ namespace JFramework.Net
         /// SettingManager 控制器
         /// </summary>
         internal static SettingManager Setting => Instance.setting;
-
-        /// <summary>
-        /// TimerManager 控制器
-        /// </summary>
-        internal static Transport Transport => Instance.transport;
 
         /// <summary>
         /// 初始化配置传输
