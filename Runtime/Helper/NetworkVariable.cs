@@ -12,17 +12,17 @@ namespace JFramework.Net
         /// <summary>
         /// 序列Id
         /// </summary>
-        public readonly byte serialId;
+        public readonly byte componentId;
 
         /// <summary>
         /// 构造函数初始化
         /// </summary>
         /// <param name="objectId"></param>
-        /// <param name="serialId"></param>
-        public NetworkVariable(uint objectId, int serialId) : this()
+        /// <param name="componentId"></param>
+        public NetworkVariable(uint objectId, int componentId) : this()
         {
             this.objectId = objectId;
-            this.serialId = (byte)serialId;
+            this.componentId = (byte)componentId;
         }
 
         /// <summary>
@@ -32,18 +32,18 @@ namespace JFramework.Net
         /// <returns></returns>
         public bool Equals(NetworkVariable other)
         {
-            return other.objectId == objectId && other.serialId == serialId;
+            return other.objectId == objectId && other.componentId == componentId;
         }
 
         /// <summary>
         /// 比较网络对象Id和序列Id
         /// </summary>
         /// <param name="objectId"></param>
-        /// <param name="serialId"></param>
+        /// <param name="componentId"></param>
         /// <returns></returns>
-        public bool Equals(uint objectId, int serialId)
+        public bool Equals(uint objectId, int componentId)
         {
-            return this.objectId == objectId && this.serialId == serialId;
+            return this.objectId == objectId && this.componentId == componentId;
         }
     }
 }
