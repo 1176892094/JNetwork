@@ -733,5 +733,7 @@ namespace JFramework.Udp
 
             return true;
         }
+
+        public int Count => receiveQueue.Count + sendQueue.Count + receives.Count + sends.Count;
     }
 }
