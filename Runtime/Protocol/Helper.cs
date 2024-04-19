@@ -78,6 +78,29 @@ namespace JFramework.Udp
             value = result;
             return 4;
         }
+        
+        /// <summary>
+        /// 增加到操作系统限制
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="sendSize"></param>
+        /// <param name="receiveSize"></param>
+        public static void SetBuffer(Socket socket, int sendSize, int receiveSize)
+        {
+            socket.Blocking = false;
+            int sendBuffer = socket.SendBufferSize;
+            int receiveBuffer = socket.ReceiveBufferSize;
+            try
+            {
+                socket.SendBufferSize = sendSize;
+                socket.ReceiveBufferSize = receiveSize;
+            }
+            catch (SocketException)
+            {
+                Log.Info($"发送缓存: {sendSize} => {sendBuffer} : {sendBuffer / sendSize:F}");
+                Log.Info($"接收缓存: {receiveSize} => {receiveBuffer} : {receiveBuffer / receiveSize:F}");
+            }
+        }
 
         /// <summary>
         /// 解析主机地址

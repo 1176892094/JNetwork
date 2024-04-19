@@ -14,43 +14,43 @@ namespace JFramework.Udp
         /// <summary>
         /// 连接客户端字典
         /// </summary>
-        private readonly Dictionary<int, Connection> clients = new Dictionary<int, Connection>();
-        
+        private readonly Dictionary<int, Proxies> clients = new Dictionary<int, Proxies>();
+
         /// <summary>
         /// 移除客户端列表
         /// </summary>
         private readonly HashSet<int> copies = new HashSet<int>();
-        
+
         /// <summary>
         /// 套接字
         /// </summary>
         private Socket socket;
-        
+
         /// <summary>
         /// 终端
         /// </summary>
         private EndPoint endPoint;
-        
+
         /// <summary>
         /// 缓冲区
         /// </summary>
         private readonly byte[] buffer;
-        
+
         /// <summary>
         /// 配置
         /// </summary>
         private readonly Setting setting;
-        
+
         /// <summary>
         /// 当有客户端连接到服务器
         /// </summary>
         private event Action<int> OnConnected;
-        
+
         /// <summary>
         /// 当有客户端从服务器断开
         /// </summary>
         private event Action<int> OnDisconnected;
-        
+
         /// <summary>
         /// 当从客户端收到消息
         /// </summary>
@@ -63,7 +63,8 @@ namespace JFramework.Udp
         /// <param name="OnConnected"></param>
         /// <param name="OnDisconnected"></param>
         /// <param name="OnReceive"></param>
-        public Server(Setting setting, Action<int> OnConnected, Action<int> OnDisconnected, Action<int, ArraySegment<byte>, Channel> OnReceive)
+        public Server(Setting setting, Action<int> OnConnected, Action<int> OnDisconnected,
+            Action<int, ArraySegment<byte>, Channel> OnReceive)
         {
             this.setting = setting;
             this.OnReceive = OnReceive;
@@ -84,7 +85,7 @@ namespace JFramework.Udp
                 Log.Warn("服务器已经连接！");
                 return;
             }
-            
+
             socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
             try
             {
@@ -96,7 +97,7 @@ namespace JFramework.Udp
             }
 
             socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
-            socket.SetBufferSize(setting.sendBufferSize, setting.receiveBufferSize);
+            Helper.SetBuffer(socket, setting.sendBufferSize, setting.receiveBufferSize);
         }
 
         /// <summary>
@@ -132,26 +133,24 @@ namespace JFramework.Udp
             if (socket == null) return false;
             try
             {
-                if (socket.ServerReceive(buffer, out segment, ref endPoint))
-                {
-                    clientId = endPoint.GetHashCode();
-                    return true;
-                }
+                if (!socket.Poll(0, SelectMode.SelectRead)) return false;
+                int size = socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint);
+                segment = new ArraySegment<byte>(buffer, 0, size);
+                return true;
             }
             catch (SocketException e)
             {
                 Log.Error($"服务器接收信息失败！\n{e}");
+                return false;
             }
-
-            return false;
         }
 
         /// <summary>
         /// 指定客户端连接到服务器
         /// </summary>
-        private Connection Connection(int clientId)
+        private Proxies Connection(int clientId)
         {
-            var client = new Connection(endPoint);
+            var client = new Proxies(endPoint);
             var cookie = Helper.GenerateCookie();
             var proxy = new Proxy(setting, cookie, OnAuthority, OnDisconnected, OnSend, OnReceive);
             client.proxy = proxy;
@@ -182,7 +181,10 @@ namespace JFramework.Udp
 
                 try
                 {
-                    socket.ServerSend(segment, connection.endPoint);
+                    if (socket.Poll(0, SelectMode.SelectWrite))
+                    {
+                        socket.SendTo(segment.Array, segment.Offset, segment.Count, SocketFlags.None, connection.endPoint);
+                    }
                 }
                 catch (SocketException e)
                 {

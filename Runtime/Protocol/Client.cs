@@ -14,7 +14,7 @@ namespace JFramework.Udp
         /// 客户端状态
         /// </summary>
         private State state;
-        
+
         /// <summary>
         /// 代理
         /// </summary>
@@ -95,7 +95,7 @@ namespace JFramework.Udp
             endPoint = new IPEndPoint(addresses[0], port);
             Log.Info($"客户端连接到：{addresses[0]} 端口：{port}。");
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-            socket.SetBufferSize(setting.sendBufferSize, setting.receiveBufferSize);
+            Helper.SetBuffer(socket, setting.sendBufferSize, setting.receiveBufferSize);
             socket.Connect(endPoint);
             proxy.Handshake();
         }
@@ -139,7 +139,10 @@ namespace JFramework.Udp
             if (socket == null) return false;
             try
             {
-                return socket.ClientReceive(buffer, out segment);
+                if (!socket.Poll(0, SelectMode.SelectRead)) return false;
+                int size = socket.Receive(buffer, 0, buffer.Length, SocketFlags.None);
+                segment = new ArraySegment<byte>(buffer, 0, size);
+                return true;
             }
             catch (SocketException e)
             {
@@ -178,9 +181,12 @@ namespace JFramework.Udp
             {
                 try
                 {
-                    socket.ClientSend(segment);
+                    if (socket.Poll(0, SelectMode.SelectWrite))
+                    {
+                        socket.Send(segment.Array, segment.Offset, segment.Count, SocketFlags.None);
+                    }
                 }
-                catch (Exception e)
+                catch (SocketException e)
                 {
                     Log.Error($"客户端发送消息失败！\n{e}");
                 }
