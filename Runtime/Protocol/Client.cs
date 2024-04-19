@@ -139,7 +139,7 @@ namespace JFramework.Udp
             if (socket == null) return false;
             try
             {
-                return socket.ReceiveFormServer(buffer, out segment);
+                return socket.ClientReceive(buffer, out segment);
             }
             catch (SocketException e)
             {
@@ -178,7 +178,7 @@ namespace JFramework.Udp
             {
                 try
                 {
-                    socket.SendToServer(segment);
+                    socket.ClientSend(segment);
                 }
                 catch (Exception e)
                 {

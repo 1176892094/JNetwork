@@ -132,7 +132,7 @@ namespace JFramework.Udp
             if (socket == null) return false;
             try
             {
-                if (socket.ReceiveFormClient(buffer, out segment, ref endPoint))
+                if (socket.ServerReceive(buffer, out segment, ref endPoint))
                 {
                     clientId = endPoint.GetHashCode();
                     return true;
@@ -182,7 +182,7 @@ namespace JFramework.Udp
 
                 try
                 {
-                    socket.SendToClient(segment, connection.endPoint);
+                    socket.ServerSend(segment, connection.endPoint);
                 }
                 catch (SocketException e)
                 {

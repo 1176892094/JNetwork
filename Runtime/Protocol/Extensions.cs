@@ -11,7 +11,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 用于在非阻塞模式下将数据发送到指定的Client
         /// </summary>
-        public static bool SendToClient(this Socket socket, ArraySegment<byte> data, EndPoint endPoint)
+        public static bool ServerSend(this Socket socket, ArraySegment<byte> data, EndPoint endPoint)
         {
             try
             {
@@ -37,7 +37,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 用于在非阻塞模式下从已连接的Server接收数据
         /// </summary>
-        public static bool ReceiveFormServer(this Socket socket, byte[] buffer, out ArraySegment<byte> data)
+        public static bool ClientReceive(this Socket socket, byte[] buffer, out ArraySegment<byte> data)
         {
             data = default;
             try
@@ -65,7 +65,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 用于在非阻塞模式下将数据发送到已连接的Server
         /// </summary>
-        public static bool SendToServer(this Socket socket, ArraySegment<byte> data)
+        public static bool ClientSend(this Socket socket, ArraySegment<byte> data)
         {
             try
             {
@@ -91,7 +91,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 用于在非阻塞模式下从指定的Client接收数据
         /// </summary>
-        public static bool ReceiveFormClient(this Socket socket, byte[] buffer, out ArraySegment<byte> data, ref EndPoint endPoint)
+        public static bool ServerReceive(this Socket socket, byte[] buffer, out ArraySegment<byte> data, ref EndPoint endPoint)
         {
             data = default;
             try
