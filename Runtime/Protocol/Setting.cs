@@ -49,12 +49,12 @@ namespace JFramework.Udp
         }
     }
 
-    public struct Packet
+    public struct Message
     {
         public readonly uint sendId;
         public readonly uint sendTime;
 
-        public Packet(uint sendId, uint sendTime)
+        public Message(uint sendId, uint sendTime)
         {
             this.sendId = sendId;
             this.sendTime = sendTime;

@@ -146,7 +146,7 @@ namespace JFramework.Udp
         /// </summary>
         public static int ReliableSize(int maxUnit, uint size)
         {
-            return (maxUnit - METADATA_SIZE - Protocol.OVERHEAD) * (Math.Min((int)size, Protocol.FRG_MAX) - 1) - 1;
+            return (maxUnit - METADATA_SIZE - Protocol.OVERHEAD) * (Math.Min((int)size, byte.MaxValue) - 1) - 1;
         }
 
         /// <summary>

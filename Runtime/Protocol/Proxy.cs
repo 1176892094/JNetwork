@@ -95,8 +95,7 @@ namespace JFramework.Udp
         /// <param name="OnDisconnected"></param>
         /// <param name="OnSend"></param>
         /// <param name="OnReceive"></param>
-        public Proxy(Setting setting, int cookie, Action OnAuthority, Action OnDisconnected, Action<ArraySegment<byte>> OnSend,
-            Action<ArraySegment<byte>, Channel> OnReceive)
+        public Proxy(Setting setting, int cookie, Action OnAuthority, Action OnDisconnected, Action<ArraySegment<byte>> OnSend, Action<ArraySegment<byte>, Channel> OnReceive)
         {
             this.cookie = cookie;
             this.OnSend = OnSend;
