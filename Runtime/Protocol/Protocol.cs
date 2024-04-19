@@ -120,6 +120,10 @@ namespace JFramework.Udp
             return length;
         }
 
+        /// <summary>
+        /// 获取分段长度
+        /// </summary>
+        /// <returns></returns>
         public int GetLength()
         {
             var length = 0;
@@ -224,7 +228,7 @@ namespace JFramework.Udp
             rto = Math.Clamp(newRto, RTO_MIN, RTO_MAX);
         }
 
-        private void InputSendBuffer(uint sendId)
+        private void UpdateSend(uint sendId)
         {
             if (Utility.Compare(sendId, serialId) < 0)
             {
@@ -253,6 +257,10 @@ namespace JFramework.Udp
             }
         }
 
+        /// <summary>
+        /// 设置重传
+        /// </summary>
+        /// <param name="sendId"></param>
         private void Resend(uint sendId)
         {
             if (sendId < serialId)
@@ -355,7 +363,7 @@ namespace JFramework.Udp
                 }
 
                 offset += Utility.Decode32U(data, offset, out var id);
-                if (id != current) return -1;
+                if (current != id) return -1;
                 offset += Utility.Decode8U(data, offset, out var command);
                 offset += Utility.Decode8U(data, offset, out var fragment);
                 offset += Utility.Decode16U(data, offset, out var window);
@@ -401,7 +409,7 @@ namespace JFramework.Udp
                             UpdateRto(Utility.Compare(sinceTime, sendTime));
                         }
 
-                        InputSendBuffer(sendId);
+                        UpdateSend(sendId);
                         serialId = sends.Count > 0 ? sends[0].sendId : nextSendId;
                         if (!isConfirm)
                         {
@@ -481,7 +489,7 @@ namespace JFramework.Udp
 
             return 0;
         }
-        
+
         public void Update(long time)
         {
             sinceTime = (uint)time;
@@ -704,6 +712,10 @@ namespace JFramework.Udp
             }
         }
         
+        /// <summary>
+        /// 设置传输单位和分段大小
+        /// </summary>
+        /// <param name="maxUnit"></param>
         public void SetUnit(uint maxUnit)
         {
             this.maxUnit = Math.Max(maxUnit, 50);
@@ -711,18 +723,32 @@ namespace JFramework.Udp
             segmentSize = maxUnit - OVERHEAD;
         }
 
+        /// <summary>
+        /// 设置重传和间隔
+        /// </summary>
+        /// <param name="interval"></param>
+        /// <param name="resend"></param>
         public void SetResend(uint interval, uint resend)
         {
             this.resend = resend;
             this.interval = Math.Clamp(interval, 10, 5000);
         }
 
+        /// <summary>
+        /// 设置窗口大小
+        /// </summary>
+        /// <param name="sendWindow"></param>
+        /// <param name="receiveWindow"></param>
         public void SetWindow(uint sendWindow, uint receiveWindow)
         {
             this.sendWindow = sendWindow;
             this.receiveWindow = Math.Max(receiveWindow, WIN_RCV);
         }
 
+        /// <summary>
+        /// 处理速度是否快速
+        /// </summary>
+        /// <returns></returns>
         public bool IsQuickly()
         {
             if(receiveQueue.Count + sendQueue.Count + receives.Count + sends.Count > QUEUE_COUNT)
