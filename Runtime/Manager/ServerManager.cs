@@ -361,14 +361,14 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!client.readerPack.ReadEnqueue(segment))
+            if (!client.readerBatch.ReadEnqueue(segment))
             {
                 Debug.LogWarning($"无法将读取消息合批!。断开客户端：{client}");
                 client.Disconnect();
                 return;
             }
 
-            while (!isLoadScene && client.readerPack.ReadDequeue(out var reader, out double remoteTime))
+            while (!isLoadScene && client.readerBatch.ReadDequeue(out var reader, out double remoteTime))
             {
                 if (reader.Residue < NetworkConst.MessageSize)
                 {
@@ -396,9 +396,9 @@ namespace JFramework.Net
                 handle.Invoke(client, reader, channel);
             }
 
-            if (!isLoadScene && client.readerPack.Count > 0)
+            if (!isLoadScene && client.readerBatch.Count > 0)
             {
-                Debug.LogError($"读取器合批之后仍然还有次数残留！残留次数：{client.readerPack.Count}");
+                Debug.LogError($"读取器合批之后仍然还有次数残留！残留次数：{client.readerBatch.Count}");
             }
         }
     }

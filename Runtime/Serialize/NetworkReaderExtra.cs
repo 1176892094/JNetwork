@@ -3,165 +3,168 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-// ReSharper disable All
+
 namespace JFramework.Net
 {
     public static partial class StreamExtensions
     {
         public static byte ReadByte(this NetworkReader reader)
         {
-            return reader.ReadBlittable<byte>();
+            return reader.Deserialize<byte>();
         }
 
         public static sbyte ReadSByte(this NetworkReader reader)
         {
-            return reader.ReadBlittable<sbyte>();
+            return reader.Deserialize<sbyte>();
         }
-        
+
         public static char ReadChar(this NetworkReader reader)
         {
-            return (char)reader.ReadBlittable<ushort>();
+            return (char)reader.Deserialize<ushort>();
         }
 
         public static bool ReadBool(this NetworkReader reader)
         {
-            return reader.ReadBlittable<byte>() != 0;
+            return reader.Deserialize<byte>() != 0;
         }
 
         public static short ReadShort(this NetworkReader reader)
         {
-            return (short)reader.ReadBlittable<short>();
+            return reader.Deserialize<short>();
         }
 
         public static ushort ReadUShort(this NetworkReader reader)
         {
-            return reader.ReadBlittable<ushort>();
+            return reader.Deserialize<ushort>();
         }
-        
+
         public static int ReadInt(this NetworkReader reader)
         {
-            return reader.ReadBlittable<int>();
+            return reader.Deserialize<int>();
         }
 
         public static uint ReadUInt(this NetworkReader reader)
         {
-            return reader.ReadBlittable<uint>();
+            return reader.Deserialize<uint>();
         }
-        
+
         public static long ReadLong(this NetworkReader reader)
         {
-            return reader.ReadBlittable<long>();
+            return reader.Deserialize<long>();
         }
 
         public static ulong ReadULong(this NetworkReader reader)
         {
-            return reader.ReadBlittable<ulong>();
+            return reader.Deserialize<ulong>();
         }
-        
+
         public static float ReadFloat(this NetworkReader reader)
         {
-            return reader.ReadBlittable<float>();
+            return reader.Deserialize<float>();
         }
-        
+
         public static double ReadDouble(this NetworkReader reader)
         {
-            return reader.ReadBlittable<double>();
+            return reader.Deserialize<double>();
         }
-        
+
         public static decimal ReadDecimal(this NetworkReader reader)
         {
-            return reader.ReadBlittable<decimal>();
+            return reader.Deserialize<decimal>();
         }
 
         public static string ReadString(this NetworkReader reader)
         {
-            ushort size = reader.ReadUShort();
-            if (size == 0) return null;
-            ushort realSize = (ushort)(size - 1);
-
-            if (realSize > NetworkConst.MaxStringLength)
+            var size = reader.ReadUShort();
+            if (size == 0)
             {
-                throw new EndOfStreamException($"String value too long: {realSize} > {NetworkConst.MaxStringLength}");
+                return null;
             }
 
-            ArraySegment<byte> data = reader.ReadArraySegmentInternal(realSize);
-            return reader.encoding.GetString(data.Array, data.Offset, data.Count);
+            size = (ushort)(size - 1);
+            if (size > NetworkConst.MaxStringLength)
+            {
+                throw new EndOfStreamException("读取字符串过长!");
+            }
+
+            var segment = reader.ReadArraySegmentInternal(size);
+            return reader.encoding.GetString(segment.Array, segment.Offset, segment.Count);
         }
-        
+
         public static ArraySegment<byte> ReadArraySegment(this NetworkReader reader)
         {
-            uint count = reader.ReadUInt();
-            return count == 0 ? default : reader.ReadArraySegmentInternal(checked((int)(count - 1u)));
+            var count = reader.ReadUInt();
+            return count == 0 ? default : reader.ReadArraySegmentInternal(checked((int)(count - 1)));
         }
-        
+
         public static byte[] ReadBytes(this NetworkReader reader)
         {
-            uint count = reader.ReadUInt();
-            return count == 0 ? null : reader.ReadBytes(checked((int)(count - 1u)));
+            var count = reader.ReadUInt();
+            return count == 0 ? null : reader.ReadBytes(checked((int)(count - 1)));
         }
 
         public static byte[] ReadBytes(this NetworkReader reader, int count)
         {
-            byte[] bytes = new byte[count];
+            var bytes = new byte[count];
             reader.ReadBytesInternal(bytes, count);
             return bytes;
         }
 
         public static Vector2 ReadVector2(this NetworkReader reader)
         {
-            return reader.ReadBlittable<Vector2>();
+            return reader.Deserialize<Vector2>();
         }
-        
+
         public static Vector3 ReadVector3(this NetworkReader reader)
         {
-            return reader.ReadBlittable<Vector3>();
+            return reader.Deserialize<Vector3>();
         }
-        
+
         public static Vector3? ReadVector3Nullable(this NetworkReader reader)
         {
-            return reader.ReadBlittableNullable<Vector3>();
+            return reader.DeserializeNone<Vector3>();
         }
 
         public static Vector4 ReadVector4(this NetworkReader reader)
         {
-            return reader.ReadBlittable<Vector4>();
+            return reader.Deserialize<Vector4>();
         }
-        
+
         public static Vector2Int ReadVector2Int(this NetworkReader reader)
         {
-            return reader.ReadBlittable<Vector2Int>();
+            return reader.Deserialize<Vector2Int>();
         }
-        
+
         public static Vector3Int ReadVector3Int(this NetworkReader reader)
         {
-            return reader.ReadBlittable<Vector3Int>();
+            return reader.Deserialize<Vector3Int>();
         }
-        
+
         public static Color ReadColor(this NetworkReader reader)
         {
-            return reader.ReadBlittable<Color>();
+            return reader.Deserialize<Color>();
         }
 
         public static Color32 ReadColor32(this NetworkReader reader)
         {
-            return reader.ReadBlittable<Color32>();
+            return reader.Deserialize<Color32>();
         }
-        
+
         public static Quaternion ReadQuaternion(this NetworkReader reader)
         {
-            return reader.ReadBlittable<Quaternion>();
+            return reader.Deserialize<Quaternion>();
         }
-        
+
         public static Quaternion? ReadQuaternionNullable(this NetworkReader reader)
         {
-            return reader.ReadBlittableNullable<Quaternion>();
+            return reader.DeserializeNone<Quaternion>();
         }
 
         public static Rect ReadRect(this NetworkReader reader)
         {
             return new Rect(reader.ReadVector2(), reader.ReadVector2());
         }
-        
+
         public static Plane ReadPlane(this NetworkReader reader)
         {
             return new Plane(reader.ReadVector3(), reader.ReadFloat());
@@ -174,9 +177,9 @@ namespace JFramework.Net
 
         public static Matrix4x4 ReadMatrix4x4(this NetworkReader reader)
         {
-            return reader.ReadBlittable<Matrix4x4>();
+            return reader.Deserialize<Matrix4x4>();
         }
-        
+
         public static Guid ReadGuid(this NetworkReader reader)
         {
             if (reader.Residue >= 16)
@@ -185,23 +188,27 @@ namespace JFramework.Net
                 reader.position += 16;
                 return new Guid(span);
             }
-            throw new EndOfStreamException($"ReadGuid out of range: {reader}");
+
+            throw new EndOfStreamException($"读取器剩余容量不够!{reader}");
         }
-   
+
         public static NetworkObject ReadNetworkObject(this NetworkReader reader)
         {
-            uint netId = reader.ReadUInt();
-            if (netId == 0) return null;
-            return NetworkUtils.GetNetworkObject(netId);
+            var id = reader.ReadUInt();
+            return id == 0 ? null : NetworkUtils.GetNetworkObject(id);
         }
 
         public static NetworkBehaviour ReadNetworkBehaviour(this NetworkReader reader)
         {
-            uint netId = reader.ReadUInt();
-            if (netId == 0) return null;
-            byte componentIndex = reader.ReadByte();
-            NetworkObject @object = NetworkUtils.GetNetworkObject(netId);
-            return @object != null ? @object.entities[componentIndex] : null;
+            uint id = reader.ReadUInt();
+            if (id == 0)
+            {
+                return null;
+            }
+
+            var component = reader.ReadByte();
+            var @object = NetworkUtils.GetNetworkObject(id);
+            return @object != null ? @object.entities[component] : null;
         }
 
         public static T ReadNetworkBehaviour<T>(this NetworkReader reader) where T : NetworkBehaviour
@@ -211,78 +218,87 @@ namespace JFramework.Net
 
         public static NetworkValue ReadNetworkValue(this NetworkReader reader)
         {
-            uint netId = reader.ReadUInt();
-            byte componentIndex = default;
-            if (netId != 0)
+            var id = reader.ReadUInt();
+            byte component = 0;
+            if (id != 0)
             {
-                componentIndex = reader.ReadByte();
+                component = reader.ReadByte();
             }
 
-            return new NetworkValue(netId, componentIndex);
+            return new NetworkValue(id, component);
         }
 
         public static Transform ReadTransform(this NetworkReader reader)
         {
-            NetworkObject @object = reader.ReadNetworkObject();
+            var @object = reader.ReadNetworkObject();
             return @object != null ? @object.transform : null;
         }
 
         public static GameObject ReadGameObject(this NetworkReader reader)
         {
-            NetworkObject @object = reader.ReadNetworkObject();
+            var @object = reader.ReadNetworkObject();
             return @object != null ? @object.gameObject : null;
         }
-        
+
         public static List<T> ReadList<T>(this NetworkReader reader)
         {
             int length = reader.ReadInt();
-            if (length < 0) return null;
-            List<T> result = new List<T>(length);
+            if (length < 0)
+            {
+                return null;
+            }
+
+            var result = new List<T>(length);
             for (int i = 0; i < length; i++)
             {
                 result.Add(reader.Read<T>());
             }
+
             return result;
         }
 
         public static T[] ReadArray<T>(this NetworkReader reader)
         {
             int length = reader.ReadInt();
-            if (length < 0) return null;
-            if (length > reader.Residue)
+            if (length < 0)
             {
-                throw new EndOfStreamException($"Received array that is too large: {length}");
+                return null;
             }
 
-            T[] result = new T[length];
+            var result = new T[length];
             for (int i = 0; i < length; i++)
             {
                 result[i] = reader.Read<T>();
             }
+
             return result;
         }
 
         public static Uri ReadUri(this NetworkReader reader)
         {
-            string uriString = reader.ReadString();
-            return (string.IsNullOrWhiteSpace(uriString) ? null : new Uri(uriString));
+            string uri = reader.ReadString();
+            return string.IsNullOrWhiteSpace(uri) ? null : new Uri(uri);
         }
 
         public static Texture2D ReadTexture2D(this NetworkReader reader)
         {
-            short width = reader.ReadShort();
-            if (width == -1) return null;
-            short height = reader.ReadShort();
-            Texture2D texture2D = new Texture2D(width, height);
-            Color32[] pixels = reader.ReadArray<Color32>();
-            texture2D.SetPixels32(pixels);
-            texture2D.Apply();
-            return texture2D;
+            var width = reader.ReadShort();
+            if (width == -1)
+            {
+                return null;
+            }
+
+            var height = reader.ReadShort();
+            var texture = new Texture2D(width, height);
+            var pixels = reader.ReadArray<Color32>();
+            texture.SetPixels32(pixels);
+            texture.Apply();
+            return texture;
         }
 
         public static Sprite ReadSprite(this NetworkReader reader)
         {
-            Texture2D texture = reader.ReadTexture2D();
+            var texture = reader.ReadTexture2D();
             return texture == null ? null : Sprite.Create(texture, reader.ReadRect(), reader.ReadVector2());
         }
 

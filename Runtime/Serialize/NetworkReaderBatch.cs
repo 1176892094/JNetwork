@@ -4,7 +4,7 @@ using Sirenix.OdinInspector;
 
 namespace JFramework.Net
 {
-    internal class NetworkReaderPack
+    internal class NetworkReaderBatch
     {
         /// <summary>
         /// 批处理队列
@@ -65,7 +65,7 @@ namespace JFramework.Net
                 return false;
             }
 
-            if (this.reader.Capacity == 0)
+            if (this.reader.buffer.Count == 0)
             {
                 remoteTime = 0;
                 return false;
@@ -99,7 +99,7 @@ namespace JFramework.Net
         /// <param name="writer"></param>
         private void CopyToReader(NetworkWriter writer)
         {
-            reader.SetBuffer(writer.ToArraySegment());
+            reader.Reset(writer.ToArraySegment());
             remoteTime = reader.ReadDouble();
         }
     }

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    internal class NetworkWriterPack
+    internal class NetworkWriterBatch
     {
         /// <summary>
         /// 批处理队列
@@ -26,7 +26,7 @@ namespace JFramework.Net
         /// 设置阈值
         /// </summary>
         /// <param name="threshold">传入阈值</param>
-        public NetworkWriterPack(int threshold) => this.threshold = threshold;
+        public NetworkWriterBatch(int threshold) => this.threshold = threshold;
 
         /// <summary>
         /// 添加到队列末尾并写入数据

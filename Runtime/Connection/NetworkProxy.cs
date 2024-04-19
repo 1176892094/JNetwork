@@ -14,7 +14,7 @@ namespace JFramework.Net
         /// <summary>
         /// 存储不同传输通道写入的网络信息
         /// </summary>
-        private readonly Dictionary<Channel, NetworkWriterPack> writerPacks = new Dictionary<Channel, NetworkWriterPack>();
+        private readonly Dictionary<Channel, NetworkWriterBatch> writerPacks = new Dictionary<Channel, NetworkWriterBatch>();
         
         /// <summary>
         /// 快照存储字典
@@ -24,7 +24,7 @@ namespace JFramework.Net
         /// <summary>
         /// 网络消息读取并分包
         /// </summary>
-        internal readonly NetworkReaderPack readerPack = new NetworkReaderPack();
+        internal readonly NetworkReaderBatch readerBatch = new NetworkReaderBatch();
 
         /// <summary>
         /// 是否准备好可以接收信息
@@ -118,11 +118,11 @@ namespace JFramework.Net
         /// <param name="channel"></param>
         /// <returns>返回一个发送类</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal NetworkWriterPack GetWriterPack(Channel channel)
+        internal NetworkWriterBatch GetWriterPack(Channel channel)
         {
             if (writerPacks.TryGetValue(channel, out var writerPack)) return writerPack;
             var threshold = NetworkManager.Transport.UnreliableSize();
-            return writerPacks[channel] = new NetworkWriterPack(threshold);
+            return writerPacks[channel] = new NetworkWriterBatch(threshold);
         }
         
         /// <summary>

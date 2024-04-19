@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-// ReSharper disable All
 
 namespace JFramework.Net
 {
@@ -31,11 +30,34 @@ namespace JFramework.Net
         [SerializeField] internal byte[] buffer = new byte[1500];
         
         /// <summary>
-        /// 重置位置
+        /// 将Blittable的数据进行内存拷贝
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Reset() => position = 0;
-
+        internal unsafe void Serialize<T>(T value) where T : unmanaged
+        {
+            EnsureCapacity(position + sizeof(T));
+            fixed (byte* ptr = &buffer[position])
+            {
+#if UNITY_ANDROID
+                T* valueBuffer = stackalloc T[1] { value };
+                UnsafeUtility.MemCpy(ptr, valueBuffer, sizeof(T));
+#else
+                *(T*)ptr = value;
+#endif
+            }
+            position += sizeof(T);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void SerializeNone<T>(T? value) where T : unmanaged
+        {
+            Serialize((byte)(value.HasValue ? 0x01 : 0x00));
+            if (value.HasValue)
+            {
+                Serialize(value.Value);
+            }
+        }
+        
         /// <summary>
         /// 确保容量
         /// </summary>
@@ -66,7 +88,7 @@ namespace JFramework.Net
         /// <returns>返回数组分片</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ArraySegment<byte> ToArraySegment() => new ArraySegment<byte>(buffer, 0, position);
-
+        
         /// <summary>
         /// 将writer直接转化成数组分片
         /// </summary>
@@ -74,44 +96,6 @@ namespace JFramework.Net
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ArraySegment<byte>(NetworkWriter writer) => writer.ToArraySegment();
-        
-        /// <summary>
-        /// 将Blittable的数据进行内存拷贝
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal unsafe void WriteBlittable<T>(T value) where T : unmanaged
-        {
-#if UNITY_EDITOR
-            if (!UnsafeUtility.IsBlittable(typeof(T)))
-            {
-                Debug.LogError($"{typeof(T)} is not blittable!");
-                return;
-            }
-#endif
-            int size = sizeof(T);
-            EnsureCapacity(position + size);
-            
-            fixed (byte* ptr = &buffer[position])
-            {
-#if UNITY_ANDROID
-                T* valueBuffer = stackalloc T[1]{value};
-                UnsafeUtility.MemCpy(ptr, valueBuffer, size);
-#else
-                *(T*)ptr = value;
-#endif
-            }
-            position += size;
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void WriteBlittableNullable<T>(T? value) where T : unmanaged
-        {
-            WriteBlittable((byte)(value.HasValue ? 0x01 : 0x00));
-            if (value.HasValue)
-            {
-                WriteBlittable(value.Value);
-            }
-        }
 
         /// <summary>
         /// 写入Byte数组
@@ -131,22 +115,26 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T value)
         {
-            // if (typeof(T) != typeof(SnapshotMessage) && typeof(T) != typeof(PingMessage) && typeof(T) != typeof(PongMessage))
-            // {
-            //     Debug.Log("Writer: ".Color(0x00FFFF) + typeof(T).Name.Color(0xFFFF00));
-            // }
-        
-            Action<NetworkWriter, T> writeDelegate = Writer<T>.write;
-            if (writeDelegate == null)
+            var writer = Writer<T>.write;
+            if (writer == null)
             {
                 Debug.LogError($"无法获取写入器。写入器类型：{typeof(T)}");
             }
             else
             {
-                writeDelegate(this, value);
+                writer(this, value);
             }
         }
         
+        /// <summary>
+        /// 重置位置
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Reset()
+        {
+            position = 0;
+        }
+
         /// <summary>
         /// 对象池取出对象
         /// </summary>
@@ -164,8 +152,11 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="writer">传入NetworkWriter类</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Push(NetworkWriter writer) => StreamPool.Push(writer);
-        
+        public static void Push(NetworkWriter writer)
+        {
+            StreamPool.Push(writer);
+        }
+
         /// <summary>
         /// 重写字符串转化方法
         /// </summary>
@@ -179,6 +170,9 @@ namespace JFramework.Net
         /// <summary>
         /// 使用using来释放
         /// </summary>
-        public void Dispose() => Push(this);
+        public void Dispose()
+        {
+            Push(this);
+        }
     }
 }

@@ -1,11 +1,9 @@
 using System;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
-// ReSharper disable All
 namespace JFramework.Net
 {
     public static class Reader<T>
@@ -22,80 +20,39 @@ namespace JFramework.Net
         internal readonly UTF8Encoding encoding = new UTF8Encoding(false, true);
 
         /// <summary>
-        /// 缓存的字节数组
-        /// </summary>
-        [SerializeField] internal ArraySegment<byte> buffer;
-
-        /// <summary>
         /// 当前字节数组中的位置
         /// </summary>
         public int position;
 
         /// <summary>
+        /// 缓存的字节数组
+        /// </summary>
+        [SerializeField] internal ArraySegment<byte> buffer = new ArraySegment<byte>();
+        
+        /// <summary>
         /// 剩余长度
         /// </summary>
         public int Residue => buffer.Count - position;
-
-        /// <summary>
-        /// 当前容量
-        /// </summary>
-        public int Capacity => buffer.Count;
-
-        /// <summary>
-        /// 使buffer不为空
-        /// </summary>
-        public NetworkReader() => buffer = new ArraySegment<byte>();
-
-        /// <summary>
-        /// 拷贝ArraySegment到缓存中
-        /// </summary>
-        /// <param name="segment"></param>
-        public NetworkReader(ArraySegment<byte> segment) => buffer = segment;
-
-        /// <summary>
-        /// 设置缓存数组
-        /// </summary>
-        /// <param name="segment"></param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetBuffer(ArraySegment<byte> segment)
-        {
-            buffer = segment;
-            position = 0;
-        }
-
+        
         /// <summary>
         /// 将Blittable的数据进行内存拷贝
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal unsafe T ReadBlittable<T>() where T : unmanaged
+        internal unsafe T Deserialize<T>() where T : unmanaged
         {
-#if UNITY_EDITOR
-            if (!UnsafeUtility.IsBlittable(typeof(T)))
-            {
-                throw new ArgumentException($"{typeof(T)} is not blittable!");
-            }
-#endif
-
-            int size = sizeof(T);
-
-            if (Residue < size)
-            {
-                throw new EndOfStreamException($"ReadBlittable<{typeof(T)}> not enough data in buffer to read {size} bytes: {ToString()}");
-            }
-
             T value;
             fixed (byte* ptr = &buffer.Array[buffer.Offset + position])
             {
 #if UNITY_ANDROID
                 T* valueBuffer = stackalloc T[1];
-                UnsafeUtility.MemCpy(valueBuffer, ptr, size);
+                UnsafeUtility.MemCpy(valueBuffer, ptr, sizeof(T));
                 value = valueBuffer[0];
 #else
                 value = *(T*)ptr;
 #endif
             }
 
-            position += size;
+            position += sizeof(T);
             return value;
         }
 
@@ -105,7 +62,10 @@ namespace JFramework.Net
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal T? ReadBlittableNullable<T>() where T : unmanaged => ReadBlittable<byte>() != 0 ? ReadBlittable<T>() : default(T?);
+        internal T? DeserializeNone<T>() where T : unmanaged
+        {
+            return Deserialize<byte>() != 0 ? Deserialize<T>() : default(T?);
+        }
 
         /// <summary>
         /// 内部的读取byte[]数组方法
@@ -117,17 +77,17 @@ namespace JFramework.Net
         {
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException("ReadBytes requires count >= 0");
+                Debug.LogError("传入长度需要大于0!");
             }
 
             if (count > bytes.Length)
             {
-                throw new EndOfStreamException($"Can't read {count} > {bytes.Length} length.");
+                Debug.LogError("长度不能大于数组大小!");
             }
 
             if (Residue < count)
             {
-                throw new EndOfStreamException($"Can't read {count} bytes because it's the end. {ToString()}");
+                Debug.LogError($"读取器剩余容量不够!{ToString()}");
             }
 
             Array.Copy(buffer.Array, buffer.Offset + position, bytes, 0, count);
@@ -144,17 +104,17 @@ namespace JFramework.Net
         {
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException("ArraySegment requires count >= 0");
+                Debug.LogError("传入长度需要大于0!");
             }
 
             if (Residue < count)
             {
-                throw new EndOfStreamException($"Can't read {count} bytes because it's the end. {ToString()}");
+                Debug.LogError($"读取器剩余容量不够!{ToString()}");
             }
 
-            ArraySegment<byte> result = new ArraySegment<byte>(buffer.Array, buffer.Offset + position, count);
+            var segment = new ArraySegment<byte>(buffer.Array, buffer.Offset + position, count);
             position += count;
-            return result;
+            return segment;
         }
 
         /// <summary>
@@ -165,19 +125,25 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Read<T>()
         {
-            // if (typeof(T) != typeof(SnapshotMessage) && typeof(T) != typeof(PingMessage) && typeof(T) != typeof(PongMessage))
-            // {
-            //     Debug.Log("Reader: ".Color(0x00FFFF) + typeof(T).Name.Color(0xFFFF00));
-            // }
-
-            Func<NetworkReader, T> readerDelegate = Reader<T>.read;
-            if (readerDelegate == null)
+            var reader = Reader<T>.read;
+            if (reader == null)
             {
                 Debug.LogError($"无法获取读取器。读取器类型：{typeof(T)}.");
                 return default;
             }
 
-            return readerDelegate(this);
+            return reader(this);
+        }
+        
+        /// <summary>
+        /// 设置缓存数组
+        /// </summary>
+        /// <param name="segment"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Reset(ArraySegment<byte> segment)
+        {
+            buffer = segment;
+            position = 0;
         }
 
         /// <summary>
@@ -189,7 +155,7 @@ namespace JFramework.Net
         public static NetworkReader Pop(ArraySegment<byte> segment)
         {
             var reader = StreamPool.Pop<NetworkReader>();
-            reader.SetBuffer(segment);
+            reader.Reset(segment);
             return reader;
         }
 
@@ -198,7 +164,10 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="reader">传入NetworkReader</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Push(NetworkReader reader) => StreamPool.Push(reader);
+        public static void Push(NetworkReader reader)
+        {
+            StreamPool.Push(reader);
+        }
 
         /// <summary>
         /// 重写字符串转化方法
@@ -206,12 +175,15 @@ namespace JFramework.Net
         /// <returns></returns>
         public override string ToString()
         {
-            return buffer.Array != null ? BitConverter.ToString(buffer.Array, buffer.Offset, buffer.Count) : null;
+            return BitConverter.ToString(buffer.Array, buffer.Offset, buffer.Count);
         }
 
         /// <summary>
         /// 使用using来释放
         /// </summary>
-        public void Dispose() => Push(this);
+        public void Dispose()
+        {
+            Push(this);
+        }
     }
 }
