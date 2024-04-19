@@ -119,6 +119,17 @@ namespace JFramework.Udp
                 return false;
             }
         }
+        
+        /// <summary>
+        /// 时间差
+        /// </summary>
+        /// <param name="later"></param>
+        /// <param name="earlier"></param>
+        /// <returns></returns>
+        internal static int Subtract(uint later, uint earlier)
+        {
+            return (int)(later - earlier);
+        }
 
         /// <summary>
         /// 生成缓存文件

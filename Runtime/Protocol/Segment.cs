@@ -15,7 +15,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 会话Id
         /// </summary>
-        public uint conversation;
+        public uint id;
 
         /// <summary>
         /// 命令
@@ -30,42 +30,42 @@ namespace JFramework.Udp
         /// <summary>
         /// 接收方当前可以接收的窗口大小
         /// </summary>
-        public uint windowSize;
-
-        /// <summary>
-        /// 时间戳
-        /// </summary>
-        public uint timestamp;
+        public uint window;
 
         /// <summary>
         /// 序列号
         /// </summary>
-        public uint serialNumber;
-
+        public uint sendId;
+        
         /// <summary>
-        /// 未确认的序列号
+        /// 时间戳
         /// </summary>
-        public uint unAcknowledge;
-
-        /// <summary>
-        /// 重传时间戳
-        /// </summary>
-        public uint resendTimestamp;
+        public uint sendTime;
 
         /// <summary>
         /// 快速重传的序列号
         /// </summary>
-        public uint fastAcknowledge;
+        public uint resendId;
+        
+        /// <summary>
+        /// 重传时间戳
+        /// </summary>
+        public uint resendTime;
 
         /// <summary>
         /// 重传计数
         /// </summary>
-        public uint retransmitCount;
+        public uint resendCount;
+        
+        /// <summary>
+        /// 未确认的序列号
+        /// </summary>
+        public uint receiveId;
 
         /// <summary>
         /// 超时重传
         /// </summary>
-        public int retransmitTimeout;
+        public int failure;
 
         /// <summary>
         /// 编码
@@ -76,13 +76,13 @@ namespace JFramework.Udp
         public int Encode(byte[] ptr, int offset)
         {
             int previousPosition = offset;
-            offset += Utility.Encode32U(ptr, offset, conversation);
+            offset += Utility.Encode32U(ptr, offset, id);
             offset += Utility.Encode8U(ptr, offset, (byte)command);
             offset += Utility.Encode8U(ptr, offset, (byte)fragment);
-            offset += Utility.Encode16U(ptr, offset, (ushort)windowSize);
-            offset += Utility.Encode32U(ptr, offset, timestamp);
-            offset += Utility.Encode32U(ptr, offset, serialNumber);
-            offset += Utility.Encode32U(ptr, offset, unAcknowledge);
+            offset += Utility.Encode16U(ptr, offset, (ushort)window);
+            offset += Utility.Encode32U(ptr, offset, sendTime);
+            offset += Utility.Encode32U(ptr, offset, sendId);
+            offset += Utility.Encode32U(ptr, offset, receiveId);
             offset += Utility.Encode32U(ptr, offset, (uint)stream.Position);
             return offset - previousPosition;
         }
@@ -92,17 +92,17 @@ namespace JFramework.Udp
         /// </summary>
         public void Reset()
         {
-            conversation = 0;
+            id = 0;
             command = 0;
             fragment = 0;
-            windowSize = 0;
-            timestamp = 0;
-            serialNumber = 0;
-            unAcknowledge = 0;
-            retransmitTimeout = 0;
-            retransmitCount = 0;
-            resendTimestamp = 0;
-            fastAcknowledge = 0;
+            window = 0;
+            sendTime = 0;
+            sendId = 0;
+            receiveId = 0;
+            failure = 0;
+            resendCount = 0;
+            resendTime = 0;
+            resendId = 0;
             stream.SetLength(0);
         }
     }

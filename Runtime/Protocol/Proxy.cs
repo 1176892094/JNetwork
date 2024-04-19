@@ -2,8 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 
-// ReSharper disable All
-
 namespace JFramework.Udp
 {
     internal sealed partial class Proxy
@@ -16,12 +14,12 @@ namespace JFramework.Udp
         /// <summary>
         /// 上一次发送Ping的时间
         /// </summary>
-        private uint lastPingTime;
+        private uint interval;
 
         /// <summary>
         /// 上一次接收消息的时间
         /// </summary>
-        private uint lastReceiveTime;
+        private uint received;
 
         /// <summary>
         /// 可靠Udp协议
@@ -39,34 +37,29 @@ namespace JFramework.Udp
         private readonly int timeout;
 
         /// <summary>
-        /// 可靠消息大小
-        /// </summary>
-        private readonly int reliableSize;
-
-        /// <summary>
         /// 不可靠消息大小
         /// </summary>
-        private readonly int unreliableSize;
+        private readonly int unreliable;
 
         /// <summary>
-        /// 消息缓冲区
+        /// 直连缓冲区
         /// </summary>
-        private readonly byte[] messageBuffer;
+        private readonly byte[] buffer;
 
         /// <summary>
-        /// 发送协议缓冲区
+        /// 可靠缓冲区
         /// </summary>
-        private readonly byte[] udpBuffer;
+        private readonly byte[] fixedBuffer;
 
         /// <summary>
-        /// 低等级发送缓存区
+        /// 接收缓冲区
         /// </summary>
-        private readonly byte[] rawBuffer;
+        private readonly byte[] receiveBuffer;
 
         /// <summary>
         /// 接收的缓存Id
         /// </summary>
-        private readonly byte[] receiveCookie = new byte[4];
+        private readonly byte[] cookieBuffer = new byte[4];
 
         /// <summary>
         /// 计时器
@@ -115,11 +108,10 @@ namespace JFramework.Udp
             protocol.SetUnit((uint)setting.maxUnit - Utility.METADATA_SIZE);
             protocol.SetResend(setting.interval, setting.resend);
             protocol.SetWindow(setting.sendSize, setting.receiveSize);
-            reliableSize = Utility.ReliableSize(setting.maxUnit, setting.receiveSize);
-            unreliableSize = Utility.UnreliableSize(setting.maxUnit);
-            messageBuffer = new byte[reliableSize + 1];
-            udpBuffer = new byte[reliableSize + 1];
-            rawBuffer = new byte[setting.maxUnit];
+            unreliable = Utility.UnreliableSize(setting.maxUnit);
+            receiveBuffer = new byte[Utility.ReliableSize(setting.maxUnit, setting.receiveSize) + 1];
+            fixedBuffer = new byte[Utility.ReliableSize(setting.maxUnit, setting.receiveSize) + 1];
+            buffer = new byte[setting.maxUnit];
             watch.Start();
         }
 
@@ -153,19 +145,19 @@ namespace JFramework.Udp
         /// <param name="segment"></param>
         private void SendReliable(Header header, ArraySegment<byte> segment)
         {
-            if (udpBuffer.Length < segment.Count + 1) // 减去消息头
+            if (fixedBuffer.Length < segment.Count + 1) // 减去消息头
             {
                 Log.Error($"P2P发送可靠消息失败。消息大小：{segment.Count}");
                 return;
             }
 
-            udpBuffer[0] = (byte)header; // 设置缓冲区的头部
+            fixedBuffer[0] = (byte)header; // 设置缓冲区的头部
             if (segment.Count > 0)
             {
-                Buffer.BlockCopy(segment.Array, segment.Offset, udpBuffer, 1, segment.Count);
+                Buffer.BlockCopy(segment.Array, segment.Offset, fixedBuffer, 1, segment.Count);
             }
 
-            if (protocol.Send(udpBuffer, 0, segment.Count + 1) < 0) // 加入到发送队列
+            if (protocol.Send(fixedBuffer, 0, segment.Count + 1) < 0) // 加入到发送队列
             {
                 Log.Error($"P2P发送可靠消息失败。消息大小：{segment.Count}。");
             }
@@ -176,10 +168,10 @@ namespace JFramework.Udp
         /// </summary>
         private void SendReliable(byte[] message, int length)
         {
-            rawBuffer[0] = (byte)Channel.Reliable; // 消息通道
-            Buffer.BlockCopy(receiveCookie, 0, rawBuffer, 1, 4); // 消息发送者
-            Buffer.BlockCopy(message, 0, rawBuffer, 1 + 4, length); // 消息内容
-            OnSend.Invoke(new ArraySegment<byte>(rawBuffer, 0, length + 1 + 4));
+            buffer[0] = (byte)Channel.Reliable; // 消息通道
+            Buffer.BlockCopy(cookieBuffer, 0, buffer, 1, 4); // 消息发送者
+            Buffer.BlockCopy(message, 0, buffer, 1 + 4, length); // 消息内容
+            OnSend?.Invoke(new ArraySegment<byte>(buffer, 0, length + 1 + 4));
         }
 
         /// <summary>
@@ -187,16 +179,16 @@ namespace JFramework.Udp
         /// </summary>
         private void SendUnreliable(ArraySegment<byte> segment)
         {
-            if (segment.Count > unreliableSize)
+            if (segment.Count > unreliable)
             {
                 Log.Error($"P2P发送不可靠消息失败。消息大小：{segment.Count}");
                 return;
             }
 
-            rawBuffer[0] = (byte)Channel.Unreliable;
-            Buffer.BlockCopy(receiveCookie, 0, rawBuffer, 1, 4);
-            Buffer.BlockCopy(segment.Array, segment.Offset, rawBuffer, 1 + 4, segment.Count);
-            OnSend.Invoke(new ArraySegment<byte>(rawBuffer, 0, segment.Count + 1 + 4));
+            buffer[0] = (byte)Channel.Unreliable; // 消息通道
+            Buffer.BlockCopy(cookieBuffer, 0, buffer, 1, 4);
+            Buffer.BlockCopy(segment.Array, segment.Offset, buffer, 1 + 4, segment.Count);
+            OnSend?.Invoke(new ArraySegment<byte>(buffer, 0, segment.Count + 1 + 4));
         }
 
         /// <summary>
@@ -209,30 +201,29 @@ namespace JFramework.Udp
         {
             segment = default;
             header = Header.Disconnect;
-            int messageSize = protocol.GetLength();
-            if (messageSize <= 0)
+            var length = protocol.GetLength();
+            if (length <= 0)
             {
                 return false;
             }
 
-            if (messageSize > messageBuffer.Length)
+            if (length > receiveBuffer.Length)
             {
-                Log.Error($"P2P消息长度不能超过{messageBuffer.Length}。消息大小：{messageSize}");
+                Log.Error($"P2P消息长度不能超过{receiveBuffer.Length}。消息大小：{length}");
                 Disconnect();
                 return false;
             }
 
-            int received = protocol.Receive(messageBuffer, messageSize);
-            if (received < 0)
+            if (protocol.Receive(receiveBuffer) < 0)
             {
-                Log.Error($"P2P接收消息失败。消息类型：{received}");
+                Log.Error($"P2P接收消息失败。");
                 Disconnect();
                 return false;
             }
 
-            header = (Header)messageBuffer[0];
-            segment = new ArraySegment<byte>(messageBuffer, 1, messageSize - 1);
-            lastReceiveTime = (uint)watch.ElapsedMilliseconds;
+            header = (Header)receiveBuffer[0];
+            segment = new ArraySegment<byte>(receiveBuffer, 1, length - 1);
+            received = (uint)watch.ElapsedMilliseconds;
             return true;
         }
 
@@ -273,9 +264,14 @@ namespace JFramework.Udp
         /// <param name="segment"></param>
         public void Input(ArraySegment<byte> segment)
         {
-            if (segment.Count <= 5) return;
-            var channel = segment.Array[segment.Offset];
-            var newCookie = BitConverter.ToUInt32(segment.Array, segment.Offset + 1);
+            if (segment.Count <= 1 + 4)
+            {
+                Log.Warn($"P2P输入的消息缺少 消息头 或者 发送者");
+                return;
+            }
+
+            var channel = (Channel)segment.Array[segment.Offset]; // 消息头
+            var newCookie = BitConverter.ToUInt32(segment.Array, segment.Offset + 1); // 发送者
 
             if (state == State.Authority && newCookie != cookie)
             {
@@ -287,19 +283,18 @@ namespace JFramework.Udp
 
             switch (channel)
             {
-                case (byte)Channel.Reliable:
-                    int input = protocol.Input(message.Array, message.Offset, message.Count);
-                    if (input != 0)
+                case Channel.Reliable:
+                    if (protocol.Input(message.Array, message.Offset, message.Count) != 0)
                     {
-                        Log.Warn($"P2P输入消息失败。错误代码：{input}。消息大小：{message.Count - 1}");
+                        Log.Warn($"P2P输入消息失败。消息大小：{message.Count - 1}");
                     }
 
                     break;
-                case (byte)Channel.Unreliable:
+                case Channel.Unreliable:
                     if (state == State.Authority)
                     {
                         OnReceive?.Invoke(message, Channel.Unreliable);
-                        lastReceiveTime = (uint)watch.ElapsedMilliseconds;
+                        received = (uint)watch.ElapsedMilliseconds;
                     }
 
                     break;
@@ -382,7 +377,7 @@ namespace JFramework.Udp
                             return;
                         }
 
-                        Buffer.BlockCopy(segment.Array, segment.Offset, receiveCookie, 0, 4);
+                        Buffer.BlockCopy(segment.Array, segment.Offset, cookieBuffer, 0, 4);
                         var prettyCookie = BitConverter.ToUInt32(segment.Array, segment.Offset);
                         Log.Info($"接收到握手消息。签名缓存：{prettyCookie}");
                         state = State.Authority;
@@ -428,7 +423,7 @@ namespace JFramework.Udp
 
         private void OnEarlyUpdate(uint time)
         {
-            if (time >= lastReceiveTime + timeout)
+            if (time >= received + timeout)
             {
                 Log.Error($"在 {timeout}ms 内没有收到任何消息后的连接超时！");
                 Disconnect();
@@ -440,10 +435,10 @@ namespace JFramework.Udp
                 Disconnect();
             }
 
-            if (time >= lastPingTime + Utility.PING_INTERVAL)
+            if (time >= interval + Utility.PING_INTERVAL)
             {
                 SendReliable(Header.Ping, default);
-                lastPingTime = time;
+                interval = time;
             }
 
             if (protocol.GetBufferQueueCount() >= Utility.QUEUE_DISCONNECTED_THRESHOLD)
