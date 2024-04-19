@@ -135,6 +135,7 @@ namespace JFramework.Udp
                 if (!socket.Poll(0, SelectMode.SelectRead)) return false;
                 int size = socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint);
                 segment = new ArraySegment<byte>(buffer, 0, size);
+                clientId = endPoint.GetHashCode();
                 return true;
             }
             catch (SocketException e)
@@ -147,7 +148,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 指定客户端连接到服务器
         /// </summary>
-        private Proxies Connection(int clientId)
+        private Proxies SetProxy(int clientId)
         {
             var client = new Proxies(endPoint);
             var cookie = Utility.GenerateCookie();
@@ -172,14 +173,14 @@ namespace JFramework.Udp
 
             void OnSend(ArraySegment<byte> segment)
             {
-                if (!clients.TryGetValue(clientId, out var connection))
-                {
-                    Log.Warn($"服务器向无效的客户端发送信息。客户端：{clientId}");
-                    return;
-                }
-
                 try
                 {
+                    if (!clients.TryGetValue(clientId, out var connection))
+                    {
+                        Log.Warn($"服务器向无效的客户端发送信息。客户端：{clientId}");
+                        return;
+                    }
+                    
                     if (socket.Poll(0, SelectMode.SelectWrite))
                     {
                         socket.SendTo(segment.Array, segment.Offset, segment.Count, SocketFlags.None, connection.endPoint);
@@ -206,7 +207,7 @@ namespace JFramework.Udp
             {
                 if (!clients.TryGetValue(clientId, out var client))
                 {
-                    client = Connection(clientId);
+                    client = SetProxy(clientId);
                     client.proxy.Input(segment);
                     client.proxy.EarlyUpdate();
                 }
