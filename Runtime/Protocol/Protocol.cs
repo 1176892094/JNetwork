@@ -12,6 +12,7 @@ namespace JFramework.Udp
         public const int OVERHEAD = 24;         // 数据包头部的额外开销
         public const int INTERVAL = 100;        // 内部处理时钟的间隔时间
         public const int DEAD_LINK = 20;        // 当一个段被认为丢失之前的最大重传次数
+        public const int RESEND_LIMIT = 5;      // 触发快速重传的最大次数
         private const int RTO_MIN = 30;         // 无延迟的最小重传超时时间
         private const int RTO_DEF = 200;        // 默认RTO
         private const int RTO_MAX = 60000;      // 最大RTO
@@ -25,7 +26,6 @@ namespace JFramework.Udp
         private const int THRESH_MIN = 2;       // 拥塞窗口增长阈值的最小值
         private const int PROBE_INIT = 7000;    // 探测窗口大小的初始时间（7秒）
         private const int PROBE_LIMIT = 120000; // 探测窗口大小的最长时间（120秒）
-        private const int RESEND_LIMIT = 5;     // 触发快速重传的最大次数
         private const int QUEUE_COUNT = 10000;  // 网络缓存数量
         public int state;                       // Udp状态
         private int rtt;                        // 平滑的往返时间（RTT）的加权平均值

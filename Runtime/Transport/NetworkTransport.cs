@@ -24,7 +24,7 @@ namespace JFramework.Net
             Log.Info = Debug.Log;
             Log.Warn = Debug.LogWarning;
             Log.Error = Debug.LogError;
-            setting = new Setting(sendBuffer, receiveBuffer, maxUnit, timeout, receiveSize, sendSize, interval, resend);
+            setting = new Setting(maxUnit, timeout, sendBuffer, receiveBuffer, sendSize, receiveSize, resend, interval);
             client = new Client(setting, ClientConnected, ClientDisconnected, ClientDataReceived);
             server = new Server(setting, ServerConnected, ServerDisconnected, ServerDataReceived);
             return;

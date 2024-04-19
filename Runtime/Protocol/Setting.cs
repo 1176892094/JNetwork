@@ -17,23 +17,23 @@ namespace JFramework.Udp
 
         public Setting
         (
-            int sendBuffer = 1024 * 1024,
-            int receiveBuffer = 1024 * 1024,
             int maxUnit = Protocol.MTU_DEF,
             int timeout = 10000,
-            uint receiveSize = Protocol.WIN_RCV,
+            int sendBuffer = 1024 * 1024,
+            int receiveBuffer = 1024 * 1024,
             uint sendSize = Protocol.WIN_SND,
-            uint interval = Protocol.INTERVAL,
-            uint resend = 0)
+            uint receiveSize = Protocol.WIN_RCV,
+            uint resend = Protocol.RESEND_LIMIT,
+            uint interval = Protocol.INTERVAL)
         {
-            this.receiveSize = receiveSize;
-            this.sendSize = sendSize;
-            this.timeout = timeout;
             this.maxUnit = maxUnit;
+            this.timeout = timeout;
             this.sendBuffer = sendBuffer;
             this.receiveBuffer = receiveBuffer;
-            this.interval = interval;
+            this.sendSize = sendSize;
+            this.receiveSize = receiveSize;
             this.resend = resend;
+            this.interval = interval;
         }
     }
 

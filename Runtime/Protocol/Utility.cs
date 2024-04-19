@@ -8,9 +8,9 @@ namespace JFramework.Udp
     public static class Utility
     {
         internal const int PING_INTERVAL = 1000;
-        internal const int METADATA_SIZE = CHANNEL_HEADER_SIZE + COOKIE_HEADER_SIZE;
-        private const int CHANNEL_HEADER_SIZE = 1;
-        private const int COOKIE_HEADER_SIZE = 4;
+        internal const int METADATA_SIZE = HEADER_SIZE + COOKIE_SIZE;
+        private const int HEADER_SIZE = 1;
+        private const int COOKIE_SIZE = 4;
 
         /// <summary>
         /// 编码8位无符号整型
@@ -133,7 +133,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 生成缓存文件
         /// </summary>
-        internal static int GenerateCookie()
+        internal static int Cookie()
         {
             using var cryptoRandom = new RNGCryptoServiceProvider();
             var cryptoRandomBuffer = new byte[4];

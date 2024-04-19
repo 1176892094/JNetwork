@@ -63,7 +63,8 @@ namespace JFramework.Udp
         /// <param name="OnConnected"></param>
         /// <param name="OnDisconnected"></param>
         /// <param name="OnReceive"></param>
-        public Server(Setting setting, Action<int> OnConnected, Action<int> OnDisconnected, Action<int, ArraySegment<byte>, Channel> OnReceive)
+        public Server(Setting setting, Action<int> OnConnected, Action<int> OnDisconnected,
+            Action<int, ArraySegment<byte>, Channel> OnReceive)
         {
             this.setting = setting;
             this.OnReceive = OnReceive;
@@ -151,8 +152,7 @@ namespace JFramework.Udp
         private Proxies SetProxy(int clientId)
         {
             var client = new Proxies(endPoint);
-            var cookie = Utility.GenerateCookie();
-            var proxy = new Proxy(setting, cookie, OnAuthority, OnDisconnected, OnSend, OnReceive);
+            var proxy = new Proxy(setting, Utility.Cookie(), OnAuthority, OnDisconnected, OnSend, OnReceive);
             client.proxy = proxy;
             return client;
 
@@ -180,7 +180,7 @@ namespace JFramework.Udp
                         Log.Warn($"服务器向无效的客户端发送信息。客户端：{clientId}");
                         return;
                     }
-                    
+
                     if (socket.Poll(0, SelectMode.SelectWrite))
                     {
                         socket.SendTo(segment.Array, segment.Offset, segment.Count, SocketFlags.None, connection.endPoint);
