@@ -48,7 +48,19 @@ namespace JFramework.Udp
             this.endPoint = endPoint;
         }
     }
-    
+
+    public struct Packet
+    {
+        public readonly uint sendId;
+        public readonly uint sendTime;
+
+        public Packet(uint sendId, uint sendTime)
+        {
+            this.sendId = sendId;
+            this.sendTime = sendTime;
+        }
+    }
+
     public static class Log
     {
         public static Action<string> Info = Console.WriteLine;

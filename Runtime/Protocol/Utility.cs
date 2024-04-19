@@ -8,7 +8,6 @@ namespace JFramework.Udp
     public static class Utility
     {
         internal const int PING_INTERVAL = 1000;
-        internal const int QUEUE_DISCONNECTED_THRESHOLD = 10000;
         internal const int METADATA_SIZE = CHANNEL_HEADER_SIZE + COOKIE_HEADER_SIZE;
         private const int CHANNEL_HEADER_SIZE = 1;
         private const int COOKIE_HEADER_SIZE = 4;
@@ -126,7 +125,7 @@ namespace JFramework.Udp
         /// <param name="later"></param>
         /// <param name="earlier"></param>
         /// <returns></returns>
-        internal static int Subtract(uint later, uint earlier)
+        internal static int Compare(uint later, uint earlier)
         {
             return (int)(later - earlier);
         }

@@ -246,7 +246,7 @@ namespace JFramework.Udp
             try
             {
                 SendReliable(Header.Disconnect, default);
-                protocol.Flush();
+                protocol.Refresh();
             }
             catch
             {
@@ -431,7 +431,7 @@ namespace JFramework.Udp
 
             if (protocol.state == -1)
             {
-                Log.Error($"消息被重传了 {protocol.deadLink} 次而没有得到确认！");
+                Log.Error($"消息被重传了 {Protocol.DEAD_LINK} 次而没有得到确认！");
                 Disconnect();
             }
 
@@ -441,10 +441,9 @@ namespace JFramework.Udp
                 interval = time;
             }
 
-            if (protocol.GetBufferQueueCount() >= Utility.QUEUE_DISCONNECTED_THRESHOLD)
+            if (!protocol.IsQuickly())
             {
                 Log.Error($"断开连接，因为它处理数据的速度不够快！");
-                protocol.sendQueue.Clear();
                 Disconnect();
             }
         }

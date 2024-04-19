@@ -16,6 +16,11 @@ namespace JFramework.Udp
         /// 会话Id
         /// </summary>
         public uint id;
+        
+        /// <summary>
+        /// 超时重传
+        /// </summary>
+        public int rto;
 
         /// <summary>
         /// 命令
@@ -63,11 +68,6 @@ namespace JFramework.Udp
         public uint receiveId;
 
         /// <summary>
-        /// 超时重传
-        /// </summary>
-        public int failure;
-
-        /// <summary>
         /// 编码
         /// </summary>
         /// <param name="ptr"></param>
@@ -75,7 +75,7 @@ namespace JFramework.Udp
         /// <returns></returns>
         public int Encode(byte[] ptr, int offset)
         {
-            int previousPosition = offset;
+            int previous = offset;
             offset += Utility.Encode32U(ptr, offset, id);
             offset += Utility.Encode8U(ptr, offset, (byte)command);
             offset += Utility.Encode8U(ptr, offset, (byte)fragment);
@@ -84,7 +84,7 @@ namespace JFramework.Udp
             offset += Utility.Encode32U(ptr, offset, sendId);
             offset += Utility.Encode32U(ptr, offset, receiveId);
             offset += Utility.Encode32U(ptr, offset, (uint)stream.Position);
-            return offset - previousPosition;
+            return offset - previous;
         }
 
         /// <summary>
@@ -93,16 +93,16 @@ namespace JFramework.Udp
         public void Reset()
         {
             id = 0;
+            rto = 0;
             command = 0;
             fragment = 0;
             window = 0;
-            sendTime = 0;
             sendId = 0;
+            sendTime = 0;
             receiveId = 0;
-            failure = 0;
-            resendCount = 0;
-            resendTime = 0;
             resendId = 0;
+            resendTime = 0;
+            resendCount = 0;
             stream.SetLength(0);
         }
     }
