@@ -6,36 +6,36 @@ namespace JFramework.Udp
 {
     public readonly struct Setting
     {
-        public readonly int sendBufferSize;
-        public readonly int receiveBufferSize;
+        public readonly int sendBuffer;
+        public readonly int receiveBuffer;
         public readonly int maxUnit;
         public readonly int resend;
         public readonly int timeout;
-        public readonly uint receivePacketSize;
-        public readonly uint sendPacketSize;
+        public readonly uint receiveSize;
+        public readonly uint sendSize;
         public readonly uint interval;
         public readonly bool noDelay;
         public readonly bool congestion;
 
         public Setting
         (
-            int sendBufferSize = 1024 * 1024 * 7,
-            int receiveBufferSize = 1024 * 1024 * 7,
+            int sendBuffer = 1024 * 1024 * 7,
+            int receiveBuffer = 1024 * 1024 * 7,
             int maxUnit = Protocol.MTU_DEF,
             int timeout = Protocol.TIME_OUT,
-            uint receivePacketSize = Protocol.WIN_RCV,
-            uint sendPacketSize = Protocol.WIN_SND,
+            uint receiveSize = Protocol.WIN_RCV,
+            uint sendSize = Protocol.WIN_SND,
             uint interval = Protocol.INTERVAL,
             int resend = 0,
             bool noDelay = true,
             bool congestion = false)
         {
-            this.receivePacketSize = receivePacketSize;
-            this.sendPacketSize = sendPacketSize;
+            this.receiveSize = receiveSize;
+            this.sendSize = sendSize;
             this.timeout = timeout;
             this.maxUnit = maxUnit;
-            this.sendBufferSize = sendBufferSize;
-            this.receiveBufferSize = receiveBufferSize;
+            this.sendBuffer = sendBuffer;
+            this.receiveBuffer = receiveBuffer;
             this.interval = interval;
             this.resend = resend;
             this.noDelay = noDelay;

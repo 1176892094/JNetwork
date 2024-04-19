@@ -112,9 +112,9 @@ namespace JFramework.Udp
             timeout = setting.timeout;
             protocol = new Protocol(0, SendReliable);
             protocol.SetNoDelay(setting.noDelay ? 1U : 0U, setting.interval, setting.resend, setting.congestion);
-            protocol.SetWindowSize(setting.sendPacketSize, setting.receivePacketSize);
+            protocol.SetWindowSize(setting.sendSize, setting.receiveSize);
             protocol.SetTransferUnit((uint)setting.maxUnit - Utility.METADATA_SIZE);
-            reliableSize = Utility.ReliableSize(setting.maxUnit, setting.receivePacketSize);
+            reliableSize = Utility.ReliableSize(setting.maxUnit, setting.receiveSize);
             unreliableSize = Utility.UnreliableSize(setting.maxUnit);
             messageBuffer = new byte[reliableSize + 1];
             jdpSendBuffer = new byte[reliableSize + 1];
