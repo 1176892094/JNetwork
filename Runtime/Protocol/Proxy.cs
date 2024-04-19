@@ -121,7 +121,7 @@ namespace JFramework.Udp
         {
             if (segment.Count == 0)
             {
-                Log.Error("P2P尝试发送空消息。");
+                Log.Error("Proxy尝试发送空消息。");
                 Disconnect();
                 return;
             }
@@ -146,7 +146,7 @@ namespace JFramework.Udp
         {
             if (fixedBuffer.Length < segment.Count + 1) // 减去消息头
             {
-                Log.Error($"P2P发送可靠消息失败。消息大小：{segment.Count}");
+                Log.Error($"Proxy发送可靠消息失败。消息大小：{segment.Count}");
                 return;
             }
 
@@ -158,7 +158,7 @@ namespace JFramework.Udp
 
             if (protocol.Send(fixedBuffer, 0, segment.Count + 1) < 0) // 加入到发送队列
             {
-                Log.Error($"P2P发送可靠消息失败。消息大小：{segment.Count}。");
+                Log.Error($"Proxy发送可靠消息失败。消息大小：{segment.Count}。");
             }
         }
 
@@ -180,7 +180,7 @@ namespace JFramework.Udp
         {
             if (segment.Count > unreliable)
             {
-                Log.Error($"P2P发送不可靠消息失败。消息大小：{segment.Count}");
+                Log.Error($"Proxy发送不可靠消息失败。消息大小：{segment.Count}");
                 return;
             }
 
@@ -208,14 +208,14 @@ namespace JFramework.Udp
 
             if (length > receiveBuffer.Length)
             {
-                Log.Error($"P2P消息长度不能超过{receiveBuffer.Length}。消息大小：{length}");
+                Log.Error($"Proxy消息长度不能超过{receiveBuffer.Length}。消息大小：{length}");
                 Disconnect();
                 return false;
             }
 
             if (protocol.Receive(receiveBuffer) < 0)
             {
-                Log.Error($"P2P接收消息失败。");
+                Log.Error($"Proxy接收消息失败。");
                 Disconnect();
                 return false;
             }
@@ -232,7 +232,7 @@ namespace JFramework.Udp
         public void Handshake()
         {
             var cookieBytes = BitConverter.GetBytes(cookie);
-            Log.Info($"P2P发送握手请求。签名缓存：{cookie}");
+            Log.Info($"Proxy发送握手请求。签名缓存：{cookie}");
             SendReliable(Header.Handshake, new ArraySegment<byte>(cookieBytes));
         }
 
@@ -252,7 +252,7 @@ namespace JFramework.Udp
                 // ignored
             }
 
-            Log.Info($"P2P断开连接。");
+            Log.Info($"Proxy断开连接。");
             state = State.Disconnected;
             OnDisconnected?.Invoke();
         }
@@ -265,7 +265,7 @@ namespace JFramework.Udp
         {
             if (segment.Count <= 1 + 4)
             {
-                Log.Warn($"P2P输入的消息缺少 消息头 或者 发送者");
+                Log.Warn($"Proxy输入的消息缺少 消息头 或者 发送者");
                 return;
             }
 
@@ -274,7 +274,7 @@ namespace JFramework.Udp
 
             if (state == State.Authority && newCookie != cookie)
             {
-                Log.Warn($"P2P丢弃了无效的签名缓存。旧：{cookie} 新：{newCookie}");
+                Log.Warn($"Proxy丢弃了无效的签名缓存。旧：{cookie} 新：{newCookie}");
                 return;
             }
 
@@ -285,7 +285,7 @@ namespace JFramework.Udp
                 case Channel.Reliable:
                     if (protocol.Input(message.Array, message.Offset, message.Count) != 0)
                     {
-                        Log.Warn($"P2P输入消息失败。消息大小：{message.Count - 1}");
+                        Log.Warn($"Proxy输入消息失败。消息大小：{message.Count - 1}");
                     }
 
                     break;
@@ -320,17 +320,17 @@ namespace JFramework.Udp
             }
             catch (SocketException e)
             {
-                Log.Error($"P2P发生异常，断开连接。\n{e}.");
+                Log.Error($"Proxy发生异常，断开连接。\n{e}.");
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                Log.Error($"P2P发生异常，断开连接。\n{e}.");
+                Log.Error($"Proxy发生异常，断开连接。\n{e}.");
                 Disconnect();
             }
             catch (Exception e)
             {
-                Log.Error($"P2P发生异常，断开连接。\n{e}.");
+                Log.Error($"Proxy发生异常，断开连接。\n{e}.");
                 Disconnect();
             }
         }
@@ -346,17 +346,17 @@ namespace JFramework.Udp
             }
             catch (SocketException e)
             {
-                Log.Error($"P2P发生异常，断开连接。\n{e}.");
+                Log.Error($"Proxy发生异常，断开连接。\n{e}.");
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                Log.Error($"P2P发生异常，断开连接。\n{e}.");
+                Log.Error($"Proxy发生异常，断开连接。\n{e}.");
                 Disconnect();
             }
             catch (Exception e)
             {
-                Log.Error($"P2P发生异常，断开连接。\n{e}.");
+                Log.Error($"Proxy发生异常，断开连接。\n{e}.");
                 Disconnect();
             }
         }
@@ -378,7 +378,7 @@ namespace JFramework.Udp
 
                         Buffer.BlockCopy(segment.Array, segment.Offset, cookieBuffer, 0, 4);
                         var prettyCookie = BitConverter.ToUInt32(segment.Array, segment.Offset);
-                        Log.Info($"接收到握手消息。签名缓存：{prettyCookie}");
+                        Log.Info($"Proxy接收到握手消息。签名缓存：{prettyCookie}");
                         state = State.Authority;
                         OnAuthority?.Invoke();
                         break;
@@ -397,7 +397,7 @@ namespace JFramework.Udp
                 switch (header)
                 {
                     case Header.Handshake:
-                        Log.Warn($"身份验证时收到无效的消息。消息类型：{header}");
+                        Log.Warn($"Proxy身份验证时收到无效的消息。消息类型：{header}");
                         Disconnect();
                         break;
                     case Header.Message:
@@ -407,13 +407,13 @@ namespace JFramework.Udp
                         }
                         else
                         {
-                            Log.Error("通过身份验证时收到空数据消息。");
+                            Log.Error("Proxy通过身份验证时收到空数据消息。");
                             Disconnect();
                         }
 
                         break;
                     case Header.Disconnect:
-                        Log.Info($"接收到断开连接的消息。");
+                        Log.Info($"Proxy接收到断开连接的消息。");
                         Disconnect();
                         break;
                 }
@@ -424,13 +424,13 @@ namespace JFramework.Udp
         {
             if (time >= received + timeout)
             {
-                Log.Error($"在 {timeout}ms 内没有收到任何消息后的连接超时！");
+                Log.Error($"Proxy在 {timeout}ms 内没有收到任何消息后的连接超时！");
                 Disconnect();
             }
 
             if (protocol.state == -1)
             {
-                Log.Error($"消息被重传了 {Protocol.DEAD_LINK} 次而没有得到确认！");
+                Log.Error($"Proxy消息被重传了 {Protocol.DEAD_LINK} 次而没有得到确认！");
                 Disconnect();
             }
 
@@ -442,7 +442,7 @@ namespace JFramework.Udp
             
             if (!protocol.IsQuickly())
             {
-                Log.Error($"断开连接，因为它处理数据的速度不够快！");
+                Log.Error("Proxy断开连接，因为它处理数据的速度不够快！");
                 Disconnect();
             }
         }
