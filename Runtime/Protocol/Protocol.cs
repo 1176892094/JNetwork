@@ -481,22 +481,48 @@ namespace JFramework.Udp
 
             return 0;
         }
+        
+        public void Update(long time)
+        {
+            sinceTime = (uint)time;
+            if (!updated)
+            {
+                updated = true;
+                refreshTime = sinceTime; //当前时间戳，表示最后一次刷新时间
+            }
+
+            var duartion = Utility.Compare(sinceTime, refreshTime); //计算距离上次刷新的时间间隔
+
+            if (Math.Abs(duartion) > 10000)
+            {
+                duartion = 0;
+                refreshTime = sinceTime;
+            }
+
+            if (duartion >= 0)
+            {
+                refreshTime += interval;
+                if (sinceTime >= refreshTime)
+                {
+                    refreshTime = sinceTime + interval;
+                }
+
+                Refresh();
+            }
+        }
 
         public void Refresh()
         {
             if (!updated) return;
-
             var size = 0; // 要刷新的字节大小
             var lose = false; // 是否有丢失的片段
-
             var segment = pool.Pop();
             segment.id = current;
             segment.command = CMD_ACK;
             segment.window = receiveQueue.Count < receiveWindow ? receiveWindow - (uint)receiveQueue.Count : 0;
             segment.receiveId = nextReceiveId;
-
-            // 更新确认
-            foreach (var message in messages)
+            
+            foreach (var message in messages) // 更新确认
             {
                 MakeSpace(OVERHEAD);
                 segment.sendId = message.sendId;
@@ -505,7 +531,6 @@ namespace JFramework.Udp
             }
 
             messages.Clear();
-
             if (remoteWindow == 0) // 探测窗口大小(如果远程窗口大小等于零)
             {
                 if (probeWait == 0)
@@ -554,11 +579,9 @@ namespace JFramework.Udp
             }
 
             probe = 0;
-
-            // 计算当前可以安全发送的窗口大小
+            
             var windowSize = Math.Min(sendWindow, remoteWindow);
-
-            // 移动拥塞窗口的消息 从 sendQueue 到 sends
+            
             while (Utility.Compare(nextSendId, serialId + windowSize) < 0)
             {
                 if (sendQueue.Count == 0)
@@ -634,11 +657,15 @@ namespace JFramework.Udp
             }
 
             pool.Push(segment);
-            RefreshBuffer(size); // 刷新剩余的Buffer
-
+            
+            if (size > 0) // 刷新剩余的Buffer
+            {
+                onRefresh?.Invoke(buffer, size);
+            }
+            
             if (refresh > 0) //更新 慢启动阈值
             {
-                uint inflight = nextSendId - serialId;
+                var inflight = nextSendId - serialId;
                 threshold = inflight / 2;
                 if (threshold < THRESH_MIN)
                 {
@@ -675,47 +702,8 @@ namespace JFramework.Udp
                     size = 0;
                 }
             }
-
-            void RefreshBuffer(int localSize)
-            {
-                if (localSize > 0)
-                {
-                    onRefresh?.Invoke(buffer, localSize);
-                }
-            }
         }
-
-        public void Update(long currentTime)
-        {
-            sinceTime = (uint)currentTime;
-
-            if (!updated)
-            {
-                updated = true;
-                refreshTime = sinceTime; //当前时间戳，表示最后一次刷新时间
-            }
-
-            int slap = Utility.Compare(sinceTime, refreshTime); //计算距离上次刷新的时间间隔
-
-            if (Math.Abs(slap) > 10000)
-            {
-                refreshTime = sinceTime;
-                slap = 0;
-            }
-
-            if (slap >= 0)
-            {
-                refreshTime += interval;
-
-                if (sinceTime >= refreshTime)
-                {
-                    refreshTime = sinceTime + interval;
-                }
-
-                Refresh();
-            }
-        }
-
+        
         public void SetUnit(uint maxUnit)
         {
             this.maxUnit = Math.Max(maxUnit, 50);
