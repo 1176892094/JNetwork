@@ -439,8 +439,7 @@ namespace JFramework.Udp
                 SendReliable(Header.Ping, default);
                 interval = time;
             }
-
-            Log.Info(protocol.Count.ToString());
+            
             if (!protocol.IsQuickly())
             {
                 Log.Error($"断开连接，因为它处理数据的速度不够快！");
