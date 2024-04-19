@@ -19,7 +19,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 移除客户端列表
         /// </summary>
-        private readonly HashSet<int> removes = new HashSet<int>();
+        private readonly HashSet<int> copies = new HashSet<int>();
         
         /// <summary>
         /// 套接字
@@ -167,7 +167,7 @@ namespace JFramework.Udp
 
             void OnDisconnected()
             {
-                removes.Add(clientId);
+                copies.Add(clientId);
                 Log.Info($"客户端 {clientId} 从服务器断开。");
                 this.OnDisconnected?.Invoke(clientId);
             }
@@ -220,12 +220,12 @@ namespace JFramework.Udp
                 client.proxy.EarlyUpdate();
             }
 
-            foreach (var clientId in removes)
+            foreach (var clientId in copies)
             {
                 clients.Remove(clientId);
             }
 
-            removes.Clear();
+            copies.Clear();
         }
 
         /// <summary>
