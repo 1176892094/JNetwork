@@ -6,8 +6,6 @@ namespace JFramework.Udp
 {
     public readonly struct Setting
     {
-        public readonly int sendBuffer;
-        public readonly int receiveBuffer;
         public readonly int maxUnit;
         public readonly uint resend;
         public readonly int timeout;
@@ -19,8 +17,6 @@ namespace JFramework.Udp
         (
             int maxUnit = Protocol.MTU_DEF,
             int timeout = 10000,
-            int sendBuffer = 1024 * 1024,
-            int receiveBuffer = 1024 * 1024,
             uint sendSize = Protocol.WIN_SND,
             uint receiveSize = Protocol.WIN_RCV,
             uint resend = Protocol.RESEND_LIMIT,
@@ -28,8 +24,6 @@ namespace JFramework.Udp
         {
             this.maxUnit = maxUnit;
             this.timeout = timeout;
-            this.sendBuffer = sendBuffer;
-            this.receiveBuffer = receiveBuffer;
             this.sendSize = sendSize;
             this.receiveSize = receiveSize;
             this.resend = resend;

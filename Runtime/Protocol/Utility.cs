@@ -11,6 +11,8 @@ namespace JFramework.Udp
         internal const int METADATA_SIZE = HEADER_SIZE + COOKIE_SIZE;
         private const int HEADER_SIZE = 1;
         private const int COOKIE_SIZE = 4;
+        private const int SEND_SIZE = 1024 * 1024 * 7;
+        private const int RECEIVE_SIZE = 1024 * 1024 * 7;
 
         /// <summary>
         /// 编码8位无符号整型
@@ -82,22 +84,20 @@ namespace JFramework.Udp
         /// 增加到操作系统限制
         /// </summary>
         /// <param name="socket"></param>
-        /// <param name="sendSize"></param>
-        /// <param name="receiveSize"></param>
-        public static void SetBuffer(Socket socket, int sendSize, int receiveSize)
+        public static void SetBuffer(Socket socket)
         {
             socket.Blocking = false;
             int sendBuffer = socket.SendBufferSize;
             int receiveBuffer = socket.ReceiveBufferSize;
             try
             {
-                socket.SendBufferSize = sendSize;
-                socket.ReceiveBufferSize = receiveSize;
+                socket.SendBufferSize = SEND_SIZE;
+                socket.ReceiveBufferSize = RECEIVE_SIZE;
             }
             catch (SocketException)
             {
-                Log.Info($"发送缓存: {sendSize} => {sendBuffer} : {sendBuffer / sendSize:F}");
-                Log.Info($"接收缓存: {receiveSize} => {receiveBuffer} : {receiveBuffer / receiveSize:F}");
+                Log.Info($"发送缓存: {SEND_SIZE} => {sendBuffer} : {sendBuffer / SEND_SIZE:F}");
+                Log.Info($"接收缓存: {RECEIVE_SIZE} => {receiveBuffer} : {receiveBuffer / RECEIVE_SIZE:F}");
             }
         }
 

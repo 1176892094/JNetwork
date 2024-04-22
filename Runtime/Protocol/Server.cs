@@ -98,7 +98,7 @@ namespace JFramework.Udp
             }
 
             socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
-            Utility.SetBuffer(socket, setting.sendBuffer, setting.receiveBuffer);
+            Utility.SetBuffer(socket);
         }
 
         /// <summary>

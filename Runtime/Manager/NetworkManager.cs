@@ -35,6 +35,11 @@ namespace JFramework.Net
         [Inject, SerializeField] private TimeManager time;
 
         /// <summary>
+        /// 是否进行调试
+        /// </summary>
+        [Inject, SerializeField] private DebugManager debug;
+
+        /// <summary>
         /// 网络客户端
         /// </summary>
         [Inject, SerializeField] private ClientManager client;
@@ -63,6 +68,11 @@ namespace JFramework.Net
         /// 客户端最大连接数量
         /// </summary>
         [SerializeField] internal uint connection = 100;
+
+        /// <summary>
+        /// 是否进行调试
+        /// </summary>
+        [SerializeField] private bool isDebug = true;
 
         /// <summary>
         /// 消息发送率
@@ -110,7 +120,7 @@ namespace JFramework.Net
         /// ServerManager 控制器
         /// </summary>
         public static ServerManager Server => Instance.server;
-        
+
         /// <summary>
         /// TimerManager 控制器
         /// </summary>
@@ -131,13 +141,24 @@ namespace JFramework.Net
         /// </summary>
         private void Awake()
         {
-            Instance = this;
             this.Inject();
+            Instance = this;
             DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
 #if UNITY_SERVER
             Application.targetFrameRate = tickRate;
 #endif
+        }
+
+        /// <summary>
+        /// 进行更新
+        /// </summary>
+        private void OnGUI()
+        {
+            if (isDebug)
+            {
+                debug.OnUpdate();
+            }
         }
 
         /// <summary>

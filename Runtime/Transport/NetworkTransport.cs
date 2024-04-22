@@ -9,8 +9,6 @@ namespace JFramework.Net
     {
         public int maxUnit = 1200;
         public int timeout = 10000;
-        public int sendBuffer = 1024 * 1024;
-        public int receiveBuffer = 1024 * 1024;
         public uint sendSize = 1024;
         public uint receiveSize = 1024;
         public uint resend = 2;
@@ -24,7 +22,7 @@ namespace JFramework.Net
             Log.Info = Debug.Log;
             Log.Warn = Debug.LogWarning;
             Log.Error = Debug.LogError;
-            setting = new Setting(maxUnit, timeout, sendBuffer, receiveBuffer, sendSize, receiveSize, resend, interval);
+            setting = new Setting(maxUnit, timeout,  sendSize, receiveSize, resend, interval);
             client = new Client(setting, ClientConnected, ClientDisconnected, ClientDataReceived);
             server = new Server(setting, ServerConnected, ServerDisconnected, ServerDataReceived);
             return;

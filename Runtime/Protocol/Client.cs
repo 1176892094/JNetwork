@@ -95,7 +95,7 @@ namespace JFramework.Udp
             endPoint = new IPEndPoint(addresses[0], port);
             Log.Info($"客户端连接到：{addresses[0]} 端口：{port}。");
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-            Utility.SetBuffer(socket, setting.sendBuffer, setting.receiveBuffer);
+            Utility.SetBuffer(socket);
             socket.Connect(endPoint);
             proxy.Handshake();
         }
