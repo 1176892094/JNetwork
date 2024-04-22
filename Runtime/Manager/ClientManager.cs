@@ -404,19 +404,12 @@ namespace JFramework.Net
         /// </summary>
         private void RegisterTransport()
         {
-            NetworkManager.Transport.OnClientConnected += OnClientConnected;
-            NetworkManager.Transport.OnClientDisconnected += OnClientDisconnected;
-            NetworkManager.Transport.OnClientReceive += OnClientReceive;
-        }
-
-        /// <summary>
-        /// 移除传输事件
-        /// </summary>
-        private void UnRegisterTransport()
-        {
             NetworkManager.Transport.OnClientConnected -= OnClientConnected;
             NetworkManager.Transport.OnClientDisconnected -= OnClientDisconnected;
             NetworkManager.Transport.OnClientReceive -= OnClientReceive;
+            NetworkManager.Transport.OnClientConnected += OnClientConnected;
+            NetworkManager.Transport.OnClientDisconnected += OnClientDisconnected;
+            NetworkManager.Transport.OnClientReceive += OnClientReceive;
         }
 
         /// <summary>
@@ -442,7 +435,6 @@ namespace JFramework.Net
         /// </summary>
         private void OnClientDisconnected()
         {
-            UnRegisterTransport();
             StopClient();
         }
 

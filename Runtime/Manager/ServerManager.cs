@@ -144,8 +144,7 @@ namespace JFramework.Net
             {
                 NetworkManager.Transport.StopServer();
             }
-
-            UnRegisterTransport();
+            
             spawns.Clear();
             clients.Clear();
             messages.Clear();
@@ -280,19 +279,12 @@ namespace JFramework.Net
         /// </summary>
         private void RegisterTransport()
         {
-            NetworkManager.Transport.OnServerConnected += OnServerConnected;
-            NetworkManager.Transport.OnServerDisconnected += OnServerDisconnected;
-            NetworkManager.Transport.OnServerReceive += OnServerReceive;
-        }
-
-        /// <summary>
-        /// 移除传输事件
-        /// </summary>
-        private void UnRegisterTransport()
-        {
             NetworkManager.Transport.OnServerConnected -= OnServerConnected;
             NetworkManager.Transport.OnServerDisconnected -= OnServerDisconnected;
             NetworkManager.Transport.OnServerReceive -= OnServerReceive;
+            NetworkManager.Transport.OnServerConnected += OnServerConnected;
+            NetworkManager.Transport.OnServerDisconnected += OnServerDisconnected;
+            NetworkManager.Transport.OnServerReceive += OnServerReceive;
         }
 
         /// <summary>
