@@ -67,7 +67,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 722b042e566a44f91aa14087f9121f94, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDebug: 1
   transport: {fileID: 7598616653486113179}
 --- !u!1 &3581406211680017139
 GameObject:
@@ -167,7 +166,7 @@ MonoBehaviour:
   serverId: -1
   isAwake: 1
   heratBeat: 3
-  isPunch: 1
+  isPunch: 0
   serverKey: Secret Key
   serverName: Game Room
   serverData: Map 1
