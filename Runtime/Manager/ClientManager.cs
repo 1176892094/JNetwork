@@ -60,13 +60,13 @@ namespace JFramework.Net
         /// 是否活跃
         /// </summary>
         [ShowInInspector]
-        public bool isActive => state is ConnectState.Connected or ConnectState.Connecting;
+        public bool isActive => state is ConnectState.Authority or ConnectState.Connected;
 
         /// <summary>
         /// 是否已经连接成功
         /// </summary>
         [ShowInInspector]
-        public bool isAuthority => state == ConnectState.Connected;
+        public bool isAuthority => state == ConnectState.Authority;
 
         /// <summary>
         /// 客户端连接的事件(包含主机)
@@ -91,7 +91,7 @@ namespace JFramework.Net
         {
             RegisterTransport();
             Register(false);
-            state = ConnectState.Connecting;
+            state = ConnectState.Connected;
             NetworkManager.Transport.ClientConnect(uri);
             connection = new NetworkServer();
         }
@@ -102,7 +102,7 @@ namespace JFramework.Net
         internal void StartClient()
         {
             Register(true);
-            state = ConnectState.Connected;
+            state = ConnectState.Authority;
             connection = new NetworkServer();
             var client = new NetworkClient(NetworkConst.HostId);
             NetworkManager.Server.OnClientConnect(client);
@@ -145,7 +145,7 @@ namespace JFramework.Net
                 return;
             }
 
-            if (state != ConnectState.Connected)
+            if (state != ConnectState.Authority)
             {
                 Debug.LogError("客户端没有连接成功就向服务器发送消息！");
                 return;
@@ -423,7 +423,7 @@ namespace JFramework.Net
                 return;
             }
             
-            state = ConnectState.Connected;
+            state = ConnectState.Authority;
             OnConnect?.Invoke();
             NetworkManager.Time.Reset();
             NetworkManager.Time.Update();

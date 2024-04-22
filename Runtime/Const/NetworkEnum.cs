@@ -23,11 +23,11 @@ namespace JFramework.Net
     /// <summary>
     /// 连接状态
     /// </summary>
-    internal enum ConnectState : byte
+    public enum ConnectState : byte
     {
         Disconnected = 0,
-        Connecting = 1,
-        Connected = 2,
+        Connected = 1,
+        Authority = 2,
     }
 
     /// <summary>
