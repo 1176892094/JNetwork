@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5938792626572117669}
   - component: {fileID: 7598616653486113179}
+  - component: {fileID: 2632806081345963599}
   m_Layer: 0
   m_Name: NetworkTransport
   m_TagString: Untagged
@@ -54,6 +55,20 @@ MonoBehaviour:
   receiveSize: 1024
   resend: 2
   interval: 10
+--- !u!114 &2632806081345963599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3035671049256496247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 722b042e566a44f91aa14087f9121f94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isDebug: 1
+  transport: {fileID: 7598616653486113179}
 --- !u!1 &3581406211680017139
 GameObject:
   m_ObjectHideFlags: 0
@@ -66,7 +81,6 @@ GameObject:
   - component: {fileID: 7422580992536352519}
   - component: {fileID: 8599658370796327600}
   - component: {fileID: 4902456955537657214}
-  - component: {fileID: 907736770889013268}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -105,7 +119,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   transport: {fileID: 4902456955537657214}
   discovery: {fileID: 5144682077311143366}
-  player: {fileID: 0}
+  player: {fileID: 1916082411674582, guid: 6f43bf5488a7443d19ab2a83c6b91f35, type: 3}
   time: {fileID: 0}
   client: {fileID: 0}
   server: {fileID: 0}
@@ -147,34 +161,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31f9ec0e150d54cdc841762a6d31e040, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  address: 127.0.0.1
+  address: 106.54.7.123
   port: 8080
   transport: {fileID: 8599658370796327600}
   serverId: -1
   isAwake: 1
   heratBeat: 3
-  authority: Secret Auth Key
   isPunch: 1
-  punchPort: 7776
+  serverKey: Secret Key
   serverName: Game Room
   serverData: Map 1
   maxPlayers: 10
   isPublic: 1
   rooms: []
---- !u!114 &907736770889013268
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3581406211680017139}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 722b042e566a44f91aa14087f9121f94, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isDebug: 1
-  transport: {fileID: 7598616653486113179}
 --- !u!1 &5450830715170972952
 GameObject:
   m_ObjectHideFlags: 0
