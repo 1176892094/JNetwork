@@ -78,7 +78,7 @@ namespace JFramework.Net
             else
             {
                 GUILayout.Label($"连接至 {transport.address}:{transport.port}...");
-                if (GUILayout.Button("Stop Connection"))
+                if (GUILayout.Button("停止连接"))
                 {
                     NetworkManager.Instance.StopClient();
                 }
