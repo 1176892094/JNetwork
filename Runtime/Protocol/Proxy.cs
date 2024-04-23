@@ -232,7 +232,6 @@ namespace JFramework.Udp
         public void Handshake()
         {
             var cookieBytes = BitConverter.GetBytes(cookie);
-            Log.Info($"Proxy发送握手请求。签名缓存：{cookie}");
             SendReliable(Header.Handshake, new ArraySegment<byte>(cookieBytes));
         }
 
@@ -265,7 +264,7 @@ namespace JFramework.Udp
         {
             if (segment.Count <= 1 + 4)
             {
-                Log.Warn($"Proxy输入的消息缺少 消息头 或者 发送者");
+                Log.Info("Proxy需要发送的消息过短。");
                 return;
             }
 
@@ -274,7 +273,7 @@ namespace JFramework.Udp
 
             if (state == State.Authority && newCookie != cookie)
             {
-                Log.Warn($"Proxy丢弃了无效的签名缓存。旧：{cookie} 新：{newCookie}");
+                Log.Info($"Proxy丢弃了无效的签名缓存。旧：{cookie} 新：{newCookie}");
                 return;
             }
 
@@ -377,8 +376,6 @@ namespace JFramework.Udp
                         }
 
                         Buffer.BlockCopy(segment.Array, segment.Offset, cookieBuffer, 0, 4);
-                        var prettyCookie = BitConverter.ToUInt32(segment.Array, segment.Offset);
-                        Log.Info($"Proxy接收到握手消息。签名缓存：{prettyCookie}");
                         state = State.Authority;
                         OnAuthority?.Invoke();
                         break;
