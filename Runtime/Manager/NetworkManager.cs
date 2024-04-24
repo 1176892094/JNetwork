@@ -124,7 +124,11 @@ namespace JFramework.Net
         /// <summary>
         /// TimerManager 控制器
         /// </summary>
-        public static Transport Transport => Instance.transport;
+        public static Transport Transport
+        {
+            get => Instance.transport;
+            set => Instance.transport = value;
+        }
 
         /// <summary>
         /// ServerManager 控制器
