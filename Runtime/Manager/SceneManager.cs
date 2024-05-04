@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using GlobalSceneManager = JFramework.Core.SceneManager;
-using UnitySceneManager = UnityEngine.SceneManagement.SceneManager;
 
 namespace JFramework.Net
 {
@@ -133,7 +132,7 @@ namespace JFramework.Net
                 NetworkManager.Client.Ready();
             }
 
-            OnClientSceneChanged?.Invoke(UnitySceneManager.GetActiveScene().name);
+            OnClientSceneChanged?.Invoke(GlobalSceneManager.sceneName);
         }
     }
 }
