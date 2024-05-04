@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+using GlobalSceneManager = JFramework.Core.SceneManager;
+using UnitySceneManager = UnityEngine.SceneManagement.SceneManager;
 
 namespace JFramework.Net
 {
@@ -56,7 +58,7 @@ namespace JFramework.Net
             if (!NetworkManager.Server.isActive) return;
             this.sceneName = sceneName;
             NetworkManager.Server.isLoadScene = true;
-            
+
             using var writer = NetworkWriter.Pop();
             NetworkMessage.WriteMessage(writer, new SceneMessage(sceneName));
             foreach (var client in NetworkManager.Server.clients.Values)
@@ -64,7 +66,7 @@ namespace JFramework.Net
                 client.Send(writer.ToArraySegment());
             }
 
-            await GlobalManager.Scene.Load(sceneName);
+            await GlobalSceneManager.Load(sceneName);
             OnLoadComplete();
         }
 
@@ -84,7 +86,7 @@ namespace JFramework.Net
             if (NetworkManager.Server.isActive) return; //主机不做处理
             this.sceneName = sceneName;
             NetworkManager.Client.isLoadScene = true;
-            await GlobalManager.Scene.Load(sceneName);
+            await GlobalSceneManager.Load(sceneName);
             OnLoadComplete();
         }
 
@@ -131,7 +133,7 @@ namespace JFramework.Net
                 NetworkManager.Client.Ready();
             }
 
-            OnClientSceneChanged?.Invoke(GlobalManager.Scene.ToString());
+            OnClientSceneChanged?.Invoke(UnitySceneManager.GetActiveScene().name);
         }
     }
 }

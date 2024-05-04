@@ -1,3 +1,4 @@
+using JFramework.Core;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -17,7 +18,7 @@ namespace JFramework.Net
                 {
                     lock (locked)
                     {
-                        instance ??= FindObjectOfType<T>();
+                        instance ??= FindFirstObjectByType<T>();
                         if (instance != null)
                         {
                             instance.Register();

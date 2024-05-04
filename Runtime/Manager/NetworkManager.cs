@@ -1,4 +1,5 @@
 using System;
+using JFramework.Core;
 using JFramework.Interface;
 using Sirenix.OdinInspector;
 using UnityEngine;
