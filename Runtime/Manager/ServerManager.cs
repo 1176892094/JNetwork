@@ -489,7 +489,7 @@ namespace JFramework.Net
         /// <param name="object">生成的游戏对象</param>
         private void SendSpawnMessage(NetworkClient client, NetworkObject @object)
         {
-            using NetworkWriter owner = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
+            using NetworkWriter writer = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
             var isOwner = @object.connection == client;
             var transform = @object.transform;
             var message = new SpawnMessage
@@ -501,7 +501,7 @@ namespace JFramework.Net
                 position = transform.localPosition,
                 rotation = transform.localRotation,
                 localScale = transform.localScale,
-                segment = SerializeObject(@object, isOwner, owner, observer)
+                segment = SerializeObject(@object, isOwner, writer, observer)
             };
             client.Send(message);
         }
