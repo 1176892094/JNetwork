@@ -250,8 +250,7 @@ namespace JFramework.Udp
             {
                 // ignored
             }
-
-            Log.Info($"Proxy断开连接。");
+            
             state = State.Disconnected;
             OnDisconnected?.Invoke();
         }
@@ -410,7 +409,6 @@ namespace JFramework.Udp
 
                         break;
                     case Header.Disconnect:
-                        Log.Info($"Proxy接收到断开连接的消息。");
                         Disconnect();
                         break;
                 }
