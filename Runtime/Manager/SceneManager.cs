@@ -65,7 +65,7 @@ namespace JFramework.Net
                 client.Send(writer.ToArraySegment());
             }
 
-            GlobalSceneManager.LoadAsync(sceneName, OnLoadComplete);
+            GlobalSceneManager.Load(sceneName, OnLoadComplete);
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace JFramework.Net
             if (NetworkManager.Server.isActive) return; //主机不做处理
             this.sceneName = sceneName;
             NetworkManager.Client.isLoadScene = true;
-            GlobalSceneManager.LoadAsync(sceneName, OnLoadComplete);
+            GlobalSceneManager.Load(sceneName, OnLoadComplete);
         }
 
 
@@ -130,7 +130,7 @@ namespace JFramework.Net
                 NetworkManager.Client.Ready();
             }
 
-            OnClientSceneChanged?.Invoke(GlobalSceneManager.sceneName);
+            OnClientSceneChanged?.Invoke(GlobalSceneManager.name);
         }
     }
 }
