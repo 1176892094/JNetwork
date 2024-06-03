@@ -34,7 +34,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器加载场景
         /// </summary>
-        public async void LoadScene(string sceneName)
+        public void LoadScene(string sceneName)
         {
             if (string.IsNullOrWhiteSpace(sceneName))
             {
@@ -65,14 +65,13 @@ namespace JFramework.Net
                 client.Send(writer.ToArraySegment());
             }
 
-            await GlobalSceneManager.Load(sceneName);
-            OnLoadComplete();
+            GlobalSceneManager.LoadAsync(sceneName, OnLoadComplete);
         }
 
         /// <summary>
         /// 客户端加载场景
         /// </summary>
-        internal async void ClientLoadScene(string sceneName)
+        internal void ClientLoadScene(string sceneName)
         {
             if (string.IsNullOrWhiteSpace(sceneName))
             {
@@ -85,8 +84,7 @@ namespace JFramework.Net
             if (NetworkManager.Server.isActive) return; //主机不做处理
             this.sceneName = sceneName;
             NetworkManager.Client.isLoadScene = true;
-            await GlobalSceneManager.Load(sceneName);
-            OnLoadComplete();
+            GlobalSceneManager.LoadAsync(sceneName, OnLoadComplete);
         }
 
 

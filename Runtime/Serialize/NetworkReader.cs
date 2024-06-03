@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Text;
+using JFramework.Core;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
@@ -154,7 +155,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkReader Pop(ArraySegment<byte> segment)
         {
-            var reader = StreamPool.Pop<NetworkReader>();
+            var reader = PoolManager.Dequeue<NetworkReader>();
             reader.Reset(segment);
             return reader;
         }
@@ -166,7 +167,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Push(NetworkReader reader)
         {
-            StreamPool.Push(reader);
+            PoolManager.Enqueue(reader);
         }
 
         /// <summary>

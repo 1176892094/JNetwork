@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Text;
+using JFramework.Core;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
@@ -142,7 +143,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkWriter Pop()
         {
-            var writer = StreamPool.Pop<NetworkWriter>();
+            var writer = PoolManager.Dequeue<NetworkWriter>();
             writer.Reset();
             return writer;
         }
@@ -154,7 +155,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Push(NetworkWriter writer)
         {
-            StreamPool.Push(writer);
+            PoolManager.Enqueue(writer);
         }
 
         /// <summary>
