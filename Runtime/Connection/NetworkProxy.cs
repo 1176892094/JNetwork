@@ -14,7 +14,7 @@ namespace JFramework.Net
         /// <summary>
         /// 存储不同传输通道写入的网络信息
         /// </summary>
-        private readonly Dictionary<Channel, NetworkWriterBatch> writerBatchs = new Dictionary<Channel, NetworkWriterBatch>();
+        private readonly Dictionary<Channel, NetworkWriterBatch> writerBatches = new Dictionary<Channel, NetworkWriterBatch>();
         
         /// <summary>
         /// 快照存储字典
@@ -51,7 +51,7 @@ namespace JFramework.Net
         /// </summary>
         internal virtual void OnUpdate()
         {
-            foreach (var (channel, writerPack) in writerBatchs) // 遍历可靠和不可靠消息
+            foreach (var (channel, writerPack) in writerBatches) // 遍历可靠和不可靠消息
             {
                 using var writer = NetworkWriter.Pop(); // 取出 writer
                 while (writerPack.WriteDequeue(writer)) // 将数据拷贝到 writer
@@ -120,9 +120,9 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal NetworkWriterBatch GetWriterPack(Channel channel)
         {
-            if (writerBatchs.TryGetValue(channel, out var writerPack)) return writerPack;
+            if (writerBatches.TryGetValue(channel, out var writerPack)) return writerPack;
             var threshold = NetworkManager.Transport.UnreliableSize();
-            return writerBatchs[channel] = new NetworkWriterBatch(threshold);
+            return writerBatches[channel] = new NetworkWriterBatch(threshold);
         }
         
         /// <summary>
