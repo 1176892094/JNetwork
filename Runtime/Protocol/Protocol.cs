@@ -500,15 +500,15 @@ namespace JFramework.Udp
                 refreshTime = sinceTime; //当前时间戳，表示最后一次刷新时间
             }
 
-            var duartion = Utility.Compare(sinceTime, refreshTime); //计算距离上次刷新的时间间隔
+            var duration = Utility.Compare(sinceTime, refreshTime); //计算距离上次刷新的时间间隔
 
-            if (Math.Abs(duartion) > 10000)
+            if (Math.Abs(duration) > 10000)
             {
-                duartion = 0;
+                duration = 0;
                 refreshTime = sinceTime;
             }
 
-            if (duartion >= 0)
+            if (duration >= 0)
             {
                 refreshTime += interval;
                 if (sinceTime >= refreshTime)
