@@ -11,15 +11,15 @@ namespace JFramework.Net
     {
         public static Action<NetworkWriter, T> write;
     }
-    
+
     [Serializable]
-    public class NetworkWriter: IDisposable
+    public class NetworkWriter : IDisposable
     {
         /// <summary>
         /// 字符串编码
         /// </summary>
         internal readonly UTF8Encoding encoding = new UTF8Encoding(false, true);
-        
+
         /// <summary>
         /// 当前字节数组中的位置
         /// </summary>
@@ -29,7 +29,7 @@ namespace JFramework.Net
         /// 缓存的字节数组
         /// </summary>
         [SerializeField] internal byte[] buffer = new byte[1500];
-        
+
         /// <summary>
         /// 将Blittable的数据进行内存拷贝
         /// </summary>
@@ -46,9 +46,10 @@ namespace JFramework.Net
                 *(T*)ptr = value;
 #endif
             }
+
             position += sizeof(T);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void SerializeNone<T>(T? value) where T : unmanaged
         {
@@ -58,7 +59,7 @@ namespace JFramework.Net
                 Serialize(value.Value);
             }
         }
-        
+
         /// <summary>
         /// 确保容量
         /// </summary>
@@ -82,14 +83,14 @@ namespace JFramework.Net
             Array.ConstrainedCopy(buffer, 0, data, 0, position);
             return data;
         }
-        
+
         /// <summary>
         /// 转化为数组分片
         /// </summary>
         /// <returns>返回数组分片</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ArraySegment<byte> ToArraySegment() => new ArraySegment<byte>(buffer, 0, position);
-        
+
         /// <summary>
         /// 将writer直接转化成数组分片
         /// </summary>
@@ -126,7 +127,7 @@ namespace JFramework.Net
                 writer(this, value);
             }
         }
-        
+
         /// <summary>
         /// 重置位置
         /// </summary>
@@ -167,7 +168,7 @@ namespace JFramework.Net
             var segment = ToArraySegment();
             return BitConverter.ToString(segment.Array, segment.Offset, segment.Count);
         }
-        
+
         /// <summary>
         /// 使用using来释放
         /// </summary>
