@@ -1,61 +1,62 @@
 using System.Linq;
 using UnityEngine;
+
 // ReSharper disable All
 
 namespace JFramework.Net
 {
-     public class NetworkAnimator : NetworkBehaviour
+    public class NetworkAnimator : NetworkBehaviour
     {
         /// <summary>
         /// 动画控制器
         /// </summary>
         public Animator animator;
-        
+
         /// <summary>
         /// 同步动画速度
         /// </summary>
         [SyncVar(nameof(OnSpeedChanged))] private float animaSpeed;
-        
+
         /// <summary>
         /// 上个动画速度
         /// </summary>
         private float lastSpeed;
-        
+
         /// <summary>
         /// 控制器中 int 类型的动画参数
         /// </summary>
         private int[] lastIntParams;
-        
+
         /// <summary>
         /// 控制器中 bool 类型的动画参数
         /// </summary>
         private bool[] lastBoolParams;
-        
+
         /// <summary>
         /// 控制器中 类型的动画参数
         /// </summary>
         private float[] lastFloatParams;
-        
+
         /// <summary>
         /// 动画控制器的所有参数
         /// </summary>
         private AnimatorControllerParameter[] animatorParams;
-        
+
         /// <summary>
         /// 每个动画的Hash
         /// </summary>
         private int[] animationHash;
-        
+
         /// <summary>
         /// 每个过渡的Hash
         /// </summary>
         private int[] transitionHash;
-        
+
         /// <summary>
         /// 动画控制器每个层级的权重
         /// </summary>
         private float[] layerWeight;
-        
+
         /// <summary>
         /// 下一次发送时间
         /// </summary>
@@ -121,7 +122,7 @@ namespace JFramework.Net
 
             CheckSpeed();
         }
-        
+
         /// <summary>
         /// 同步网络变量 动画速度
         /// </summary>
@@ -391,6 +392,7 @@ namespace JFramework.Net
                     writer.WriteBool(newBoolValue);
                 }
             }
+
             return dirtyBits != 0;
         }
 
@@ -401,7 +403,7 @@ namespace JFramework.Net
         private void ReadParameters(NetworkReader reader)
         {
             bool animatorEnabled = animator.enabled;
-            
+
             ulong dirtyBits = reader.ReadULong();
             for (int i = 0; i < animatorParams.Length; i++)
             {
@@ -442,7 +444,7 @@ namespace JFramework.Net
         /// <param name="start"></param>
         protected override void OnSerialize(NetworkWriter writer, bool start)
         {
-            base.OnSerialize(writer,start);
+            base.OnSerialize(writer, start);
             if (!start) return;
             for (int i = 0; i < animator.layerCount; i++)
             {
@@ -472,7 +474,7 @@ namespace JFramework.Net
         /// <param name="start"></param>
         protected override void OnDeserialize(NetworkReader reader, bool start)
         {
-            base.OnDeserialize(reader,start);
+            base.OnDeserialize(reader, start);
             if (!start) return;
             for (int i = 0; i < animator.layerCount; i++)
             {
@@ -484,7 +486,7 @@ namespace JFramework.Net
 
             ReadParameters(reader);
         }
-        
+
         /// <summary>
         /// 根据 string 设置触发器
         /// </summary>
@@ -493,7 +495,7 @@ namespace JFramework.Net
         {
             SetTrigger(Animator.StringToHash(triggerName));
         }
-        
+
         /// <summary>
         /// 根据 hash 设置触发器
         /// </summary>
@@ -518,7 +520,7 @@ namespace JFramework.Net
                 {
                     SetAnimTriggerForServer(hash);
                 }
-                
+
                 HandleSetTrigger(hash);
             }
             else
@@ -533,7 +535,7 @@ namespace JFramework.Net
                 SetAnimTriggerForClient(hash);
             }
         }
-        
+
         /// <summary>
         /// 根据 string 重置触发器
         /// </summary>
@@ -582,7 +584,7 @@ namespace JFramework.Net
                 ResetAnimTriggerForClient(hash);
             }
         }
-        
+
         /// <summary>
         /// 设置动画速度到服务器
         /// </summary>
@@ -593,7 +595,7 @@ namespace JFramework.Net
             animator.speed = newSpeed;
             animaSpeed = newSpeed;
         }
-        
+
         /// <summary>
         /// 设置动画控制器到服务器
         /// </summary>
@@ -638,7 +640,7 @@ namespace JFramework.Net
             HandleSetParams(networkReader);
             SetAnimParamsForClient(param);
         }
-        
+
         /// <summary>
         /// 为所有客户端设置动画参数
         /// </summary>
@@ -665,7 +667,7 @@ namespace JFramework.Net
 
             SetAnimTriggerForClient(hash);
         }
-        
+
         /// <summary>
         /// 为所有客户端设置动画触发器
         /// </summary>
