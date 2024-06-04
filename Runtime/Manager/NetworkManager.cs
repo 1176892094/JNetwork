@@ -36,6 +36,11 @@ namespace JFramework.Net
         [Inject, SerializeField] private TimeManager time;
 
         /// <summary>
+        /// 网络场景
+        /// </summary>
+        [Inject, SerializeField] private SceneManager scene;
+
+        /// <summary>
         /// 是否进行调试
         /// </summary>
         [Inject, SerializeField] private DebugManager debug;
@@ -49,11 +54,6 @@ namespace JFramework.Net
         /// 网络服务器
         /// </summary>
         [Inject, SerializeField] private ServerManager server;
-
-        /// <summary>
-        /// 网络场景
-        /// </summary>
-        [Inject, SerializeField] private SceneManager scene;
 
         /// <summary>
         /// 网络设置
@@ -81,28 +81,6 @@ namespace JFramework.Net
         internal float sendRate => tickRate < int.MaxValue ? 1f / tickRate : 0;
 
         /// <summary>
-        /// 网络运行模式
-        /// </summary>
-        [ShowInInspector]
-        public NetworkMode mode
-        {
-            get
-            {
-                if (!Application.isPlaying)
-                {
-                    return NetworkMode.None;
-                }
-
-                if (Server.isActive)
-                {
-                    return Client.isActive ? NetworkMode.Host : NetworkMode.Server;
-                }
-
-                return Client.isActive ? NetworkMode.Client : NetworkMode.None;
-            }
-        }
-
-        /// <summary>
         /// TimerManager 控制器
         /// </summary>
         public static TimeManager Time => Instance.time;
@@ -123,6 +101,16 @@ namespace JFramework.Net
         public static ServerManager Server => Instance.server;
 
         /// <summary>
+        /// SettingManager 控制器
+        /// </summary>
+        internal static SettingManager Setting => Instance.setting;
+
+        /// <summary>
+        /// NetworkDiscovery 控制器
+        /// </summary>
+        public static NetworkDiscovery Discovery => Instance.discovery;
+
+        /// <summary>
         /// TimerManager 控制器
         /// </summary>
         public static Transport Transport
@@ -132,14 +120,26 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// ServerManager 控制器
+        /// 网络运行模式
         /// </summary>
-        public static NetworkDiscovery Discovery => Instance.discovery;
+        [ShowInInspector]
+        public NetworkMode mode
+        {
+            get
+            {
+                if (!Application.isPlaying)
+                {
+                    return NetworkMode.None;
+                }
 
-        /// <summary>
-        /// SettingManager 控制器
-        /// </summary>
-        internal static SettingManager Setting => Instance.setting;
+                if (Server.isActive)
+                {
+                    return Client.isActive ? NetworkMode.Host : NetworkMode.Server;
+                }
+
+                return Client.isActive ? NetworkMode.Client : NetworkMode.None;
+            }
+        }
 
         /// <summary>
         /// 初始化配置传输
@@ -180,6 +180,11 @@ namespace JFramework.Net
         private void OnDisable()
         {
             GlobalManager.OnQuit -= OnQuit;
+        }
+
+        private void OnDestroy()
+        {
+            EntityManager.Destroy(this);
         }
 
         /// <summary>

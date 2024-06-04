@@ -63,8 +63,7 @@ namespace JFramework.Udp
         /// <param name="OnConnected"></param>
         /// <param name="OnDisconnected"></param>
         /// <param name="OnReceive"></param>
-        public Server(Setting setting, Action<int> OnConnected, Action<int> OnDisconnected,
-            Action<int, ArraySegment<byte>, Channel> OnReceive)
+        public Server(Setting setting, Action<int> OnConnected, Action<int> OnDisconnected, Action<int, ArraySegment<byte>, Channel> OnReceive)
         {
             this.setting = setting;
             this.OnReceive = OnReceive;

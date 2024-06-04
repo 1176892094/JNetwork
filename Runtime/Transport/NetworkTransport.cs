@@ -23,19 +23,19 @@ namespace JFramework.Net
             Log.Warn = Debug.LogWarning;
             Log.Error = Debug.LogError;
             setting = new Setting(maxUnit, timeout,  sendSize, receiveSize, resend, interval);
-            client = new Client(setting, ClientConnected, ClientDisconnected, ClientDataReceived);
-            server = new Server(setting, ServerConnected, ServerDisconnected, ServerDataReceived);
+            client = new Client(setting, ClientConnected, ClientDisconnected, ClientReceive);
+            server = new Server(setting, ServerConnected, ServerDisconnected, ServerReceive);
             return;
 
             void ClientConnected() => OnClientConnected.Invoke();
 
-            void ClientDataReceived(ArraySegment<byte> message, Udp.Channel channel) => OnClientReceive.Invoke(message, (Channel)channel);
+            void ClientReceive(ArraySegment<byte> message, Udp.Channel channel) => OnClientReceive.Invoke(message, (Channel)channel);
 
             void ClientDisconnected() => OnClientDisconnected.Invoke();
 
             void ServerConnected(int clientId) => OnServerConnected.Invoke(clientId);
 
-            void ServerDataReceived(int clientId, ArraySegment<byte> message, Udp.Channel channel) => OnServerReceive.Invoke(clientId, message, (Channel)channel);
+            void ServerReceive(int clientId, ArraySegment<byte> message, Udp.Channel channel) => OnServerReceive.Invoke(clientId, message, (Channel)channel);
 
             void ServerDisconnected(int clientId) => OnServerDisconnected.Invoke(clientId);
         }

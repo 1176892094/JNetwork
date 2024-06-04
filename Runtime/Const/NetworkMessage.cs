@@ -1,10 +1,26 @@
 using System;
+using System.Net;
 using UnityEngine;
 
 namespace JFramework.Net
 {
     public interface Message
     {
+    }
+    
+    /// <summary>
+    /// 服务器请求
+    /// </summary>
+    public struct ServerRequest : Message
+    {
+    }
+
+    /// <summary>
+    /// 服务器响应
+    /// </summary>
+    public struct ServerResponse : Message
+    {
+        public Uri uri;
     }
         
     /// <summary>
