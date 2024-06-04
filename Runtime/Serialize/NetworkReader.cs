@@ -11,7 +11,7 @@ namespace JFramework.Net
     {
         public static Func<NetworkReader, T> read;
     }
-    
+
     [Serializable]
     public class NetworkReader : IDisposable
     {
@@ -28,13 +28,13 @@ namespace JFramework.Net
         /// <summary>
         /// 缓存的字节数组
         /// </summary>
-        [SerializeField] internal ArraySegment<byte> buffer = new ArraySegment<byte>();
-        
+        internal ArraySegment<byte> buffer = new ArraySegment<byte>();
+
         /// <summary>
         /// 剩余长度
         /// </summary>
         public int Residue => buffer.Count - position;
-        
+
         /// <summary>
         /// 将Blittable的数据进行内存拷贝
         /// </summary>
@@ -135,7 +135,7 @@ namespace JFramework.Net
 
             return reader(this);
         }
-        
+
         /// <summary>
         /// 设置缓存数组
         /// </summary>
