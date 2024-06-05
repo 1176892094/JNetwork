@@ -12,8 +12,8 @@ namespace JFramework.Editor
         private List<FieldDefinition> syncVars = new List<FieldDefinition>();
         private readonly Models models;
         private readonly Logger logger;
-        private readonly Writers writers;
-        private readonly Readers readers;
+        private readonly NetworkWriterProcess writers;
+        private readonly NetworkReaderProcess readers;
         private readonly SyncVarAccess access;
         private readonly TypeDefinition type;
         private readonly TypeDefinition generate;
@@ -26,7 +26,7 @@ namespace JFramework.Editor
         private readonly List<MethodDefinition> targetRpcList = new List<MethodDefinition>();
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
 
-        public NetworkBehaviourProcess(AssemblyDefinition assembly, SyncVarAccess access, Models models, Writers writers, Readers readers, Logger logger, TypeDefinition type)
+        public NetworkBehaviourProcess(AssemblyDefinition assembly, SyncVarAccess access, Models models, NetworkWriterProcess writers, NetworkReaderProcess readers, Logger logger, TypeDefinition type)
         {
             generate = type;
             this.type = type;

@@ -12,8 +12,8 @@ namespace JFramework.Editor
     {
         private bool failed;
         private Models models;
-        private Writers writers;
-        private Readers readers;
+        private NetworkWriterProcess writers;
+        private NetworkReaderProcess readers;
         private SyncVarAccess access;
         private TypeDefinition generate;
         private AssemblyDefinition assembly;
@@ -43,8 +43,8 @@ namespace JFramework.Editor
                 access = new SyncVarAccess();
                 models = new Models(assembly, logger, ref failed);
                 generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NAME, CONST.GEN_ATTRS, models.Import<object>());
-                writers = new Writers(assembly, models, generate, logger);
-                readers = new Readers(assembly, models, generate, logger);
+                writers = new NetworkWriterProcess(assembly, models, generate, logger);
+                readers = new NetworkReaderProcess(assembly, models, generate, logger);
                 change = StreamingProcess.Process(assembly, resolver, logger, writers, readers, ref failed);
                 
                 var mainModule = assembly.MainModule;

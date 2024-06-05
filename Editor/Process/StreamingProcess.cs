@@ -22,7 +22,7 @@ namespace JFramework.Editor
         /// <param name="readers"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, Writers writers, Readers readers, ref bool failed)
+        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, NetworkWriterProcess writers, NetworkReaderProcess readers, ref bool failed)
         {
             ProcessNetworkCode(assembly, resolver, logger, writers, readers, ref failed);
             return ProcessCustomCode(assembly, assembly, writers, readers, ref failed);
@@ -37,7 +37,7 @@ namespace JFramework.Editor
         /// <param name="writers"></param>
         /// <param name="readers"></param>
         /// <param name="failed"></param>
-        private static void ProcessNetworkCode(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, Writers writers, Readers readers, ref bool failed)
+        private static void ProcessNetworkCode(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, NetworkWriterProcess writers, NetworkReaderProcess readers, ref bool failed)
         {
             var assemblyReference = assembly.MainModule.FindReference(CONST.ASSEMBLY_NAME);
             if (assemblyReference != null)
@@ -67,7 +67,7 @@ namespace JFramework.Editor
         /// <param name="readers"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool ProcessCustomCode(AssemblyDefinition assembly, AssemblyDefinition netAssembly, Writers writers, Readers readers, ref bool failed)
+        private static bool ProcessCustomCode(AssemblyDefinition assembly, AssemblyDefinition netAssembly, NetworkWriterProcess writers, NetworkReaderProcess readers, ref bool failed)
         {
             bool changed = false;
             foreach (var definition in netAssembly.MainModule.Types.Where(definition => definition.IsAbstract && definition.IsSealed))
@@ -91,7 +91,7 @@ namespace JFramework.Editor
         /// <param name="td"></param>
         /// <param name="writers"></param>
         /// <returns></returns>
-        private static bool LoadDeclaredWriters(AssemblyDefinition assembly, TypeDefinition td, Writers writers)
+        private static bool LoadDeclaredWriters(AssemblyDefinition assembly, TypeDefinition td, NetworkWriterProcess writers)
         {
             bool change = false;
             foreach (var md in td.Methods)
@@ -125,7 +125,7 @@ namespace JFramework.Editor
         /// <param name="td"></param>
         /// <param name="readers"></param>
         /// <returns></returns>
-        private static bool LoadDeclaredReaders(AssemblyDefinition assembly, TypeDefinition td, Readers readers)
+        private static bool LoadDeclaredReaders(AssemblyDefinition assembly, TypeDefinition td, NetworkReaderProcess readers)
         {
             bool change = false;
             foreach (var md in td.Methods)
@@ -161,7 +161,7 @@ namespace JFramework.Editor
         /// <param name="td"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool LoadStreamingMessage(ModuleDefinition module, Writers writers, Readers readers, TypeDefinition td, ref bool failed)
+        private static bool LoadStreamingMessage(ModuleDefinition module, NetworkWriterProcess writers, NetworkReaderProcess readers, TypeDefinition td, ref bool failed)
         {
             bool change = false;
             if (!td.IsAbstract && !td.IsInterface && td.ImplementsInterface<Message>())
@@ -214,7 +214,7 @@ namespace JFramework.Editor
         /// <param name="writers"></param>
         /// <param name="readers"></param>
         /// <param name="td"></param>
-        public static void StreamingInitialize(AssemblyDefinition assembly, Models models, Writers writers, Readers readers, TypeDefinition td)
+        public static void StreamingInitialize(AssemblyDefinition assembly, Models models, NetworkWriterProcess writers, NetworkReaderProcess readers, TypeDefinition td)
         {
             var method = new MethodDefinition("RuntimeInitializeOnLoad", MethodAttributes.Public | MethodAttributes.Static, models.Import(typeof(void)));
 

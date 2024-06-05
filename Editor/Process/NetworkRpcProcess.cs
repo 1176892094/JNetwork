@@ -24,7 +24,7 @@ namespace JFramework.Editor
         /// <param name="func"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessClientRpc(Models models, Readers readers, Logger logger, TypeDefinition td,
+        public static MethodDefinition ProcessClientRpc(Models models, NetworkReaderProcess readers, Logger logger, TypeDefinition td,
             MethodDefinition md, MethodDefinition func, ref bool failed)
         {
             var rpcName = Process.GenerateMethodName(CONST.INV_METHOD, md);
@@ -59,7 +59,7 @@ namespace JFramework.Editor
         /// <param name="ca"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessClientRpcInvoke(Models models, Writers writers, Logger logger, TypeDefinition td,
+        public static MethodDefinition ProcessClientRpcInvoke(Models models, NetworkWriterProcess writers, Logger logger, TypeDefinition td,
             MethodDefinition md, CustomAttribute ca, ref bool failed)
         {
             var rpc = BaseRpcMethod(logger, td, md, ref failed);
@@ -94,7 +94,7 @@ namespace JFramework.Editor
         /// <param name="func"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessServerRpc(Models models, Readers readers, Logger logger, TypeDefinition td,
+        public static MethodDefinition ProcessServerRpc(Models models, NetworkReaderProcess readers, Logger logger, TypeDefinition td,
             MethodDefinition md, MethodDefinition func, ref bool failed)
         {
             var rpcName = Process.GenerateMethodName(CONST.INV_METHOD, md);
@@ -130,7 +130,7 @@ namespace JFramework.Editor
         /// <param name="commandAttr"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessServerRpcInvoke(Models models, Writers writers, Logger logger, TypeDefinition td,
+        public static MethodDefinition ProcessServerRpcInvoke(Models models, NetworkWriterProcess writers, Logger logger, TypeDefinition td,
             MethodDefinition md, CustomAttribute commandAttr, ref bool failed)
         {
             var rpc = BaseRpcMethod(logger, td, md, ref failed);
@@ -182,7 +182,7 @@ namespace JFramework.Editor
         /// <param name="func"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessTargetRpc(Models models, Readers readers, Logger logger, TypeDefinition td,
+        public static MethodDefinition ProcessTargetRpc(Models models, NetworkReaderProcess readers, Logger logger, TypeDefinition td,
             MethodDefinition md, MethodDefinition func, ref bool failed)
         {
             var rpcName = Process.GenerateMethodName(CONST.INV_METHOD, md);
@@ -222,7 +222,7 @@ namespace JFramework.Editor
         /// <param name="attr"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessTargetRpcInvoke(Models models, Writers writers, Logger logger, TypeDefinition td,
+        public static MethodDefinition ProcessTargetRpcInvoke(Models models, NetworkWriterProcess writers, Logger logger, TypeDefinition td,
             MethodDefinition md, CustomAttribute attr, ref bool failed)
         {
             var rpc = BaseRpcMethod(logger, td, md, ref failed);
@@ -269,7 +269,7 @@ namespace JFramework.Editor
         /// <param name="rpcType"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool WriteArguments(ILProcessor worker, Writers writers, Logger logger, MethodDefinition method, RpcType rpcType,
+        private static bool WriteArguments(ILProcessor worker, NetworkWriterProcess writers, Logger logger, MethodDefinition method, RpcType rpcType,
             ref bool failed)
         {
             bool skipFirst = rpcType == RpcType.TargetRpc && HasConnectionParameter(method);
@@ -316,7 +316,7 @@ namespace JFramework.Editor
         /// <param name="rpcType"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool ReadArguments(MethodDefinition method, Readers readers, Logger logger, ILProcessor worker, RpcType rpcType,
+        private static bool ReadArguments(MethodDefinition method, NetworkReaderProcess readers, Logger logger, ILProcessor worker, RpcType rpcType,
             ref bool failed)
         {
             bool skipFirst = rpcType == RpcType.TargetRpc && HasConnectionParameter(method);

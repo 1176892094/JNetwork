@@ -9,7 +9,7 @@ using ParameterAttributes = Mono.Cecil.ParameterAttributes;
 
 namespace JFramework.Editor
 {
-    internal class Writers
+    internal class NetworkWriterProcess
     {
         private readonly Dictionary<TypeReference, MethodReference> funcs = new Dictionary<TypeReference, MethodReference>(new Comparer());
         private readonly Models models;
@@ -17,7 +17,7 @@ namespace JFramework.Editor
         private readonly TypeDefinition generate;
         private readonly AssemblyDefinition assembly;
 
-        public Writers(AssemblyDefinition assembly, Models models, TypeDefinition generate, Logger logger)
+        public NetworkWriterProcess(AssemblyDefinition assembly, Models models, TypeDefinition generate, Logger logger)
         {
             this.logger = logger;
             this.models = models;
