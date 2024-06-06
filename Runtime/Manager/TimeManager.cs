@@ -74,9 +74,9 @@ namespace JFramework.Net
         /// <summary>
         /// 添加侦听
         /// </summary>
-        private void Awake()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void RuntimeInitializeOnLoad()
         {
-            if (!Application.isPlaying) return;
             var playerLoop = PlayerLoop.GetCurrentPlayerLoop();
             AddLoopSystem(EarlyUpdate, ref playerLoop, typeof(EarlyUpdate));
             AddLoopSystem(AfterUpdate, ref playerLoop, typeof(PreLateUpdate));
@@ -86,8 +86,9 @@ namespace JFramework.Net
         /// <summary>
         /// Update之前的循环
         /// </summary>
-        private void EarlyUpdate()
+        private static void EarlyUpdate()
         {
+            if (!NetworkManager.Instance) return;
             NetworkManager.Server.EarlyUpdate();
             NetworkManager.Client.EarlyUpdate();
         }
@@ -95,8 +96,9 @@ namespace JFramework.Net
         /// <summary>
         /// Update之后的循环
         /// </summary>
-        private void AfterUpdate()
+        private static void AfterUpdate()
         {
+            if (!NetworkManager.Instance) return;
             NetworkManager.Server.AfterUpdate();
             NetworkManager.Client.AfterUpdate();
         }
@@ -108,7 +110,7 @@ namespace JFramework.Net
         /// <param name="playerLoop">玩家循环</param>
         /// <param name="systemType">循环系统类型</param>
         /// <returns>返回能否添加循环</returns>
-        private bool AddLoopSystem(UpdateFunction function, ref PlayerLoopSystem playerLoop, Type systemType)
+        private static bool AddLoopSystem(UpdateFunction function, ref PlayerLoopSystem playerLoop, Type systemType)
         {
             if (playerLoop.type == systemType)
             {
