@@ -129,7 +129,7 @@ namespace JFramework.Net
 
             isReady = true;
             connection.isReady = true;
-            connection.Send(new SetReadyMessage());
+            Send(new SetReadyMessage());
         }
 
         /// <summary>

@@ -278,7 +278,7 @@ namespace JFramework.Net
                 segment = writer.ToArraySegment()
             };
 
-            NetworkManager.Client.connection.Send(message, (Channel)channel);
+            NetworkManager.Client.Send(message, (Channel)channel);
         }
 
 
