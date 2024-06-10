@@ -96,7 +96,6 @@ namespace JFramework.Editor
 
                 return false;
             }
-
             var behaviours = new List<TypeDefinition>();
 
             TypeDefinition parent = td;
@@ -130,11 +129,11 @@ namespace JFramework.Editor
         /// <summary>
         /// 处理功能
         /// </summary>
-        /// <param name="moduleDefinition"></param>
+        /// <param name="md"></param>
         /// <returns></returns>
-        private bool ProcessModule(ModuleDefinition moduleDefinition)
+        private bool ProcessModule(ModuleDefinition md)
         {
-            return moduleDefinition.Types.Where(td => td.IsClass && td.BaseType.CanResolve()).Aggregate(false, (current, td) => current | ProcessNetworkBehavior(td, ref failed));
+            return md.Types.Where(td => td.IsClass && td.BaseType.CanResolve()).Aggregate(false, (current, td) => current | ProcessNetworkBehavior(td, ref failed));
         }
 
         /// <summary>
