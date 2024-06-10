@@ -10,6 +10,9 @@
 
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using UnityEngine;
@@ -27,7 +30,7 @@ namespace JFramework.Net
         {
             return unchecked(name.Aggregate(23U, (i, c) => i * 31 + c));
         }
-        
+
         /// <summary>
         /// 获取随机值
         /// </summary>
@@ -38,6 +41,46 @@ namespace JFramework.Net
             var buffer = new byte[4];
             provider.GetBytes(buffer);
             return BitConverter.ToUInt32(buffer);
+        }
+
+        /// <summary>
+        /// 获取地址
+        /// </summary>
+        /// <returns></returns>
+        public static string GetHostName()
+        {
+            try
+            {
+                var interfaces = NetworkInterface.GetAllNetworkInterfaces();
+                foreach (var inter in interfaces)
+                {
+                    if (inter.OperationalStatus == OperationalStatus.Up && inter.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+                    {
+                        var properties = inter.GetIPProperties();
+                        var ip = properties.UnicastAddresses.FirstOrDefault(ip => ip.Address.AddressFamily == AddressFamily.InterNetwork);
+                        if (ip != null)
+                        {
+                            return ip.Address.ToString();
+                        }
+                    }
+                }
+
+                // 虚拟机无法解析网络接口 因此额外解析主机地址
+                var addresses = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
+                foreach (var ip in addresses)
+                {
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        return ip.ToString();
+                    }
+                }
+
+                return "127.0.0.1";
+            }
+            catch
+            {
+                return "127.0.0.1";
+            }
         }
 
         /// <summary>
@@ -82,7 +125,7 @@ namespace JFramework.Net
 
             return null;
         }
-        
+
         /// <summary>
         /// 发送消息是否有效
         /// </summary>
@@ -175,7 +218,7 @@ namespace JFramework.Net
                 }
             };
         }
-        
+
         /// <summary>
         /// 压缩
         /// </summary>
