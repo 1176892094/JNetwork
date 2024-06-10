@@ -43,9 +43,9 @@ namespace JFramework.Net
 
         public override void StopServer() => server.StopServer();
 
-        public override void StopServer(int clientId) => server.Disconnect(clientId);
+        public override void StopClient(int clientId) => server.Disconnect(clientId);
 
-        public override void SendToServer(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable) => server.Send(clientId, segment, channel);
+        public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable) => server.Send(clientId, segment, channel);
 
         public override void StartClient() => client.Connect(address, port);
 
@@ -53,7 +53,7 @@ namespace JFramework.Net
 
         public override void StopClient() => client.Disconnect();
 
-        public override void SendToClient(ArraySegment<byte> segment, int channel = Channel.Reliable) => client.Send(segment, channel);
+        public override void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable) => client.Send(segment, channel);
 
         public override void ClientEarlyUpdate() => client.EarlyUpdate();
 

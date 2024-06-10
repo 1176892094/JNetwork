@@ -55,14 +55,14 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器传输信息给客户端
         /// </summary>
-        public abstract void SendToServer(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable);
+        public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable);
 
         /// <summary>
         /// 客户端向服务器传输信息
         /// </summary>
         /// <param name="segment">传入发送的数据</param>
         /// <param name="channel">传入通道</param>
-        public abstract void SendToClient(ArraySegment<byte> segment, int channel = Channel.Reliable);
+        public abstract void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable);
 
         /// <summary>
         /// 当服务器连接
@@ -78,7 +78,7 @@ namespace JFramework.Net
         /// 服务器断开指定客户端连接
         /// </summary>
         /// <param name="clientId">传入要断开的客户端Id</param>
-        public abstract void StopServer(int clientId);
+        public abstract void StopClient(int clientId);
 
         /// <summary>
         /// 根据地址和端口进行连接

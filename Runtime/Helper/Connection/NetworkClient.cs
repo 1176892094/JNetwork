@@ -52,7 +52,7 @@ namespace JFramework.Net
                     ArraySegment<byte> segment = writer; // 将 writer 转化成数据分段
                     if (NetworkUtility.IsValid(segment, channel)) // 判断 writer 是否有效
                     {
-                        NetworkManager.Transport.SendToServer(clientId, segment, channel);
+                        NetworkManager.Transport.SendToClient(clientId, segment, channel);
                     }
                 }
             }
@@ -138,7 +138,7 @@ namespace JFramework.Net
         public void Disconnect()
         {
             isReady = false;
-            NetworkManager.Transport.StopServer(clientId);
+            NetworkManager.Transport.StopClient(clientId);
         }
     }
 }

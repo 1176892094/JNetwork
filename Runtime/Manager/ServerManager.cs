@@ -254,15 +254,15 @@ namespace JFramework.Net
             if (clientId == 0)
             {
                 Debug.LogError($"无效的客户端连接。客户端：{clientId}");
-                NetworkManager.Transport.StopServer(clientId);
+                NetworkManager.Transport.StopClient(clientId);
             }
             else if (clients.ContainsKey(clientId))
             {
-                NetworkManager.Transport.StopServer(clientId);
+                NetworkManager.Transport.StopClient(clientId);
             }
             else if (clients.Count >= NetworkManager.Instance.connection)
             {
-                NetworkManager.Transport.StopServer(clientId);
+                NetworkManager.Transport.StopClient(clientId);
             }
             else
             {
