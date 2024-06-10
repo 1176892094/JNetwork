@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using JFramework.Interface;
+using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -52,32 +53,32 @@ namespace JFramework.Net
         /// <summary>
         /// 作为资源的路径
         /// </summary>
-        [SerializeField] internal string assetId;
+        [SerializeField, ReadOnly] internal string assetId;
 
         /// <summary>
         /// 作为场景资源的Id
         /// </summary>
-        [SerializeField] internal ulong sceneId;
+        [SerializeField, ReadOnly] internal ulong sceneId;
 
         /// <summary>
         /// 游戏对象Id，用于网络标识
         /// </summary>
-        [SerializeField] internal uint objectId;
+        [SerializeField, ReadOnly] internal uint objectId;
 
         /// <summary>
         /// 是否有用权限
         /// </summary>
-        [SerializeField] internal bool isOwner;
+        [SerializeField, ReadOnly] internal bool isOwner;
 
         /// <summary>
         /// 是否在服务器端
         /// </summary>
-        [SerializeField] internal bool isServer;
+        [SerializeField, ReadOnly] internal bool isServer;
 
         /// <summary>
         /// 是否在客户端
         /// </summary>
-        [SerializeField] internal bool isClient;
+        [SerializeField, ReadOnly] internal bool isClient;
 
         /// <summary>
         /// 是否为第一次生成
@@ -385,7 +386,7 @@ namespace JFramework.Net
         /// </summary>
         internal void InvokeMessage(byte index, ushort function, InvokeMode mode, NetworkReader reader, NetworkClient client = null)
         {
-            if (this== null)
+            if (this == null)
             {
                 Debug.LogWarning($"调用了已经删除的网络对象。{mode} [{function}] 网络Id：{objectId}");
                 return;
