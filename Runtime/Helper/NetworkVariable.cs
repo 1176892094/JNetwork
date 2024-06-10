@@ -1,25 +1,36 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: Charlotte
+// # Version: 1.0.0
+// # History: 2024-06-05  14:06
+// # Copyright: 2024, Charlotte
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System;
 
 namespace JFramework.Net
 {
-    public readonly struct NetworkVariable : IEquatable<NetworkVariable>
+    [Serializable]
+    public struct NetworkVariable : IEquatable<NetworkVariable>
     {
         /// <summary>
         /// 网络对象Id
         /// </summary>
-        public readonly uint objectId;
-        
+        public uint objectId;
+
         /// <summary>
         /// 序列Id
         /// </summary>
-        public readonly byte componentId;
+        public byte componentId;
 
         /// <summary>
         /// 构造函数初始化
         /// </summary>
         /// <param name="objectId"></param>
         /// <param name="componentId"></param>
-        public NetworkVariable(uint objectId, int componentId) : this()
+        public NetworkVariable(uint objectId, int componentId)
         {
             this.objectId = objectId;
             this.componentId = (byte)componentId;

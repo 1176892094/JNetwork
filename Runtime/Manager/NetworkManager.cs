@@ -1,14 +1,21 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: Charlotte
+// # Version: 1.0.0
+// # History: 2024-06-04  22:06
+// # Copyright: 2024, Charlotte
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System;
 using JFramework.Core;
 using JFramework.Interface;
-using Sirenix.OdinInspector;
 using UnityEngine;
-
-// ReSharper disable All
 
 namespace JFramework.Net
 {
-    public sealed partial class NetworkManager : MonoBehaviour, IEntity
+    public partial class NetworkManager : MonoBehaviour, IEntity
     {
         /// <summary>
         /// NetworkManager 单例
@@ -21,97 +28,87 @@ namespace JFramework.Net
         [SerializeField] private Transport transport;
 
         /// <summary>
-        /// 网络发现组件
+        /// 时间组件
         /// </summary>
-        [SerializeField] private NetworkDiscovery discovery;
+        [SerializeField, Inject] private TimeManager time;
 
         /// <summary>
-        /// 玩家预置体
+        /// 客户端组件
         /// </summary>
-        [SerializeField] private GameObject player;
+        [SerializeField, Inject] private ClientManager client;
 
         /// <summary>
-        /// 网络时间
+        /// 服务器组件
         /// </summary>
-        [Inject, SerializeField] private TimeManager time;
+        [SerializeField, Inject] private ServerManager server;
 
         /// <summary>
-        /// 网络场景
+        /// 场景加载组件
         /// </summary>
-        [Inject, SerializeField] private SceneManager scene;
+        [SerializeField, Inject] private SceneManager scene;
 
         /// <summary>
-        /// 是否进行调试
+        /// 调试器组件
         /// </summary>
-        [Inject, SerializeField] private DebugManager debug;
+        [SerializeField, Inject] private DebugManager debug;
 
         /// <summary>
-        /// 网络客户端
+        /// 玩家游戏预置体
         /// </summary>
-        [Inject, SerializeField] private ClientManager client;
-
-        /// <summary>
-        /// 网络服务器
-        /// </summary>
-        [Inject, SerializeField] private ServerManager server;
-
-        /// <summary>
-        /// 网络设置
-        /// </summary>
-        [Inject, SerializeField] private SettingManager setting;
+        [SerializeField] private GameObject prefab;
 
         /// <summary>
         /// 心跳传输率
         /// </summary>
-        [SerializeField] internal int tickRate = 30;
+        [SerializeField, Range(30, 120)] internal int sendRate = 30;
 
         /// <summary>
         /// 客户端最大连接数量
         /// </summary>
-        [SerializeField] internal uint connection = 100;
+        public int connection = 100;
 
         /// <summary>
         /// 是否进行调试
         /// </summary>
-        [SerializeField] private bool isDebug = true;
+        [SerializeField] private DebugMode debugger = DebugMode.Enable;
+        
+        /// <summary>
+        /// Ping 时间
+        /// </summary>
+        public static double Ping => Time.ping;
+
+        /// <summary>
+        /// 流逝时间
+        /// </summary>
+        internal static double TickTime => UnityEngine.Time.unscaledTimeAsDouble;
 
         /// <summary>
         /// 消息发送率
         /// </summary>
-        internal float sendRate => tickRate < int.MaxValue ? 1f / tickRate : 0;
+        internal static float SendRate => 1f / Instance.sendRate;
 
         /// <summary>
-        /// TimerManager 控制器
+        /// 时间组件
         /// </summary>
-        public static TimeManager Time => Instance.time;
+        internal static TimeManager Time => Instance.time;
 
         /// <summary>
-        /// SceneManager 控制器
-        /// </summary>
-        public static SceneManager Scene => Instance.scene;
-
-        /// <summary>
-        /// ClientManager 控制器
+        /// 客户端组件
         /// </summary>
         public static ClientManager Client => Instance.client;
 
         /// <summary>
-        /// ServerManager 控制器
+        /// 服务器组件
         /// </summary>
         public static ServerManager Server => Instance.server;
 
         /// <summary>
-        /// SettingManager 控制器
+        /// 场景加载组件
         /// </summary>
-        internal static SettingManager Setting => Instance.setting;
+        public static SceneManager Scene => Instance.scene;
 
         /// <summary>
-        /// NetworkDiscovery 控制器
-        /// </summary>
-        public static NetworkDiscovery Discovery => Instance.discovery;
-
-        /// <summary>
-        /// TimerManager 控制器
+        /// 网络传输组件
         /// </summary>
         public static Transport Transport
         {
@@ -120,29 +117,28 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 网络运行模式
+        /// 游戏模式
         /// </summary>
-        [ShowInInspector]
-        public NetworkMode mode
+        public static EntryMode Mode
         {
             get
             {
                 if (!Application.isPlaying)
                 {
-                    return NetworkMode.None;
+                    return EntryMode.None;
                 }
 
                 if (Server.isActive)
                 {
-                    return Client.isActive ? NetworkMode.Host : NetworkMode.Server;
+                    return Client.isActive ? EntryMode.Host : EntryMode.Server;
                 }
 
-                return Client.isActive ? NetworkMode.Client : NetworkMode.None;
+                return Client.isActive ? EntryMode.Client : EntryMode.None;
             }
         }
 
         /// <summary>
-        /// 初始化配置传输
+        /// 初始化
         /// </summary>
         private void Awake()
         {
@@ -151,19 +147,16 @@ namespace JFramework.Net
             DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
 #if UNITY_SERVER
-            Application.targetFrameRate = tickRate;
+            Application.targetFrameRate = sendRate;
 #endif
         }
 
         /// <summary>
-        /// 进行更新
+        /// 销毁
         /// </summary>
-        private void OnGUI()
+        private void OnDestroy()
         {
-            if (isDebug)
-            {
-                debug.OnUpdate();
-            }
+            EntityManager.Destroy(this);
         }
 
         /// <summary>
@@ -182,15 +175,40 @@ namespace JFramework.Net
             GlobalManager.OnQuit -= OnQuit;
         }
 
-        private void OnDestroy()
+        /// <summary>
+        /// 进行更新
+        /// </summary>
+        private void OnGUI()
         {
-            EntityManager.Destroy(this);
+            if (debugger != DebugMode.Disable)
+            {
+                debug.Update();
+            }
         }
 
         /// <summary>
+        /// 当程序退出，停止服务器和客户端
+        /// </summary>
+        private void OnQuit()
+        {
+            if (Client.isConnected)
+            {
+                StopClient();
+            }
+
+            if (Server.isActive)
+            {
+                StopServer();
+            }
+        }
+    }
+
+    public partial class NetworkManager
+    {
+        /// <summary>
         /// 开启服务器
         /// </summary>
-        public void StartServer()
+        public static void StartServer()
         {
             if (Server.isActive)
             {
@@ -198,13 +216,13 @@ namespace JFramework.Net
                 return;
             }
 
-            Server.StartServer(true);
+            Server.StartServer(EntryMode.Server);
         }
 
         /// <summary>
         /// 停止服务器
         /// </summary>
-        public void StopServer()
+        public static void StopServer()
         {
             if (!Server.isActive)
             {
@@ -218,7 +236,22 @@ namespace JFramework.Net
         /// <summary>
         /// 开启客户端
         /// </summary>
-        public void StartClient(Uri uri = default)
+        public static void StartClient()
+        {
+            if (Client.isActive)
+            {
+                Debug.LogWarning("客户端已经连接！");
+                return;
+            }
+
+            Client.StartClient(EntryMode.Client);
+        }
+
+        /// <summary>
+        /// 开启客户端
+        /// </summary>
+        /// <param name="uri"></param>
+        public static void StartClient(Uri uri)
         {
             if (Client.isActive)
             {
@@ -232,7 +265,7 @@ namespace JFramework.Net
         /// <summary>
         /// 停止客户端
         /// </summary>
-        public void StopClient()
+        public static void StopClient()
         {
             if (!Client.isActive)
             {
@@ -240,9 +273,9 @@ namespace JFramework.Net
                 return;
             }
 
-            if (mode == NetworkMode.Host)
+            if (Mode == EntryMode.Host)
             {
-                Server.OnServerDisconnected(NetworkConst.HostId);
+                Server.OnServerDisconnect(Const.HostId);
             }
 
             Client.StopClient();
@@ -251,8 +284,7 @@ namespace JFramework.Net
         /// <summary>
         /// 开启主机
         /// </summary>
-        /// <param name="isListen">设置false则为单机模式，不进行网络传输</param>
-        public void StartHost(bool isListen = true)
+        public static void StartHost(EntryMode mode = EntryMode.Host)
         {
             if (Server.isActive || Client.isActive)
             {
@@ -260,45 +292,29 @@ namespace JFramework.Net
                 return;
             }
 
-            Server.StartServer(isListen);
-            Client.StartClient();
+            Server.StartServer(mode);
+            Client.StartClient(EntryMode.Host);
         }
 
         /// <summary>
         /// 停止主机
         /// </summary>
-        public void StopHost()
+        public static void StopHost()
         {
             StopClient();
             StopServer();
         }
 
         /// <summary>
-        /// 当程序退出，停止服务器和客户端
-        /// </summary>
-        private void OnQuit()
-        {
-            if (Client.isAuthority)
-            {
-                StopClient();
-            }
-
-            if (Server.isActive)
-            {
-                StopServer();
-            }
-        }
-
-        /// <summary>
         /// 生成玩家预置体
         /// </summary>
         /// <param name="client"></param>
-        internal void SpawnPrefab(NetworkClient client)
+        internal void SpawnPlayer(NetworkClient client)
         {
-            if (client.isSpawn && player != null)
+            if (prefab != null && client.isPlayer)
             {
-                Server.Spawn(Instantiate(player), client);
-                client.isSpawn = false;
+                Server.Spawn(Instantiate(prefab), client);
+                client.isPlayer = false;
             }
         }
     }

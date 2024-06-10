@@ -7,7 +7,6 @@ namespace JFramework.Udp
     /// <summary>
     /// Udp客户端
     /// </summary>
-    [Serializable]
     public sealed class Client
     {
         /// <summary>
@@ -43,33 +42,33 @@ namespace JFramework.Udp
         /// <summary>
         /// 当客户端连接到服务器
         /// </summary>
-        private event Action OnConnected;
+        private event Action OnConnect;
 
         /// <summary>
         /// 当客户端从服务器断开
         /// </summary>
-        private event Action OnDisconnected;
+        private event Action OnDisconnect;
 
         /// <summary>
         /// 当从服务器接收消息
         /// </summary>
-        private event Action<ArraySegment<byte>, Channel> OnReceive;
+        private event Action<ArraySegment<byte>, int> OnReceive;
 
         /// <summary>
         /// 构造函数初始化
         /// </summary>
         /// <param name="setting"></param>
-        /// <param name="OnConnected"></param>
-        /// <param name="OnDisconnected"></param>
+        /// <param name="OnConnect"></param>
+        /// <param name="OnDisconnect"></param>
         /// <param name="OnReceive"></param>
-        public Client(Setting setting, Action OnConnected, Action OnDisconnected, Action<ArraySegment<byte>, Channel> OnReceive)
+        public Client(Setting setting, Action OnConnect, Action OnDisconnect, Action<ArraySegment<byte>, int> OnReceive)
         {
             this.setting = setting;
             this.OnReceive = OnReceive;
-            this.OnConnected = OnConnected;
-            this.OnDisconnected = OnDisconnected;
-            buffer = new byte[setting.maxUnit];
-            state = State.Disconnected;
+            this.OnConnect = OnConnect;
+            this.OnDisconnect = OnDisconnect;
+            buffer = new byte[setting.unit];
+            state = State.Disconnect;
         }
 
         /// <summary>
@@ -79,7 +78,7 @@ namespace JFramework.Udp
         /// <param name="port"></param>
         public void Connect(string address, ushort port)
         {
-            if (state == State.Connected)
+            if (state == State.Connect)
             {
                 Log.Warn("客户端已经连接！");
                 return;
@@ -87,7 +86,7 @@ namespace JFramework.Udp
 
             if (!Utility.TryGetAddress(address, out var addresses))
             {
-                OnDisconnected?.Invoke();
+                OnDisconnect?.Invoke();
                 return;
             }
 
@@ -97,7 +96,7 @@ namespace JFramework.Udp
             socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             Utility.SetBuffer(socket);
             socket.Connect(endPoint);
-            proxy.Handshake();
+            proxy.Connect();
         }
 
         /// <summary>
@@ -105,7 +104,7 @@ namespace JFramework.Udp
         /// </summary>
         public void Disconnect()
         {
-            if (state == State.Disconnected)
+            if (state == State.Disconnect)
             {
                 return;
             }
@@ -118,9 +117,9 @@ namespace JFramework.Udp
         /// </summary>
         /// <param name="segment">字节消息数组</param>
         /// <param name="channel">传输通道</param>
-        public void Send(ArraySegment<byte> segment, Channel channel)
+        public void Send(ArraySegment<byte> segment, int channel)
         {
-            if (state == State.Disconnected)
+            if (state == State.Disconnect)
             {
                 Log.Warn("客户端没有连接，发送消息失败！");
                 return;
@@ -157,24 +156,24 @@ namespace JFramework.Udp
         /// </summary>
         private void SetProxy()
         {
-            proxy = new Proxy(setting, 0, OnAuthority, OnDisconnected, OnSend, OnReceive);
+            proxy = new Proxy(setting, 0, OnConnect, OnDisconnect, OnSend, OnReceive);
 
-            void OnAuthority()
+            void OnConnect()
             {
                 Log.Info("客户端连接成功。");
-                state = State.Connected;
-                OnConnected?.Invoke();
+                state = State.Connect;
+                this.OnConnect?.Invoke();
             }
 
-            void OnDisconnected()
+            void OnDisconnect()
             {
                 Log.Info($"客户端断开连接。");
                 socket.Close();
                 proxy = null;
                 socket = null;
                 endPoint = null;
-                state = State.Disconnected;
-                this.OnDisconnected?.Invoke();
+                state = State.Disconnect;
+                this.OnDisconnect?.Invoke();
             }
 
             void OnSend(ArraySegment<byte> segment)

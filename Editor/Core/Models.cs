@@ -1,3 +1,13 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: jinyijie
+// # Version: 1.0.0
+// # History: 2024-06-06  05:06
+// # Copyright: 2024, jinyijie
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System;
 using JFramework.Net;
 using Mono.Cecil;
@@ -201,7 +211,7 @@ namespace JFramework.Editor
             HookMethodRef = Helper.GetMethod(HookMethodType, assembly, logger, ".ctor", ref failed);
 
             var ArraySegmentType = Import(typeof(ArraySegment<>));
-            ArraySegmentRef = Helper.GetMethod(ArraySegmentType, assembly, logger, CONST.CTOR, ref failed);
+            ArraySegmentRef = Helper.GetMethod(ArraySegmentType, assembly, logger, Const.CTOR, ref failed);
 
             var NetworkManagerType = Import(typeof(NetworkManager));
             NetworkClientRef = Helper.GetMethod(NetworkManagerType, assembly, logger, "get_Client", ref failed);
@@ -236,11 +246,11 @@ namespace JFramework.Editor
             sendClientRpcInternal = Helper.GetMethod(NetworkBehaviourType, assembly, logger, "SendClientRpcInternal", ref failed);
             sendTargetRpcInternal = Helper.GetMethod(NetworkBehaviourType, assembly, logger, "SendTargetRpcInternal", ref failed);
 
-            var RegisterRpcType = Import(typeof(NetworkRpc));
-            registerServerRpcRef = Helper.GetMethod(RegisterRpcType, assembly, logger, "RegisterServerRpc", ref failed);
-            registerClientRpcRef = Helper.GetMethod(RegisterRpcType, assembly, logger, "RegisterClientRpc", ref failed);
+            var InvokeType = Import(typeof(NetworkInvoke));
+            registerServerRpcRef = Helper.GetMethod(InvokeType, assembly, logger, "RegisterServerRpc", ref failed);
+            registerClientRpcRef = Helper.GetMethod(InvokeType, assembly, logger, "RegisterClientRpc", ref failed);
 
-            var RpcDelegateType = Import<RpcDelegate>();
+            var RpcDelegateType = Import<InvokeDelegate>();
             RpcDelegateRef = Helper.GetMethod(RpcDelegateType, assembly, logger, ".ctor", ref failed);
 
             var ScriptableObjectType = Import<ScriptableObject>();

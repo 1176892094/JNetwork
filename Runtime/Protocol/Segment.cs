@@ -10,7 +10,7 @@ namespace JFramework.Udp
         /// <summary>
         /// 内存流
         /// </summary>
-        public readonly MemoryStream stream = new MemoryStream(Protocol.MTU_DEF);
+        public readonly MemoryStream stream = new MemoryStream(Protocol.MTU_MAX);
 
         /// <summary>
         /// 会话Id

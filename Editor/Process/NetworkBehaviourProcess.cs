@@ -1,3 +1,13 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: jinyijie
+// # Version: 1.0.0
+// # History: 2024-06-06  05:06
+// # Copyright: 2024, jinyijie
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System.Collections.Generic;
 using JFramework.Net;
 using Mono.Cecil;
@@ -12,8 +22,8 @@ namespace JFramework.Editor
         private List<FieldDefinition> syncVars = new List<FieldDefinition>();
         private readonly Models models;
         private readonly Logger logger;
-        private readonly NetworkWriterProcess writers;
-        private readonly NetworkReaderProcess readers;
+        private readonly Writer writers;
+        private readonly Reader readers;
         private readonly SyncVarAccess access;
         private readonly TypeDefinition type;
         private readonly TypeDefinition generate;
@@ -26,7 +36,7 @@ namespace JFramework.Editor
         private readonly List<MethodDefinition> targetRpcList = new List<MethodDefinition>();
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
 
-        public NetworkBehaviourProcess(AssemblyDefinition assembly, SyncVarAccess access, Models models, NetworkWriterProcess writers, NetworkReaderProcess readers, Logger logger, TypeDefinition type)
+        public NetworkBehaviourProcess(AssemblyDefinition assembly, SyncVarAccess access, Models models, Writer writers, Reader readers, Logger logger, TypeDefinition type)
         {
             generate = type;
             this.type = type;
@@ -41,7 +51,7 @@ namespace JFramework.Editor
 
         public bool Process(ref bool failed)
         {
-            if (type.GetMethod(CONST.GEN_FUNC) != null)
+            if (type.GetMethod(Const.GEN_FUNC) != null)
             {
                 return false;
             }
@@ -72,7 +82,7 @@ namespace JFramework.Editor
 
         private void MarkAsProcessed(TypeDefinition td)
         {
-            var versionMethod = new MethodDefinition(CONST.GEN_FUNC, MethodAttributes.Private, models.Import(typeof(void)));
+            var versionMethod = new MethodDefinition(Const.GEN_FUNC, MethodAttributes.Private, models.Import(typeof(void)));
             var worker = versionMethod.Body.GetILProcessor();
             worker.Emit(OpCodes.Ret);
             td.Methods.Add(versionMethod);
@@ -155,16 +165,16 @@ namespace JFramework.Editor
                 return;
             }
 
-            if (!IsValidMethod(md, RpcType.ClientRpc, ref failed))
+            if (!IsValidMethod(md, InvokeMode.ClientRpc, ref failed))
             {
                 return;
             }
 
             names.Add(md.Name);
             clientRpcList.Add(md);
-            var func = NetworkRpcProcess.ProcessClientRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
+            var func = NetworkInvokeProcess.ProcessClientRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
             if (func == null) return;
-            var rpcFunc = NetworkRpcProcess.ProcessClientRpc(models, readers, logger, generate, md, func, ref failed);
+            var rpcFunc = NetworkInvokeProcess.ProcessClientRpc(models, readers, logger, generate, md, func, ref failed);
             if (rpcFunc != null)
             {
                 clientRpcFuncList.Add(rpcFunc);
@@ -187,16 +197,16 @@ namespace JFramework.Editor
                 return;
             }
 
-            if (!IsValidMethod(md, RpcType.ServerRpc, ref failed))
+            if (!IsValidMethod(md, InvokeMode.ServerRpc, ref failed))
             {
                 return;
             }
 
             names.Add(md.Name);
             serverRpcList.Add(md);
-            var func = NetworkRpcProcess.ProcessServerRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
+            var func = NetworkInvokeProcess.ProcessServerRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
             if (func == null) return;
-            var rpcFunc = NetworkRpcProcess.ProcessServerRpc(models, readers, logger, generate, md, func, ref failed);
+            var rpcFunc = NetworkInvokeProcess.ProcessServerRpc(models, readers, logger, generate, md, func, ref failed);
             if (rpcFunc != null)
             {
                 serverRpcFuncList.Add(rpcFunc);
@@ -219,15 +229,15 @@ namespace JFramework.Editor
                 return;
             }
 
-            if (!IsValidMethod(md, RpcType.TargetRpc, ref failed))
+            if (!IsValidMethod(md, InvokeMode.TargetRpc, ref failed))
             {
                 return;
             }
 
             names.Add(md.Name);
             targetRpcList.Add(md);
-            var func = NetworkRpcProcess.ProcessTargetRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
-            var rpcFunc = NetworkRpcProcess.ProcessTargetRpc(models, readers, logger, generate, md, func, ref failed);
+            var func = NetworkInvokeProcess.ProcessTargetRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
+            var rpcFunc = NetworkInvokeProcess.ProcessTargetRpc(models, readers, logger, generate, md, func, ref failed);
             if (rpcFunc != null)
             {
                 targetRpcFuncList.Add(rpcFunc);
@@ -241,7 +251,7 @@ namespace JFramework.Editor
         /// <param name="rpcType"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private bool IsValidMethod(MethodDefinition md, RpcType rpcType, ref bool failed)
+        private bool IsValidMethod(MethodDefinition md, InvokeMode rpcType, ref bool failed)
         {
             if (md.IsStatic)
             {
@@ -285,7 +295,7 @@ namespace JFramework.Editor
         /// <param name="rpcType"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private bool IsValidParams(MethodReference mr, RpcType rpcType, ref bool failed)
+        private bool IsValidParams(MethodReference mr, InvokeMode rpcType, ref bool failed)
         {
             for (int i = 0; i < mr.Parameters.Count; ++i)
             {
@@ -308,7 +318,7 @@ namespace JFramework.Editor
         /// <param name="firstParam"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private bool IsValidParam(MethodReference method, ParameterDefinition param, RpcType rpcType, bool firstParam, ref bool failed)
+        private bool IsValidParam(MethodReference method, ParameterDefinition param, InvokeMode rpcType, bool firstParam, ref bool failed)
         {
             if (param.ParameterType.IsGenericParameter)
             {
@@ -317,8 +327,8 @@ namespace JFramework.Editor
                 return false;
             }
 
-            bool connection = param.ParameterType.Is<NetworkProxy>();
-            bool sendTarget = NetworkRpcProcess.IsSendTarget(param, rpcType);
+            bool connection = param.ParameterType.Is<NetworkClient>();
+            bool sendTarget = NetworkInvokeProcess.IsNetworkClient(param, rpcType);
 
             if (param.IsOut)
             {
@@ -327,7 +337,7 @@ namespace JFramework.Editor
                 return false;
             }
 
-            if (!sendTarget && connection && !(rpcType == RpcType.TargetRpc && firstParam))
+            if (!sendTarget && connection && !(rpcType == InvokeMode.TargetRpc && firstParam))
             {
                 logger.Error($"{method.Name} 方法无效的参数 {param}，不能传递网络连接。", method);
                 failed = true;
@@ -365,7 +375,7 @@ namespace JFramework.Editor
             }
             else
             {
-                cctor = new MethodDefinition(".cctor", CONST.CTOR_ATTRS, models.Import(typeof(void)));
+                cctor = new MethodDefinition(".cctor", Const.CTOR_ATTRS, models.Import(typeof(void)));
             }
 
             ILProcessor worker = cctor.Body.GetILProcessor();
@@ -455,15 +465,15 @@ namespace JFramework.Editor
         /// </summary>
         private void GenerateSerialize(ref bool failed)
         {
-            if (generate.GetMethod(CONST.SER_METHOD) != null) return;
+            if (generate.GetMethod(Const.SER_METHOD) != null) return;
             if (syncVars.Count == 0) return;
-            var serialize = new MethodDefinition(CONST.SER_METHOD, CONST.SER_ATTRS, models.Import(typeof(void)));
+            var serialize = new MethodDefinition(Const.SER_METHOD, Const.SER_ATTRS, models.Import(typeof(void)));
             serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, models.Import<NetworkWriter>()));
             serialize.Parameters.Add(new ParameterDefinition("start", ParameterAttributes.None, models.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
-            var baseSerialize = Helper.TryResolveMethodInParents(generate.BaseType, assembly, CONST.SER_METHOD);
+            var baseSerialize = Helper.TryResolveMethodInParents(generate.BaseType, assembly, Const.SER_METHOD);
             if (baseSerialize != null)
             {
                 worker.Emit(OpCodes.Ldarg_0);
@@ -558,9 +568,9 @@ namespace JFramework.Editor
         /// </summary>
         private void GenerateDeserialize(ref bool failed)
         {
-            if (generate.GetMethod(CONST.DES_METHOD) != null) return;
+            if (generate.GetMethod(Const.DES_METHOD) != null) return;
             if (syncVars.Count == 0) return;
-            var serialize = new MethodDefinition(CONST.DES_METHOD, CONST.SER_ATTRS, models.Import(typeof(void)));
+            var serialize = new MethodDefinition(Const.DES_METHOD, Const.SER_ATTRS, models.Import(typeof(void)));
             serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<NetworkReader>()));
             serialize.Parameters.Add(new ParameterDefinition("start", ParameterAttributes.None, models.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
@@ -569,7 +579,7 @@ namespace JFramework.Editor
             var dirtyBitsLocal = new VariableDefinition(models.Import<long>());
             serialize.Body.Variables.Add(dirtyBitsLocal);
 
-            var baseDeserialize = Helper.TryResolveMethodInParents(generate.BaseType, assembly, CONST.DES_METHOD);
+            var baseDeserialize = Helper.TryResolveMethodInParents(generate.BaseType, assembly, Const.DES_METHOD);
             if (baseDeserialize != null)
             {
                 worker.Append(worker.Create(OpCodes.Ldarg_0));

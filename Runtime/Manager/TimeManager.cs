@@ -1,79 +1,59 @@
 // *********************************************************************************
-// # Project: Forest
+// # Project: Test
 // # Unity: 2022.3.5f1c1
 // # Author: Charlotte
 // # Version: 1.0.0
-// # History: 2023-12-29  00:37
-// # Copyright: 2023, Charlotte
+// # History: 2024-06-05  01:06
+// # Copyright: 2024, Charlotte
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
 using System;
-using System.Runtime.CompilerServices;
-using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
-using UpdateFunction = UnityEngine.LowLevel.PlayerLoopSystem.UpdateFunction;
 
 namespace JFramework.Net
 {
-    public class TimeManager : Component<NetworkManager>
+    internal partial class TimeManager : Component<NetworkManager>
     {
-        /// <summary>
-        /// 上一次发送Ping的时间
-        /// </summary>
-        [SerializeField] private double sendTime;
+        public double ping;
+        private bool isActive;
+        private double fixedTime;
+        private double sinceTime;
 
-        /// <summary>
-        /// 当接收Ping
-        /// </summary>
-        public event Action<double> OnPingUpdate;
-
-        /// <summary>
-        /// 客户端回传往返时间
-        /// </summary>
-        [SerializeField] private NetworkAverage roundTripTime = new NetworkAverage(NetworkConst.PingWindow);
-
-        /// <summary>
-        /// 当前网络时间
-        /// </summary>
-        [ShowInInspector]
-        internal double localTime
+        public void Update()
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Time.unscaledTimeAsDouble;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [ShowInInspector]
-        internal double fixedTime
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
+            if (sinceTime + Const.PingInterval <= NetworkManager.TickTime)
             {
-                if (NetworkManager.Instance)
-                {
-                    if (NetworkManager.Server.isActive)
-                    {
-                        return localTime;
-                    }
-
-                    if (NetworkManager.Client.connection != null)
-                    {
-                        return NetworkManager.Client.connection.localTimeline;
-                    }
-                }
-
-                return 0;
+                sinceTime = NetworkManager.TickTime;
+                NetworkManager.Client.Send(new PingMessage(NetworkManager.TickTime), Channel.Unreliable);
             }
         }
 
-        /// <summary>
-        /// 添加侦听
-        /// </summary>
+        public void Reset()
+        {
+            sinceTime = 0;
+            ping = 0;
+        }
+
+        public void Ping(double clientTime)
+        {
+            if (!isActive)
+            {
+                isActive = true;
+                fixedTime = 2.0 / (Const.PingWindow + 1);
+                ping = NetworkManager.TickTime - clientTime;
+                return;
+            }
+
+            var delta = NetworkManager.TickTime - clientTime - ping;
+            ping += fixedTime * delta;
+        }
+    }
+
+    internal partial class TimeManager
+    {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
@@ -83,34 +63,21 @@ namespace JFramework.Net
             PlayerLoop.SetPlayerLoop(playerLoop);
         }
 
-        /// <summary>
-        /// Update之前的循环
-        /// </summary>
         private static void EarlyUpdate()
         {
-            if (!NetworkManager.Instance) return;
+            if (!Application.isPlaying) return;
             NetworkManager.Server.EarlyUpdate();
             NetworkManager.Client.EarlyUpdate();
         }
 
-        /// <summary>
-        /// Update之后的循环
-        /// </summary>
         private static void AfterUpdate()
         {
-            if (!NetworkManager.Instance) return;
+            if (!Application.isPlaying) return;
             NetworkManager.Server.AfterUpdate();
             NetworkManager.Client.AfterUpdate();
         }
 
-        /// <summary>
-        /// 在PlayerLoop中增加网络循环
-        /// </summary>
-        /// <param name="function">插入的方法</param>
-        /// <param name="playerLoop">玩家循环</param>
-        /// <param name="systemType">循环系统类型</param>
-        /// <returns>返回能否添加循环</returns>
-        private static bool AddLoopSystem(UpdateFunction function, ref PlayerLoopSystem playerLoop, Type systemType)
+        private static bool AddLoopSystem(PlayerLoopSystem.UpdateFunction function, ref PlayerLoopSystem playerLoop, Type systemType)
         {
             if (playerLoop.type == systemType)
             {
@@ -119,7 +86,7 @@ namespace JFramework.Net
                     return true;
                 }
 
-                int oldLength = playerLoop.subSystemList?.Length ?? 0;
+                var oldLength = playerLoop.subSystemList?.Length ?? 0;
                 Array.Resize(ref playerLoop.subSystemList, oldLength + 1);
                 playerLoop.subSystemList[oldLength] = new PlayerLoopSystem
                 {
@@ -143,36 +110,16 @@ namespace JFramework.Net
             return false;
         }
 
-        /// <summary>
-        /// 客户端发送Ping消息到服务器端
-        /// </summary>
-        internal void Update()
+        public static bool Ticks(float sendRate, ref double sendTime)
         {
-            if (localTime - sendTime >= NetworkConst.PingInterval)
+            if (NetworkManager.TickTime >= sendTime + sendRate)
             {
-                var message = new PingMessage(localTime); // 传入客户端时间到服务器
-                NetworkManager.Client.Send(message, Channel.Unreliable);
-                sendTime = localTime;
+                var fixedTime = (long)(NetworkManager.TickTime / sendRate);
+                sendTime = fixedTime * sendRate;
+                return true;
             }
-        }
 
-        /// <summary>
-        /// 客户端从服务器接收的回传信息
-        /// </summary>
-        /// <param name="clientTime"></param>
-        internal void Ping(double clientTime)
-        {
-            roundTripTime.Calculate(localTime - clientTime);
-            OnPingUpdate?.Invoke(roundTripTime.value);
-        }
-
-        /// <summary>
-        /// 重置发送时间
-        /// </summary>
-        internal void Reset()
-        {
-            sendTime = 0;
-            roundTripTime = new NetworkAverage(NetworkConst.PingWindow);
+            return false;
         }
     }
 }

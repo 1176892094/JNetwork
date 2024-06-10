@@ -6,13 +6,14 @@ namespace JFramework.Udp
 {
     internal sealed class Protocol
     {
-        public const int WIN_SND = 32;          // 默认的发送窗口大小
-        public const int WIN_RCV = 128;         // 默认的接收窗口大小，必须大于等于最大分片大小
-        public const int MTU_DEF = 1200;        // 默认的最大传输单元MTU
-        public const int OVERHEAD = 24;         // 数据包头部的额外开销
-        public const int INTERVAL = 100;        // 内部处理时钟的间隔时间
-        public const int DEAD_LINK = 20;        // 当一个段被认为丢失之前的最大重传次数
-        public const int RESEND_LIMIT = 5;      // 触发快速重传的最大次数
+        public const int WIN_SED = 32;          // 默认的发送窗口大小
+        public const int WIN_REV = 128;         // 默认的接收窗口大小，必须大于等于最大分片大小
+        public const int MTU_MAX = 1200;        // 默认的最大传输单元MTU
+        public const int HEAD = 24;             // 数据包头部的额外开销
+        public const int TIME = 100;            // 内部处理时钟的间隔时间
+        public const int DEAD = 20;             // 当一个段被认为丢失之前的最大重传次数
+        public const int RESEND = 5;            // 触发快速重传的最大次数
+        public const int TIMEOUT = 10000;       // 超时时间
         private const int RTO_MIN = 30;         // 无延迟的最小重传超时时间
         private const int RTO_DEF = 200;        // 默认RTO
         private const int RTO_MAX = 60000;      // 最大RTO
@@ -22,10 +23,10 @@ namespace JFramework.Udp
         private const int CMD_WIN_INS = 84;     // 窗口大小插入命令
         private const int ASK_SEND = 1;         // 需要发送的 CMD_WIN_ASK 命令
         private const int ASK_TELL = 2;         // 需要发送的 CMD_WIN_INS 命令
-        private const int THRESHOLD = 2;        // 拥塞窗口增长阈值的初始值
+        private const int THRESH_DEF = 2;       // 拥塞窗口增长阈值的初始值
         private const int THRESH_MIN = 2;       // 拥塞窗口增长阈值的最小值
-        private const int PROBE_INIT = 7000;    // 探测窗口大小的初始时间（7秒）
-        private const int PROBE_LIMIT = 120000; // 探测窗口大小的最长时间（120秒）
+        private const int PROBE_DEF = 7000;     // 探测窗口大小的初始时间（7秒）
+        private const int PROBE_MAX = 120000;   // 探测窗口大小的最长时间（120秒）
         private const int QUEUE_COUNT = 10000;  // 网络缓存数量
         public int state;                       // Udp状态
         private int rtt;                        // 平滑的往返时间（RTT）的加权平均值
@@ -64,10 +65,10 @@ namespace JFramework.Udp
         public Protocol(uint current, Action<byte[], int> onRefresh)
         {
             rto = RTO_DEF;
-            threshold = THRESHOLD;
-            refreshTime = INTERVAL;
-            resendLimit = RESEND_LIMIT;
-            remoteWindow = WIN_RCV;
+            threshold = THRESH_DEF;
+            refreshTime = TIME;
+            resendLimit = RESEND;
+            remoteWindow = WIN_REV;
             this.current = current;
             this.onRefresh = onRefresh;
         }
@@ -208,7 +209,7 @@ namespace JFramework.Udp
         /// 计算新的 RTO 和 RTT
         /// </summary>
         /// <param name="time"></param>
-        private void UpdateRto(int time)
+        private void UpdateRTO(int time)
         {
             if (rtt == 0)
             {
@@ -348,7 +349,7 @@ namespace JFramework.Udp
         /// </summary>
         public int Input(byte[] data, int offset, int size)
         {
-            if (data == null || size < OVERHEAD)
+            if (data == null || size < HEAD)
             {
                 return -1;
             }
@@ -358,7 +359,7 @@ namespace JFramework.Udp
             uint confirmId = 0;
             while (true)
             {
-                if (size < OVERHEAD) //数据包大小至少有一个头部的大小
+                if (size < HEAD) //数据包大小至少有一个头部的大小
                 {
                     break;
                 }
@@ -372,7 +373,7 @@ namespace JFramework.Udp
                 offset += Utility.Decode32U(data, offset, out var sendId);
                 offset += Utility.Decode32U(data, offset, out var receiveId);
                 offset += Utility.Decode32U(data, offset, out var length);
-                size -= OVERHEAD; // 减去头部大小
+                size -= HEAD; // 减去头部大小
 
                 if (size < length)
                 {
@@ -407,7 +408,7 @@ namespace JFramework.Udp
                     case CMD_ACK: // RTT 相关的信息，并解析序列号
                         if (Utility.Compare(sinceTime, sendTime) >= 0)
                         {
-                            UpdateRto(Utility.Compare(sinceTime, sendTime));
+                            UpdateRTO(Utility.Compare(sinceTime, sendTime));
                         }
 
                         UpdateSend(sendId);
@@ -533,7 +534,7 @@ namespace JFramework.Udp
             
             foreach (var message in messages) // 更新确认
             {
-                MakeSpace(OVERHEAD);
+                MakeSpace(HEAD);
                 segment.sendId = message.sendId;
                 segment.sendTime = message.sendTime;
                 size += segment.Encode(buffer, size);
@@ -544,22 +545,22 @@ namespace JFramework.Udp
             {
                 if (probeWait == 0)
                 {
-                    probeWait = PROBE_INIT;
+                    probeWait = PROBE_DEF;
                     probeTime = sinceTime + probeWait;
                 }
                 else
                 {
                     if (Utility.Compare(sinceTime, probeTime) >= 0)
                     {
-                        if (probeWait < PROBE_INIT)
+                        if (probeWait < PROBE_DEF)
                         {
-                            probeWait = PROBE_INIT;
+                            probeWait = PROBE_DEF;
                         }
 
                         probeWait += probeWait / 2;
-                        if (probeWait > PROBE_LIMIT)
+                        if (probeWait > PROBE_MAX)
                         {
-                            probeWait = PROBE_LIMIT;
+                            probeWait = PROBE_MAX;
                         }
 
                         probeTime = sinceTime + probeWait;
@@ -575,14 +576,14 @@ namespace JFramework.Udp
 
             if ((probe & ASK_SEND) != 0) // 刷新窗口探测命令
             {
-                MakeSpace(OVERHEAD);
+                MakeSpace(HEAD);
                 segment.command = CMD_WIN_ASK;
                 size += segment.Encode(buffer, size);
             }
 
             if ((probe & ASK_TELL) != 0) // 刷新窗口探测命令
             {
-                MakeSpace(OVERHEAD);
+                MakeSpace(HEAD);
                 segment.command = CMD_WIN_INS;
                 size += segment.Encode(buffer, size);
             }
@@ -649,7 +650,7 @@ namespace JFramework.Udp
                     send.sendTime = sinceTime;
                     send.window = segment.window;
                     send.receiveId = nextReceiveId;
-                    MakeSpace(OVERHEAD + (int)send.stream.Position);
+                    MakeSpace(HEAD + (int)send.stream.Position);
                     size += send.Encode(buffer, size);
 
                     if (send.stream.Position > 0)
@@ -658,7 +659,7 @@ namespace JFramework.Udp
                         size += (int)send.stream.Position;
                     }
 
-                    if (send.resendCount >= DEAD_LINK)
+                    if (send.resendCount >= DEAD)
                     {
                         state = -1; // 如果消息被重发N次，则发生死链接
                     }
@@ -720,8 +721,8 @@ namespace JFramework.Udp
         public void SetUnit(uint maxUnit)
         {
             this.maxUnit = Math.Max(maxUnit, 50);
-            buffer = new byte[(maxUnit + OVERHEAD) * 3];
-            segmentSize = maxUnit - OVERHEAD;
+            buffer = new byte[(maxUnit + HEAD) * 3];
+            segmentSize = maxUnit - HEAD;
         }
 
         /// <summary>
@@ -743,14 +744,14 @@ namespace JFramework.Udp
         public void SetWindow(uint sendWindow, uint receiveWindow)
         {
             this.sendWindow = sendWindow;
-            this.receiveWindow = Math.Max(receiveWindow, WIN_RCV);
+            this.receiveWindow = Math.Max(receiveWindow, WIN_REV);
         }
 
         /// <summary>
         /// 处理速度是否快速
         /// </summary>
         /// <returns></returns>
-        public bool IsQuickly()
+        public bool IsFaster()
         {
             if(receiveQueue.Count + sendQueue.Count + receives.Count + sends.Count > QUEUE_COUNT)
             {
@@ -760,7 +761,5 @@ namespace JFramework.Udp
 
             return true;
         }
-
-        public int Count => receiveQueue.Count + sendQueue.Count + receives.Count + sends.Count;
     }
 }

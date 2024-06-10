@@ -1,3 +1,13 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: Charlotte
+// # Version: 1.0.0
+// # History: 2024-06-05  01:06
+// # Copyright: 2024, Charlotte
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System;
 using UnityEngine;
 using GlobalSceneManager = JFramework.Core.SceneManager;
@@ -9,7 +19,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器场景
         /// </summary>
-        [SerializeField] private string sceneName;
+        private string sceneName;
 
         /// <summary>
         /// 客户端加载场景的事件
@@ -34,7 +44,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器加载场景
         /// </summary>
-        public void LoadScene(string sceneName)
+        public void Load(string sceneName)
         {
             if (string.IsNullOrWhiteSpace(sceneName))
             {
@@ -50,28 +60,34 @@ namespace JFramework.Net
 
             foreach (var client in NetworkManager.Server.clients.Values)
             {
-                NetworkManager.Server.SetReady(client, false);
+                client.isReady = false;
+                client.Send(new ReadyMessage());
+            }
+
+            if (NetworkManager.Server.isActive)
+            {
+                this.sceneName = sceneName;
+                NetworkManager.Server.isLoadScene = true;
+                using (var writer = NetworkWriter.Pop())
+                {
+                    writer.WriteUShort(Message<SceneMessage>.Id);
+                    writer.Invoke(new SceneMessage(sceneName));
+                    foreach (var client in NetworkManager.Server.clients.Values)
+                    {
+                        client.Send(writer);
+                    }
+                }
+
+                GlobalSceneManager.Load(sceneName, OnLoadComplete);
             }
 
             OnServerChangeScene?.Invoke(sceneName);
-            if (!NetworkManager.Server.isActive) return;
-            this.sceneName = sceneName;
-            NetworkManager.Server.isLoadScene = true;
-
-            using var writer = NetworkWriter.Pop();
-            NetworkMessage.WriteMessage(writer, new SceneMessage(sceneName));
-            foreach (var client in NetworkManager.Server.clients.Values)
-            {
-                client.Send(writer.ToArraySegment());
-            }
-
-            GlobalSceneManager.Load(sceneName, OnLoadComplete);
         }
 
         /// <summary>
         /// 客户端加载场景
         /// </summary>
-        internal void ClientLoadScene(string sceneName)
+        internal void LoadScene(string sceneName)
         {
             if (string.IsNullOrWhiteSpace(sceneName))
             {
@@ -79,31 +95,32 @@ namespace JFramework.Net
                 return;
             }
 
+            if (!NetworkManager.Server.isActive)
+            {
+                this.sceneName = sceneName;
+                NetworkManager.Client.isLoadScene = true;
+                GlobalSceneManager.Load(sceneName, OnLoadComplete);
+            }
+
             OnClientChangeScene?.Invoke(sceneName);
-
-            if (NetworkManager.Server.isActive) return; //主机不做处理
-            this.sceneName = sceneName;
-            NetworkManager.Client.isLoadScene = true;
-            GlobalSceneManager.Load(sceneName, OnLoadComplete);
         }
-
 
         /// <summary>
         /// 场景加载完成
         /// </summary>
         private void OnLoadComplete()
         {
-            switch (NetworkManager.Instance.mode)
+            switch (NetworkManager.Mode)
             {
-                case NetworkMode.Host:
-                    OnServerSceneLoadCompleted();
-                    OnClientSceneLoadCompleted();
+                case EntryMode.Host:
+                    OnServerComplete();
+                    OnClientComplete();
                     break;
-                case NetworkMode.Server:
-                    OnServerSceneLoadCompleted();
+                case EntryMode.Server:
+                    OnServerComplete();
                     break;
-                case NetworkMode.Client:
-                    OnClientSceneLoadCompleted();
+                case EntryMode.Client:
+                    OnClientComplete();
                     break;
             }
         }
@@ -111,7 +128,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器端场景加载完成
         /// </summary>
-        private void OnServerSceneLoadCompleted()
+        private void OnServerComplete()
         {
             NetworkManager.Server.isLoadScene = false;
             NetworkManager.Server.SpawnObjects();
@@ -121,10 +138,10 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端场景加载完成
         /// </summary>
-        private void OnClientSceneLoadCompleted()
+        private void OnClientComplete()
         {
             NetworkManager.Client.isLoadScene = false;
-            if (!NetworkManager.Client.isAuthority) return;
+            if (!NetworkManager.Client.isConnected) return;
             if (!NetworkManager.Client.isReady)
             {
                 NetworkManager.Client.Ready();

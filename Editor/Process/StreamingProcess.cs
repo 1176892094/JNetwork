@@ -1,3 +1,13 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: jinyijie
+// # Version: 1.0.0
+// # History: 2024-06-06  05:06
+// # Copyright: 2024, jinyijie
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System.Linq;
 using System.Runtime.CompilerServices;
 using JFramework.Net;
@@ -7,25 +17,75 @@ using UnityEngine;
 
 namespace JFramework.Editor
 {
-    /// <summary>
-    /// 流处理
-    /// </summary>
     internal static class StreamingProcess
     {
+          /// <summary>
+        /// 初始化读写流
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="models"></param>
+        /// <param name="writers"></param>
+        /// <param name="readers"></param>
+        /// <param name="td"></param>
+        public static void RuntimeInitializeOnLoad(AssemblyDefinition assembly, Models models, Writer writers, Reader readers, TypeDefinition td)
+        {
+            var method = new MethodDefinition(nameof(RuntimeInitializeOnLoad), MethodAttributes.Public | MethodAttributes.Static, models.Import(typeof(void)));
+
+            AddRuntimeInitializeOnLoadAttribute(assembly, models, method);
+
+            if (Helper.IsEditorAssembly(assembly))
+            {
+                AddInitializeOnLoadAttribute(assembly, models, method);
+            }
+
+            var worker = method.Body.GetILProcessor();
+            writers.InitializeWriters(worker);
+            readers.InitializeReaders(worker);
+            worker.Emit(OpCodes.Ret);
+            td.Methods.Add(method);
+        }
+
+        /// <summary>
+        /// 添加 RuntimeInitializeLoad 属性类型
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="models"></param>
+        /// <param name="md"></param>
+        private static void AddRuntimeInitializeOnLoadAttribute(AssemblyDefinition assembly, Models models, MethodDefinition md)
+        {
+            var ctor = models.RuntimeInitializeOnLoadMethodAttribute.GetConstructors().Last();
+            var attribute = new CustomAttribute(assembly.MainModule.ImportReference(ctor));
+            attribute.ConstructorArguments.Add(new CustomAttributeArgument(models.Import<RuntimeInitializeLoadType>(), RuntimeInitializeLoadType.BeforeSceneLoad));
+            md.CustomAttributes.Add(attribute);
+        }
+
+        /// <summary>
+        /// 添加 RuntimeInitializeLoad 属性标记
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="models"></param>
+        /// <param name="md"></param>
+        private static void AddInitializeOnLoadAttribute(AssemblyDefinition assembly, Models models, MethodDefinition md)
+        {
+            var ctor = models.InitializeOnLoadMethodAttribute.GetConstructors().First();
+            var attribute = new CustomAttribute(assembly.MainModule.ImportReference(ctor));
+            md.CustomAttributes.Add(attribute);
+        }
+        
         /// <summary>
         /// 在Process中调用
         /// </summary>
         /// <param name="assembly"></param>
         /// <param name="resolver"></param>
         /// <param name="logger"></param>
-        /// <param name="writers"></param>
-        /// <param name="readers"></param>
+        /// <param name="writer"></param>
+        /// <param name="reader"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, NetworkWriterProcess writers, NetworkReaderProcess readers, ref bool failed)
+        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, Writer writer, Reader reader, ref bool failed)
         {
-            ProcessNetworkCode(assembly, resolver, logger, writers, readers, ref failed);
-            return ProcessCustomCode(assembly, assembly, writers, readers, ref failed);
+            ProcessAssembly(assembly, resolver, logger, writer, reader, ref failed);
+            return ProcessCustomCode(assembly, assembly, writer, reader, ref failed);
         }
 
         /// <summary>
@@ -34,22 +94,22 @@ namespace JFramework.Editor
         /// <param name="assembly"></param>
         /// <param name="resolver"></param>
         /// <param name="logger"></param>
-        /// <param name="writers"></param>
-        /// <param name="readers"></param>
+        /// <param name="writer"></param>
+        /// <param name="reader"></param>
         /// <param name="failed"></param>
-        private static void ProcessNetworkCode(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, NetworkWriterProcess writers, NetworkReaderProcess readers, ref bool failed)
+        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, Writer writer, Reader reader, ref bool failed)
         {
-            var assemblyReference = assembly.MainModule.FindReference(CONST.ASSEMBLY_NAME);
-            if (assemblyReference != null)
+            var assemblyRef = assembly.MainModule.AssemblyReferences.FirstOrDefault(reference => reference.Name == Const.ASSEMBLY_NAME);
+            if (assemblyRef != null)
             {
-                var netAssembly = resolver.Resolve(assemblyReference);
-                if (netAssembly != null)
+                var assemblyDef = resolver.Resolve(assemblyRef);
+                if (assemblyDef != null)
                 {
-                    ProcessCustomCode(assembly, netAssembly, writers, readers, ref failed);
+                    ProcessCustomCode(assembly, assemblyDef, writer, reader, ref failed);
                 }
                 else
                 {
-                    logger.Error($"自动生成网络代码失败: {assemblyReference}");
+                    logger.Error($"自动生成网络代码失败: {assemblyRef}");
                 }
             }
             else
@@ -62,23 +122,23 @@ namespace JFramework.Editor
         /// 处理本地代码
         /// </summary>
         /// <param name="assembly"></param>
-        /// <param name="netAssembly"></param>
-        /// <param name="writers"></param>
-        /// <param name="readers"></param>
+        /// <param name="assemblyDef"></param>
+        /// <param name="writer"></param>
+        /// <param name="reader"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool ProcessCustomCode(AssemblyDefinition assembly, AssemblyDefinition netAssembly, NetworkWriterProcess writers, NetworkReaderProcess readers, ref bool failed)
+        private static bool ProcessCustomCode(AssemblyDefinition assembly, AssemblyDefinition assemblyDef, Writer writer, Reader reader, ref bool failed)
         {
-            bool changed = false;
-            foreach (var definition in netAssembly.MainModule.Types.Where(definition => definition.IsAbstract && definition.IsSealed))
+            var changed = false;
+            foreach (var td in assemblyDef.MainModule.Types.Where(td => td.IsAbstract && td.IsSealed))
             {
-                changed |= LoadDeclaredWriters(assembly, definition, writers);
-                changed |= LoadDeclaredReaders(assembly, definition, readers);
+                changed |= ProcessWriter(assembly, td, writer);
+                changed |= ProcessReader(assembly, td, reader);
             }
 
-            foreach (TypeDefinition type in netAssembly.MainModule.Types)
+            foreach (var td in assemblyDef.MainModule.Types)
             {
-                changed |= LoadStreamingMessage(assembly.MainModule, writers, readers, type, ref failed);
+                changed |= ProcessMessage(assembly.MainModule, writer, reader, td, ref failed);
             }
 
             return changed;
@@ -89,11 +149,11 @@ namespace JFramework.Editor
         /// </summary>
         /// <param name="assembly"></param>
         /// <param name="td"></param>
-        /// <param name="writers"></param>
+        /// <param name="writer"></param>
         /// <returns></returns>
-        private static bool LoadDeclaredWriters(AssemblyDefinition assembly, TypeDefinition td, NetworkWriterProcess writers)
+        private static bool ProcessWriter(AssemblyDefinition assembly, TypeDefinition td, Writer writer)
         {
-            bool change = false;
+            var change = false;
             foreach (var md in td.Methods)
             {
                 if (md.Parameters.Count != 2)
@@ -111,7 +171,7 @@ namespace JFramework.Editor
                 if (md.HasGenericParameters)
                     continue;
 
-                writers.Register(md.Parameters[1].ParameterType, assembly.MainModule.ImportReference(md));
+                writer.Register(md.Parameters[1].ParameterType, assembly.MainModule.ImportReference(md));
                 change = true;
             }
 
@@ -123,11 +183,11 @@ namespace JFramework.Editor
         /// </summary>
         /// <param name="assembly"></param>
         /// <param name="td"></param>
-        /// <param name="readers"></param>
+        /// <param name="reader"></param>
         /// <returns></returns>
-        private static bool LoadDeclaredReaders(AssemblyDefinition assembly, TypeDefinition td, NetworkReaderProcess readers)
+        private static bool ProcessReader(AssemblyDefinition assembly, TypeDefinition td, Reader reader)
         {
-            bool change = false;
+            var change = false;
             foreach (var md in td.Methods)
             {
                 if (md.Parameters.Count != 1)
@@ -145,7 +205,7 @@ namespace JFramework.Editor
                 if (md.HasGenericParameters)
                     continue;
 
-                readers.Register(md.ReturnType, assembly.MainModule.ImportReference(md));
+                reader.Register(md.ReturnType, assembly.MainModule.ImportReference(md));
                 change = true;
             }
 
@@ -156,80 +216,27 @@ namespace JFramework.Editor
         /// 加载读写流的信息
         /// </summary>
         /// <param name="module"></param>
-        /// <param name="writers"></param>
-        /// <param name="readers"></param>
+        /// <param name="writer"></param>
+        /// <param name="reader"></param>
         /// <param name="td"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool LoadStreamingMessage(ModuleDefinition module, NetworkWriterProcess writers, NetworkReaderProcess readers, TypeDefinition td, ref bool failed)
+        private static bool ProcessMessage(ModuleDefinition module, Writer writer, Reader reader, TypeDefinition td, ref bool failed)
         {
-            bool change = false;
+            var change = false;
             if (!td.IsAbstract && !td.IsInterface && td.ImplementsInterface<Message>())
             {
-                readers.GetFunction(module.ImportReference(td), ref failed);
-                writers.GetFunction(module.ImportReference(td), ref failed);
+                reader.GetFunction(module.ImportReference(td), ref failed);
+                writer.GetFunction(module.ImportReference(td), ref failed);
                 change = true;
             }
 
             foreach (var nested in td.NestedTypes)
             {
-                change |= LoadStreamingMessage(module, writers, readers, nested, ref failed);
+                change |= ProcessMessage(module, writer, reader, nested, ref failed);
             }
 
             return change;
-        }
-
-        /// <summary>
-        /// 添加 RuntimeInitializeLoad 属性类型
-        /// </summary>
-        /// <param name="assembly"></param>
-        /// <param name="models"></param>
-        /// <param name="md"></param>
-        private static void AddRuntimeInitializeOnLoadAttribute(AssemblyDefinition assembly, Models models, MethodDefinition md)
-        {
-            var definition = models.RuntimeInitializeOnLoadMethodAttribute.GetConstructors().Last();
-            var attribute = new CustomAttribute(assembly.MainModule.ImportReference(definition));
-            attribute.ConstructorArguments.Add(new CustomAttributeArgument(models.Import<RuntimeInitializeLoadType>(), RuntimeInitializeLoadType.BeforeSceneLoad));
-            md.CustomAttributes.Add(attribute);
-        }
-
-        /// <summary>
-        /// 添加 RuntimeInitializeLoad 属性标记
-        /// </summary>
-        /// <param name="assembly"></param>
-        /// <param name="models"></param>
-        /// <param name="md"></param>
-        private static void AddInitializeOnLoadAttribute(AssemblyDefinition assembly, Models models, MethodDefinition md)
-        {
-            var ctor = models.InitializeOnLoadMethodAttribute.GetConstructors().First();
-            var attribute = new CustomAttribute(assembly.MainModule.ImportReference(ctor));
-            md.CustomAttributes.Add(attribute);
-        }
-
-        /// <summary>
-        /// 初始化读写流
-        /// </summary>
-        /// <param name="assembly"></param>
-        /// <param name="models"></param>
-        /// <param name="writers"></param>
-        /// <param name="readers"></param>
-        /// <param name="td"></param>
-        public static void StreamingInitialize(AssemblyDefinition assembly, Models models, NetworkWriterProcess writers, NetworkReaderProcess readers, TypeDefinition td)
-        {
-            var method = new MethodDefinition("RuntimeInitializeOnLoad", MethodAttributes.Public | MethodAttributes.Static, models.Import(typeof(void)));
-
-            AddRuntimeInitializeOnLoadAttribute(assembly, models, method);
-
-            if (Helper.IsEditorAssembly(assembly))
-            {
-                AddInitializeOnLoadAttribute(assembly, models, method);
-            }
-
-            var worker = method.Body.GetILProcessor();
-            writers.InitializeWriters(worker);
-            readers.InitializeReaders(worker);
-            worker.Emit(OpCodes.Ret);
-            td.Methods.Add(method);
         }
     }
 }

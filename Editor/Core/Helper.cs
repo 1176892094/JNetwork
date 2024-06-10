@@ -1,3 +1,13 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: jinyijie
+// # Version: 1.0.0
+// # History: 2024-06-08  03:06
+// # Copyright: 2024, jinyijie
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,7 +60,7 @@ namespace JFramework.Editor
             {
                 return null;
             }
-
+        
             foreach (var md in tr.Resolve().Methods.Where(md => md.Name == name))
             {
                 MethodReference mr = md;
@@ -58,28 +68,29 @@ namespace JFramework.Editor
                 {
                     mr = mr.MakeHostInstanceGeneric(tr.Module, (GenericInstanceType)tr);
                 }
-
+        
                 return ad.MainModule.ImportReference(mr);
             }
-
+        
             return TryResolveMethodInParents(tr.Resolve().BaseType.ApplyGenericParameters(tr), ad, name);
         }
 
         public static MethodDefinition ResolveDefaultPublicCtor(TypeReference tr)
         {
-            return tr.Resolve().Methods.FirstOrDefault(md => md.Name == CONST.CTOR && md.Resolve().IsPublic && md.Parameters.Count == 0);
+            return tr.Resolve().Methods.FirstOrDefault(md => md.Name == Const.CTOR && md.Resolve().IsPublic && md.Parameters.Count == 0);
         }
 
         public static MethodReference ResolveProperty(TypeReference tr, AssemblyDefinition ad, string name)
         {
-            return (from pd in tr.Resolve().Properties where pd.Name == name select ad.MainModule.ImportReference(pd.GetMethod)).FirstOrDefault();
+            return (from pd in tr.Resolve().Properties where pd.Name == name select ad.MainModule.ImportReference(pd.GetMethod))
+                .FirstOrDefault();
         }
     }
+}
 
-    internal class Comparer : IEqualityComparer<TypeReference>
-    {
-        public bool Equals(TypeReference x, TypeReference y) => x?.FullName == y?.FullName;
+internal class Comparer : IEqualityComparer<TypeReference>
+{
+    public bool Equals(TypeReference x, TypeReference y) => x?.FullName == y?.FullName;
 
-        public int GetHashCode(TypeReference obj) => obj.FullName.GetHashCode();
-    }
+    public int GetHashCode(TypeReference obj) => obj.FullName.GetHashCode();
 }

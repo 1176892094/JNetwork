@@ -1,3 +1,13 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: jinyijie
+// # Version: 1.0.0
+// # History: 2024-06-06  05:06
+// # Copyright: 2024, jinyijie
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +25,7 @@ namespace JFramework.Editor
         private readonly SyncVarAccess access;
         private readonly AssemblyDefinition assembly;
 
-        public SyncVarProcess(AssemblyDefinition assembly,SyncVarAccess access, Models models, Logger logger)
+        public SyncVarProcess(AssemblyDefinition assembly, SyncVarAccess access, Models models, Logger logger)
         {
             this.logger = logger;
             this.access = access;
@@ -68,7 +78,7 @@ namespace JFramework.Editor
         public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition syncVar, ref bool failed)
         {
             var attribute = syncVar.GetCustomAttribute<SyncVarAttribute>();
-            string hookMethod = attribute.GetField<string>(null);
+            var hookMethod = attribute.GetField<string>(null);
             return hookMethod == null ? null : FindHookMethod(td, syncVar, hookMethod, ref failed);
         }
 
@@ -162,9 +172,9 @@ namespace JFramework.Editor
                 ProcessSyncVar(td, fd, syncVarIds, 1L << dirtyBits, ref failed);
                 dirtyBits += 1;
 
-                if (dirtyBits > CONST.SYNC_LIMIT)
+                if (dirtyBits > Const.SYNC_LIMIT)
                 {
-                    logger.Error($"{td.Name} 网络变量数量大于 {CONST.SYNC_LIMIT}。", td);
+                    logger.Error($"{td.Name} 网络变量数量大于 {Const.SYNC_LIMIT}。", td);
                     failed = true;
                 }
             }
@@ -209,7 +219,7 @@ namespace JFramework.Editor
 
             var get = GenerateSyncVarGetter(fd, fd.Name, objectId);
             var set = GenerateSyncVarSetter(td, fd, fd.Name, dirtyBits, objectId, ref failed);
-            
+
             var pd = new PropertyDefinition($"Network{fd.Name}", PropertyAttributes.None, fd.FieldType)
             {
                 GetMethod = get,
@@ -237,18 +247,16 @@ namespace JFramework.Editor
         /// <returns></returns>
         private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string originalName, FieldDefinition netFieldId)
         {
-            MethodDefinition get = new MethodDefinition($"get_Network{originalName}", CONST.VAR_ATTRS, fd.FieldType);
+            var get = new MethodDefinition($"get_Network{originalName}", Const.VAR_ATTRS, fd.FieldType);
 
-            ILProcessor worker = get.Body.GetILProcessor();
+            var worker = get.Body.GetILProcessor();
 
-            FieldReference fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;
+            var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;
 
             FieldReference netIdFieldReference = null;
             if (netFieldId != null)
             {
-                netIdFieldReference = netFieldId.DeclaringType.HasGenericParameters
-                    ? netFieldId.MakeHostInstanceGeneric()
-                    : netFieldId;
+                netIdFieldReference = netFieldId.DeclaringType.HasGenericParameters ? netFieldId.MakeHostInstanceGeneric() : netFieldId;
             }
 
             if (fd.FieldType.Is<GameObject>())
@@ -278,8 +286,7 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                MethodReference getFunc =
-                    models.getSyncVarNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
+                var getFunc = models.getSyncVarNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
                 worker.Emit(OpCodes.Ret);
             }
@@ -306,24 +313,20 @@ namespace JFramework.Editor
         /// <param name="netFieldId"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string originalName,
-            long dirtyBit, FieldDefinition netFieldId, ref bool failed)
+        private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string originalName, long dirtyBit, FieldDefinition netFieldId, ref bool failed)
         {
-            MethodDefinition set = new MethodDefinition($"set_Network{originalName}", CONST.VAR_ATTRS,
-                models.Import(typeof(void)));
+            var set = new MethodDefinition($"set_Network{originalName}", Const.VAR_ATTRS, models.Import(typeof(void)));
 
-            ILProcessor worker = set.Body.GetILProcessor();
-            FieldReference fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;
+            var worker = set.Body.GetILProcessor();
+            var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;
 
             FieldReference netIdFieldReference = null;
             if (netFieldId != null)
             {
-                netIdFieldReference = netFieldId.DeclaringType.HasGenericParameters
-                    ? netFieldId.MakeHostInstanceGeneric()
-                    : netFieldId;
+                netIdFieldReference = netFieldId.DeclaringType.HasGenericParameters ? netFieldId.MakeHostInstanceGeneric() : netFieldId;
             }
 
-            Instruction endOfMethod = worker.Create(OpCodes.Nop);
+            var endOfMethod = worker.Create(OpCodes.Nop);
 
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldarg_1);
@@ -331,7 +334,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldflda, fr);
             worker.Emit(OpCodes.Ldc_I8, dirtyBit);
 
-            MethodDefinition hookMethod = GetHookMethod(td, fd, ref failed);
+            var hookMethod = GetHookMethod(td, fd, ref failed);
             if (hookMethod != null)
             {
                 GenerateNewActionFromHookMethod(fd, worker, hookMethod);
@@ -357,13 +360,12 @@ namespace JFramework.Editor
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                MethodReference getFunc =
-                    models.syncVarSetterNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
+                var getFunc = models.syncVarSetterNetworkBehaviour.MakeGeneric(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else
             {
-                MethodReference generic = models.syncVarSetterGeneral.MakeGeneric(assembly.MainModule, fd.FieldType);
+                var generic = models.syncVarSetterGeneral.MakeGeneric(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, generic);
             }
 

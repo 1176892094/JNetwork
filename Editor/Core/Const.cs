@@ -1,8 +1,18 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: jinyijie
+// # Version: 1.0.0
+// # History: 2024-06-06  05:06
+// # Copyright: 2024, jinyijie
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using Mono.Cecil;
 
 namespace JFramework.Editor
 {
-    internal struct CONST
+    internal struct Const
     {
         /// <summary>
         /// 程序集名称
@@ -12,7 +22,7 @@ namespace JFramework.Editor
         /// <summary>
         /// 命名空间
         /// </summary>
-        public const string GEN_NAMESPACE = "JFramework.Net";
+        public const string GEN_SPACE = "JFramework.Net";
         
         /// <summary>
         /// 生成脚本名称

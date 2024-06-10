@@ -1,136 +1,115 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: Charlotte
+// # Version: 1.0.0
+// # History: 2024-06-04  23:06
+// # Copyright: 2024, Charlotte
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using UnityEngine;
 
 namespace JFramework.Net
 {
-    internal class DebugManager : Component<NetworkManager>
+    public class DebugManager : Component<NetworkManager>
     {
         private Rect windowRect;
-        private static float screenWidth => Screen.width;
-        private static float screenHeight => Screen.height;
-        private static float windowScale => screenWidth / 1920f + screenHeight / 1080f;
-        private static Transport transport => NetworkManager.Transport;
-        private static ClientManager client => NetworkManager.Client;
-        private static ServerManager server => NetworkManager.Server;
+        private static float windowScale => Screen.width / 2560f + Screen.height / 1440f;
 
         private void Awake()
         {
-            windowRect.position = new Vector2(screenWidth / windowScale - 200, 0);
+            windowRect.position = new Vector2((Screen.width - 200 * windowScale) / windowScale, 0);
             windowRect.size = new Vector2(200f, 75f);
         }
 
-        public void OnUpdate()
+        public void Update()
         {
             var matrix = GUI.matrix;
+            var skin = GUI.skin;
+            var textField = skin.textField;
             GUI.matrix = Matrix4x4.Scale(new Vector3(windowScale, windowScale, 1f));
             windowRect = GUI.Window(1, windowRect, Window, "网络调试器");
+            skin.textField = textField;
+            GUI.skin = skin;
             GUI.matrix = matrix;
         }
 
         private void Window(int id)
         {
             GUI.DragWindow(new Rect(0, 0, 10000f, 20f));
-            if (!client.isAuthority && !server.isActive)
+            if (!NetworkManager.Client.isConnected && !NetworkManager.Server.isActive)
             {
-                StartButton();
+                if (!NetworkManager.Client.isActive)
+                {
+                    GUILayout.BeginHorizontal();
+                    if (GUILayout.Button("Server"))
+                    {
+                        NetworkManager.StartServer();
+                    }
+
+                    if (GUILayout.Button("Client"))
+                    {
+                        NetworkManager.StartClient();
+                    }
+
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.BeginHorizontal();
+                    if (GUILayout.Button("Host"))
+                    {
+                        NetworkManager.StartHost();
+                    }
+
+                    var address = NetworkManager.Transport.address;
+                    NetworkManager.Transport.address = GUILayout.TextField(address, new[] { GUILayout.Width(86.5f), GUILayout.Height(22) });
+                    GUILayout.EndHorizontal();
+                }
+                else
+                {
+                    GUILayout.Label($"<b>Connecting...</b>", "Box");
+                    if (GUILayout.Button("Stop Client"))
+                    {
+                        NetworkManager.StopClient();
+                    }
+                }
             }
             else
             {
-                StatsButton();
-            }
-
-            if (client.isAuthority && !client.isReady)
-            {
-                if (GUILayout.Button("准备"))
+                if (NetworkManager.Server.isActive || NetworkManager.Client.isActive)
                 {
-                    client.Ready();
+                    GUILayout.Label($"<b>{NetworkManager.Transport.address} : {NetworkManager.Transport.port}</b>", "Box");
                 }
             }
 
-            StopButton();
-        }
-
-        private static void StartButton()
-        {
-            if (!client.isActive)
+            if (NetworkManager.Client.isConnected && !NetworkManager.Client.isReady)
             {
-                GUILayout.BeginHorizontal();
-                if (GUILayout.Button("服务器"))
+                if (GUILayout.Button("Ready"))
                 {
-                    NetworkManager.Instance.StartServer();
-                }
-
-                if (GUILayout.Button("客户端"))
-                {
-                    NetworkManager.Instance.StartClient();
-                }
-
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                if (GUILayout.Button("主机"))
-                {
-                    NetworkManager.Instance.StartHost();
-                }
-
-                transport.address = GUILayout.TextField(transport.address, GUILayout.Width(100));
-                GUILayout.EndHorizontal();
-            }
-            else
-            {
-                GUILayout.Label($"连接至 {transport.address}:{transport.port}...");
-                if (GUILayout.Button("停止连接"))
-                {
-                    NetworkManager.Instance.StopClient();
+                    NetworkManager.Client.Ready();
                 }
             }
-        }
 
-        private static void StopButton()
-        {
-            if (server.isActive && client.isAuthority)
+            if (NetworkManager.Server.isActive && NetworkManager.Client.isConnected)
             {
-                GUILayout.BeginHorizontal();
-                if (GUILayout.Button("停止主机"))
+                if (GUILayout.Button("Stop Host"))
                 {
-                    NetworkManager.Instance.StopHost();
-                }
-
-                if (GUILayout.Button("停止客户端"))
-                {
-                    NetworkManager.Instance.StopClient();
-                }
-
-                GUILayout.EndHorizontal();
-            }
-            else if (client.isAuthority)
-            {
-                if (GUILayout.Button("停止客户端"))
-                {
-                    NetworkManager.Instance.StopClient();
+                    NetworkManager.StopHost();
                 }
             }
-            else if (server.isActive)
+            else if (NetworkManager.Client.isConnected)
             {
-                if (GUILayout.Button("停止服务器"))
+                if (GUILayout.Button("Stop Client"))
                 {
-                    NetworkManager.Instance.StopServer();
+                    NetworkManager.StopClient();
                 }
             }
-        }
-
-        private static void StatsButton()
-        {
-            if (server.isActive && client.isActive)
+            else if (NetworkManager.Server.isActive)
             {
-                GUILayout.Label($"<b>主机: {transport.address}:{transport.port}</b>", "Box");
-            }
-            else if (server.isActive)
-            {
-                GUILayout.Label($"<b>服务器: {transport.address}:{transport.port}</b>", "Box");
-            }
-            else if (client.isAuthority)
-            {
-                GUILayout.Label($"<b>客户端: {transport.address}:{transport.port}</b>", "Box");
+                if (GUILayout.Button("Stop Server"))
+                {
+                    NetworkManager.StopServer();
+                }
             }
         }
     }

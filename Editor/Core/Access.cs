@@ -1,3 +1,13 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: jinyijie
+// # Version: 1.0.0
+// # History: 2024-06-09  17:06
+// # Copyright: 2024, jinyijie
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
@@ -5,7 +15,7 @@ using Mono.Cecil.Cil;
 
 namespace JFramework.Editor
 {
-    public class SyncVarAccess
+    internal class SyncVarAccess
     {
         private readonly Dictionary<string, int> syncVars = new Dictionary<string, int>();
 
@@ -23,8 +33,8 @@ namespace JFramework.Editor
             syncVars.Clear();
         }
     }
-    
-    public static class SyncVarReplace
+
+    internal static class SyncVarReplace
     {
         /// <summary>
         /// 用于NetworkBehaviour注入后，修正SyncVar
@@ -46,12 +56,12 @@ namespace JFramework.Editor
         /// <param name="access"></param>
         private static void ProcessClass(TypeDefinition td, SyncVarAccess access)
         {
-            foreach (MethodDefinition md in td.Methods)
+            foreach (var md in td.Methods)
             {
                 ProcessMethod(md, access);
             }
 
-            foreach (TypeDefinition nested in td.NestedTypes)
+            foreach (var nested in td.NestedTypes)
             {
                 ProcessClass(nested, access);
             }
@@ -64,7 +74,7 @@ namespace JFramework.Editor
         /// <param name="access"></param>
         private static void ProcessMethod(MethodDefinition md, SyncVarAccess access)
         {
-            if (md.Name == ".cctor" || md.Name == CONST.GEN_FUNC || md.Name.StartsWith(CONST.INV_METHOD))
+            if (md.Name == ".cctor" || md.Name == Const.GEN_FUNC || md.Name.StartsWith(Const.INV_METHOD))
             {
                 return;
             }
@@ -78,7 +88,7 @@ namespace JFramework.Editor
             {
                 for (int i = 0; i < md.Body.Instructions.Count;)
                 {
-                    Instruction instr = md.Body.Instructions[i];
+                    var instr = md.Body.Instructions[i];
                     i += ProcessInstruction(md, instr, i, access);
                 }
             }
@@ -123,10 +133,10 @@ namespace JFramework.Editor
         {
             if (md.Name == ".ctor") return;
 
-            if (access.setter.TryGetValue(opField, out MethodDefinition replacement))
+            if (access.setter.TryGetValue(opField, out var method))
             {
                 i.OpCode = OpCodes.Call;
-                i.Operand = replacement;
+                i.Operand = method;
             }
         }
 
@@ -141,10 +151,10 @@ namespace JFramework.Editor
         {
             if (md.Name == ".ctor") return;
 
-            if (access.getter.TryGetValue(opField, out MethodDefinition replacement))
+            if (access.getter.TryGetValue(opField, out var method))
             {
                 i.OpCode = OpCodes.Call;
-                i.Operand = replacement;
+                i.Operand = method;
             }
         }
 
@@ -161,23 +171,23 @@ namespace JFramework.Editor
         {
             if (md.Name == ".ctor") return 1;
 
-            if (access.setter.TryGetValue(opField, out MethodDefinition replacement))
+            if (access.setter.TryGetValue(opField, out var method))
             {
-                Instruction nextInstr = md.Body.Instructions[index + 1];
+                var next = md.Body.Instructions[index + 1];
 
-                if (nextInstr.OpCode == OpCodes.Initobj)
+                if (next.OpCode == OpCodes.Initobj)
                 {
-                    ILProcessor worker = md.Body.GetILProcessor();
-                    VariableDefinition tmpVariable = new VariableDefinition(opField.FieldType);
-                    md.Body.Variables.Add(tmpVariable);
+                    var worker = md.Body.GetILProcessor();
+                    var variable = new VariableDefinition(opField.FieldType);
+                    md.Body.Variables.Add(variable);
 
-                    worker.InsertBefore(instr, worker.Create(OpCodes.Ldloca, tmpVariable));
+                    worker.InsertBefore(instr, worker.Create(OpCodes.Ldloca, variable));
                     worker.InsertBefore(instr, worker.Create(OpCodes.Initobj, opField.FieldType));
-                    worker.InsertBefore(instr, worker.Create(OpCodes.Ldloc, tmpVariable));
-                    worker.InsertBefore(instr, worker.Create(OpCodes.Call, replacement));
+                    worker.InsertBefore(instr, worker.Create(OpCodes.Ldloc, variable));
+                    worker.InsertBefore(instr, worker.Create(OpCodes.Call, method));
 
                     worker.Remove(instr);
-                    worker.Remove(nextInstr);
+                    worker.Remove(next);
                     return 4;
                 }
             }

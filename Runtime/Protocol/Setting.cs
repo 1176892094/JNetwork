@@ -6,40 +6,21 @@ namespace JFramework.Udp
 {
     public readonly struct Setting
     {
-        public readonly int maxUnit;
-        public readonly uint resend;
+        public readonly int unit;
         public readonly int timeout;
-        public readonly uint receiveSize;
-        public readonly uint sendSize;
+        public readonly uint receive;
+        public readonly uint send;
+        public readonly uint resend;
         public readonly uint interval;
 
-        public Setting
-        (
-            int maxUnit = Protocol.MTU_DEF,
-            int timeout = 10000,
-            uint sendSize = Protocol.WIN_SND,
-            uint receiveSize = Protocol.WIN_RCV,
-            uint resend = Protocol.RESEND_LIMIT,
-            uint interval = Protocol.INTERVAL)
+        public Setting(int unit = Protocol.MTU_MAX, int timeout = Protocol.TIMEOUT, uint send = Protocol.WIN_SED, uint receive = Protocol.WIN_REV, uint resend = Protocol.RESEND, uint interval = Protocol.TIME)
         {
-            this.maxUnit = maxUnit;
+            this.unit = unit;
             this.timeout = timeout;
-            this.sendSize = sendSize;
-            this.receiveSize = receiveSize;
+            this.send = send;
+            this.receive = receive;
             this.resend = resend;
             this.interval = interval;
-        }
-    }
-
-    internal struct Proxies
-    {
-        public Proxy proxy;
-        public readonly EndPoint endPoint;
-
-        public Proxies(EndPoint endPoint)
-        {
-            proxy = null;
-            this.endPoint = endPoint;
         }
     }
 
@@ -55,13 +36,26 @@ namespace JFramework.Udp
         }
     }
 
+    internal struct Proxies
+    {
+        public Proxy proxy;
+        public readonly EndPoint endPoint;
+
+        public Proxies(EndPoint endPoint)
+        {
+            proxy = null;
+            this.endPoint = endPoint;
+        }
+    }
+
+
     public static class Log
     {
         public static Action<string> Info = Console.WriteLine;
         public static Action<string> Warn = Console.WriteLine;
         public static Action<string> Error = Console.Error.WriteLine;
     }
-    
+
     internal sealed class Pool
     {
         private readonly Stack<Segment> segments = new Stack<Segment>();

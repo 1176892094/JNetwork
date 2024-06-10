@@ -1,3 +1,13 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: Charlotte
+// # Version: 1.0.0
+// # History: 2024-06-04  23:06
+// # Copyright: 2024, Charlotte
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,12 +41,7 @@ namespace JFramework.Net
         /// <summary>
         /// 上一次发送消息的时间
         /// </summary>
-        [ShowInInspector] private double sendTime;
-
-        /// <summary>
-        /// 当前网络对象Id
-        /// </summary>
-        [ShowInInspector] private uint objectId;
+        [SerializeField] private double sendTime;
 
         /// <summary>
         /// 是否是启动的
@@ -45,22 +50,25 @@ namespace JFramework.Net
         public bool isActive { get; private set; }
 
         /// <summary>
-        /// 是否在加载场景
+        /// 所有客户端都准备
         /// </summary>
         [ShowInInspector]
+        public bool isReady => clients.Values.All(client => client.isReady);
+
+        /// <summary>
+        /// 是否在加载场景
+        /// </summary>
         public bool isLoadScene { get; internal set; }
 
         /// <summary>
         /// 连接客户端数量
         /// </summary>
-        [ShowInInspector]
         public int connections => clients.Count;
 
         /// <summary>
-        /// 所有客户端都准备
+        /// 当前网络对象Id
         /// </summary>
-        [ShowInInspector]
-        public bool isReady => clients.Values.All(client => client.isReady);
+        private uint objectId;
 
         /// <summary>
         /// 有客户端连接到服务器的事件
@@ -75,51 +83,24 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端在服务器准备就绪的事件
         /// </summary>
-        public event Action<NetworkClient> OnSetReady;
+        public event Action<NetworkClient> OnReady;
 
         /// <summary>
         /// 开启服务器
         /// </summary>
-        /// <param name="isListen">是否进行传输</param>
-        internal void StartServer(bool isListen)
+        /// <param name="mode"></param>
+        internal void StartServer(EntryMode mode)
         {
-            if (isListen)
+            if (mode is EntryMode.Server or EntryMode.Host)
             {
                 NetworkManager.Transport.StartServer();
             }
 
-            if (!isActive)
-            {
-                isActive = true;
-                clients.Clear();
-                Register();
-                RegisterTransport();
-                NetworkManager.Time.Reset();
-            }
-
+            Register();
+            isActive = true;
+            clients.Clear();
+            NetworkManager.Time.Reset();
             SpawnObjects();
-        }
-
-        /// <summary>
-        /// 设置客户端准备好 为客户端生成服务器的所有对象
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="isReady"></param>
-        internal void SetReady(NetworkClient client, bool isReady)
-        {
-            if (isReady)
-            {
-                client.isReady = true;
-                foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
-                {
-                    SendSpawnMessage(client, @object);
-                }
-            }
-            else
-            {
-                client.isReady = false;
-                client.Send(new NotReadyMessage());
-            }
         }
 
         /// <summary>
@@ -128,15 +109,15 @@ namespace JFramework.Net
         internal void StopServer()
         {
             if (!isActive) return;
-            Debug.Log("停止服务器。");
             isActive = false;
+            Debug.Log("停止服务器。");
             copies = clients.Values.ToList();
             foreach (var client in copies)
             {
                 client.Disconnect();
-                if (client.clientId != NetworkConst.HostId)
+                if (client.clientId != Const.HostId)
                 {
-                    OnServerDisconnected(client.clientId);
+                    OnServerDisconnect(client.clientId);
                 }
             }
 
@@ -144,13 +125,26 @@ namespace JFramework.Net
             {
                 NetworkManager.Transport.StopServer();
             }
-            
+
+            sendTime = 0;
+            objectId = 0;
             spawns.Clear();
             clients.Clear();
             messages.Clear();
-            sendTime = 0;
-            objectId = 0;
             isLoadScene = false;
+        }
+
+        /// <summary>
+        /// 当客户端连接到服务器
+        /// </summary>
+        /// <param name="client">连接的客户端实体</param>
+        internal void Connect(NetworkClient client)
+        {
+            if (clients.TryAdd(client.clientId, client))
+            {
+                client.isPlayer = true;
+                OnConnect?.Invoke(client);
+            }
         }
     }
 
@@ -161,41 +155,74 @@ namespace JFramework.Net
         /// </summary>
         private void Register()
         {
-            Register<EntityMessage>(OnEntityByServer);
-            Register<SetReadyMessage>(OnSetReadyByServer);
-            Register<ServerRpcMessage>(OnServerRpcByServer);
-            Register<PingMessage>(OnPingByServer);
-            Register<SnapshotMessage>(OnSnapshotByServer);
+            NetworkManager.Transport.OnServerConnect -= OnServerConnect;
+            NetworkManager.Transport.OnServerDisconnect -= OnServerDisconnect;
+            NetworkManager.Transport.OnServerReceive -= OnServerReceive;
+            NetworkManager.Transport.OnServerConnect += OnServerConnect;
+            NetworkManager.Transport.OnServerDisconnect += OnServerDisconnect;
+            NetworkManager.Transport.OnServerReceive += OnServerReceive;
+            messages[Message<PingMessage>.Id] = NetworkUtility.GetMessage<PingMessage>(PingMessage);
+            messages[Message<ReadyMessage>.Id] = NetworkUtility.GetMessage<ReadyMessage>(ReadyMessage);
+            messages[Message<EntityMessage>.Id] = NetworkUtility.GetMessage<EntityMessage>(EntityMessage);
+            messages[Message<ServerRpcMessage>.Id] = NetworkUtility.GetMessage<ServerRpcMessage>(ServerRpcMessage);
         }
 
-        /// <summary>
-        /// 注册网络消息
-        /// </summary>
-        private void Register<TMessage>(Action<NetworkClient, TMessage> handle) where TMessage : struct, Message
+        internal void PingMessage(NetworkClient client, PingMessage message)
         {
-            messages[NetworkMessage<TMessage>.Id] = NetworkMessage.Register(handle);
+            client.Send(new PingMessage(message.clientTime), Channel.Unreliable);
         }
 
-        /// <summary>
-        /// 注册网络消息
-        /// </summary>
-        private void Register<TMessage>(Action<NetworkClient, TMessage, Channel> handle) where TMessage : struct, Message
+        internal void ReadyMessage(NetworkClient client, ReadyMessage message)
         {
-            messages[NetworkMessage<TMessage>.Id] = NetworkMessage.Register(handle);
+            client.isReady = true;
+            foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
+            {
+                SpawnToClient(client, @object);
+            }
+
+            NetworkManager.Instance.SpawnPlayer(client);
+            OnReady?.Invoke(client);
+        }
+
+        internal void EntityMessage(NetworkClient client, EntityMessage message)
+        {
+            if (!spawns.TryGetValue(message.objectId, out var @object))
+            {
+                Debug.LogWarning($"无法为客户端 {client.clientId} 同步网络对象 {message.objectId}。");
+                return;
+            }
+
+            if (@object == null)
+            {
+                Debug.LogWarning($"无法为客户端 {client.clientId} 同步网络对象 {message.objectId}。");
+                return;
+            }
+
+            if (@object.connection != client)
+            {
+                Debug.LogWarning($"无法为客户端 {client.clientId} 同步网络对象 {message.objectId}。");
+                return;
+            }
+
+            using var reader = NetworkReader.Pop(message.segment);
+            if (!@object.ServerDeserialize(reader))
+            {
+                Debug.LogWarning($"无法反序列化对象：{@object.name}。对象Id：{@object.objectId}");
+                client.Disconnect();
+            }
         }
 
         /// <summary>
-        /// 当从Transport接收到一条ServerRpc消息
+        /// 客户端发送ServerRpc请求，服务器接受后调用
         /// </summary>
-        private void OnServerRpcByServer(NetworkClient client, ServerRpcMessage message, Channel channel)
+        /// <param name="client"></param>
+        /// <param name="message"></param>
+        /// <param name="channel"></param>
+        internal void ServerRpcMessage(NetworkClient client, ServerRpcMessage message, int channel)
         {
             if (!client.isReady)
             {
-                if (channel == Channel.Reliable)
-                {
-                    Debug.LogWarning("接收到 ServerRpc 但客户端没有准备就绪");
-                }
-
+                Debug.LogWarning("客户端需要 Ready 后才能接收网络消息");
                 return;
             }
 
@@ -204,136 +231,56 @@ namespace JFramework.Net
                 Debug.LogWarning($"没有找到发送 ServerRpc 的对象。对象网络Id：{message.objectId}");
                 return;
             }
-            
-            if (NetworkRpc.HasAuthority(message.methodHash) && @object.connection != client)
+
+            if (NetworkInvoke.Contains(message.methodHash) && @object.connection != client)
             {
                 Debug.LogWarning($"接收到 ServerRpc 但对象没有通过验证。对象网络Id：{message.objectId}");
                 return;
             }
 
             using var reader = NetworkReader.Pop(message.segment);
-            @object.InvokeRpcMessage(message.serialId, message.methodHash, RpcType.ServerRpc, reader, client);
-        }
-
-        /// <summary>
-        /// 服务器发送Pong消息给指定客户端
-        /// </summary>
-        internal void OnPingByServer(NetworkClient client, PingMessage message)
-        {
-            client.Send(new PongMessage(message.clientTime), Channel.Unreliable);
-        }
-
-        /// <summary>
-        /// 当接收一条快照消息
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="message"></param>
-        private void OnSnapshotByServer(NetworkClient client, SnapshotMessage message)
-        {
-            client?.OnSnapshotMessage(new SnapshotTime(client.remoteTime, NetworkManager.Time.localTime));
-        }
-
-        /// <summary>
-        /// 实体状态同步消息
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="message"></param>
-        private void OnEntityByServer(NetworkClient client, EntityMessage message)
-        {
-            if (spawns.TryGetValue(message.objectId, out var @object) && @object != null)
-            {
-                if (@object.connection == client)
-                {
-                    using var reader = NetworkReader.Pop(message.segment);
-                    if (!@object.ServerDeserialize(reader))
-                    {
-                        Debug.LogWarning($"无法反序列化对象：{@object.name}。对象Id：{@object.objectId}");
-                        client.Disconnect();
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning($"网络对象 {client} 为 {@object} 发送的 EntityMessage 没有权限");
-                }
-            }
-        }
-
-
-        /// <summary>
-        /// 当客户端在服务器准备就绪，向客户端发送生成物体的消息
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="message"></param>
-        private void OnSetReadyByServer(NetworkClient client, SetReadyMessage message)
-        {
-            SetReady(client, true);
-            NetworkManager.Instance.SpawnPrefab(client);
-            OnSetReady?.Invoke(client);
+            @object.InvokeMessage(message.componentId, message.methodHash, InvokeMode.ServerRpc, reader, client);
         }
     }
 
     public partial class ServerManager
     {
         /// <summary>
-        /// 添加传输事件
-        /// </summary>
-        private void RegisterTransport()
-        {
-            NetworkManager.Transport.OnServerConnected -= OnServerConnected;
-            NetworkManager.Transport.OnServerDisconnected -= OnServerDisconnected;
-            NetworkManager.Transport.OnServerReceive -= OnServerReceive;
-            NetworkManager.Transport.OnServerConnected += OnServerConnected;
-            NetworkManager.Transport.OnServerDisconnected += OnServerDisconnected;
-            NetworkManager.Transport.OnServerReceive += OnServerReceive;
-        }
-
-        /// <summary>
         /// 指定客户端连接到服务器
         /// </summary>
         /// <param name="clientId"></param>
-        private void OnServerConnected(int clientId)
+        private void OnServerConnect(int clientId)
         {
             if (clientId == 0)
             {
                 Debug.LogError($"无效的客户端连接。客户端：{clientId}");
-                NetworkManager.Transport.ServerDisconnect(clientId);
+                NetworkManager.Transport.StopServer(clientId);
             }
             else if (clients.ContainsKey(clientId))
             {
-                NetworkManager.Transport.ServerDisconnect(clientId);
+                NetworkManager.Transport.StopServer(clientId);
             }
             else if (clients.Count >= NetworkManager.Instance.connection)
             {
-                NetworkManager.Transport.ServerDisconnect(clientId);
+                NetworkManager.Transport.StopServer(clientId);
             }
             else
             {
-                OnClientConnect(new NetworkClient(clientId));
+                Connect(new NetworkClient(clientId));
             }
-        }
-
-        /// <summary>
-        /// 当客户端连接到服务器
-        /// </summary>
-        /// <param name="client">连接的客户端实体</param>
-        internal void OnClientConnect(NetworkClient client)
-        {
-            clients.TryAdd(client.clientId, client);
-            client.isSpawn = true;
-            OnConnect?.Invoke(client);
         }
 
         /// <summary>
         /// 服务器断开指定客户端连接
         /// </summary>
         /// <param name="clientId"></param>
-        internal void OnServerDisconnected(int clientId)
+        internal void OnServerDisconnect(int clientId)
         {
             if (clients.TryGetValue(clientId, out var client))
             {
                 OnDisconnect?.Invoke(client);
-                var copyList = spawns.Values.Where(@object => @object.connection == client).ToList();
-                foreach (var @object in copyList)
+                var objects = spawns.Values.Where(@object => @object.connection == client).ToList();
+                foreach (var @object in objects)
                 {
                     Destroy(@object);
                 }
@@ -345,7 +292,10 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器从传输接收数据
         /// </summary>
-        internal void OnServerReceive(int clientId, ArraySegment<byte> segment, Channel channel)
+        /// <param name="clientId"></param>
+        /// <param name="segment"></param>
+        /// <param name="channel"></param>
+        internal void OnServerReceive(int clientId, ArraySegment<byte> segment, int channel)
         {
             if (!clients.TryGetValue(clientId, out var client))
             {
@@ -353,44 +303,37 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!client.readerBatch.ReadEnqueue(segment))
+            if (!client.readerPool.Write(segment))
             {
-                Debug.LogWarning($"无法将读取消息合批!。断开客户端：{client}");
+                Debug.LogWarning($"无法将消息写入。断开客户端：{client}");
                 client.Disconnect();
                 return;
             }
 
-            while (!isLoadScene && client.readerBatch.ReadDequeue(out var reader, out double remoteTime))
+            while (!isLoadScene && client.readerPool.TryRead(out var reader, out var remoteTime))
             {
-                if (reader.Residue < NetworkConst.MessageSize)
+                if (reader.residue < Const.MessageSize)
                 {
                     Debug.LogError($"网络消息应该有个开始的Id。断开客户端：{client}");
                     client.Disconnect();
                     return;
                 }
 
+                var message = reader.ReadUShort();
+                if (!messages.TryGetValue(message, out var action))
+                {
+                    Debug.LogError($"未知的网络消息Id：{message} 断开客户端：{client}");
+                    client.Disconnect();
+                    return;
+                }
+
                 client.remoteTime = remoteTime;
-
-                if (!NetworkMessage.ReadMessage(reader, out ushort id))
-                {
-                    Debug.LogError($"无效的网络消息类型！断开客户端：{client}");
-                    client.Disconnect();
-                    return;
-                }
-
-                if (!messages.TryGetValue(id, out MessageDelegate handle))
-                {
-                    Debug.LogError($"未知的网络消息Id：{id} 断开客户端：{client}");
-                    client.Disconnect();
-                    return;
-                }
-
-                handle.Invoke(client, reader, channel);
+                action.Invoke(client, reader, channel);
             }
 
-            if (!isLoadScene && client.readerBatch.Count > 0)
+            if (!isLoadScene && client.readerPool.Count > 0)
             {
-                Debug.LogError($"读取器合批之后仍然还有次数残留！残留次数：{client.readerBatch.Count}");
+                Debug.LogError($"有残留消息没被写入！残留数：{client.readerPool.Count}");
             }
         }
     }
@@ -398,20 +341,14 @@ namespace JFramework.Net
     public partial class ServerManager
     {
         /// <summary>
-        /// 生成物体
+        /// 生成网络对象
         /// </summary>
         internal void SpawnObjects()
         {
-            if (!isActive)
-            {
-                Debug.LogError($"服务器不是活跃的。");
-                return;
-            }
-
             var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
             foreach (var @object in objects)
             {
-                if (NetworkUtils.IsSceneObject(@object) && @object.objectId == 0)
+                if (NetworkUtility.IsSceneObject(@object) && @object.objectId == 0)
                 {
                     @object.gameObject.SetActive(true);
                     var parent = @object.transform.parent;
@@ -450,9 +387,9 @@ namespace JFramework.Net
 
             @object.connection = client;
 
-            if (NetworkManager.Instance.mode == NetworkMode.Host)
+            if (NetworkManager.Mode == EntryMode.Host)
             {
-                if (@object.connection?.clientId == NetworkConst.HostId)
+                if (@object.connection?.clientId == Const.HostId)
                 {
                     @object.isOwner = true;
                 }
@@ -467,18 +404,18 @@ namespace JFramework.Net
                 @object.OnStartServer();
             }
 
-            SpawnForClient(@object);
+            SpawnToClients(@object);
         }
 
         /// <summary>
         /// 遍历所有客户端，发送生成物体的消息
         /// </summary>
         /// <param name="object">传入对象</param>
-        private void SpawnForClient(NetworkObject @object)
+        private void SpawnToClients(NetworkObject @object)
         {
             foreach (var client in clients.Values.Where(client => client.isReady))
             {
-                SendSpawnMessage(client, @object);
+                SpawnToClient(client, @object);
             }
         }
 
@@ -487,7 +424,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="client">指定的客户端</param>
         /// <param name="object">生成的游戏对象</param>
-        private void SendSpawnMessage(NetworkClient client, NetworkObject @object)
+        private void SpawnToClient(NetworkClient client, NetworkObject @object)
         {
             using NetworkWriter writer = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
             var isOwner = @object.connection == client;
@@ -516,35 +453,13 @@ namespace JFramework.Net
         /// <returns></returns>
         private ArraySegment<byte> SerializeObject(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observer)
         {
-            if (@object.entities.Length == 0) return default;
+            if (@object.entities.Length == 0)
+            {
+                return default;
+            }
+
             @object.ServerSerialize(true, owner, observer);
-            return isOwner ? owner.ToArraySegment() : observer.ToArraySegment();
-        }
-
-        /// <summary>
-        /// 将网络对象重置并隐藏
-        /// </summary>
-        /// <param name="object"></param>
-        public void Despawn(NetworkObject @object)
-        {
-            spawns.Remove(@object.objectId);
-            foreach (var client in clients.Values)
-            {
-                Debug.Log($"服务器为客户端 {client.clientId} 重置 {@object}");
-                client.Send(new DespawnMessage(@object.objectId));
-            }
-
-            if (NetworkManager.Instance.mode == NetworkMode.Host)
-            {
-                @object.OnStopClient();
-                @object.isOwner = false;
-                @object.OnNotifyAuthority();
-                NetworkManager.Client.spawns.Remove(@object.objectId);
-            }
-
-            @object.OnStopServer();
-            @object.gameObject.SetActive(false);
-            @object.Reset();
+            return isOwner ? owner : observer;
         }
 
         /// <summary>
@@ -560,7 +475,7 @@ namespace JFramework.Net
                 client.Send(new DestroyMessage(@object.objectId));
             }
 
-            if (NetworkManager.Instance.mode == NetworkMode.Host)
+            if (NetworkManager.Mode == EntryMode.Host)
             {
                 @object.OnStopClient();
                 @object.isOwner = false;
@@ -571,34 +486,48 @@ namespace JFramework.Net
             @object.OnStopServer();
             Destroy(@object.gameObject);
         }
+
+        /// <summary>
+        /// 将网络对象重置并隐藏
+        /// </summary>
+        /// <param name="object"></param>
+        public void Despawn(NetworkObject @object)
+        {
+            spawns.Remove(@object.objectId);
+            foreach (var client in clients.Values)
+            {
+                client.Send(new DespawnMessage(@object.objectId));
+            }
+
+            if (NetworkManager.Mode == EntryMode.Host)
+            {
+                @object.OnStopClient();
+                @object.isOwner = false;
+                @object.OnNotifyAuthority();
+                NetworkManager.Client.spawns.Remove(@object.objectId);
+            }
+
+            @object.OnStopServer();
+            @object.gameObject.SetActive(false);
+            @object.Reset();
+        }
     }
 
     public partial class ServerManager
     {
-        /// <summary>
-        /// 在Update之前调用
-        /// </summary>
-        internal void EarlyUpdate()
+        public void EarlyUpdate()
         {
             if (NetworkManager.Transport != null)
             {
                 NetworkManager.Transport.ServerEarlyUpdate();
             }
-
-            foreach (var client in clients.Values)
-            {
-                client.UpdateInterpolation();
-            }
         }
 
-        /// <summary>
-        /// 在Update之后调用
-        /// </summary>
-        internal void AfterUpdate()
+        public void AfterUpdate()
         {
             if (isActive)
             {
-                if (NetworkUtils.HeartBeat(NetworkManager.Time.localTime, NetworkManager.Instance.sendRate, ref sendTime))
+                if (TimeManager.Ticks(NetworkManager.SendRate, ref sendTime))
                 {
                     Broadcast();
                 }
@@ -621,63 +550,34 @@ namespace JFramework.Net
             {
                 if (client.isReady)
                 {
-                    client.Send(new SnapshotMessage(), Channel.Unreliable);
-                    BroadcastToClient(client);
-                }
-
-                client.OnUpdate();
-            }
-        }
-
-        /// <summary>
-        /// 被广播的指定客户端
-        /// </summary>
-        /// <param name="client">指定的客户端</param>
-        private void BroadcastToClient(NetworkClient client)
-        {
-            foreach (var @object in spawns.Values)
-            {
-                if (@object != null)
-                {
-                    NetworkWriter writer = SerializeForClient(@object, client);
-                    if (writer != null)
+                    foreach (var @object in spawns.Values)
                     {
-                        client.Send(new EntityMessage(@object.objectId, writer.ToArraySegment()));
+                        if (@object == null)
+                        {
+                            Debug.LogWarning($"在客户端 {client.clientId} 找到了空的网络对象。");
+                            return;
+                        }
+
+                        var serialize = @object.ServerSerialize(Time.frameCount);
+                        if (@object.connection == client)
+                        {
+                            if (serialize.owner.position > 0)
+                            {
+                                client.Send(new EntityMessage(@object.objectId, serialize.owner));
+                            }
+                        }
+                        else
+                        {
+                            if (serialize.observer.position > 0)
+                            {
+                                client.Send(new EntityMessage(@object.objectId, serialize.observer));
+                            }
+                        }
                     }
                 }
-                else
-                {
-                    Debug.LogWarning($"在观察列表中为 {client.clientId} 找到了空对象。请用NetworkServer.Destroy");
-                }
-            }
-        }
 
-        /// <summary>
-        /// 为客户端序列化 SyncVar
-        /// </summary>
-        /// <param name="object"></param>
-        /// <param name="client"></param>
-        /// <returns></returns>
-        private NetworkWriter SerializeForClient(NetworkObject @object, NetworkClient client)
-        {
-            var serialize = @object.ServerSerializeTick(Time.frameCount);
-
-            if (@object.connection == client)
-            {
-                if (serialize.owner.position > 0)
-                {
-                    return serialize.owner;
-                }
+                client.Update();
             }
-            else
-            {
-                if (serialize.observer.position > 0)
-                {
-                    return serialize.observer;
-                }
-            }
-
-            return null;
         }
     }
 }

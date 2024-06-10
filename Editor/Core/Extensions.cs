@@ -1,3 +1,13 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: jinyijie
+// # Version: 1.0.0
+// # History: 2024-06-06  05:06
+// # Copyright: 2024, jinyijie
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,11 +32,23 @@ namespace JFramework.Editor
         private static bool IsDerivedFrom(this TypeReference self, Type type)
         {
             var td = self.Resolve();
-            if (!td.IsClass) return false;
+            if (!td.IsClass)
+            {
+                return false;
+            }
+
             var tr = td.BaseType;
-            if (tr == null) return false;
-            if (tr.Is(type)) return true;
-            return tr.CanBeResolved() && IsDerivedFrom(tr.Resolve(), type);
+            if (tr == null)
+            {
+                return false;
+            }
+
+            if (tr.Is(type))
+            {
+                return true;
+            }
+
+            return tr.CanResolve() && IsDerivedFrom(tr.Resolve(), type);
         }
 
         public static bool IsDerivedFrom<T>(this TypeReference self)
@@ -34,7 +56,7 @@ namespace JFramework.Editor
             return IsDerivedFrom(self, typeof(T));
         }
 
-        public static bool CanBeResolved(this TypeReference self)
+        public static bool CanResolve(this TypeReference self)
         {
             while (self != null)
             {
@@ -62,64 +84,39 @@ namespace JFramework.Editor
             return true;
         }
 
-        public static MethodReference MakeHostInstanceGeneric(this MethodReference self, ModuleDefinition md,
-            GenericInstanceType declaringType)
+        public static IEnumerable<FieldDefinition> FindAllPublicFields(this TypeDefinition self)
         {
-            var mr = new MethodReference(self.Name, self.ReturnType, declaringType)
+            while (self != null)
             {
-                HasThis = self.HasThis,
-                ExplicitThis = self.ExplicitThis,
-                CallingConvention = self.CallingConvention
-            };
+                foreach (var field in self.Fields)
+                {
+                    if (field.IsStatic || field.IsPrivate || field.IsFamily)
+                    {
+                        continue;
+                    }
 
-            foreach (var parameter in self.Parameters)
-            {
-                mr.Parameters.Add(new ParameterDefinition(parameter.ParameterType));
+                    if (field.IsAssembly)
+                    {
+                        continue;
+                    }
+
+                    if (field.IsNotSerialized)
+                    {
+                        continue;
+                    }
+
+                    yield return field;
+                }
+
+                try
+                {
+                    self = self.BaseType?.Resolve();
+                }
+                catch (AssemblyResolutionException)
+                {
+                    break;
+                }
             }
-
-            foreach (var genericParameter in self.GenericParameters)
-            {
-                mr.GenericParameters.Add(new GenericParameter(genericParameter.Name, mr));
-            }
-
-            return md.ImportReference(mr);
-        }
-
-        public static GenericInstanceType MakeGenericInstanceType(this TypeReference self, params TypeReference[] arguments)
-        {
-            if (self == null)
-            {
-                throw new ArgumentNullException(nameof(self));
-            }
-
-            if (arguments == null)
-            {
-                throw new ArgumentNullException(nameof(arguments));
-            }
-
-            if (arguments.Length == 0)
-            {
-                throw new ArgumentException();
-            }
-
-            if (self.GenericParameters.Count != arguments.Length)
-            {
-                throw new ArgumentException();
-            }
-
-            var instanceType = new GenericInstanceType(self);
-            foreach (var tr in arguments)
-            {
-                instanceType.GenericArguments.Add(tr);
-            }
-
-            return instanceType;
-        }
-
-        public static FieldReference SpecializeField(this FieldReference self, ModuleDefinition md, GenericInstanceType declaringType)
-        {
-            var fr = new FieldReference(self.Name, self.FieldType, declaringType);
-            return md.ImportReference(fr);
         }
 
         public static IEnumerable<MethodDefinition> GetConstructors(this TypeDefinition self)
@@ -130,21 +127,6 @@ namespace JFramework.Editor
             }
 
             return !self.HasMethods ? Array.Empty<MethodDefinition>() : self.Methods.Where(method => method.IsConstructor);
-        }
-
-        public static bool Contains(this ModuleDefinition self, string @namespace, string className)
-        {
-            return self.GetTypes().Any(typeDefinition => typeDefinition.Namespace == @namespace && typeDefinition.Name == className);
-        }
-
-        public static AssemblyNameReference FindReference(this ModuleDefinition self, string name)
-        {
-            return self.AssemblyReferences.FirstOrDefault(reference => reference.Name == name);
-        }
-
-        public static bool HasCustomAttribute<T>(this ICustomAttributeProvider self)
-        {
-            return self.CustomAttributes.Any(attribute => attribute.AttributeType.Is<T>());
         }
 
         public static bool ImplementsInterface<T>(this TypeDefinition self)
@@ -171,6 +153,49 @@ namespace JFramework.Editor
             return false;
         }
 
+        public static bool HasCustomAttribute<T>(this ICustomAttributeProvider self)
+        {
+            return self.CustomAttributes.Any(attribute => attribute.AttributeType.Is<T>());
+        }
+
+        public static GenericInstanceType MakeGenericInstanceType(this TypeReference self, params TypeReference[] arguments)
+        {
+            var instanceType = new GenericInstanceType(self);
+            foreach (var tr in arguments)
+            {
+                instanceType.GenericArguments.Add(tr);
+            }
+
+            return instanceType;
+        }
+
+        public static MethodReference MakeHostInstanceGeneric(this MethodReference self, ModuleDefinition md, GenericInstanceType generic)
+        {
+            var mr = new MethodReference(self.Name, self.ReturnType, generic)
+            {
+                HasThis = self.HasThis,
+                ExplicitThis = self.ExplicitThis,
+                CallingConvention = self.CallingConvention
+            };
+
+            foreach (var param in self.Parameters)
+            {
+                mr.Parameters.Add(new ParameterDefinition(param.ParameterType));
+            }
+
+            foreach (var param in self.GenericParameters)
+            {
+                mr.GenericParameters.Add(new GenericParameter(param.Name, mr));
+            }
+
+            return md.ImportReference(mr);
+        }
+
+        public static FieldReference SpecializeField(this FieldReference self, ModuleDefinition md, GenericInstanceType generic)
+        {
+            return md.ImportReference(new FieldReference(self.Name, self.FieldType, generic));
+        }
+
         public static TypeReference GetEnumUnderlyingType(this TypeDefinition self)
         {
             foreach (var field in self.Fields.Where(field => !field.IsStatic))
@@ -193,68 +218,15 @@ namespace JFramework.Editor
             var readFunc = md.ImportReference(instance);
             return readFunc;
         }
-
-        public static IEnumerable<FieldDefinition> FindAllPublicFields(this TypeReference self)
-        {
-            return FindAllPublicFields(self.Resolve());
-        }
-
-        private static IEnumerable<FieldDefinition> FindAllPublicFields(this TypeDefinition self)
-        {
-            while (self != null)
-            {
-                foreach (FieldDefinition field in self.Fields)
-                {
-                    if (field.IsStatic || field.IsPrivate || field.IsFamily) continue;
-                    if (field.IsAssembly) continue;
-                    if (field.IsNotSerialized) continue;
-                    yield return field;
-                }
-
-                try
-                {
-                    self = self.BaseType?.Resolve();
-                }
-                catch (AssemblyResolutionException)
-                {
-                    break;
-                }
-            }
-        }
-
-        public static MethodDefinition GetMethod(this TypeDefinition self, string methodName)
-        {
-            return self.Methods.FirstOrDefault(method => method.Name == methodName);
-        }
-
-        public static List<MethodDefinition> GetMethods(this TypeDefinition self, string methodName)
-        {
-            return self.Methods.Where(method => method.Name == methodName).ToList();
-        }
-
-        public static CustomAttribute GetCustomAttribute<TAttribute>(this ICustomAttributeProvider self)
-        {
-            return self.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<TAttribute>());
-        }
-
-        public static T GetField<T>(this CustomAttribute self, T value)
-        {
-            foreach (var custom in self.ConstructorArguments)
-            {
-                return (T)custom.Value;
-            }
-
-            return value;
-        }
-
-        public static MethodDefinition GetMethodInBaseType(this TypeDefinition self, string methodName)
+        
+        public static MethodDefinition GetMethodInBaseType(this TypeDefinition self, string name)
         {
             var td = self;
             while (td != null)
             {
-                foreach (var definition in td.Methods.Where(method => method.Name == methodName))
+                foreach (var md in td.Methods.Where(method => method.Name == name))
                 {
-                    return definition;
+                    return md;
                 }
 
                 try
@@ -270,8 +242,28 @@ namespace JFramework.Editor
 
             return null;
         }
+        
+        public static MethodDefinition GetMethod(this TypeDefinition self, string methodName)
+        {
+            return self.Methods.FirstOrDefault(method => method.Name == methodName);
+        }
 
-        public static TypeReference ApplyGenericParameters(this TypeReference self, TypeReference child)
+        public static List<MethodDefinition> GetMethods(this TypeDefinition self, string methodName)
+        {
+            return self.Methods.Where(method => method.Name == methodName).ToList();
+        }
+        
+        public static T GetField<T>(this CustomAttribute self, T value)
+        {
+            foreach (var custom in self.ConstructorArguments)
+            {
+                return (T)custom.Value;
+            }
+
+            return value;
+        }
+
+            public static TypeReference ApplyGenericParameters(this TypeReference self, TypeReference child)
         {
             if (!self.IsGenericInstance) return self;
             var arguments = (GenericInstanceType)self;
@@ -327,6 +319,11 @@ namespace JFramework.Editor
         public static bool IsNetworkObjectField(this TypeReference tr)
         {
             return tr.Is<GameObject>() || tr.Is<NetworkObject>() || tr.IsDerivedFrom<NetworkBehaviour>() || tr.Is<NetworkBehaviour>();
+        }
+        
+        public static CustomAttribute GetCustomAttribute<TAttribute>(this ICustomAttributeProvider self)
+        {
+            return self.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<TAttribute>());
         }
     }
 }

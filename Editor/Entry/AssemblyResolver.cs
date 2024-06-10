@@ -1,3 +1,13 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: jinyijie
+// # Version: 1.0.0
+// # History: 2024-06-06  05:06
+// # Copyright: 2024, jinyijie
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,17 +18,13 @@ using Unity.CompilationPipeline.Common.ILPostProcessing;
 
 namespace JFramework.Editor
 {
-    /// <summary>
-    /// 程序集解析器
-    /// </summary>
-    internal sealed class AssemblyResolver : IAssemblyResolver
+    internal class AssemblyResolver : IAssemblyResolver
     {
         private readonly Dictionary<string, AssemblyDefinition> assemblyCache = new Dictionary<string, AssemblyDefinition>();
         private readonly Logger logger;
         private readonly string[] assemblyReferences;
         private readonly ICompiledAssembly compiledAssembly;
         private AssemblyDefinition selfAssembly;
-     
 
         public AssemblyResolver(ICompiledAssembly compiledAssembly, Logger logger)
         {
@@ -27,11 +33,10 @@ namespace JFramework.Editor
             assemblyReferences = compiledAssembly.References;
         }
 
-        public void Dispose()
+        public AssemblyDefinition Resolve(AssemblyNameReference name)
         {
+            return Resolve(name, new ReaderParameters(ReadingMode.Deferred));
         }
-        
-        public AssemblyDefinition Resolve(AssemblyNameReference name) => Resolve(name, new ReaderParameters(ReadingMode.Deferred));
 
         public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
         {
@@ -39,66 +44,64 @@ namespace JFramework.Editor
             {
                 if (name.Name == compiledAssembly.Name) return selfAssembly;
 
-                string fileName = FindFile(name);
+                var fileName = FindFile(name);
                 if (fileName == null)
                 {
                     logger.Warn($"无法找到文件: {name}");
                     return null;
                 }
 
-                DateTime lastWriteTime = File.GetLastWriteTime(fileName);
+                var cacheKey = fileName + File.GetLastWriteTime(fileName);
 
-                string cacheKey = fileName + lastWriteTime;
-
-                if (assemblyCache.TryGetValue(cacheKey, out AssemblyDefinition result))
+                if (assemblyCache.TryGetValue(cacheKey, out var result))
                 {
                     return result;
                 }
 
                 parameters.AssemblyResolver = this;
 
-                MemoryStream ms = MemoryStreamFor(fileName);
+                var ms = GetMemoryStream(fileName);
 
-                string pdb = fileName + ".pdb";
+                var pdb = fileName + ".pdb";
                 if (File.Exists(pdb))
                 {
-                    parameters.SymbolStream = MemoryStreamFor(pdb);
+                    parameters.SymbolStream = GetMemoryStream(pdb);
                 }
 
-                AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(ms, parameters);
-                assemblyCache.Add(cacheKey, assemblyDefinition);
-                return assemblyDefinition;
+                var ad = AssemblyDefinition.ReadAssembly(ms, parameters);
+                assemblyCache.Add(cacheKey, ad);
+                return ad;
             }
         }
-        
+
         private string FindFile(AssemblyNameReference name)
         {
-            string fileName = assemblyReferences.FirstOrDefault(r => Path.GetFileName(r) == name.Name + ".dll");
+            var fileName = assemblyReferences.FirstOrDefault(r => Path.GetFileName(r) == name.Name + ".dll");
             if (fileName != null) return fileName;
-            
+
             fileName = assemblyReferences.FirstOrDefault(r => Path.GetFileName(r) == name.Name + ".exe");
             if (fileName != null) return fileName;
 
             var dirs = assemblyReferences.Select(Path.GetDirectoryName).Distinct();
-            return dirs.Select(parentDir => Path.Combine(parentDir, name.Name + ".dll")).FirstOrDefault(File.Exists);
+            return dirs.Select(parent => Path.Combine(parent, name.Name + ".dll")).FirstOrDefault(File.Exists);
         }
 
-        private static MemoryStream MemoryStreamFor(string fileName)
+        private static MemoryStream GetMemoryStream(string fileName)
         {
             return Retry(10, TimeSpan.FromSeconds(1), () =>
             {
-                byte[] byteArray;
-                using (FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                byte[] bytes;
+                using (var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    byteArray = new byte[fs.Length];
-                    int readLength = fs.Read(byteArray, 0, (int)fs.Length);
-                    if (readLength != fs.Length)
+                    bytes = new byte[fs.Length];
+                    int length = fs.Read(bytes, 0, (int)fs.Length);
+                    if (length != fs.Length)
                     {
-                        throw new InvalidOperationException("File read length is not full length of file.");
+                        throw new InvalidOperationException("文件读取长度不是文件的完整长度.");
                     }
                 }
 
-                return new MemoryStream(byteArray);
+                return new MemoryStream(bytes);
             });
         }
 
@@ -111,15 +114,19 @@ namespace JFramework.Editor
             catch (IOException)
             {
                 if (retryCount == 0) throw;
-                Console.WriteLine($"Caught IO Exception, trying {retryCount} more times");
+                Console.WriteLine($"捕获IO异常，尝试{retryCount}更多次。");
                 Thread.Sleep(waitTime);
                 return Retry(retryCount - 1, waitTime, func);
             }
         }
-        
+
         public void SetAssemblyDefinitionForCompiledAssembly(AssemblyDefinition assemblyDefinition)
         {
             selfAssembly = assemblyDefinition;
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

@@ -2,8 +2,7 @@
     "name": "Unity.JFramework.CodeGen",
     "rootNamespace": "",
     "references": [
-        "GUID:97ca39a133712418ca661a4ad6b372ad",
-        "GUID:70ec4ecc68e8f42d68f8b20a9c62b2a3"
+        "GUID:97ca39a133712418ca661a4ad6b372ad"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,6 +1,15 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: jinyijie
+// # Version: 1.0.0
+// # History: 2024-06-06  05:06
+// # Copyright: 2024, jinyijie
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using JFramework.Net;
 using Mono.Cecil;
@@ -12,22 +21,18 @@ namespace JFramework.Editor
     {
         private bool failed;
         private Models models;
-        private NetworkWriterProcess writers;
-        private NetworkReaderProcess readers;
+        private Writer writer;
+        private Reader reader;
         private SyncVarAccess access;
-        private TypeDefinition generate;
+        private TypeDefinition process;
         private AssemblyDefinition assembly;
         private readonly Logger logger;
 
-        public Process(Logger logger) => this.logger = logger;
+        public Process(Logger logger)
+        {
+            this.logger = logger;
+        }
 
-        /// <summary>
-        /// 执行程序集注入
-        /// </summary>
-        /// <param name="assembly"></param>
-        /// <param name="resolver"></param>
-        /// <param name="change"></param>
-        /// <returns></returns>
         public bool Execute(AssemblyDefinition assembly, IAssemblyResolver resolver, out bool change)
         {
             failed = false;
@@ -35,17 +40,18 @@ namespace JFramework.Editor
             try
             {
                 this.assembly = assembly;
-                if (assembly.MainModule.Contains(CONST.GEN_NAMESPACE, CONST.GEN_NAME))
+                
+                if (assembly.MainModule.GetTypes().Any(type => type.Namespace == Const.GEN_SPACE && type.Name == Const.GEN_NAME))
                 {
                     return true;
                 }
                 
                 access = new SyncVarAccess();
                 models = new Models(assembly, logger, ref failed);
-                generate = new TypeDefinition(CONST.GEN_NAMESPACE, CONST.GEN_NAME, CONST.GEN_ATTRS, models.Import<object>());
-                writers = new NetworkWriterProcess(assembly, models, generate, logger);
-                readers = new NetworkReaderProcess(assembly, models, generate, logger);
-                change = StreamingProcess.Process(assembly, resolver, logger, writers, readers, ref failed);
+                process = new TypeDefinition(Const.GEN_SPACE, Const.GEN_NAME, Const.GEN_ATTRS, models.Import<object>());
+                writer = new Writer(assembly, models, process, logger);
+                reader = new Reader(assembly, models, process, logger);
+                change = StreamingProcess.Process(assembly, resolver, logger, writer, reader, ref failed);
                 
                 var mainModule = assembly.MainModule;
                 
@@ -58,8 +64,8 @@ namespace JFramework.Editor
                 if (change)
                 {
                     SyncVarReplace.Process(mainModule, access);
-                    mainModule.Types.Add(generate);
-                    StreamingProcess.StreamingInitialize(assembly, models, writers, readers, generate);
+                    mainModule.Types.Add(process);
+                    StreamingProcess.RuntimeInitializeOnLoad(assembly, models, writer, reader, process);
                 }
 
                 return true;
@@ -115,7 +121,7 @@ namespace JFramework.Editor
             bool changed = false;
             foreach (TypeDefinition behaviour in behaviours)
             {
-                changed |= new NetworkBehaviourProcess(assembly,access, models, writers, readers, logger, behaviour).Process(ref failed);
+                changed |= new NetworkBehaviourProcess(assembly, access, models, writer, reader, logger, behaviour).Process(ref failed);
             }
 
             return changed;
@@ -128,7 +134,7 @@ namespace JFramework.Editor
         /// <returns></returns>
         private bool ProcessModule(ModuleDefinition moduleDefinition)
         {
-            return moduleDefinition.Types.Where(td => td.IsClass && td.BaseType.CanBeResolved()).Aggregate(false, (current, td) => current | ProcessNetworkBehavior(td, ref failed));
+            return moduleDefinition.Types.Where(td => td.IsClass && td.BaseType.CanResolve()).Aggregate(false, (current, td) => current | ProcessNetworkBehavior(td, ref failed));
         }
 
         /// <summary>
@@ -140,7 +146,7 @@ namespace JFramework.Editor
         public static string GenerateMethodName(string prefix, MethodDefinition md)
         {
             prefix += md.Name;
-            return md.Parameters.Aggregate(prefix, (str, definition) => str + $"{NetworkMessage.GetHashByName(definition.ParameterType.Name)}");
+            return md.Parameters.Aggregate(prefix, (s, parameter) => s + NetworkUtility.GetHashToName(parameter.ParameterType.Name));
         }
     }
 }

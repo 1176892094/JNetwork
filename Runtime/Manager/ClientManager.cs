@@ -1,3 +1,13 @@
+// *********************************************************************************
+// # Project: Test
+// # Unity: 2022.3.5f1c1
+// # Author: Charlotte
+// # Version: 1.0.0
+// # History: 2024-06-04  23:06
+// # Copyright: 2024, Charlotte
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,17 +37,18 @@ namespace JFramework.Net
         /// <summary>
         /// 连接的状态
         /// </summary>
-        [ShowInInspector] private ConnectState state;
+        private StateMode state = StateMode.Disconnect;
 
         /// <summary>
         /// 上一次发送信息的时间
         /// </summary>
-        [ShowInInspector] private double sendTime;
+        [SerializeField] private double sendTime;
 
         /// <summary>
-        /// 是否在生成物体中
+        /// 是否活跃
         /// </summary>
-        [ShowInInspector] private bool isSpawning;
+        [ShowInInspector]
+        public bool isActive => state != StateMode.Disconnect;
 
         /// <summary>
         /// 是否已经准备完成(能进行和Server的信息传输)
@@ -48,7 +59,6 @@ namespace JFramework.Net
         /// <summary>
         /// 是否正在加载场景
         /// </summary>
-        [ShowInInspector]
         public bool isLoadScene { get; internal set; }
 
         /// <summary>
@@ -58,16 +68,9 @@ namespace JFramework.Net
         public NetworkServer connection { get; private set; }
 
         /// <summary>
-        /// 是否活跃
-        /// </summary>
-        [ShowInInspector]
-        public bool isActive => state is ConnectState.Authority or ConnectState.Connected;
-
-        /// <summary>
         /// 是否已经连接成功
         /// </summary>
-        [ShowInInspector]
-        public bool isAuthority => state == ConnectState.Authority;
+        public bool isConnected => state == StateMode.Connected;
 
         /// <summary>
         /// 客户端连接的事件(包含主机)
@@ -82,7 +85,29 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端取消准备的事件
         /// </summary>
-        public event Action OnNotReady;
+        public event Action OnReady;
+
+        /// <summary>
+        /// 开启主机，使用Server的Transport
+        /// </summary>
+        /// <param name="mode"></param>
+        internal void StartClient(EntryMode mode)
+        {
+            if (mode == EntryMode.Host)
+            {
+                Register(EntryMode.Host);
+                state = StateMode.Connected;
+                connection = new NetworkServer();
+                NetworkManager.Server.Connect(new NetworkClient(Const.HostId));
+                Ready();
+                return;
+            }
+
+            Register(EntryMode.Client);
+            state = StateMode.Connect;
+            connection = new NetworkServer();
+            NetworkManager.Transport.StartClient();
+        }
 
         /// <summary>
         /// 开启客户端
@@ -90,81 +115,20 @@ namespace JFramework.Net
         /// <param name="uri">传入Uri</param>
         internal void StartClient(Uri uri)
         {
-            RegisterTransport();
-            Register(false);
-            state = ConnectState.Connected;
-            NetworkManager.Transport.ClientConnect(uri);
+            Register(EntryMode.Client);
+            state = StateMode.Connect;
             connection = new NetworkServer();
+            NetworkManager.Transport.StartClient(uri);
         }
 
-        /// <summary>
-        /// 开启主机，使用Server的Transport
-        /// </summary>
-        internal void StartClient()
-        {
-            Register(true);
-            state = ConnectState.Authority;
-            connection = new NetworkServer();
-            var client = new NetworkClient(NetworkConst.HostId);
-            NetworkManager.Server.OnClientConnect(client);
-            Ready();
-        }
-
-        /// <summary>
-        /// 设置客户端准备(能够进行消息传输)
-        /// </summary>
-        public void Ready()
-        {
-            if (connection == null)
-            {
-                Debug.LogError("没有连接到有效的服务器！");
-                return;
-            }
-            
-            if (isReady)
-            {
-                Debug.LogError("客户端已经准备就绪！");
-                return;
-            }
-
-            isReady = true;
-            connection.isReady = true;
-            Send(new SetReadyMessage());
-        }
-
-        /// <summary>
-        /// 客户端发送消息到服务器 (对发送消息的封装)
-        /// </summary>
-        /// <param name="message">网络事件</param>
-        /// <param name="channel">传输通道</param>
-        /// <typeparam name="T"></typeparam>
-        internal void Send<T>(T message, Channel channel = Channel.Reliable) where T : struct, Message
-        {
-            if (connection == null)
-            {
-                Debug.LogError("没有连接到有效的服务器！");
-                return;
-            }
-
-            if (state != ConnectState.Authority)
-            {
-                Debug.LogError("客户端没有连接成功就向服务器发送消息！");
-                return;
-            }
-
-            connection.Send(message, channel);
-        }
-
-        /// <summary>
-        /// 停止客户端
-        /// </summary>
         internal void StopClient()
         {
             if (!isActive) return;
             Debug.Log("停止客户端。");
-            foreach (var @object in spawns.Values.Where(@object => @object != null))
+            if (NetworkManager.Mode != EntryMode.Server)
             {
-                if (NetworkManager.Instance.mode != NetworkMode.Server)
+                var copies = spawns.Values.Where(@object => @object != null).ToList();
+                foreach (var @object in copies)
                 {
                     @object.OnStopClient();
                     if (@object.sceneId != 0)
@@ -179,252 +143,229 @@ namespace JFramework.Net
                 }
             }
 
-            state = ConnectState.Disconnected;
+            state = StateMode.Disconnect;
             if (NetworkManager.Transport != null)
             {
-                NetworkManager.Transport.ClientDisconnect();
+                NetworkManager.Transport.StopClient();
             }
 
-            OnDisconnect?.Invoke();
+            sendTime = 0;
+            isReady = false;
             spawns.Clear();
             scenes.Clear();
             messages.Clear();
-            sendTime = 0;
-            isReady = false;
             connection = null;
             isLoadScene = false;
+            OnDisconnect?.Invoke();
+        }
+
+        public void Ready()
+        {
+            if (connection == null)
+            {
+                Debug.LogError("没有连接到有效的服务器！");
+                return;
+            }
+
+            if (isReady)
+            {
+                Debug.LogError("客户端已经准备就绪！");
+                return;
+            }
+
+            isReady = true;
+            connection.isReady = true;
+            connection.Send(new ReadyMessage());
+        }
+
+        internal void Send<T>(T message, int channel = Channel.Reliable) where T : struct, Message
+        {
+            if (connection == null)
+            {
+                Debug.LogError("没有连接到有效的服务器！");
+                return;
+            }
+
+            if (state != StateMode.Connected)
+            {
+                Debug.LogError("客户端没有连接成功就向服务器发送消息！");
+                return;
+            }
+
+            connection.Send(message, channel);
         }
     }
 
     public partial class ClientManager
     {
-        /// <summary>
-        /// 注册网络消息
-        /// </summary>
-        /// <param name="isHost">是否是基于主机的连接</param>
-        private void Register(bool isHost)
+        private void Register(EntryMode mode)
         {
-            if (isHost)
+            if (mode == EntryMode.Client)
             {
-                Register<SpawnMessage>(OnSpawnByHost);
-                Register<DestroyMessage>(OnEmptyByHost);
-                Register<DespawnMessage>(OnEmptyByHost);
-                Register<PongMessage>(OnEmptyByHost);
-                Register<EntityMessage>(OnEmptyByHost);
-            }
-            else
-            {
-                Register<SpawnMessage>(OnSpawnByClient);
-                Register<DestroyMessage>(OnDestroyByClient);
-                Register<DespawnMessage>(OnDespawnByClient);
-                Register<PongMessage>(OnPongByClient);
-                Register<EntityMessage>(OnEntityEvent);
+                NetworkManager.Transport.OnClientConnect -= OnClientConnect;
+                NetworkManager.Transport.OnClientDisconnect -= OnClientDisconnect;
+                NetworkManager.Transport.OnClientReceive -= OnClientReceive;
+                NetworkManager.Transport.OnClientConnect += OnClientConnect;
+                NetworkManager.Transport.OnClientDisconnect += OnClientDisconnect;
+                NetworkManager.Transport.OnClientReceive += OnClientReceive;
             }
 
-            Register<NotReadyMessage>(OnNotReadyByClient);
-            Register<SceneMessage>(OnSceneByClient);
-            Register<SnapshotMessage>(OnSnapshotByClient);
-            Register<InvokeRpcMessage>(OnInvokeRpcByClient);
+            messages[Message<PingMessage>.Id] = NetworkUtility.GetMessage<PingMessage>(PingMessage);
+            messages[Message<ReadyMessage>.Id] = NetworkUtility.GetMessage<ReadyMessage>(ReadyMessage);
+            messages[Message<EntityMessage>.Id] = NetworkUtility.GetMessage<EntityMessage>(EntityMessage);
+            messages[Message<InvokeMessage>.Id] = NetworkUtility.GetMessage<InvokeMessage>(InvokeMessage);
+            messages[Message<SceneMessage>.Id] = NetworkUtility.GetMessage<SceneMessage>(SceneMessage);
+            messages[Message<SpawnMessage>.Id] = NetworkUtility.GetMessage<SpawnMessage>(SpawnMessage);
+            messages[Message<DestroyMessage>.Id] = NetworkUtility.GetMessage<DestroyMessage>(DestroyMessage);
+            messages[Message<DespawnMessage>.Id] = NetworkUtility.GetMessage<DespawnMessage>(DespawnMessage);
         }
 
-        /// <summary>
-        /// 注册网络消息
-        /// </summary>
-        private void Register<TMessage>(Action<TMessage> handle) where TMessage : struct, Message
+        private void PingMessage(PingMessage message)
         {
-            messages[NetworkMessage<TMessage>.Id] = NetworkMessage.Register(handle);
-        }
-
-        /// <summary>
-        /// 主机模式下空的网络消息
-        /// </summary>
-        /// <param name="message"></param>
-        /// <typeparam name="T"></typeparam>
-        private void OnEmptyByHost<T>(T message) where T : Message
-        {
-        }
-
-        /// <summary>
-        /// 主机模式下生成物体的消息
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnSpawnByHost(SpawnMessage message)
-        {
-            if (NetworkManager.Server.spawns.TryGetValue(message.objectId, out var @object))
+            if (NetworkManager.Server.isActive)
             {
-                spawns[message.objectId] = @object;
-                @object.gameObject.SetActive(true);
-                @object.isOwner = message.isOwner;
-                @object.isClient = true;
-                @object.OnStartClient();
-                @object.OnNotifyAuthority();
+                return;
             }
+
+            NetworkManager.Time.Ping(message.clientTime);
         }
 
-        /// <summary>
-        /// 客户端下隐藏物体的消息
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnDespawnByClient(DespawnMessage message)
+        private void ReadyMessage(ReadyMessage message)
         {
-            if (spawns.TryGetValue(message.objectId, out var @object))
+            isReady = false;
+            OnReady?.Invoke();
+        }
+
+        private void EntityMessage(EntityMessage message)
+        {
+            if (NetworkManager.Server.isActive)
             {
-                @object.OnStopClient();
-                @object.gameObject.SetActive(false);
-                @object.Reset();
-                spawns.Remove(message.objectId);
+                return;
+            }
+
+            if (!spawns.TryGetValue(message.objectId, out var @object))
+            {
+                Debug.LogWarning($"无法同步网络对象 {message.objectId}。");
+                return;
+            }
+
+            if (@object == null)
+            {
+                Debug.LogWarning($"无法同步网络对象 {message.objectId}。");
+                return;
+            }
+
+            using var reader = NetworkReader.Pop(message.segment);
+            @object.ClientDeserialize(reader, false);
+        }
+
+        private void InvokeMessage(InvokeMessage message)
+        {
+            using var reader = NetworkReader.Pop(message.segment);
+            while (reader.residue > 0)
+            {
+                var clientRpc = reader.Invoke<ClientRpcMessage>();
+                if (spawns.TryGetValue(clientRpc.objectId, out var @object))
+                {
+                    using var client = NetworkReader.Pop(clientRpc.segment);
+                    @object.InvokeMessage(clientRpc.componentId, clientRpc.methodHash, InvokeMode.ClientRpc, client);
+                }
             }
         }
 
-        /// <summary>
-        /// 客户端下销毁物体的消息
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnDestroyByClient(DestroyMessage message)
+        private void SceneMessage(SceneMessage message)
         {
-            if (spawns.TryGetValue(message.objectId, out var @object))
+            if (!isConnected)
             {
-                @object.OnStopClient();
-                Destroy(@object.gameObject);
-                spawns.Remove(message.objectId);
+                Debug.LogWarning($"客户端没有通过校验，无法加载场景{message.sceneName}。");
+                return;
             }
+
+            NetworkManager.Scene.LoadScene(message.sceneName);
         }
 
-        /// <summary>
-        /// 客户端下生成物体的消息
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnSpawnByClient(SpawnMessage message)
+        private void SpawnMessage(SpawnMessage message)
         {
+            if (NetworkManager.Server.isActive)
+            {
+                if (NetworkManager.Server.spawns.TryGetValue(message.objectId, out var @object))
+                {
+                    spawns[message.objectId] = @object;
+                    @object.gameObject.SetActive(true);
+                    @object.isOwner = message.isOwner;
+                    @object.isClient = true;
+                    @object.OnStartClient();
+                    @object.OnNotifyAuthority();
+                }
+
+                return;
+            }
+
             scenes.Clear();
             var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
-            foreach (var obj in objects)
+            foreach (var @object in objects)
             {
-                if (!NetworkUtils.IsSceneObject(obj)) continue;
-                if (scenes.TryGetValue(obj.sceneId, out var o))
+                if (NetworkUtility.IsSceneObject(@object))
                 {
-                    var gameObject = obj.gameObject;
-                    Debug.LogWarning($"复制 {gameObject.name} 到 {o.gameObject.name} 上检测到 sceneId", gameObject);
-                }
-                else
-                {
-                    scenes.Add(obj.sceneId, obj);
+                    if (scenes.TryGetValue(@object.sceneId, out var obj))
+                    {
+                        Debug.LogWarning($"场景Id存在重复。网络对象：{@object.name}  {obj.name}");
+                        continue;
+                    }
+
+                    scenes.Add(@object.sceneId, @object);
                 }
             }
 
             SpawnObject(message);
         }
 
-        /// <summary>
-        /// 接收 远程过程调用(RPC) 缓存的消息
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnInvokeRpcByClient(InvokeRpcMessage message)
+        private void DestroyMessage(DestroyMessage message)
         {
-            using var reader = NetworkReader.Pop(message.segment);
-            while (reader.Residue > 0)
+            if (NetworkManager.Server.isActive)
             {
-                var clientRpc = reader.Read<ClientRpcMessage>();
-                OnClientRpcEvent(clientRpc);
+                return;
+            }
+
+            if (spawns.TryGetValue(message.objectId, out var @object))
+            {
+                @object.OnStopClient();
+                spawns.Remove(message.objectId);
+                Destroy(@object.gameObject);
             }
         }
 
-        /// <summary>
-        /// 当接收到 ClientRpc 的消息
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnClientRpcEvent(ClientRpcMessage message)
+        private void DespawnMessage(DespawnMessage message)
         {
-            if (!spawns.TryGetValue(message.objectId, out var @object)) return;
-            using var reader = NetworkReader.Pop(message.segment);
-            @object.InvokeRpcMessage(message.serialId, message.methodHash, RpcType.ClientRpc, reader);
-        }
-        
-        /// <summary>
-        /// 当接收到服务器的 Pong 消息
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnPongByClient(PongMessage message)
-        {
-            NetworkManager.Time.Ping(message.clientTime);
-        }
-
-        /// <summary>
-        /// 客户端下网络消息快照的消息
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnSnapshotByClient(SnapshotMessage message)
-        {
-            connection.OnSnapshotMessage(new SnapshotTime(connection.remoteTime, NetworkManager.Time.localTime));
-        }
-
-        /// <summary>
-        /// 实体状态同步
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnEntityEvent(EntityMessage message)
-        {
-            if (spawns.TryGetValue(message.objectId, out var @object) && @object != null)
+            if (NetworkManager.Server.isActive)
             {
-                using var reader = NetworkReader.Pop(message.segment);
-                @object.ClientDeserialize(reader, false);
+                return;
             }
-            else
-            {
-                Debug.LogWarning($"没有为 {message.objectId} 的同步消息找到目标。");
-            }
-        }
 
-        /// <summary>
-        /// 客户端场景改变
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnSceneByClient(SceneMessage message)
-        {
-            if (isAuthority)
+            if (spawns.TryGetValue(message.objectId, out var @object))
             {
-                NetworkManager.Scene.ClientLoadScene(message.sceneName);
+                @object.OnStopClient();
+                spawns.Remove(message.objectId);
+                @object.gameObject.SetActive(false);
+                @object.Reset();
             }
-        }
-
-        /// <summary>
-        /// 客户端未准备就绪的消息 (不能接收和发送消息)
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnNotReadyByClient(NotReadyMessage message)
-        {
-            isReady = false;
-            OnNotReady?.Invoke();
         }
     }
 
     public partial class ClientManager
     {
         /// <summary>
-        /// 添加传输事件
-        /// </summary>
-        private void RegisterTransport()
-        {
-            NetworkManager.Transport.OnClientConnected -= OnClientConnected;
-            NetworkManager.Transport.OnClientDisconnected -= OnClientDisconnected;
-            NetworkManager.Transport.OnClientReceive -= OnClientReceive;
-            NetworkManager.Transport.OnClientConnected += OnClientConnected;
-            NetworkManager.Transport.OnClientDisconnected += OnClientDisconnected;
-            NetworkManager.Transport.OnClientReceive += OnClientReceive;
-        }
-
-        /// <summary>
         /// 当客户端连接
         /// </summary>
-        private void OnClientConnected()
+        private void OnClientConnect()
         {
             if (connection == null)
             {
                 Debug.LogError("没有有效的服务器连接！");
                 return;
             }
-            
-            state = ConnectState.Authority;
+
+            state = StateMode.Connected;
             OnConnect?.Invoke();
             NetworkManager.Time.Reset();
             NetworkManager.Time.Update();
@@ -434,7 +375,7 @@ namespace JFramework.Net
         /// <summary>
         /// 当客户端断开连接
         /// </summary>
-        private void OnClientDisconnected()
+        private void OnClientDisconnect()
         {
             StopClient();
         }
@@ -442,9 +383,9 @@ namespace JFramework.Net
         /// <summary>
         /// 当客户端从服务器接收消息
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="segment"></param>
         /// <param name="channel"></param>
-        internal void OnClientReceive(ArraySegment<byte> data, Channel channel)
+        internal void OnClientReceive(ArraySegment<byte> segment, int channel)
         {
             if (connection == null)
             {
@@ -452,44 +393,37 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!connection.readerBatch.ReadEnqueue(data))
+            if (!connection.readerPool.Write(segment))
             {
-                Debug.LogError($"无法将读取消息合批!");
+                Debug.LogWarning($"无法将消息写入。");
                 connection.Disconnect();
                 return;
             }
 
-            while (!isLoadScene && connection.readerBatch.ReadDequeue(out var reader, out double remoteTime))
+            while (!isLoadScene && connection.readerPool.TryRead(out var reader, out var remoteTime))
             {
-                if (reader.Residue < NetworkConst.MessageSize)
+                if (reader.residue < Const.MessageSize)
                 {
-                    Debug.LogError($"网络消息应该有个开始的Id");
+                    Debug.LogError($"网络消息应该有个开始的Id。");
+                    connection.Disconnect();
+                    return;
+                }
+
+                var message = reader.ReadUShort();
+                if (!messages.TryGetValue(message, out var action))
+                {
+                    Debug.LogError($"未知的网络消息Id：{message}");
                     connection.Disconnect();
                     return;
                 }
 
                 connection.remoteTime = remoteTime;
-
-                if (!NetworkMessage.ReadMessage(reader, out ushort id))
-                {
-                    Debug.LogError("无效的网络消息类型！");
-                    connection.Disconnect();
-                    return;
-                }
-
-                if (!messages.TryGetValue(id, out MessageDelegate handle))
-                {
-                    Debug.LogError($"未知的网络消息Id：{id}");
-                    connection.Disconnect();
-                    return;
-                }
-
-                handle.Invoke(connection, reader, channel);
+                action.Invoke(null, reader, channel);
             }
 
-            if (!isLoadScene && connection.readerBatch.Count > 0)
+            if (!isLoadScene && connection.readerPool.Count > 0)
             {
-                Debug.LogError($"读取器合批之后仍然还有次数残留！残留次数：{connection.readerBatch.Count}\n");
+                Debug.LogError($"有残留消息没被写入！残留数：{connection.readerPool.Count}\n");
             }
         }
     }
@@ -505,10 +439,7 @@ namespace JFramework.Net
         {
             if (spawns.TryGetValue(message.objectId, out var @object))
             {
-                isSpawning = false;
                 Spawn(message, @object);
-                SpawnFinish();
-                isSpawning = true;
                 return;
             }
 
@@ -530,12 +461,10 @@ namespace JFramework.Net
                 if (@object.GetComponentsInChildren<NetworkObject>().Length > 1)
                 {
                     Debug.LogError($"不能注册预置体 {@object.name} 因为它拥有多个 NetworkObject 组件");
+                    return;
                 }
 
-                isSpawning = false;
                 Spawn(message, @object);
-                SpawnFinish();
-                isSpawning = true;
             }
             else
             {
@@ -545,10 +474,7 @@ namespace JFramework.Net
                     return;
                 }
 
-                isSpawning = false;
                 Spawn(message, @object);
-                SpawnFinish();
-                isSpawning = true;
             }
         }
 
@@ -563,7 +489,7 @@ namespace JFramework.Net
             {
                 @object.gameObject.SetActive(true);
             }
-            
+
             @object.objectId = message.objectId;
             @object.isOwner = message.isOwner;
             @object.isClient = true;
@@ -580,56 +506,26 @@ namespace JFramework.Net
             }
 
             spawns[message.objectId] = @object;
-            if (isSpawning)
-            {
-                @object.OnNotifyAuthority();
-                @object.OnStartClient();
-            }
-        }
-
-        /// <summary>
-        /// 网络对象生成结束
-        /// </summary>
-        private void SpawnFinish()
-        {
-            foreach (var @object in spawns.Values)
-            {
-                if (@object == null)
-                {
-                    Debug.LogWarning($"网络对象 {@object} 没有被正确销毁。");
-                    continue;
-                }
-
-                @object.isClient = true;
-                @object.OnNotifyAuthority();
-                @object.OnStartClient();
-            }
+            @object.OnNotifyAuthority();
+            @object.OnStartClient();
         }
     }
 
     public partial class ClientManager
     {
-        /// <summary>
-        /// 在Update前调用
-        /// </summary>
-        internal void EarlyUpdate()
+        public void EarlyUpdate()
         {
             if (NetworkManager.Transport != null)
             {
                 NetworkManager.Transport.ClientEarlyUpdate();
             }
-
-            connection?.UpdateInterpolation();
         }
 
-        /// <summary>
-        /// 在Update之后调用
-        /// </summary>
-        internal void AfterUpdate()
+        public void AfterUpdate()
         {
             if (isActive)
             {
-                if (NetworkUtils.HeartBeat(NetworkManager.Time.localTime, NetworkManager.Instance.sendRate, ref sendTime))
+                if (TimeManager.Ticks(NetworkManager.SendRate, ref sendTime))
                 {
                     Broadcast();
                 }
@@ -637,16 +533,16 @@ namespace JFramework.Net
 
             if (connection != null)
             {
-                if (NetworkManager.Instance.mode == NetworkMode.Host)
+                if (NetworkManager.Mode == EntryMode.Host)
                 {
-                    connection.OnUpdate();
+                    connection.Update();
                 }
                 else
                 {
-                    if (isActive && isAuthority)
+                    if (isConnected)
                     {
                         NetworkManager.Time.Update();
-                        connection.OnUpdate();
+                        connection.Update();
                     }
                 }
             }
@@ -662,20 +558,26 @@ namespace JFramework.Net
         /// </summary>
         private void Broadcast()
         {
-            if (!connection.isReady) return;
-            if (NetworkManager.Server.isActive) return;
+            if (NetworkManager.Server.isActive)
+            {
+                return;
+            }
+
+            if (!connection.isReady)
+            {
+                return;
+            }
+
             foreach (var @object in spawns.Values)
             {
                 using var writer = NetworkWriter.Pop();
                 @object.ClientSerialize(writer);
                 if (writer.position > 0)
                 {
-                    Send(new EntityMessage(@object.objectId, writer.ToArraySegment()));
+                    Send(new EntityMessage(@object.objectId, writer));
                     @object.ClearDirty();
                 }
             }
-
-            Send(new SnapshotMessage(), Channel.Unreliable);
         }
     }
 }
