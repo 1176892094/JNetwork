@@ -69,14 +69,14 @@ namespace JFramework.Net
 
         private static void EarlyUpdate()
         {
-            if (!Application.isPlaying) return;
+            if (!NetworkManager.Instance) return;
             NetworkManager.Server.EarlyUpdate();
             NetworkManager.Client.EarlyUpdate();
         }
 
         private static void AfterUpdate()
         {
-            if (!Application.isPlaying) return;
+            if (!NetworkManager.Instance) return;
             NetworkManager.Server.AfterUpdate();
             NetworkManager.Client.AfterUpdate();
         }
