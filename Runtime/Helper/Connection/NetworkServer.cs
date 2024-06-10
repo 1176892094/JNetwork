@@ -19,7 +19,7 @@ namespace JFramework.Net
     public class NetworkServer
     {
         private Dictionary<int, WriterPool> writerPools = new Dictionary<int, WriterPool>();
-        [SerializeField] internal List<NetworkWriter> writers = new List<NetworkWriter>();
+        internal List<NetworkWriter> writers = new List<NetworkWriter>();
         [SerializeField] internal ReaderPool readerPool = new ReaderPool();
         [SerializeField] internal bool isReady;
         [SerializeField] internal double remoteTime;
