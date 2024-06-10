@@ -23,9 +23,14 @@ namespace JFramework.Net
         public const int Unreliable = 2;
     }
 
-    public static class Encoding
+    internal static class Encoding
     {
         internal static readonly UTF8Encoding UTF8 = new UTF8Encoding(false, true);
+    }
+    
+    public static class Message<T> where T : struct, Message
+    {
+        public static readonly ushort Id = (ushort)NetworkUtility.GetHashToName(typeof(T).FullName);
     }
 
     public static class Reader<T>
@@ -36,10 +41,5 @@ namespace JFramework.Net
     public static class Writer<T>
     {
         public static Action<NetworkWriter, T> write;
-    }
-
-    public static class Message<T> where T : struct, Message
-    {
-        public static readonly ushort Id = (ushort)NetworkUtility.GetHashToName(typeof(T).FullName);
     }
 }
