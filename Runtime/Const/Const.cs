@@ -10,7 +10,7 @@
 
 namespace JFramework.Net
 {
-    public static class Const
+    internal static class Const
     {
         /// <summary>
         /// Ping的间隔

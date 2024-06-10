@@ -15,7 +15,7 @@ namespace JFramework.Net
 {
     public delegate void InvokeDelegate(NetworkBehaviour behaviour, NetworkReader reader, NetworkClient client);
 
-    public delegate void MessageDelegate(NetworkClient client, NetworkReader reader, int channel);
+    internal delegate void MessageDelegate(NetworkClient client, NetworkReader reader, int channel);
 
     public static class Channel
     {
@@ -28,7 +28,7 @@ namespace JFramework.Net
         internal static readonly UTF8Encoding UTF8 = new UTF8Encoding(false, true);
     }
     
-    public static class Message<T> where T : struct, Message
+    internal static class Message<T> where T : struct, Message
     {
         public static readonly ushort Id = (ushort)NetworkUtility.GetHashToName(typeof(T).FullName);
     }

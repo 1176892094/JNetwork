@@ -30,7 +30,7 @@ namespace JFramework.Net
         Client = 3,
     }
 
-    public enum DebugMode : byte
+    internal enum DebugMode : byte
     {
         Enable,
         Disable,

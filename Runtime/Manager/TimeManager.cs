@@ -15,14 +15,15 @@ using UnityEngine.PlayerLoop;
 
 namespace JFramework.Net
 {
-    internal partial class TimeManager : Component<NetworkManager>
+    public partial class TimeManager : Component<NetworkManager>
     {
-        public double ping;
         private bool isActive;
         private double fixedTime;
         private double sinceTime;
+        private double roundTripTime;
+        public event Action<double> OnPingUpdate;
 
-        public void Update()
+        internal void Update()
         {
             if (sinceTime + Const.PingInterval <= NetworkManager.TickTime)
             {
@@ -31,28 +32,31 @@ namespace JFramework.Net
             }
         }
 
-        public void Reset()
+        internal void Reset()
         {
             sinceTime = 0;
-            ping = 0;
+            roundTripTime = 0;
         }
 
-        public void Ping(double clientTime)
+        internal void Ping(double clientTime)
         {
             if (!isActive)
             {
                 isActive = true;
                 fixedTime = 2.0 / (Const.PingWindow + 1);
-                ping = NetworkManager.TickTime - clientTime;
-                return;
+                roundTripTime = NetworkManager.TickTime - clientTime;
+            }
+            else
+            {
+                var delta = NetworkManager.TickTime - clientTime - roundTripTime;
+                roundTripTime += fixedTime * delta;
             }
 
-            var delta = NetworkManager.TickTime - clientTime - ping;
-            ping += fixedTime * delta;
+            OnPingUpdate?.Invoke(roundTripTime);
         }
     }
 
-    internal partial class TimeManager
+    public partial class TimeManager
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
@@ -110,7 +114,7 @@ namespace JFramework.Net
             return false;
         }
 
-        public static bool Ticks(float sendRate, ref double sendTime)
+        internal static bool Ticks(float sendRate, ref double sendTime)
         {
             if (NetworkManager.TickTime >= sendTime + sendRate)
             {

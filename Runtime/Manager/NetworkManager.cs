@@ -28,6 +28,11 @@ namespace JFramework.Net
         [SerializeField] private Transport transport;
 
         /// <summary>
+        /// 网络发现组件
+        /// </summary>
+        [SerializeField] private NetworkDiscovery discovery;
+
+        /// <summary>
         /// 时间组件
         /// </summary>
         [SerializeField, Inject] private TimeManager time;
@@ -71,11 +76,6 @@ namespace JFramework.Net
         /// 是否进行调试
         /// </summary>
         [SerializeField] private DebugMode debugger = DebugMode.Enable;
-        
-        /// <summary>
-        /// Ping 时间
-        /// </summary>
-        public static double Ping => Time.ping;
 
         /// <summary>
         /// 流逝时间
@@ -90,7 +90,7 @@ namespace JFramework.Net
         /// <summary>
         /// 时间组件
         /// </summary>
-        internal static TimeManager Time => Instance.time;
+        public static TimeManager Time => Instance.time;
 
         /// <summary>
         /// 客户端组件
@@ -106,6 +106,11 @@ namespace JFramework.Net
         /// 场景加载组件
         /// </summary>
         public static SceneManager Scene => Instance.scene;
+
+        /// <summary>
+        /// 网络发现组件
+        /// </summary>
+        public static NetworkDiscovery Discovery => Instance.discovery;
 
         /// <summary>
         /// 网络传输组件

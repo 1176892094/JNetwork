@@ -15,7 +15,7 @@ using UnityEngine;
 namespace JFramework.Net
 {
     [Serializable]
-    public class WriterPool
+    internal class WriterPool
     {
         /// <summary>
         /// 批处理队列

@@ -515,7 +515,7 @@ namespace JFramework.Net
 
     public partial class ServerManager
     {
-        public void EarlyUpdate()
+        internal void EarlyUpdate()
         {
             if (NetworkManager.Transport != null)
             {
@@ -523,7 +523,7 @@ namespace JFramework.Net
             }
         }
 
-        public void AfterUpdate()
+        internal void AfterUpdate()
         {
             if (isActive)
             {
