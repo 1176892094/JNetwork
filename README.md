@@ -5,21 +5,21 @@
 ```c#
     private void Start()
     {
-        NetworkManager.Instance.StartHost(); // 开启主机
+        NetworkManager.StartHost(); // 开启主机
         
-        NetworkManager.Instance.StartHost(false); // 取消传输层调用，单机模式可用
+        NetworkManager.StartHost(EntryMode.None); // 取消传输层调用，单机模式可用
         
-        NetworkManager.Instance.StopHost(); // 停止主机
+        NetworkManager.StopHost(); // 停止主机
         
-        NetworkManager.Instance.StartServer(); // 开启服务器
+        NetworkManager.StartServer(); // 开启服务器
         
-        NetworkManager.Instance.StopServer(); // 停止服务器
+        NetworkManager.StopServer(); // 停止服务器
         
-        NetworkManager.Instance.StartClient(); // 开启客户端
+        NetworkManager.StartClient(); // 开启客户端
         
-        NetworkManager.Instance.StartClient(new Uri("127.0.0.1")); // 开启客户端
+        NetworkManager.StartClient(new Uri("127.0.0.1")); // 开启客户端
         
-        NetworkManager.Instance.StopClient(); // 停止客户端
+        NetworkManager.StopClient(); // 停止客户端
     }
 ```
 2.NetworkServer的使用
@@ -30,7 +30,7 @@
         
         NetworkManager.Server.OnDisconnect += OnServerDisconnect; // 当有客户端从服务器断开(客户端使用无效)
         
-        NetworkManager.Server.OnSetReady += OnSetReady; // 当客户端在服务器准备就绪 (可以发送Rpc和网络变量同步)(客户端使用无效)
+        NetworkManager.Server.OnReady += OnReady; // 当客户端在服务器准备就绪 (可以发送Rpc和网络变量同步)(客户端使用无效)
     }
 
     private void OnServerConnect(NetworkClient client)
@@ -43,7 +43,7 @@
         Debug.Log(client.clientId); //断开的客户端Id
     }
 
-    private async void OnSetReady(NetworkClient client) 
+    private async void OnReady(NetworkClient client) 
     {
         var player = await GlobalManager.Asset.Load<GameObject>("Player");
         NetworkManager.Server.Spawn(player, client); // 在这里为客户端生成玩家
@@ -62,7 +62,7 @@
         
         NetworkManager.Client.OnDisconnect += OnClientDisconnect; // 当客户端从服务器断开(服务器使用无效)
         
-        NetworkManager.Client.OnNotReady += OnClientNotReady; // 在场景准备加载时会调用该方法(服务器使用无效)
+        NetworkManager.Client.OnReady += OnClientReady; // 在场景准备加载时会调用该方法(服务器使用无效)
     }
 
     private void OnClientConnect()
@@ -75,7 +75,7 @@
         Debug.Log("连接断开");
     }
 
-    private void OnClientNotReady() 
+    private void OnClientReady() 
     {
         Debug.Log("客户端取消准备");
     }
@@ -85,6 +85,8 @@
 ```c#
     private void Start()
     {
+        NetworkManager.Scene.Load("GameScene"); // 让服务器加载场景(自动同步给各个客户端)
+        
         NetworkManager.Scene.OnClientChangeScene += OnClientChangeScene; // 当客户端准备改变场景
 
         NetworkManager.Scene.OnClientSceneChanged += OnClientSceneChanged; // 当客户端场景加载完成后(服务器不调用)
