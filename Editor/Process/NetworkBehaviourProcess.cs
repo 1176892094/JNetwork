@@ -172,9 +172,9 @@ namespace JFramework.Editor
 
             names.Add(md.Name);
             clientRpcList.Add(md);
-            var func = NetworkInvokeProcess.ProcessClientRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
+            var func = NetworkDelegateProcess.ProcessClientRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
             if (func == null) return;
-            var rpcFunc = NetworkInvokeProcess.ProcessClientRpc(models, readers, logger, generate, md, func, ref failed);
+            var rpcFunc = NetworkDelegateProcess.ProcessClientRpc(models, readers, logger, generate, md, func, ref failed);
             if (rpcFunc != null)
             {
                 clientRpcFuncList.Add(rpcFunc);
@@ -204,9 +204,9 @@ namespace JFramework.Editor
 
             names.Add(md.Name);
             serverRpcList.Add(md);
-            var func = NetworkInvokeProcess.ProcessServerRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
+            var func = NetworkDelegateProcess.ProcessServerRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
             if (func == null) return;
-            var rpcFunc = NetworkInvokeProcess.ProcessServerRpc(models, readers, logger, generate, md, func, ref failed);
+            var rpcFunc = NetworkDelegateProcess.ProcessServerRpc(models, readers, logger, generate, md, func, ref failed);
             if (rpcFunc != null)
             {
                 serverRpcFuncList.Add(rpcFunc);
@@ -236,8 +236,8 @@ namespace JFramework.Editor
 
             names.Add(md.Name);
             targetRpcList.Add(md);
-            var func = NetworkInvokeProcess.ProcessTargetRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
-            var rpcFunc = NetworkInvokeProcess.ProcessTargetRpc(models, readers, logger, generate, md, func, ref failed);
+            var func = NetworkDelegateProcess.ProcessTargetRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
+            var rpcFunc = NetworkDelegateProcess.ProcessTargetRpc(models, readers, logger, generate, md, func, ref failed);
             if (rpcFunc != null)
             {
                 targetRpcFuncList.Add(rpcFunc);
@@ -328,7 +328,7 @@ namespace JFramework.Editor
             }
 
             bool connection = param.ParameterType.Is<NetworkClient>();
-            bool sendTarget = NetworkInvokeProcess.IsNetworkClient(param, rpcType);
+            bool sendTarget = NetworkDelegateProcess.IsNetworkClient(param, rpcType);
 
             if (param.IsOut)
             {

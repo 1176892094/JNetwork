@@ -232,7 +232,7 @@ namespace JFramework.Net
                 return;
             }
 
-            if (NetworkInvoke.Contains(message.methodHash) && @object.connection != client)
+            if (NetworkDelegate.Contains(message.methodHash) && @object.connection != client)
             {
                 Debug.LogWarning($"接收到 ServerRpc 但对象没有通过验证。对象网络Id：{message.objectId}");
                 return;

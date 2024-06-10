@@ -397,7 +397,7 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!NetworkInvoke.Invoke(function, mode, client, reader, entities[index]))
+            if (!NetworkDelegate.Invoke(function, mode, client, reader, entities[index]))
             {
                 Debug.LogError($"无法调用{mode} [{function}] 网络对象：{gameObject.name} 网络Id：{objectId}");
             }

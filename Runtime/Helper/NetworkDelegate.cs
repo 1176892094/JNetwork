@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public static class NetworkInvoke
+    public static class NetworkDelegate
     {
         /// <summary>
         /// 远程调用事件字典

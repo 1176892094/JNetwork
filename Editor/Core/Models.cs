@@ -246,7 +246,7 @@ namespace JFramework.Editor
             sendClientRpcInternal = Helper.GetMethod(NetworkBehaviourType, assembly, logger, "SendClientRpcInternal", ref failed);
             sendTargetRpcInternal = Helper.GetMethod(NetworkBehaviourType, assembly, logger, "SendTargetRpcInternal", ref failed);
 
-            var InvokeType = Import(typeof(NetworkInvoke));
+            var InvokeType = Import(typeof(NetworkDelegate));
             registerServerRpcRef = Helper.GetMethod(InvokeType, assembly, logger, "RegisterServerRpc", ref failed);
             registerClientRpcRef = Helper.GetMethod(InvokeType, assembly, logger, "RegisterClientRpc", ref failed);
 
