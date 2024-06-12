@@ -100,6 +100,7 @@ namespace JFramework.Net
             writer.WriteUShort(checked((ushort)(count + 1))); // writer.position + 2
             writer.position += count;
         }
+
         public static void WriteBytes(this NetworkWriter writer, byte[] value)
         {
             if (value == null)
@@ -111,7 +112,7 @@ namespace JFramework.Net
             writer.WriteUInt(checked((uint)value.Length) + 1);
             writer.WriteBytes(value, 0, value.Length);
         }
-        
+
         public static void WriteArraySegment(this NetworkWriter writer, ArraySegment<byte> value)
         {
             if (value == null)
@@ -196,7 +197,7 @@ namespace JFramework.Net
         {
             writer.Write(value);
         }
-        
+
         public static void WriteGuid(this NetworkWriter writer, Guid value)
         {
             writer.AddCapacity(writer.position + 16);
@@ -208,7 +209,7 @@ namespace JFramework.Net
         {
             writer.WriteDouble(value.ToOADate());
         }
-        
+
         public static void WriteList<T>(this NetworkWriter writer, List<T> values)
         {
             if (values == null)
@@ -238,7 +239,7 @@ namespace JFramework.Net
                 writer.Invoke(value);
             }
         }
-        
+
         public static void WriteUri(this NetworkWriter writer, Uri value)
         {
             if (value == null)
@@ -254,7 +255,6 @@ namespace JFramework.Net
         {
             if (value == null)
             {
-                Debug.LogWarning($"{value} 没有找到 NetworkObject 组件");
                 writer.WriteUInt(0);
                 return;
             }
@@ -271,17 +271,35 @@ namespace JFramework.Net
 
         public static void WriteNetworkBehaviour(this NetworkWriter writer, NetworkBehaviour value)
         {
+            if (value == null)
+            {
+                writer.WriteUInt(0);
+                return;
+            }
+
             writer.WriteNetworkObject(value.@object);
             writer.WriteByte(value.componentId);
         }
 
         public static void WriteTransform(this NetworkWriter writer, Transform value)
         {
+            if (value == null)
+            {
+                writer.WriteUInt(0);
+                return;
+            }
+
             writer.WriteNetworkObject(value.GetComponent<NetworkObject>());
         }
 
         public static void WriteGameObject(this NetworkWriter writer, GameObject value)
         {
+            if (value == null)
+            {
+                writer.WriteUInt(0);
+                return;
+            }
+
             writer.WriteNetworkObject(value.GetComponent<NetworkObject>());
         }
 
