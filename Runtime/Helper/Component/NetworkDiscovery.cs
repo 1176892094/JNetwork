@@ -176,9 +176,9 @@ namespace JFramework.Net
                 writer.WriteLong(version);
                 var builder = new UriBuilder
                 {
-                    Scheme = "http",
+                    Scheme = "https",
                     Host = Dns.GetHostName(),
-                    Port = port
+                    Port = NetworkManager.Transport.port
                 };
                 writer.Invoke(new ResponseMessage(builder.Uri));
                 ArraySegment<byte> segment = writer;

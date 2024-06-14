@@ -222,7 +222,11 @@ namespace JFramework.Net
         {
             if (!client.isReady)
             {
-                Debug.LogWarning("客户端需要 Ready 后才能接收网络消息");
+                if (channel == Channel.Reliable)
+                {
+                    Debug.LogWarning("客户端需要 Ready 后才能接收网络消息");
+                }
+
                 return;
             }
 
