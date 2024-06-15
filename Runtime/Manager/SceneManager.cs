@@ -60,11 +60,8 @@ namespace JFramework.Net
 
             foreach (var client in NetworkManager.Server.clients.Values)
             {
-                if (client.clientId != Const.HostId)
-                {
-                    client.isReady = false;
-                    client.Send(new ReadyMessage());
-                }
+                client.isReady = false;
+                client.Send(new ReadyMessage());
             }
 
             if (NetworkManager.Server.isActive)
