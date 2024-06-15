@@ -64,7 +64,7 @@ namespace JFramework.Net
         /// 修改的玩家大小
         /// </summary>
         private Vector3 fixedLocalScale;
-        
+
         /// <summary>
         /// 同步目标
         /// </summary>
@@ -179,7 +179,7 @@ namespace JFramework.Net
                     origin = current;
                 }
             }
-            else if (isClient && isOwner && syncDirection == SyncMode.Client)
+            else if (isClient && NetworkManager.Client.isReady && isOwner && syncDirection == SyncMode.Client)
             {
                 if (!TimeManager.Ticks(NetworkManager.SendRate, ref sendTime)) return;
                 var current = new Synchronize(transform.position, transform.rotation, transform.localScale);
