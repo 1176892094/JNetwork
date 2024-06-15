@@ -60,8 +60,11 @@ namespace JFramework.Net
 
             foreach (var client in NetworkManager.Server.clients.Values)
             {
-                client.isReady = false;
-                client.Send(new ReadyMessage());
+                if (client.clientId != Const.HostId)
+                {
+                    client.isReady = false;
+                    client.Send(new ReadyMessage());
+                }
             }
 
             if (NetworkManager.Server.isActive)
@@ -141,13 +144,15 @@ namespace JFramework.Net
         private void OnClientComplete()
         {
             NetworkManager.Client.isLoadScene = false;
-            if (!NetworkManager.Client.isConnected) return;
-            if (!NetworkManager.Client.isReady)
+            if (NetworkManager.Client.isConnected)
             {
-                NetworkManager.Client.Ready();
-            }
+                if (!NetworkManager.Client.isReady)
+                {
+                    NetworkManager.Client.Ready();
+                }
 
-            OnClientSceneChanged?.Invoke(GlobalSceneManager.name);
+                OnClientSceneChanged?.Invoke(GlobalSceneManager.name);
+            }
         }
     }
 }
