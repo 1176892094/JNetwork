@@ -35,6 +35,7 @@ namespace JFramework.Net
                     if (NetworkUtility.IsValid(segment, channel)) // 判断 writer 是否有效
                     {
                         NetworkManager.Transport.SendToServer(segment, channel); // 发送数据到传输层
+                        writer.position = 0;
                     }
                 }
             }

@@ -53,6 +53,7 @@ namespace JFramework.Net
                     if (NetworkUtility.IsValid(segment, channel)) // 判断 writer 是否有效
                     {
                         NetworkManager.Transport.SendToClient(clientId, segment, channel);
+                        writer.position = 0;
                     }
                 }
             }
