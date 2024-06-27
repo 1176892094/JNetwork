@@ -152,7 +152,7 @@ namespace JFramework.Net
                     var response = reader.Invoke<ResponseMessage>();
                     var builder = new UriBuilder(response.uri)
                     {
-                        Host = remotePoint.Address.ToString()
+                        Host = result.RemoteEndPoint.Address.ToString()
                     };
                     response.uri = builder.Uri;
                     OnServerResponse?.Invoke(response.uri, result.RemoteEndPoint);
