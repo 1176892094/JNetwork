@@ -282,7 +282,6 @@ namespace JFramework.Net
         {
             if (clients.TryGetValue(clientId, out var client))
             {
-                OnDisconnect?.Invoke(client);
                 var objects = spawns.Values.Where(@object => @object.connection == client).ToList();
                 foreach (var @object in objects)
                 {
@@ -290,6 +289,7 @@ namespace JFramework.Net
                 }
 
                 clients.Remove(client.clientId);
+                OnDisconnect?.Invoke(client);
             }
         }
 
