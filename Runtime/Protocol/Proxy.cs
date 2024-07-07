@@ -334,7 +334,7 @@ namespace JFramework.Udp
                     interval = seconds;
                 }
 
-                if (TryReceive(out var header, out var segment))
+                while (TryReceive(out var header, out var segment))
                 {
                     if (header == Head.Disconnect)
                     {
@@ -356,23 +356,23 @@ namespace JFramework.Udp
                                 OnConnect?.Invoke();
                                 break;
                         }
+                        
+                        return;
                     }
-                    else
+
+                    switch (header)
                     {
-                        switch (header)
-                        {
-                            case Head.Connect:
-                                Log.Error($"收到无效的握手消息。消息类型：{header}");
-                                Disconnect();
-                                break;
-                            case Head.Data when segment.Count <= 0:
-                                Log.Error($"收到无效的握手消息。消息类型：{header}");
-                                Disconnect();
-                                break;
-                            case Head.Data:
-                                OnReceive?.Invoke(segment, 1);
-                                break;
-                        }
+                        case Head.Connect:
+                            Log.Error($"收到无效的握手消息。消息类型：{header}");
+                            Disconnect();
+                            break;
+                        case Head.Data when segment.Count <= 0:
+                            Log.Error($"收到无效的握手消息。消息类型：{header}");
+                            Disconnect();
+                            break;
+                        case Head.Data:
+                            OnReceive?.Invoke(segment, 1);
+                            break;
                     }
                 }
             }
