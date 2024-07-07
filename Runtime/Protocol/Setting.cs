@@ -1,59 +1,58 @@
 using System;
 using System.Collections.Generic;
-using System.Net;
 
 namespace JFramework.Udp
 {
-    public readonly struct Setting
+    [Serializable]
+    public struct Setting
     {
-        public readonly int unit;
-        public readonly int timeout;
-        public readonly uint receive;
-        public readonly uint send;
-        public readonly uint resend;
-        public readonly uint interval;
+        public int MaxUnit;
+        public uint Timeout;
+        public uint Interval;
+        public uint DeadLink;
+        public uint FastResend;
+        public uint SendWindow;
+        public uint ReceiveWindow;
+        public bool NoDelay;
+        public bool DualMode;
+        public bool Congestion;
 
-        public Setting(int unit = Protocol.MTU_MAX, int timeout = Protocol.TIMEOUT, uint send = Protocol.WIN_SED, uint receive = Protocol.WIN_REV, uint resend = Protocol.RESEND, uint interval = Protocol.TIME)
+        public Setting(
+            int MaxUnit = Protocol.MTU_DEF,
+            uint Timeout = Protocol.TIME_OUT,
+            uint Interval = 10,
+            uint DeadLink = Protocol.DEAD_LINK,
+            uint FastResend = 0,
+            uint SendWindow = Protocol.WND_SND,
+            uint ReceiveWindow = Protocol.WND_RCV,
+            bool NoDelay = true,
+            bool DualMode = true,
+            bool Congestion = false)
         {
-            this.unit = unit;
-            this.timeout = timeout;
-            this.send = send;
-            this.receive = receive;
-            this.resend = resend;
-            this.interval = interval;
+            this.MaxUnit = MaxUnit;
+            this.Timeout = Timeout;
+            this.Interval = Interval;
+            this.DeadLink = DeadLink;
+            this.FastResend = FastResend;
+            this.SendWindow = SendWindow;
+            this.ReceiveWindow = ReceiveWindow;
+            this.NoDelay = NoDelay;
+            this.DualMode = DualMode;
+            this.Congestion = Congestion;
         }
     }
-
-    public struct Message
-    {
-        public readonly uint sendId;
-        public readonly uint sendTime;
-
-        public Message(uint sendId, uint sendTime)
-        {
-            this.sendId = sendId;
-            this.sendTime = sendTime;
-        }
-    }
-
-    internal struct Proxies
-    {
-        public Proxy proxy;
-        public readonly EndPoint endPoint;
-
-        public Proxies(EndPoint endPoint)
-        {
-            proxy = null;
-            this.endPoint = endPoint;
-        }
-    }
-
 
     public static class Log
     {
         public static Action<string> Info = Console.WriteLine;
         public static Action<string> Warn = Console.WriteLine;
         public static Action<string> Error = Console.Error.WriteLine;
+    }
+
+    internal static class Channel
+    {
+        public const int Reliable = 1;
+        public const int Unreliable = 2;
     }
 
     internal sealed class Pool
@@ -68,7 +67,10 @@ namespace JFramework.Udp
             }
         }
 
-        public Segment Pop() => segments.Count > 0 ? segments.Pop() : new Segment();
+        public Segment Pop()
+        {
+            return segments.Count > 0 ? segments.Pop() : new Segment();
+        }
 
         public void Push(Segment segment)
         {

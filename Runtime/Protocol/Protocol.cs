@@ -1,111 +1,156 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace JFramework.Udp
 {
-    internal sealed class Protocol
+    public class Protocol
     {
-        public const int WIN_SED = 32;          // 默认的发送窗口大小
-        public const int WIN_REV = 128;         // 默认的接收窗口大小，必须大于等于最大分片大小
-        public const int MTU_MAX = 1200;        // 默认的最大传输单元MTU
-        public const int HEAD = 24;             // 数据包头部的额外开销
-        public const int TIME = 100;            // 内部处理时钟的间隔时间
-        public const int DEAD = 20;             // 当一个段被认为丢失之前的最大重传次数
-        public const int RESEND = 5;            // 触发快速重传的最大次数
-        public const int TIMEOUT = 10000;       // 超时时间
-        private const int RTO_MIN = 30;         // 无延迟的最小重传超时时间
-        private const int RTO_DEF = 200;        // 默认RTO
-        private const int RTO_MAX = 60000;      // 最大RTO
-        private const int CMD_PUSH = 81;        // 推送数据命令
-        private const int CMD_ACK = 82;         // 确认收到数据命令
-        private const int CMD_WIN_ASK = 83;     // 窗口探测请求命令
-        private const int CMD_WIN_INS = 84;     // 窗口大小插入命令
-        private const int ASK_SEND = 1;         // 需要发送的 CMD_WIN_ASK 命令
-        private const int ASK_TELL = 2;         // 需要发送的 CMD_WIN_INS 命令
-        private const int THRESH_DEF = 2;       // 拥塞窗口增长阈值的初始值
-        private const int THRESH_MIN = 2;       // 拥塞窗口增长阈值的最小值
-        private const int PROBE_DEF = 7000;     // 探测窗口大小的初始时间（7秒）
-        private const int PROBE_MAX = 120000;   // 探测窗口大小的最长时间（120秒）
-        private const int QUEUE_COUNT = 10000;  // 网络缓存数量
-        public int state;                       // Udp状态
-        private int rtt;                        // 平滑的往返时间（RTT）的加权平均值
-        private int rto;                        // 接收方的RTO
-        private int shake;                      // RTT的平均偏差，用于衡量RTT的抖动
-        private uint resend;                    // 快速重传的触发次数
-        private uint maxUnit;                   // 最大传输单元
-        private uint serialId;                  // 未确认的序号，例为9表示8已经被确认，9和10已经发送。
-        private uint nextSendId;                // 发送数据的下一个序号，不断增加
-        private uint nextReceiveId;             // 接收数据的下一个分段，不断增加
-        private uint segmentSize;               // 最大分段大小
-        private uint threshold;                 // 慢启动阈值
-        private uint sendWindow;                // 发送窗口大小
-        private uint receiveWindow;             // 接收窗口大小
-        private uint remoteWindow;              // 远端窗口大小
-        private uint congestWindow;             // 拥塞窗口大小
-        private uint interval;                  // 内部处理时钟的间隔时间
-        private bool updated;                   // 是否更新
-        private uint refreshTime;               // 最后一次刷新数据的时间戳（毫秒）
-        private uint probe;                     // 探测标志
-        private uint probeTime;                 // 探测窗口的时间戳
-        private uint probeWait;                // 等待探测的时间
-        private uint increment;                 // 拥塞窗口增加的步进值
-        private uint sinceTime;                 // 当前时间（毫秒），由Update方法设置
-        private byte[] buffer;                  // 接收缓存
-        private readonly uint current;          // 当前会话Id
-        private readonly uint resendLimit;      // 快速重传的最大限制次数
-        private readonly Pool pool = new Pool(32);
-        private readonly List<Message> messages = new List<Message>(16);
-        private readonly List<Segment> sends = new List<Segment>(16);
-        private readonly List<Segment> receives = new List<Segment>(16);
-        private readonly Queue<Segment> sendQueue = new Queue<Segment>(16);
-        private readonly Queue<Segment> receiveQueue = new Queue<Segment>(16);
-        private event Action<byte[], int> onRefresh;
+        public const int RTO_NDL = 30;
+        public const int RTO_MIN = 100;
+        public const int RTO_DEF = 200;
+        public const int RTO_MAX = 60000;
+        public const int CMD_PUSH = 81;
+        public const int CMD_ACK = 82;
+        public const int CMD_W_ASK = 83;
+        public const int CMD_W_INS = 84;
+        public const int ASK_SEND = 1;
+        public const int ASK_TELL = 2;
+        public const int WND_SND = 32;
+        public const int WND_RCV = 128;
+        public const int MTU_DEF = 1200;
+        public const int INTERVAL = 100;
+        public const int OVERHEAD = 24;
+        public const int FRG_MAX = byte.MaxValue;
+        public const int DEAD_LINK = 20;
+        public const int TIME_OUT = 10000;
+        public const int THRESH_INIT = 2;
+        public const int THRESH_MIN = 2;
+        public const int PROBE_INIT = 7000;
+        public const int PROBE_LIMIT = 120000;
+        public const int FAST_ACK_LIMIT = 5;
 
-        public Protocol(uint current, Action<byte[], int> onRefresh)
+        internal int state;
+        internal uint mtu;
+        internal uint mss;
+        internal uint snd_una;
+        internal uint snd_nxt;
+        internal uint rcv_nxt;
+        internal uint ss_thresh;
+        internal int rx_rtt_val;
+        internal int rx_s_rtt;
+        internal int rx_rto;
+        internal int rx_min_rto;
+        internal uint snd_wnd;
+        internal uint rcv_wnd;
+        internal uint rmt_wnd;
+        internal uint cmd_wnd;
+        internal uint probe;
+        internal uint interval;
+        internal uint ts_flush;
+        internal bool updated;
+        internal uint ts_probe;
+        internal uint probe_wait;
+        internal uint dead_link;
+        internal uint incr;
+        internal uint current;
+        internal uint fast_resend;
+        internal uint no_delay;
+        internal bool noc_wnd;
+        internal byte[] buffer;
+        private readonly uint conv;
+        internal readonly int fast_limit;
+        private readonly Action<byte[], int> output;
+        private readonly Pool segmentPool = new Pool(32);
+        internal readonly List<AckItem> ackList = new List<AckItem>(16);
+        internal readonly List<Segment> sendBuffer = new List<Segment>(16);
+        internal readonly List<Segment> receiveBuffer = new List<Segment>(16);
+        internal readonly Queue<Segment> sendQueue = new Queue<Segment>(16);
+        internal readonly Queue<Segment> receiveQueue = new Queue<Segment>(16);
+
+        internal struct AckItem
         {
-            rto = RTO_DEF;
-            threshold = THRESH_DEF;
-            refreshTime = TIME;
-            resendLimit = RESEND;
-            remoteWindow = WIN_REV;
-            this.current = current;
-            this.onRefresh = onRefresh;
+            public readonly uint sendId;
+            public readonly uint sendTime;
+
+            public AckItem(uint sendId, uint sendTime)
+            {
+                this.sendId = sendId;
+                this.sendTime = sendTime;
+            }
         }
 
-        /// <summary>
-        /// 接收数据
-        /// </summary>
-        /// <param name="buffer">传入的数据</param>
-        /// <returns>返回读取的字节数</returns>
-        public int Receive(byte[] buffer)
+        public Protocol(uint conv, Action<byte[], int> output)
         {
+            this.conv = conv;
+            this.output = output;
+            snd_wnd = WND_SND;
+            rcv_wnd = WND_RCV;
+            rmt_wnd = WND_RCV;
+            mtu = MTU_DEF;
+            mss = mtu - OVERHEAD;
+            rx_rto = RTO_DEF;
+            rx_min_rto = RTO_MIN;
+            interval = INTERVAL;
+            ts_flush = INTERVAL;
+            ss_thresh = THRESH_INIT;
+            fast_limit = FAST_ACK_LIMIT;
+            dead_link = DEAD_LINK;
+            buffer = new byte[(mtu + OVERHEAD) * 3];
+        }
+        
+        public int Receive(byte[] buffer, int length)
+        {
+            if (length < 0)
+            {
+                throw new NotSupportedException("Receive is peek for negative length is not supported!");
+            }
+
+            if (receiveQueue.Count == 0)
+            {
+                return -1;
+            }
+
+            var peekSize = PeekSize();
+            if (peekSize < 0)
+            {
+                return -2;
+            }
+
+            if (peekSize > length)
+            {
+                return -3;
+            }
+
+            var recover = receiveQueue.Count >= rcv_wnd;
+
+            length = 0;
             var offset = 0;
-            var length = 0;
-            var recover = receiveQueue.Count >= receiveWindow;
-            while (receiveQueue.Count > 0) // 先从接收队列中取出数据段，然后将数据从每个段中复制出来
+
+            while (receiveQueue.Count > 0)
             {
                 var segment = receiveQueue.Dequeue();
-                var position = (int)segment.stream.Position;
-                Buffer.BlockCopy(segment.stream.GetBuffer(), 0, buffer, offset, position);
-                offset += position;
-                length += position;
+                Buffer.BlockCopy(segment.data.GetBuffer(), 0, buffer, offset, (int)segment.data.Position);
+                offset += (int)segment.data.Position;
+
+                length += (int)segment.data.Position;
                 var fragment = segment.fragment;
-                pool.Push(segment);
+                segmentPool.Push(segment);
+
                 if (fragment == 0)
                 {
                     break;
                 }
             }
 
+
             var removed = 0;
-            foreach (var segment in receives) // 再接着循环处理存有待接收数据段的buffer
+            foreach (var segment in receiveBuffer)
             {
-                if (segment.sendId == nextReceiveId && receiveQueue.Count < receiveWindow)
+                if (segment.sendId == rcv_nxt && receiveQueue.Count < rcv_wnd)
                 {
-                    removed++;
+                    ++removed;
                     receiveQueue.Enqueue(segment);
-                    nextReceiveId++;
+                    rcv_nxt++;
                 }
                 else
                 {
@@ -113,87 +158,91 @@ namespace JFramework.Udp
                 }
             }
 
-            receives.RemoveRange(0, removed);
-            if (receiveQueue.Count < receiveWindow && recover)
+            receiveBuffer.RemoveRange(0, removed);
+
+
+            if (receiveQueue.Count < rcv_wnd && recover)
             {
-                probe |= ASK_TELL; // 对于丢失或者乱序的数据包，我们可能需要通过一些恢复策略来请求序列号重新排列
+                probe |= ASK_TELL;
             }
 
             return length;
         }
 
-        /// <summary>
-        /// 获取分段长度
-        /// </summary>
-        /// <returns></returns>
-        public int GetLength()
+
+        public int PeekSize()
         {
             var length = 0;
             if (receiveQueue.Count == 0)
             {
-                return -1; //队列为空
+                return -1;
             }
 
             var segment = receiveQueue.Peek();
             if (segment.fragment == 0)
             {
-                return (int)segment.stream.Position; // 表示消息不需要分片，此段的大小就是消息的最终大小，将其作为返回值。
+                return (int)segment.data.Position;
             }
 
             if (receiveQueue.Count < segment.fragment + 1)
             {
-                return -1; // 有分片未接收完整
+                return -1;
             }
 
-            foreach (var receive in receiveQueue) // 累加分片长度
+            foreach (var seg in receiveQueue)
             {
-                length += (int)receive.stream.Position;
-                if (receive.fragment == 0)
+                length += (int)seg.data.Position;
+                if (seg.fragment == 0)
                 {
-                    break; // 表示该分片是最后一个分片，退出循环
+                    break;
                 }
             }
 
             return length;
         }
 
-        /// <summary>
-        /// 发送数据
-        /// </summary>
-        /// <param name="buffer">发送数据</param>
-        /// <param name="offset">偏移量</param>
-        /// <param name="length">长度</param>
-        /// <returns></returns>
+
         public int Send(byte[] buffer, int offset, int length)
         {
-            int count;
-            if (length > segmentSize)
-            {
-                count = (int)((length - 1) / segmentSize) + 1;
-            }
-            else
-            {
-                count = 1;
-            }
-
-            if (count > byte.MaxValue) // 分片数量不能大于 1 字节
+            if (length < 0)
             {
                 return -1;
             }
 
-            if (count >= receiveWindow)
+            int count;
+            if (length <= mss)
             {
-                return -2; // 不能大于接收窗口的大小
+                count = 1;
+            }
+            else
+            {
+                count = (int)((length + mss - 1) / mss);
             }
 
-            for (int i = 0; i < count; i++) // 写入分段数量
+
+            if (count > FRG_MAX)
             {
-                var size = length > segmentSize ? (int)segmentSize : length;
-                var segment = pool.Pop();
+                throw new Exception($"Send length={length} requires {count} fragments, but kcp can only handle up to {FRG_MAX} fragments.");
+            }
+
+            if (count >= rcv_wnd)
+            {
+                return -2;
+            }
+
+            if (count == 0)
+            {
+                count = 1;
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                var size = length > (int)mss ? (int)mss : length;
+                var segment = segmentPool.Pop();
 
                 if (length > 0)
                 {
-                    segment.stream.Write(buffer, offset, size);
+                    segment.data.Write(buffer, offset, size);
                 }
 
                 segment.fragment = (uint)(count - i - 1);
@@ -205,50 +254,50 @@ namespace JFramework.Udp
             return 0;
         }
 
-        /// <summary>
-        /// 计算新的 RTO 和 RTT
-        /// </summary>
-        /// <param name="time"></param>
-        private void UpdateRTO(int time)
+
+        private void UpdateAck(int rtt)
         {
-            if (rtt == 0)
+            if (rx_s_rtt == 0)
             {
-                rtt = time;
-                shake = time / 2;
+                rx_s_rtt = rtt;
+                rx_rtt_val = rtt / 2;
             }
             else
             {
-                shake = (3 * shake + Math.Abs(time - rtt)) / 4;
-                rtt = (7 * rtt + time) / 8;
-                if (rtt < 1)
+                int delta = rtt - rx_s_rtt;
+                if (delta < 0)
                 {
-                    rtt = 1;
+                    delta = -delta;
                 }
+
+                rx_rtt_val = (3 * rx_rtt_val + delta) / 4;
+                rx_s_rtt = (7 * rx_s_rtt + rtt) / 8;
+                if (rx_s_rtt < 1) rx_s_rtt = 1;
             }
 
-            int newRto = rtt + Math.Max((int)interval, 4 * shake);
-            rto = Math.Clamp(newRto, RTO_MIN, RTO_MAX);
+            var rto = rx_s_rtt + Math.Max((int)interval, 4 * rx_rtt_val);
+            rx_rto = Math.Clamp(rto, rx_min_rto, RTO_MAX);
         }
 
-        private void UpdateSend(uint sendId)
+        internal void ShrinkBuffer()
         {
-            if (Utility.Compare(sendId, serialId) < 0)
+            snd_una = sendBuffer.Count > 0 ? sendBuffer[0].sendId : snd_nxt;
+        }
+
+        internal void ParseAck(uint sendId)
+        {
+            if (Utility.Compare(sendId, snd_una) < 0 || Utility.Compare(sendId, snd_nxt) >= 0)
             {
                 return;
             }
 
-            if (Utility.Compare(sendId, nextSendId) >= 0)
+            for (int i = 0; i < sendBuffer.Count; ++i)
             {
-                return;
-            }
-
-            for (int i = 0; i < sends.Count; ++i)
-            {
-                var segment = sends[i];
-                if (segment.sendId == sendId)
+                var segment = sendBuffer[i];
+                if (sendId == segment.sendId)
                 {
-                    sends.RemoveAt(i);
-                    pool.Push(segment);
+                    sendBuffer.RemoveAt(i);
+                    segmentPool.Push(segment);
                     break;
                 }
 
@@ -259,81 +308,15 @@ namespace JFramework.Udp
             }
         }
 
-        /// <summary>
-        /// 设置重传
-        /// </summary>
-        /// <param name="sendId"></param>
-        private void Resend(uint sendId)
+        internal void ParseUna(uint una)
         {
-            if (sendId < serialId)
+            int removed = 0;
+            foreach (var segment in sendBuffer)
             {
-                return;
-            }
-
-            if (sendId >= nextSendId)
-            {
-                return;
-            }
-
-            foreach (var segment in sends.TakeWhile(segment => sendId >= segment.sendId).Where(segment => sendId != segment.sendId))
-            {
-                segment.resendId++;
-            }
-        }
-
-        /// <summary>
-        /// 按照分片的序列号有序地插入接收缓冲区中
-        /// </summary>
-        /// <param name="segment">插入的分片</param>
-        private void Insert(Segment segment)
-        {
-            var sendId = segment.sendId;
-            if (Utility.Compare(sendId, nextReceiveId + receiveWindow) >= 0)
-            {
-                pool.Push(segment);
-                return;
-            }
-
-            if (Utility.Compare(sendId, nextReceiveId) < 0)
-            {
-                pool.Push(segment);
-                return;
-            }
-
-            int index;
-            var isFind = false;
-            for (index = receives.Count - 1; index >= 0; index--)
-            {
-                var receive = receives[index];
-                if (receive.sendId == segment.sendId)
+                if (segment.sendId < una)
                 {
-                    isFind = true; // 找到了有相同序列号的分片
-                    break;
-                }
-
-                if (Utility.Compare(segment.sendId, receive.sendId) > 0)
-                {
-                    break;
-                }
-            }
-
-            if (!isFind)
-            {
-                receives.Insert(index + 1, segment); // 未找到则执行插入
-            }
-            else
-            {
-                pool.Push(segment); // 重复则进行回收
-            }
-
-            var removed = 0;
-            foreach (var receive in receives)
-            {
-                if (receive.sendId == nextReceiveId && receiveQueue.Count < receiveWindow)
-                {
-                    removed++;
-                    receiveQueue.Enqueue(receive);
-                    nextReceiveId++;
+                    ++removed;
+                    segmentPool.Push(segment);
                 }
                 else
                 {
@@ -341,425 +324,552 @@ namespace JFramework.Udp
                 }
             }
 
-            receives.RemoveRange(0, removed);
+            sendBuffer.RemoveRange(0, removed);
         }
-
-        /// <summary>
-        /// 当接收到底层数据包(例如UDP数据包)时使用
-        /// </summary>
-        public int Input(byte[] data, int offset, int size)
+        
+        internal void ParseFastAck(uint sendId, uint sendTime)
         {
-            if (data == null || size < HEAD)
+            if (sendId < snd_una)
             {
-                return -1;
+                return;
             }
 
-            var previous = serialId;
-            var isConfirm = false;
-            uint confirmId = 0;
-            while (true)
+            if (sendId >= snd_nxt)
             {
-                if (size < HEAD) //数据包大小至少有一个头部的大小
+                return;
+            }
+
+            foreach (var segment in sendBuffer)
+            {
+                if (sendId < segment.sendId)
                 {
                     break;
                 }
 
-                offset += Utility.Decode32U(data, offset, out var id);
-                if (current != id) return -1;
-                offset += Utility.Decode8U(data, offset, out var command);
-                offset += Utility.Decode8U(data, offset, out var fragment);
-                offset += Utility.Decode16U(data, offset, out var window);
-                offset += Utility.Decode32U(data, offset, out var sendTime);
-                offset += Utility.Decode32U(data, offset, out var sendId);
-                offset += Utility.Decode32U(data, offset, out var receiveId);
-                offset += Utility.Decode32U(data, offset, out var length);
-                size -= HEAD; // 减去头部大小
+                if (sendId != segment.sendId)
+                {
+                    segment.fastAck++;
+                }
+            }
+        }
+
+        private void ParseData(Segment segment)
+        {
+            var sn = segment.sendId;
+            if (Utility.Compare(sn, rcv_nxt + rcv_wnd) >= 0 || Utility.Compare(sn, rcv_nxt) < 0)
+            {
+                segmentPool.Push(segment);
+                return;
+            }
+
+            InsertSegmentInReceiveBuffer(segment);
+            MoveReceiveBufferReadySegmentsToQueue();
+        }
+
+
+        internal void InsertSegmentInReceiveBuffer(Segment segment)
+        {
+            int i;
+            var repeat = false;
+            for (i = receiveBuffer.Count - 1; i >= 0; i--)
+            {
+                var seg = receiveBuffer[i];
+                if (seg.sendId == segment.sendId)
+                {
+                    repeat = true;
+                    break;
+                }
+
+                if (Utility.Compare(segment.sendId, seg.sendId) > 0)
+                {
+                    break;
+                }
+            }
+
+            if (!repeat)
+            {
+                receiveBuffer.Insert(i + 1, segment);
+            }
+
+            else
+            {
+                segmentPool.Push(segment);
+            }
+        }
+
+
+        private void MoveReceiveBufferReadySegmentsToQueue()
+        {
+            var removed = 0;
+            foreach (var segment in receiveBuffer)
+            {
+                if (segment.sendId == rcv_nxt && receiveQueue.Count < rcv_wnd)
+                {
+                    ++removed;
+                    receiveQueue.Enqueue(segment);
+                    rcv_nxt++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            receiveBuffer.RemoveRange(0, removed);
+        }
+
+
+        public int Input(byte[] data, int offset, int size)
+        {
+            var flag = 0;
+            var prev_una = snd_una;
+            uint max_ack = 0;
+            uint latest_ts = 0;
+
+            if (data == null || size < OVERHEAD)
+            {
+                return -1;
+            }
+
+            while (true)
+            {
+                if (size < OVERHEAD)
+                {
+                    break;
+                }
+
+                offset += Utility.Decode32U(data, offset, out uint conv_);
+                if (conv_ != conv) return -1;
+                offset += Utility.Decode8U(data, offset, out byte command);
+                offset += Utility.Decode8U(data, offset, out byte fragment);
+                offset += Utility.Decode16U(data, offset, out ushort windowSize);
+                offset += Utility.Decode32U(data, offset, out uint sendTime);
+                offset += Utility.Decode32U(data, offset, out uint sendId);
+                offset += Utility.Decode32U(data, offset, out uint una);
+                offset += Utility.Decode32U(data, offset, out uint length);
+                size -= OVERHEAD;
 
                 if (size < length)
                 {
                     return -2;
                 }
 
-                if (command != CMD_PUSH && command != CMD_ACK && command != CMD_WIN_ASK && command != CMD_WIN_INS)
+                if (command != CMD_PUSH && command != CMD_ACK && command != CMD_W_ASK && command != CMD_W_INS)
                 {
                     return -3;
                 }
 
-                remoteWindow = window;
+                rmt_wnd = windowSize;
+                ParseUna(una);
+                ShrinkBuffer();
 
-                var removed = 0;
-                foreach (var segment in sends)
+                if (command == CMD_ACK)
                 {
-                    if (segment.sendId < receiveId)
+                    if (Utility.Compare(current, sendTime) >= 0)
                     {
-                        removed++;
-                        pool.Push(segment);
+                        UpdateAck(Utility.Compare(current, sendTime));
+                    }
+
+                    ParseAck(sendId);
+                    ShrinkBuffer();
+                    if (flag == 0)
+                    {
+                        flag = 1;
+                        max_ack = sendId;
+                        latest_ts = sendTime;
                     }
                     else
                     {
-                        break;
+                        if (Utility.Compare(sendId, max_ack) > 0)
+                        {
+                            max_ack = sendId;
+                            latest_ts = sendTime;
+                        }
                     }
                 }
-
-                sends.RemoveRange(0, removed);
-                serialId = sends.Count > 0 ? sends[0].sendId : nextSendId;
-                switch (command)
+                else if (command == CMD_PUSH)
                 {
-                    case CMD_ACK: // RTT 相关的信息，并解析序列号
-                        if (Utility.Compare(sinceTime, sendTime) >= 0)
+                    if (Utility.Compare(sendId, rcv_nxt + rcv_wnd) < 0)
+                    {
+                        ackList.Add(new AckItem(sendId, sendTime));
+                        if (Utility.Compare(sendId, rcv_nxt) >= 0)
                         {
-                            UpdateRTO(Utility.Compare(sinceTime, sendTime));
-                        }
-
-                        UpdateSend(sendId);
-                        serialId = sends.Count > 0 ? sends[0].sendId : nextSendId;
-                        if (!isConfirm)
-                        {
-                            isConfirm = true;
-                            confirmId = sendId;
-                        }
-                        else if (Utility.Compare(sendId, confirmId) > 0)
-                        {
-                            confirmId = sendId;
-                        }
-
-                        break;
-                    case CMD_PUSH: // 分片的序列号在接收窗口内，则进行确认并将分片添加到接收缓冲区，然后解析数据分片
-                        if (Utility.Compare(sendId, nextReceiveId + receiveWindow) < 0)
-                        {
-                            messages.Add(new Message(sendId, sendTime));
-                            if (Utility.Compare(sendId, nextReceiveId) >= 0)
+                            var segment = segmentPool.Pop();
+                            segment.conv = conv_;
+                            segment.command = command;
+                            segment.fragment = fragment;
+                            segment.windowSize = windowSize;
+                            segment.sendTime = sendTime;
+                            segment.sendId = sendId;
+                            segment.una = una;
+                            if (length > 0)
                             {
-                                var segment = pool.Pop();
-                                segment.id = id;
-                                segment.command = command;
-                                segment.fragment = fragment;
-                                segment.window = window;
-                                segment.sendTime = sendTime;
-                                segment.sendId = sendId;
-                                segment.receiveId = receiveId;
-                                if (length > 0)
-                                {
-                                    segment.stream.Write(data, offset, (int)length);
-                                }
-
-                                Insert(segment);
+                                segment.data.Write(data, offset, (int)length);
                             }
-                        }
 
-                        break;
-                    case CMD_WIN_ASK: // 收到远端的窗口探测请求，表示对方想知道本地窗口大小
-                        probe |= ASK_TELL;
-                        break;
+                            ParseData(segment);
+                        }
+                    }
+                }
+                else if (command == CMD_W_ASK)
+                {
+                    probe |= ASK_TELL;
                 }
 
                 offset += (int)length;
                 size -= (int)length;
             }
 
-            if (isConfirm)
+            if (flag != 0)
             {
-                Resend(confirmId);
+                ParseFastAck(max_ack, latest_ts);
             }
 
-            if (Utility.Compare(serialId, previous) > 0) // 根据需要进行拥塞窗口的更新
+            if (Utility.Compare(snd_una, prev_una) > 0)
             {
-                if (congestWindow < remoteWindow)
+                if (cmd_wnd < rmt_wnd)
                 {
-                    if (congestWindow < threshold)
+                    if (cmd_wnd < ss_thresh)
                     {
-                        congestWindow++;
-                        increment += segmentSize;
+                        cmd_wnd++;
+                        incr += mss;
                     }
                     else
                     {
-                        if (increment < segmentSize) increment = segmentSize;
-                        increment += segmentSize * segmentSize / increment + segmentSize / 16;
-                        if ((congestWindow + 1) * segmentSize <= increment)
+                        if (incr < mss)
                         {
-                            congestWindow = (increment + segmentSize - 1) / (segmentSize > 0 ? segmentSize : 1);
+                            incr = mss;
+                        }
+
+                        incr += mss * mss / incr + mss / 16;
+                        if ((cmd_wnd + 1) * mss <= incr)
+                        {
+                            cmd_wnd = (incr + mss - 1) / ((mss > 0) ? mss : 1);
                         }
                     }
 
-                    if (congestWindow > remoteWindow)
+                    if (cmd_wnd > rmt_wnd)
                     {
-                        congestWindow = remoteWindow;
-                        increment = remoteWindow * segmentSize;
+                        cmd_wnd = rmt_wnd;
+                        incr = rmt_wnd * mss;
                     }
                 }
             }
 
             return 0;
         }
-
-        public void Update(long time)
+        
+        
+        private uint WndUnused()
         {
-            sinceTime = (uint)time;
-            if (!updated)
+            if (receiveQueue.Count < rcv_wnd)
             {
-                updated = true;
-                refreshTime = sinceTime; //当前时间戳，表示最后一次刷新时间
+                return rcv_wnd - (uint)receiveQueue.Count;
             }
 
-            var duration = Utility.Compare(sinceTime, refreshTime); //计算距离上次刷新的时间间隔
+            return 0;
+        }
 
-            if (Math.Abs(duration) > 10000)
+        private void MakeSpace(ref int size, int space)
+        {
+            if (size + space > mtu)
             {
-                duration = 0;
-                refreshTime = sinceTime;
-            }
-
-            if (duration >= 0)
-            {
-                refreshTime += interval;
-                if (sinceTime >= refreshTime)
-                {
-                    refreshTime = sinceTime + interval;
-                }
-
-                Refresh();
+                output(buffer, size);
+                size = 0;
             }
         }
 
-        public void Refresh()
+        private void FlushBuffer(int size)
         {
-            if (!updated) return;
-            var size = 0; // 要刷新的字节大小
-            var lose = false; // 是否有丢失的片段
-            var segment = pool.Pop();
-            segment.id = current;
-            segment.command = CMD_ACK;
-            segment.window = receiveQueue.Count < receiveWindow ? receiveWindow - (uint)receiveQueue.Count : 0;
-            segment.receiveId = nextReceiveId;
-            
-            foreach (var message in messages) // 更新确认
+            if (size > 0)
             {
-                MakeSpace(HEAD);
-                segment.sendId = message.sendId;
-                segment.sendTime = message.sendTime;
-                size += segment.Encode(buffer, size);
+                output(buffer, size);
+            }
+        }
+
+        public void Flush()
+        {
+            var size = 0;
+            var lost = false;
+            if (!updated)
+            {
+                return;
             }
 
-            messages.Clear();
-            if (remoteWindow == 0) // 探测窗口大小(如果远程窗口大小等于零)
+            var seg = segmentPool.Pop();
+            seg.conv = conv;
+            seg.command = CMD_ACK;
+            seg.windowSize = WndUnused();
+            seg.una = rcv_nxt;
+
+            foreach (var ack in ackList)
             {
-                if (probeWait == 0)
+                MakeSpace(ref size, OVERHEAD);
+                seg.sendId = ack.sendId;
+                seg.sendTime = ack.sendTime;
+                size += seg.Encode(buffer, size);
+            }
+
+            ackList.Clear();
+
+            if (rmt_wnd == 0)
+            {
+                if (probe_wait == 0)
                 {
-                    probeWait = PROBE_DEF;
-                    probeTime = sinceTime + probeWait;
+                    probe_wait = PROBE_INIT;
+                    ts_probe = current + probe_wait;
                 }
                 else
                 {
-                    if (Utility.Compare(sinceTime, probeTime) >= 0)
+                    if (Utility.Compare(current, ts_probe) >= 0)
                     {
-                        if (probeWait < PROBE_DEF)
+                        if (probe_wait < PROBE_INIT)
                         {
-                            probeWait = PROBE_DEF;
+                            probe_wait = PROBE_INIT;
                         }
 
-                        probeWait += probeWait / 2;
-                        if (probeWait > PROBE_MAX)
+                        probe_wait += probe_wait / 2;
+                        if (probe_wait > PROBE_LIMIT)
                         {
-                            probeWait = PROBE_MAX;
+                            probe_wait = PROBE_LIMIT;
                         }
 
-                        probeTime = sinceTime + probeWait;
+                        ts_probe = current + probe_wait;
                         probe |= ASK_SEND;
                     }
                 }
             }
             else
             {
-                probeTime = 0;
-                probeWait = 0;
+                ts_probe = 0;
+                probe_wait = 0;
             }
 
-            if ((probe & ASK_SEND) != 0) // 刷新窗口探测命令
+
+            if ((probe & ASK_SEND) != 0)
             {
-                MakeSpace(HEAD);
-                segment.command = CMD_WIN_ASK;
-                size += segment.Encode(buffer, size);
+                seg.command = CMD_W_ASK;
+                MakeSpace(ref size, OVERHEAD);
+                size += seg.Encode(buffer, size);
             }
 
-            if ((probe & ASK_TELL) != 0) // 刷新窗口探测命令
+
+            if ((probe & ASK_TELL) != 0)
             {
-                MakeSpace(HEAD);
-                segment.command = CMD_WIN_INS;
-                size += segment.Encode(buffer, size);
+                seg.command = CMD_W_INS;
+                MakeSpace(ref size, OVERHEAD);
+                size += seg.Encode(buffer, size);
             }
 
             probe = 0;
-            
-            var windowSize = Math.Min(sendWindow, remoteWindow);
-            
-            while (Utility.Compare(nextSendId, serialId + windowSize) < 0)
+            uint c_wnd_ = Math.Min(snd_wnd, rmt_wnd);
+            if (!noc_wnd)
+            {
+                c_wnd_ = Math.Min(cmd_wnd, c_wnd_);
+            }
+
+            while (Utility.Compare(snd_nxt, snd_una + c_wnd_) < 0)
             {
                 if (sendQueue.Count == 0)
                 {
                     break;
                 }
 
-                var send = sendQueue.Dequeue();
-                send.id = current;
-                send.command = CMD_PUSH;
-                send.window = segment.window;
-                send.sendTime = sinceTime;
-                send.sendId = nextSendId;
-                nextSendId += 1; // 增加下一段的序号
-                send.receiveId = nextReceiveId;
-                send.resendTime = sinceTime;
-                send.rto = rto;
-                send.resendId = 0;
-                send.resendCount = 0;
-                sends.Add(send);
+                var segment = sendQueue.Dequeue();
+                segment.conv = conv;
+                segment.command = CMD_PUSH;
+                segment.windowSize = segment.windowSize;
+                segment.sendTime = current;
+                segment.sendId = snd_nxt;
+                snd_nxt += 1;
+                segment.una = rcv_nxt;
+                segment.resendTime = current;
+                segment.resendTimeout = rx_rto;
+                segment.fastAck = 0;
+                segment.resendCount = 0;
+                sendBuffer.Add(segment);
             }
 
-            int refresh = 0; // 刷新数据分段
-            foreach (var send in sends)
+            var resent = fast_resend > 0 ? fast_resend : 0xffffffff;
+            var rto_min = no_delay == 0 ? (uint)rx_rto >> 3 : 0;
+
+            int change = 0;
+
+            foreach (var segment in sendBuffer)
             {
                 var needSend = false;
-                if (send.resendCount == 0) // 初始化传输
+
+                if (segment.resendCount == 0)
                 {
                     needSend = true;
-                    send.resendCount++;
-                    send.rto = rto;
-                    send.resendTime = sinceTime + (uint)send.rto;
+                    segment.resendCount++;
+                    segment.resendTimeout = rx_rto;
+                    segment.resendTime = current + (uint)segment.resendTimeout + rto_min;
                 }
-                else if (Utility.Compare(sinceTime, send.resendTime) >= 0) // 重传超时RTO
+
+                else if (Utility.Compare(current, segment.resendTime) >= 0)
                 {
                     needSend = true;
-                    send.resendCount++;
-                    send.rto += send.rto / 2;
-                    send.resendTime = sinceTime + (uint)send.rto;
-                    lose = true;
+                    segment.resendCount++;
+                    if (no_delay == 0)
+                    {
+                        segment.resendTimeout += Math.Max(segment.resendTimeout, rx_rto);
+                    }
+                    else
+                    {
+                        int step = (no_delay < 2) ? segment.resendTimeout : rx_rto;
+                        segment.resendTimeout += step / 2;
+                    }
+
+                    segment.resendTime = current + (uint)segment.resendTimeout;
+                    lost = true;
                 }
-                else if (send.resendId >= resend) // 快速重传确认
+
+                else if (segment.fastAck >= resent)
                 {
-                    if (send.resendCount <= resendLimit || resendLimit <= 0)
+                    if (segment.resendCount <= fast_limit || fast_limit <= 0)
                     {
                         needSend = true;
-                        send.resendCount++;
-                        send.resendId = 0;
-                        send.resendTime = sinceTime + (uint)send.rto;
-                        refresh++;
+                        segment.resendCount++;
+                        segment.fastAck = 0;
+                        segment.resendTime = current + (uint)segment.resendTimeout;
+                        change++;
                     }
                 }
 
                 if (needSend)
                 {
-                    send.sendTime = sinceTime;
-                    send.window = segment.window;
-                    send.receiveId = nextReceiveId;
-                    MakeSpace(HEAD + (int)send.stream.Position);
-                    size += send.Encode(buffer, size);
+                    segment.sendTime = current;
+                    segment.windowSize = seg.windowSize;
+                    segment.una = rcv_nxt;
 
-                    if (send.stream.Position > 0)
+                    var need = OVERHEAD + (int)segment.data.Position;
+                    MakeSpace(ref size, need);
+
+                    size += segment.Encode(buffer, size);
+
+                    if (segment.data.Position > 0)
                     {
-                        Buffer.BlockCopy(send.stream.GetBuffer(), 0, buffer, size, (int)send.stream.Position);
-                        size += (int)send.stream.Position;
+                        Buffer.BlockCopy(segment.data.GetBuffer(), 0, buffer, size, (int)segment.data.Position);
+                        size += (int)segment.data.Position;
                     }
 
-                    if (send.resendCount >= DEAD)
+                    if (segment.resendCount >= dead_link)
                     {
-                        state = -1; // 如果消息被重发N次，则发生死链接
+                        state = -1;
                     }
                 }
             }
 
-            pool.Push(segment);
-            
-            if (size > 0) // 刷新剩余的Buffer
+            segmentPool.Push(seg);
+            FlushBuffer(size);
+
+
+            if (change > 0)
             {
-                onRefresh?.Invoke(buffer, size);
-            }
-            
-            if (refresh > 0) //更新 慢启动阈值
-            {
-                var inflight = nextSendId - serialId;
-                threshold = inflight / 2;
-                if (threshold < THRESH_MIN)
+                var inflight = snd_nxt - snd_una;
+                ss_thresh = inflight / 2;
+                if (ss_thresh < THRESH_MIN)
                 {
-                    threshold = THRESH_MIN;
+                    ss_thresh = THRESH_MIN;
                 }
 
-                congestWindow = threshold + resend;
-                increment = congestWindow * segmentSize;
+                cmd_wnd = ss_thresh + resent;
+                incr = cmd_wnd * mss;
             }
 
-            if (lose)
+
+            if (lost)
             {
-                threshold = windowSize / 2;
-                if (threshold < THRESH_MIN)
+                ss_thresh = c_wnd_ / 2;
+                if (ss_thresh < THRESH_MIN)
                 {
-                    threshold = THRESH_MIN;
+                    ss_thresh = THRESH_MIN;
                 }
 
-                congestWindow = 1;
-                increment = segmentSize;
+                cmd_wnd = 1;
+                incr = mss;
             }
 
-            if (congestWindow < 1)
+            if (cmd_wnd < 1)
             {
-                congestWindow = 1;
-                increment = segmentSize;
+                cmd_wnd = 1;
+                incr = mss;
+            }
+        }
+
+
+        public void Update(uint currentTime)
+        {
+            current = currentTime;
+            if (!updated)
+            {
+                updated = true;
+                ts_flush = current;
             }
 
-            void MakeSpace(int space)
+            int slap = Utility.Compare(current, ts_flush);
+            if (slap >= 10000 || slap < -10000)
             {
-                if (size + space > maxUnit)
+                ts_flush = current;
+                slap = 0;
+            }
+
+            if (slap >= 0)
+            {
+                ts_flush += interval;
+                if (current >= ts_flush)
                 {
-                    onRefresh?.Invoke(buffer, size);
-                    size = 0;
+                    ts_flush = current + interval;
                 }
+
+                Flush();
             }
         }
-        
-        /// <summary>
-        /// 设置传输单位和分段大小
-        /// </summary>
-        /// <param name="maxUnit"></param>
-        public void SetUnit(uint maxUnit)
-        {
-            this.maxUnit = Math.Max(maxUnit, 50);
-            buffer = new byte[(maxUnit + HEAD) * 3];
-            segmentSize = maxUnit - HEAD;
-        }
 
-        /// <summary>
-        /// 设置重传和间隔
-        /// </summary>
-        /// <param name="interval"></param>
-        /// <param name="resend"></param>
-        public void SetResend(uint interval, uint resend)
+        public void SetMtu(uint mtu)
         {
-            this.resend = resend;
-            this.interval = Math.Clamp(interval, 10, 5000);
-        }
-
-        /// <summary>
-        /// 设置窗口大小
-        /// </summary>
-        /// <param name="sendWindow"></param>
-        /// <param name="receiveWindow"></param>
-        public void SetWindow(uint sendWindow, uint receiveWindow)
-        {
-            this.sendWindow = sendWindow;
-            this.receiveWindow = Math.Max(receiveWindow, WIN_REV);
-        }
-
-        /// <summary>
-        /// 处理速度是否快速
-        /// </summary>
-        /// <returns></returns>
-        public bool IsFaster()
-        {
-            if(receiveQueue.Count + sendQueue.Count + receives.Count + sends.Count > QUEUE_COUNT)
+            if (mtu < 50)
             {
-                sends.Clear();
-                return false;
+                throw new ArgumentException("MTU must be higher than 50 and higher than OVERHEAD");
             }
 
-            return true;
+            buffer = new byte[(mtu + OVERHEAD) * 3];
+            this.mtu = mtu;
+            mss = mtu - OVERHEAD;
+        }
+
+        public void SetNoDelay(uint no_delay, uint interval = INTERVAL, uint resend = 0, bool noc_wnd = false)
+        {
+            this.no_delay = no_delay;
+            rx_min_rto = no_delay != 0 ? RTO_NDL : RTO_MIN;
+
+            if (interval > 5000)
+            {
+                interval = 5000;
+            }
+            else if (interval < 10)
+            {
+                interval = 10;
+            }
+
+            this.interval = interval;
+            fast_resend = resend;
+            this.noc_wnd = noc_wnd;
+        }
+
+
+        public void SetWindowSize(uint sendWindow, uint receiveWindow)
+        {
+            if (sendWindow > 0)
+            {
+                snd_wnd = sendWindow;
+            }
+
+            if (receiveWindow > 0)
+            {
+                rcv_wnd = Math.Max(receiveWindow, WND_RCV);
+            }
         }
     }
 }

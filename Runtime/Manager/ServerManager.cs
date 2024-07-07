@@ -307,14 +307,14 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!client.readerPool.Write(segment))
+            if (!client.readerPool.AddBatch(segment))
             {
                 Debug.LogWarning($"无法将消息写入。断开客户端：{client}");
                 client.Disconnect();
                 return;
             }
 
-            while (!isLoadScene && client.readerPool.TryRead(out var reader, out var remoteTime))
+            while (!isLoadScene && client.readerPool.GetMessage(out var reader, out var remoteTime))
             {
                 if (reader.residue < Const.MessageSize)
                 {

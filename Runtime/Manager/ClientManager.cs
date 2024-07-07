@@ -393,14 +393,14 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!connection.readerPool.Write(segment))
+            if (!connection.readerPool.AddBatch(segment))
             {
                 Debug.LogWarning($"无法将消息写入。");
                 connection.Disconnect();
                 return;
             }
 
-            while (!isLoadScene && connection.readerPool.TryRead(out var reader, out var remoteTime))
+            while (!isLoadScene && connection.readerPool.GetMessage(out var reader, out var remoteTime))
             {
                 if (reader.residue < Const.MessageSize)
                 {

@@ -29,7 +29,7 @@ namespace JFramework.Net
             foreach (var (channel, writerPool) in writerPools) // 遍历可靠和不可靠消息
             {
                 using var writer = NetworkWriter.Pop(); // 取出 writer
-                while (writerPool.TryWrite(writer)) // 将数据拷贝到 writer
+                while (writerPool.GetBatch(writer)) // 将数据拷贝到 writer
                 {
                     ArraySegment<byte> segment = writer; // 将 writer 转化成数据分段
                     if (NetworkUtility.IsValid(segment, channel)) // 判断 writer 是否有效
@@ -48,9 +48,9 @@ namespace JFramework.Net
                     writers.RemoveAt(0);
                     if (writerPools.TryGetValue(Channel.Reliable, out var writerPool))
                     {
-                        writerPool.Write(writer, NetworkManager.TickTime);
+                        writerPool.AddMessage(writer, NetworkManager.TickTime);
                         using var target = NetworkWriter.Pop();
-                        if (writerPool.TryWrite(target))
+                        if (writerPool.GetBatch(target))
                         {
                             NetworkManager.Client.OnClientReceive(target, Channel.Reliable);
                         }
@@ -90,7 +90,7 @@ namespace JFramework.Net
 
             if (NetworkManager.Mode != EntryMode.Host)
             {
-                writerPool.Write(segment, NetworkManager.TickTime);
+                writerPool.AddMessage(segment, NetworkManager.TickTime);
                 return;
             }
 
@@ -100,9 +100,9 @@ namespace JFramework.Net
                 return;
             }
 
-            writerPool.Write(segment, NetworkManager.TickTime);
+            writerPool.AddMessage(segment, NetworkManager.TickTime);
             using var writer = NetworkWriter.Pop();
-            if (!writerPool.TryWrite(writer))
+            if (!writerPool.GetBatch(writer))
             {
                 Debug.LogError("无法拷贝数据到写入器。");
                 return;

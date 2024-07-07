@@ -6,12 +6,13 @@ namespace JFramework.Net
 {
     public class NetworkTransport : Transport
     {
-        public int unit = 1200;
-        public int timeout = 10000;
-        public uint send = 1024;
-        public uint receive = 1024;
-        public uint resend = 2;
+        public int maxUnit = 1200;
+        public uint timeout = 10000;
         public uint interval = 10;
+        public uint deadLink = 40;
+        public uint fastResend = 2;
+        public uint sendWindow = 1024 * 4;
+        public uint receiveWindow = 1024 * 4;
         private Client client;
         private Server server;
 
@@ -20,24 +21,24 @@ namespace JFramework.Net
             Log.Info = Debug.Log;
             Log.Warn = Debug.LogWarning;
             Log.Error = Debug.LogError;
-            var setting = new Setting(unit, timeout, send, receive, resend, interval);
+            var setting = new Setting(maxUnit, timeout, interval, deadLink, fastResend, sendWindow, receiveWindow);
             client = new Client(setting, ClientConnect, ClientDisconnect, ClientReceive);
             server = new Server(setting, ServerConnect, ServerDisconnect, ServerReceive);
 
             void ClientConnect() => OnClientConnect.Invoke();
-            
+
             void ClientReceive(ArraySegment<byte> message, int channel) => OnClientReceive.Invoke(message, channel);
-            
+
             void ClientDisconnect() => OnClientDisconnect.Invoke();
-            
+
             void ServerConnect(int clientId) => OnServerConnect.Invoke(clientId);
-            
+
             void ServerReceive(int clientId, ArraySegment<byte> message, int channel) => OnServerReceive.Invoke(clientId, message, channel);
-            
+
             void ServerDisconnect(int clientId) => OnServerDisconnect.Invoke(clientId);
         }
 
-        public override int MessageSize(int channel) => channel == Channel.Reliable ? Utility.ReliableSize(unit, receive) : Utility.UnreliableSize(unit);
+        public override int MessageSize(int channel) => channel == Channel.Reliable ? Common.ReliableSize(maxUnit, receiveWindow) : Common.UnreliableSize(maxUnit);
 
         public override void StartServer() => server.Connect(port);
 

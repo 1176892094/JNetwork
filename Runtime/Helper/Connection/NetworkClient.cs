@@ -47,7 +47,7 @@ namespace JFramework.Net
             foreach (var (channel, writerPool) in writerPools) // 遍历可靠和不可靠消息
             {
                 using var writer = NetworkWriter.Pop(); // 取出 writer
-                while (writerPool.TryWrite(writer)) // 将数据拷贝到 writer
+                while (writerPool.GetBatch(writer)) // 将数据拷贝到 writer
                 {
                     ArraySegment<byte> segment = writer; // 将 writer 转化成数据分段
                     if (NetworkUtility.IsValid(segment, channel)) // 判断 writer 是否有效
@@ -96,7 +96,7 @@ namespace JFramework.Net
                 writerPools[channel] = writerPool;
             }
 
-            writerPool.Write(segment, NetworkManager.TickTime);
+            writerPool.AddMessage(segment, NetworkManager.TickTime);
         }
 
         /// <summary>

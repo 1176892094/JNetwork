@@ -2,80 +2,35 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
+
+// ReSharper disable AssignNullToNotNullAttribute
+// ReSharper disable PossibleNullReferenceException
 
 namespace JFramework.Udp
 {
-    /// <summary>
-    /// Udp服务器
-    /// </summary>
     public sealed class Server
     {
-        /// <summary>
-        /// 连接客户端字典
-        /// </summary>
-        private readonly Dictionary<int, Proxies> clients = new Dictionary<int, Proxies>();
-
-        /// <summary>
-        /// 移除客户端列表
-        /// </summary>
+        private readonly Dictionary<int, Client> clients = new Dictionary<int, Client>();
         private readonly HashSet<int> copies = new HashSet<int>();
-
-        /// <summary>
-        /// 套接字
-        /// </summary>
         private Socket socket;
-
-        /// <summary>
-        /// 终端
-        /// </summary>
         private EndPoint endPoint;
-
-        /// <summary>
-        /// 缓冲区
-        /// </summary>
         private readonly byte[] buffer;
-
-        /// <summary>
-        /// 配置
-        /// </summary>
         private readonly Setting setting;
-
-        /// <summary>
-        /// 当有客户端连接到服务器
-        /// </summary>
         private event Action<int> OnConnect;
-
-        /// <summary>
-        /// 当有客户端从服务器断开
-        /// </summary>
         private event Action<int> OnDisconnect;
-
-        /// <summary>
-        /// 当从客户端收到消息
-        /// </summary>
         private event Action<int, ArraySegment<byte>, int> OnReceive;
 
-        /// <summary>
-        /// 构造函数初始化
-        /// </summary>
-        /// <param name="setting"></param>
-        /// <param name="OnConnect"></param>
-        /// <param name="OnDisconnect"></param>
-        /// <param name="OnReceive"></param>
         public Server(Setting setting, Action<int> OnConnect, Action<int> OnDisconnect, Action<int, ArraySegment<byte>, int> OnReceive)
         {
             this.setting = setting;
             this.OnReceive = OnReceive;
             this.OnConnect = OnConnect;
             this.OnDisconnect = OnDisconnect;
-            buffer = new byte[setting.unit];
-            endPoint = new IPEndPoint(IPAddress.IPv6Any, 0);
+            buffer = new byte[setting.MaxUnit];
+            endPoint = setting.DualMode ? new IPEndPoint(IPAddress.IPv6Any, 0) : new IPEndPoint(IPAddress.Any, 0);
         }
 
-        /// <summary>
-        /// 服务器启动
-        /// </summary>
-        /// <param name="port">配置端口号</param>
         public void Connect(ushort port)
         {
             if (socket != null)
@@ -84,48 +39,38 @@ namespace JFramework.Udp
                 return;
             }
 
-            socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
-            try
+            if (setting.DualMode)
             {
-                socket.DualMode = true;
+                socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+                try
+                {
+                    socket.DualMode = true;
+                }
+                catch (NotSupportedException e)
+                {
+                    Log.Warn($"服务器不能设置成双模式！\n{e}");
+                }
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    const uint IOC_IN = 0x80000000U;
+                    const uint IOC_VENDOR = 0x18000000U;
+                    const int SIO_UDP_RESET = unchecked((int)(IOC_IN | IOC_VENDOR | 12));
+                    socket.IOControl(SIO_UDP_RESET, new byte[] { 0x00 }, null);
+                }
+
+                socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
             }
-            catch (Exception e)
+            else
             {
-                Log.Warn($"服务器不能设置成双模式！\n{e}");
-                socket.DualMode = false;
+                socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                socket.Bind(new IPEndPoint(IPAddress.Any, port));
             }
 
-            socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
-            Utility.SetBuffer(socket);
+            Common.SetBuffer(socket);
         }
 
-        /// <summary>
-        /// 服务器断开客户端连接
-        /// </summary>
-        /// <param name="clientId">断开的客户端Id</param>
-        public void Disconnect(int clientId)
-        {
-            if (clients.TryGetValue(clientId, out var client))
-            {
-                client.proxy.Disconnect();
-            }
-        }
-
-        /// <summary>
-        /// 服务器发送消息给指定客户端
-        /// </summary>
-        public void Send(int clientId, ArraySegment<byte> segment, int channel)
-        {
-            if (clients.TryGetValue(clientId, out var client))
-            {
-                client.proxy.Send(segment, channel);
-            }
-        }
-
-        /// <summary>
-        /// 服务器从指定客户端接收消息
-        /// </summary>
-        private bool TryReceive(out int clientId, out ArraySegment<byte> segment)
+        private bool TryReceive(out ArraySegment<byte> segment, out int clientId)
         {
             clientId = 0;
             segment = default;
@@ -140,26 +85,41 @@ namespace JFramework.Udp
             }
             catch (SocketException e)
             {
+                if (e.SocketErrorCode == SocketError.WouldBlock)
+                {
+                    return false;
+                }
+
                 Log.Error($"服务器接收信息失败！\n{e}");
                 return false;
             }
         }
 
-        /// <summary>
-        /// 指定客户端连接到服务器
-        /// </summary>
-        private Proxies SetProxy(int clientId)
-        {
-            var client = new Proxies(endPoint);
-            var proxy = new Proxy(setting, Utility.Cookie(), OnConnect, OnDisconnect, OnSend, OnReceive);
-            client.proxy = proxy;
-            return client;
 
-            void OnConnect()
+        public void Send(int clientId, ArraySegment<byte> segment, int channel)
+        {
+            if (clients.TryGetValue(clientId, out Client client))
             {
-                client.proxy.Connect();
-                Log.Info($"客户端 {clientId} 连接到服务器。");
+                client.SendData(segment, channel);
+            }
+        }
+
+        public void Disconnect(int clientId)
+        {
+            if (clients.TryGetValue(clientId, out Client client))
+            {
+                client.Disconnect();
+            }
+        }
+
+        private Client AddClient(int clientId)
+        {
+            return new Client(OnConnect, OnDisconnect, OnReceive, OnSend, setting, Common.GenerateCookie(), endPoint);
+
+            void OnConnect(Client client)
+            {
                 clients.Add(clientId, client);
+                Log.Info($"客户端 {clientId} 连接到服务器。");
                 this.OnConnect?.Invoke(clientId);
             }
 
@@ -170,11 +130,16 @@ namespace JFramework.Udp
                 this.OnDisconnect?.Invoke(clientId);
             }
 
+            void OnReceive(ArraySegment<byte> message, int channel)
+            {
+                this.OnReceive?.Invoke(clientId, message, channel);
+            }
+
             void OnSend(ArraySegment<byte> segment)
             {
                 try
                 {
-                    if (!clients.TryGetValue(clientId, out var connection))
+                    if (!clients.TryGetValue(clientId, out var client))
                     {
                         Log.Warn($"服务器向无效的客户端发送信息。客户端：{clientId}");
                         return;
@@ -182,71 +147,118 @@ namespace JFramework.Udp
 
                     if (socket.Poll(0, SelectMode.SelectWrite))
                     {
-                        socket.SendTo(segment.Array, segment.Offset, segment.Count, SocketFlags.None, connection.endPoint);
+                        socket.SendTo(segment.Array, segment.Offset, segment.Count, SocketFlags.None, client.endPoint);
                     }
                 }
                 catch (SocketException e)
                 {
+                    if (e.SocketErrorCode == SocketError.WouldBlock)
+                    {
+                        return;
+                    }
+
                     Log.Error($"服务器发送消息失败！\n{e}");
                 }
             }
-
-            void OnReceive(ArraySegment<byte> message, int channel)
-            {
-                this.OnReceive?.Invoke(clientId, message, channel);
-            }
         }
 
-        /// <summary>
-        /// Update之前
-        /// </summary>
         public void EarlyUpdate()
         {
-            while (TryReceive(out var clientId, out var segment))
+            while (TryReceive(out var segment, out int clientId))
             {
                 if (!clients.TryGetValue(clientId, out var client))
                 {
-                    client = SetProxy(clientId);
-                    client.proxy.Input(segment);
-                    client.proxy.EarlyUpdate();
+                    client = AddClient(clientId);
+                    client.Input(segment);
+                    client.EarlyUpdate();
                 }
+
                 else
                 {
-                    client.proxy.Input(segment);
+                    client.Input(segment);
                 }
             }
 
             foreach (var client in clients.Values)
             {
-                client.proxy.EarlyUpdate();
+                client.EarlyUpdate();
             }
 
-            foreach (var clientId in copies)
+            foreach (int client in copies)
             {
-                clients.Remove(clientId);
+                clients.Remove(client);
             }
 
             copies.Clear();
         }
 
-        /// <summary>
-        /// Update之后
-        /// </summary>
+
         public void AfterUpdate()
         {
             foreach (var client in clients.Values)
             {
-                client.proxy.AfterUpdate();
+                client.AfterUpdate();
             }
         }
 
-        /// <summary>
-        /// 停止服务器
-        /// </summary>
         public void StopServer()
         {
+            clients.Clear();
             socket?.Close();
             socket = null;
+        }
+
+        private sealed class Client : Proxy
+        {
+            public readonly EndPoint endPoint;
+            private event Action OnDisconnect;
+            private event Action<Client> OnConnect;
+            private event Action<ArraySegment<byte>> OnSend;
+            private event Action<ArraySegment<byte>, int> OnReceive;
+
+            public Client(Action<Client> OnConnect, Action OnDisconnect, Action<ArraySegment<byte>, int> OnReceive, Action<ArraySegment<byte>> OnSend, Setting setting, uint cookie, EndPoint endPoint) : base(setting, cookie)
+            {
+                this.OnSend = OnSend;
+                this.OnConnect = OnConnect;
+                this.OnReceive = OnReceive;
+                this.OnDisconnect = OnDisconnect;
+                this.endPoint = endPoint;
+                state = State.Connect;
+            }
+
+            protected override void Connected()
+            {
+                SendReliable(ReliableHeader.Connect, default);
+                OnConnect?.Invoke(this);
+            }
+
+            protected override void Disconnected() => OnDisconnect?.Invoke();
+
+            protected override void Send(ArraySegment<byte> segment) => OnSend?.Invoke(segment);
+
+            protected override void Receive(ArraySegment<byte> message, int channel) => OnReceive?.Invoke(message, channel);
+
+            public void Input(ArraySegment<byte> segment)
+            {
+                if (segment.Count <= 1 + 4)
+                {
+                    return;
+                }
+
+                var channel = segment.Array[segment.Offset];
+                Utility.Decode32U(segment.Array, segment.Offset + 1, out var newCookie);
+
+                if (state == State.Connected)
+                {
+                    if (newCookie != cookie)
+                    {
+                        Log.Info($"从 {endPoint} 删除无效cookie: {newCookie}预期:{cookie}。");
+                        return;
+                    }
+                }
+
+                Input(channel, new ArraySegment<byte>(segment.Array, segment.Offset + 1 + 4, segment.Count - 1 - 4));
+            }
         }
     }
 }

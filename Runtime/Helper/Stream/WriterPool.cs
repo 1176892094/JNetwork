@@ -20,7 +20,7 @@ namespace JFramework.Net
         /// <summary>
         /// 批处理队列
         /// </summary>
-        [SerializeField] private List<NetworkWriter> writers = new List<NetworkWriter>();
+        private Queue<NetworkWriter> writers = new Queue<NetworkWriter>();
 
         /// <summary>
         /// 写入器
@@ -48,11 +48,11 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="segment">消息分段</param>
         /// <param name="remoteTime">时间戳</param>
-        public void Write(ArraySegment<byte> segment, double remoteTime)
+        public void AddMessage(ArraySegment<byte> segment, double remoteTime)
         {
             if (writer != null && writer.position + segment.Count > maxSize)
             {
-                writers.Add(writer); // 加入到队列中
+                writers.Enqueue(writer); // 加入到队列中
                 writer = null;
             }
 
@@ -70,19 +70,18 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
-        public bool TryWrite(NetworkWriter target)
+        public bool GetBatch(NetworkWriter target)
         {
-            if (writers.Count > 0)
+            if (writers.TryDequeue(out var first))
             {
                 if (target.position != 0)
                 {
                     Debug.LogError("拷贝目标不是空的！");
                 }
 
-                ArraySegment<byte> segment = writers[0];
+                ArraySegment<byte> segment = first;
                 target.WriteBytes(segment.Array, segment.Offset, segment.Count);
-                NetworkWriter.Push(writers[0]);
-                writers.RemoveAt(0);
+                NetworkWriter.Push(first);
                 return true;
             }
 

@@ -2,420 +2,326 @@ using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 
+// ReSharper disable AssignNullToNotNullAttribute
+// ReSharper disable PossibleNullReferenceException
+
 namespace JFramework.Udp
 {
-    internal sealed partial class Proxy
+    public abstract class Proxy
     {
-        /// <summary>
-        /// 端对端状态
-        /// </summary>
-        private State state;
-
-        /// <summary>
-        /// 上一次发送Ping的时间
-        /// </summary>
-        private uint interval;
-
-        /// <summary>
-        /// 上一次接收消息的时间
-        /// </summary>
-        private uint received;
-
-        /// <summary>
-        /// 可靠Udp协议
-        /// </summary>
-        private readonly Protocol protocol;
-
-        /// <summary>
-        /// 缓存Id
-        /// </summary>
-        private readonly int cookie;
-
-        /// <summary>
-        /// 超时时间
-        /// </summary>
-        private readonly int timeout;
-
-        /// <summary>
-        /// 不可靠消息大小
-        /// </summary>
-        private readonly int unreliable;
-
-        /// <summary>
-        /// 直连缓冲区
-        /// </summary>
-        private readonly byte[] buffer;
-
-        /// <summary>
-        /// 可靠缓冲区
-        /// </summary>
-        private readonly byte[] fixedBuffer;
-
-        /// <summary>
-        /// 接收缓冲区
-        /// </summary>
+        protected uint cookie;
+        protected State state;
+        private uint timeout;
+        private uint pingTime;
+        private uint receiveTime;
+        private Protocol protocol;
+        private readonly int unreliableSize;
+        private readonly byte[] kcpSendBuffer;
+        private readonly byte[] rawSendBuffer;
         private readonly byte[] receiveBuffer;
-
-        /// <summary>
-        /// 接收的缓存Id
-        /// </summary>
-        private readonly byte[] cookieBuffer = new byte[4];
-
-        /// <summary>
-        /// 计时器
-        /// </summary>
         private readonly Stopwatch watch = new Stopwatch();
 
-        /// <summary>
-        /// 当客户端通过验证
-        /// </summary>
-        private event Action OnConnect;
-
-        /// <summary>
-        /// 当客户端或服务器断开连接
-        /// </summary>
-        private event Action OnDisconnect;
-
-        /// <summary>
-        /// 当服务器或客户端发送消息
-        /// </summary>
-        private event Action<ArraySegment<byte>> OnSend;
-
-        /// <summary>
-        /// 当服务器或客户端接收消息
-        /// </summary>
-        private event Action<ArraySegment<byte>, int> OnReceive;
-
-        /// <summary>
-        /// 构造函数初始化
-        /// </summary>
-        /// <param name="setting"></param>
-        /// <param name="cookie"></param>
-        /// <param name="OnConnect"></param>
-        /// <param name="OnDisconnect"></param>
-        /// <param name="OnSend"></param>
-        /// <param name="OnReceive"></param>
-        public Proxy(Setting setting, int cookie, Action OnConnect, Action OnDisconnect, Action<ArraySegment<byte>> OnSend, Action<ArraySegment<byte>, int> OnReceive)
+        protected Proxy(Setting setting, uint cookie)
         {
+            Reset(setting);
             this.cookie = cookie;
-            this.OnSend = OnSend;
-            this.OnReceive = OnReceive;
-            this.OnConnect = OnConnect;
-            this.OnDisconnect = OnDisconnect;
-            timeout = setting.timeout;
-            protocol = new Protocol(0, SendReliable);
-            protocol.SetUnit((uint)setting.unit - Utility.METADATA_SIZE);
-            protocol.SetResend(setting.interval, setting.resend);
-            protocol.SetWindow(setting.send, setting.receive);
-            unreliable = Utility.UnreliableSize(setting.unit);
-            receiveBuffer = new byte[Utility.ReliableSize(setting.unit, setting.receive) + 1];
-            fixedBuffer = new byte[Utility.ReliableSize(setting.unit, setting.receive) + 1];
-            buffer = new byte[setting.unit];
-            watch.Start();
+            unreliableSize = Common.UnreliableSize(setting.MaxUnit);
+            var reliableSize = Common.ReliableSize(setting.MaxUnit, setting.ReceiveWindow);
+            rawSendBuffer = new byte[setting.MaxUnit];
+            receiveBuffer = new byte[1 + reliableSize];
+            kcpSendBuffer = new byte[1 + reliableSize];
+            state = State.Disconnect;
         }
 
-        /// <summary>
-        /// 发送传输信息
-        /// </summary>
-        public void Send(ArraySegment<byte> segment, int channel)
+        protected void Reset(Setting config)
         {
-            if (segment.Count == 0)
+            cookie = 0;
+            pingTime = 0;
+            receiveTime = 0;
+            state = State.Disconnect;
+            watch.Restart();
+
+            protocol = new Protocol(0, SendReliable);
+            protocol.SetMtu((uint)config.MaxUnit - Common.METADATA_SIZE);
+            protocol.SetWindowSize(config.SendWindow, config.ReceiveWindow);
+            protocol.SetNoDelay(config.NoDelay ? 1U : 0U, config.Interval, config.FastResend, !config.Congestion);
+            protocol.dead_link = config.DeadLink;
+            timeout = config.Timeout;
+        }
+        
+        private bool TryReceive(out ReliableHeader header, out ArraySegment<byte> message)
+        {
+            message = default;
+            header = ReliableHeader.Ping;
+            var size = protocol.PeekSize();
+            if (size <= 0)
             {
-                Log.Error("网络代理尝试发送空消息。");
+                return false;
+            }
+
+            if (size > receiveBuffer.Length)
+            {
+                Log.Error($"{GetType()}: 网络消息长度溢出 {receiveBuffer.Length} < {size}。");
+                Disconnect();
+                return false;
+            }
+
+            if (protocol.Receive(receiveBuffer, size) < 0)
+            {
+                Log.Error($"{GetType()}: 接收网络消息失败。");
+                Disconnect();
+                return false;
+            }
+
+            if (!Common.ParseReliable(receiveBuffer[0], out header))
+            {
+                Log.Error($"{GetType()}: 未知的网络消息头部 {header}");
+                Disconnect();
+                return false;
+            }
+
+            message = new ArraySegment<byte>(receiveBuffer, 1, size - 1);
+            receiveTime = (uint)watch.ElapsedMilliseconds;
+            return true;
+        }
+
+        protected void Input(int channel, ArraySegment<byte> segment)
+        {
+            if (channel == Channel.Reliable)
+            {
+                if (protocol.Input(segment.Array, segment.Offset, segment.Count) != 0)
+                {
+                    Log.Warn($"{GetType()}: 发送可靠消息失败。消息大小：{segment.Count - 1}");
+                }
+            }
+            else if (channel == Channel.Unreliable)
+            {
+                if (segment.Count < 1) return;
+                var headerByte = segment.Array[segment.Offset];
+                if (!Common.ParseUnreliable(headerByte, out var header))
+                {
+                    Log.Error($"{GetType()}: 未知的网络消息头部 {header}");
+                    Disconnect();
+                    return;
+                }
+
+                if (header == UnreliableHeader.Data)
+                {
+                    if (state == State.Connected)
+                    {
+                        segment = new ArraySegment<byte>(segment.Array, segment.Offset + 1, segment.Count - 1);
+                        Receive(segment, Channel.Unreliable);
+                        receiveTime = (uint)watch.ElapsedMilliseconds;
+                    }
+                }
+                else if (header == UnreliableHeader.Disconnect)
+                {
+                    Disconnect();
+                }
+            }
+        }
+
+        private void SendReliable(byte[] data, int length)
+        {
+            rawSendBuffer[0] = Channel.Reliable;
+            Utility.Encode32U(rawSendBuffer, 1, cookie);
+            Buffer.BlockCopy(data, 0, rawSendBuffer, 1 + 4, length);
+            var segment = new ArraySegment<byte>(rawSendBuffer, 0, length + 1 + 4);
+            Send(segment);
+        }
+
+        protected void SendReliable(ReliableHeader header, ArraySegment<byte> segment)
+        {
+            if (segment.Count > kcpSendBuffer.Length - 1)
+            {
+                Log.Error($"{GetType()}: 发送可靠消息失败。消息大小：{segment.Count}");
+                return;
+            }
+
+            kcpSendBuffer[0] = (byte)header;
+            if (segment.Count > 0)
+            {
+                Buffer.BlockCopy(segment.Array, segment.Offset, kcpSendBuffer, 1, segment.Count);
+            }
+
+            if (protocol.Send(kcpSendBuffer, 0, 1 + segment.Count) < 0)
+            {
+                Log.Error($"{GetType()}: 发送可靠消息失败。消息大小：{segment.Count}。");
+            }
+        }
+
+        private void SendUnreliable(UnreliableHeader header, ArraySegment<byte> segment)
+        {
+            if (segment.Count > unreliableSize)
+            {
+                Log.Error($"{GetType()}: 发送不可靠消息失败。消息大小：{segment.Count}");
+                return;
+            }
+
+            rawSendBuffer[0] = Channel.Unreliable;
+            Utility.Encode32U(rawSendBuffer, 1, cookie);
+            rawSendBuffer[5] = (byte)header;
+            if (segment.Count > 0)
+            {
+                Buffer.BlockCopy(segment.Array, segment.Offset, rawSendBuffer, 1 + 4 + 1, segment.Count);
+            }
+
+            Send(new ArraySegment<byte>(rawSendBuffer, 0, segment.Count + 1 + 4 + 1));
+        }
+
+        public void SendData(ArraySegment<byte> data, int channel)
+        {
+            if (data.Count == 0)
+            {
+                Log.Error($"{GetType()} 尝试发送空消息。");
                 Disconnect();
                 return;
             }
 
             switch (channel)
             {
-                case 1:
-                    SendReliable(Head.Data, segment);
+                case Channel.Reliable:
+                    SendReliable(ReliableHeader.Data, data);
                     break;
-                case 2:
-                    SendUnreliable(segment);
+                case Channel.Unreliable:
+                    SendUnreliable(UnreliableHeader.Data, data);
                     break;
             }
         }
 
-        /// <summary>
-        /// 根据消息头的可靠传输
-        /// </summary>
-        /// <param name="header"></param>
-        /// <param name="segment"></param>
-        private void SendReliable(Head header, ArraySegment<byte> segment)
-        {
-            if (fixedBuffer.Length < segment.Count + 1) // 减去消息头
-            {
-                Log.Error($"网络代理发送可靠消息失败。消息大小：{segment.Count}");
-                return;
-            }
-
-            fixedBuffer[0] = (byte)header; // 设置缓冲区的头部
-            if (segment.Count > 0)
-            {
-                Buffer.BlockCopy(segment.Array, segment.Offset, fixedBuffer, 1, segment.Count);
-            }
-
-            if (protocol.Send(fixedBuffer, 0, segment.Count + 1) < 0) // 加入到发送队列
-            {
-                Log.Error($"网络代理发送可靠消息失败。消息大小：{segment.Count}。");
-            }
-        }
-
-        /// <summary>
-        /// 根据长度的可靠传输
-        /// </summary>
-        private void SendReliable(byte[] message, int length)
-        {
-            buffer[0] = 1; // 消息通道
-            Buffer.BlockCopy(cookieBuffer, 0, buffer, 1, 4); // 消息发送者
-            Buffer.BlockCopy(message, 0, buffer, 1 + 4, length); // 消息内容
-            OnSend?.Invoke(new ArraySegment<byte>(buffer, 0, length + 1 + 4));
-        }
-
-        /// <summary>
-        /// 不可靠传输
-        /// </summary>
-        private void SendUnreliable(ArraySegment<byte> segment)
-        {
-            if (segment.Count > unreliable)
-            {
-                Log.Error($"网络代理发送不可靠消息失败。消息大小：{segment.Count}");
-                return;
-            }
-
-            buffer[0] = 2; // 消息通道
-            Buffer.BlockCopy(cookieBuffer, 0, buffer, 1, 4);
-            Buffer.BlockCopy(segment.Array, segment.Offset, buffer, 1 + 4, segment.Count);
-            OnSend?.Invoke(new ArraySegment<byte>(buffer, 0, segment.Count + 1 + 4));
-        }
-
-        /// <summary>
-        /// 尝试接收消息
-        /// </summary>
-        /// <param name="header">消息的头部</param>
-        /// <param name="segment">数据分段</param>
-        /// <returns>返回是否能接收</returns>
-        private bool TryReceive(out Head header, out ArraySegment<byte> segment)
-        {
-            segment = default;
-            header = Head.Disconnect;
-            var length = protocol.GetLength();
-            if (length <= 0)
-            {
-                return false;
-            }
-
-            if (length > receiveBuffer.Length)
-            {
-                Log.Error($"网络消息长度不能超过{receiveBuffer.Length}。消息大小：{length}");
-                Disconnect();
-                return false;
-            }
-
-            if (protocol.Receive(receiveBuffer) < 0)
-            {
-                Log.Error($"网络代理接收消息失败。");
-                Disconnect();
-                return false;
-            }
-
-            header = (Head)receiveBuffer[0];
-            segment = new ArraySegment<byte>(receiveBuffer, 1, length - 1);
-            received = (uint)watch.ElapsedMilliseconds;
-            return true;
-        }
-
-        /// <summary>
-        /// 连接请求
-        /// </summary>
-        public void Connect()
-        {
-            var segment = new ArraySegment<byte>(BitConverter.GetBytes(cookie));
-            SendReliable(Head.Connect, segment);
-        }
-
-        /// <summary>
-        /// 断开连接
-        /// </summary>
         public void Disconnect()
         {
             if (state == State.Disconnect) return;
             try
             {
-                SendReliable(Head.Disconnect, default);
-                protocol.Refresh();
+                for (int i = 0; i < 5; ++i)
+                {
+                    SendUnreliable(UnreliableHeader.Disconnect, default);
+                }
             }
-            catch
+            finally
             {
-                // ignored
+                state = State.Disconnect;
+                Disconnected();
             }
-
-            state = State.Disconnect;
-            OnDisconnect?.Invoke();
         }
 
-        /// <summary>
-        /// 当有消息被输入
-        /// </summary>
-        /// <param name="segment"></param>
-        public void Input(ArraySegment<byte> segment)
+        public virtual void EarlyUpdate()
         {
-            if (segment.Count <= 1 + 4)
+            if (protocol.state == -1)
             {
-                Log.Info("网络代理发送的消息过短。");
-                return;
+                Log.Error($"{GetType()}: 网络消息被重传了 {protocol.dead_link} 次而没有得到确认！");
+                Disconnect();
             }
 
-            var channel = segment.Array[segment.Offset]; // 消息头
-            var newCookie = BitConverter.ToUInt32(segment.Array, segment.Offset + 1); // 发送者
-
-            if (state == State.Connected && newCookie != cookie)
+            int total = protocol.receiveQueue.Count + protocol.sendQueue.Count + protocol.receiveBuffer.Count + protocol.sendBuffer.Count;
+            if (total >= 10000)
             {
-                Log.Info($"网络代理丢弃了无效的签名缓存。旧：{cookie} 新：{newCookie}");
-                return;
+                Log.Error($"{GetType()}: 断开连接，因为它处理数据的速度不够快！");
+                protocol.sendQueue.Clear();
+                Disconnect();
             }
 
-            var message = new ArraySegment<byte>(segment.Array, segment.Offset + 1 + 4, segment.Count - 1 - 4);
-
-            switch (channel)
+            var time = (uint)watch.ElapsedMilliseconds;
+            if (time >= receiveTime + timeout)
             {
-                case 1:
-                    if (protocol.Input(message.Array, message.Offset, message.Count) != 0)
-                    {
-                        Log.Warn($"网络代理发送可靠消息失败。消息大小：{message.Count - 1}");
-                    }
-
-                    break;
-                case 2:
-                    if (state == State.Connected)
-                    {
-                        OnReceive?.Invoke(message, 2);
-                        received = (uint)watch.ElapsedMilliseconds;
-                    }
-
-                    break;
+                Log.Error($"{GetType()}: 在 {timeout}ms 内没有收到任何消息后的连接超时！");
+                Disconnect();
             }
-        }
-    }
 
-    internal sealed partial class Proxy
-    {
-        public void EarlyUpdate()
-        {
+            if (time >= pingTime + Common.PING_INTERVAL)
+            {
+                SendReliable(ReliableHeader.Ping, default);
+                pingTime = time;
+            }
+
             try
             {
-                if (state == State.Disconnect) return;
-                if (protocol.state == -1)
+                if (state == State.Connect)
                 {
-                    Log.Error($"网络消息被重传了 {Protocol.DEAD} 次而没有得到确认！");
-                    Disconnect();
-                    return;
-                }
-
-                if (!protocol.IsFaster())
-                {
-                    Log.Error("网络代理断开连接，因为它处理数据的速度不够快！");
-                    Disconnect();
-                    return;
-                }
-
-                var seconds = (uint)watch.ElapsedMilliseconds;
-                if (seconds >= received + timeout)
-                {
-                    Log.Error($"网络代理在 {timeout}ms 内没有收到任何消息后的连接超时！");
-                    Disconnect();
-                    return;
-                }
-
-                if (seconds >= interval + Utility.PING_INTERVAL)
-                {
-                    SendReliable(Head.Ping, default);
-                    interval = seconds;
-                }
-
-                while (TryReceive(out var header, out var segment))
-                {
-                    if (header == Head.Disconnect)
+                    if (TryReceive(out var header, out _))
                     {
-                        Disconnect();
-                        return;
-                    }
-
-                    if (state == State.Connect)
-                    {
-                        switch (header)
+                        if (header == ReliableHeader.Connect)
                         {
-                            case Head.Connect when segment.Count != 4:
-                                Log.Error($"收到无效的握手消息。消息类型：{header}");
-                                Disconnect();
-                                break;
-                            case Head.Connect:
-                                Buffer.BlockCopy(segment.Array, segment.Offset, cookieBuffer, 0, 4);
-                                state = State.Connected;
-                                OnConnect?.Invoke();
-                                break;
+                            state = State.Connected;
+                            Connected();
                         }
-                        
-                        return;
+                        else if (header == ReliableHeader.Data)
+                        {
+                            Log.Error($"{GetType()}: 收到未通过验证的网络消息。消息类型：{header}");
+                            Disconnect();
+                        }
                     }
-
-                    switch (header)
+                }
+                else if (state == State.Connected)
+                {
+                    while (TryReceive(out var header, out var segment))
                     {
-                        case Head.Connect:
-                            Log.Error($"收到无效的握手消息。消息类型：{header}");
+                        if (header == ReliableHeader.Connect)
+                        {
+                            Log.Error($"{GetType()}: 收到无效的网络消息。消息类型：{header}");
                             Disconnect();
-                            break;
-                        case Head.Data when segment.Count <= 0:
-                            Log.Error($"收到无效的握手消息。消息类型：{header}");
-                            Disconnect();
-                            break;
-                        case Head.Data:
-                            OnReceive?.Invoke(segment, 1);
-                            break;
+                        }
+                        else if (header == ReliableHeader.Data)
+                        {
+                            if (segment.Count == 0)
+                            {
+                                Log.Error($"{GetType()}: 收到无效的网络消息。消息类型：{header}");
+                                Disconnect();
+                                return;
+                            }
+
+                            Receive(segment, Channel.Reliable);
+                        }
                     }
                 }
             }
             catch (SocketException e)
             {
-                Log.Error($"网络发生异常，断开连接。\n{e}");
+                Log.Error($"{GetType()}: 网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                Log.Error($"网络发生异常，断开连接。\n{e}");
+                Log.Error($"{GetType()}: 网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
             catch (Exception e)
             {
-                Log.Error($"网络发生异常，断开连接。\n{e}");
+                Log.Error($"{GetType()}:网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
         }
 
-
-        public void AfterUpdate()
+        public virtual void AfterUpdate()
         {
             try
             {
-                if (state == State.Disconnect) return;
-                protocol.Update(watch.ElapsedMilliseconds);
+                if (state != State.Disconnect)
+                {
+                    protocol.Update((uint)watch.ElapsedMilliseconds);
+                }
             }
             catch (SocketException e)
             {
-                Log.Error($"网络发生异常，断开连接。\n{e}");
+                Log.Error($"{GetType()}: 网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                Log.Error($"网络发生异常，断开连接。\n{e}");
+                Log.Error($"{GetType()}: 网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
             catch (Exception e)
             {
-                Log.Error($"网络发生异常，断开连接。\n{e}");
+                Log.Error($"{GetType()}: 网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
         }
+
+        protected abstract void Connected();
+        protected abstract void Send(ArraySegment<byte> segment);
+        protected abstract void Receive(ArraySegment<byte> message, int channel);
+        protected abstract void Disconnected();
     }
 }

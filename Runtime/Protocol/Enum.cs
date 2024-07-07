@@ -1,17 +1,22 @@
 namespace JFramework.Udp
 {
-    internal enum Head : byte
+    public enum State : byte
+    {
+        Connect,
+        Connected,
+        Disconnect
+    }
+
+    public enum ReliableHeader : byte
     {
         Connect = 1,
         Ping = 2,
         Data = 3,
-        Disconnect = 4
     }
 
-    internal enum State : byte
+    public enum UnreliableHeader : byte
     {
-        Connect = 0,
-        Connected = 1,
-        Disconnect = 2,
+        Data = 4,
+        Disconnect = 5,
     }
 }

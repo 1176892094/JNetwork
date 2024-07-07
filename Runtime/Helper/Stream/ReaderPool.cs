@@ -20,7 +20,7 @@ namespace JFramework.Net
         /// <summary>
         /// 写入器列表
         /// </summary>
-        [SerializeField] private List<NetworkWriter> writers = new List<NetworkWriter>();
+        private Queue<NetworkWriter> writers = new Queue<NetworkWriter>();
 
         /// <summary>
         /// 读取器
@@ -42,7 +42,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="segment">批处理数据</param>
         /// <returns>返回处理成功</returns>
-        public bool Write(ArraySegment<byte> segment)
+        public bool AddBatch(ArraySegment<byte> segment)
         {
             if (segment.Count < Const.HeaderSize)
             {
@@ -57,7 +57,7 @@ namespace JFramework.Net
                 remoteTime = reader.ReadDouble();
             }
 
-            writers.Add(writer);
+            writers.Enqueue(writer);
             return true;
         }
 
@@ -67,7 +67,7 @@ namespace JFramework.Net
         /// <param name="newReader"></param>
         /// <param name="newTime"></param>
         /// <returns></returns>
-        public bool TryRead(out NetworkReader newReader, out double newTime)
+        public bool GetMessage(out NetworkReader newReader, out double newTime)
         {
             newTime = 0;
             newReader = null;
@@ -83,12 +83,11 @@ namespace JFramework.Net
 
             if (reader.residue == 0)
             {
-                var writer = writers[0];
-                writers.RemoveAt(0);
+                var writer = writers.Dequeue();
                 NetworkWriter.Push(writer);
                 if (writers.Count > 0)
                 {
-                    writer = writers[0];
+                    writer = writers.Peek();
                     reader.Reset(writer);
                     remoteTime = reader.ReadDouble();
                 }
