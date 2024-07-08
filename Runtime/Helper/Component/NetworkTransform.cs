@@ -16,6 +16,23 @@ namespace JFramework.Net
     internal class NetworkTransform : NetworkBehaviour
     {
         /// <summary>
+        /// 同步坐标
+        /// </summary>
+        private struct TransformData
+        {
+            public readonly Vector3 position;
+            public readonly Quaternion rotation;
+            public readonly Vector3 localScale;
+
+            public TransformData(Vector3 position, Quaternion rotation, Vector3 localScale)
+            {
+                this.position = position;
+                this.rotation = rotation;
+                this.localScale = localScale;
+            }
+        }
+
+        /// <summary>
         /// 比较快照是否变化
         /// </summary>
         private bool cachedComparison;
@@ -33,7 +50,7 @@ namespace JFramework.Net
         /// <summary>
         /// 上一个位置
         /// </summary>
-        private Synchronize origin;
+        private TransformData origin;
 
         /// <summary>
         /// 位置是否变化
@@ -107,47 +124,17 @@ namespace JFramework.Net
         {
             if (isServer)
             {
-                if (syncDirection == SyncMode.Server || isOwner || connection == null)
-                {
-                    return;
-                }
-
-                if (positionSync)
-                {
-                    transform.position = fixedPosition;
-                }
-
-                if (rotationSync)
-                {
-                    transform.rotation = fixedRotation;
-                }
-
-                if (localScaleSync)
-                {
-                    transform.localScale = fixedLocalScale;
-                }
+                if (syncDirection == SyncMode.Server || isOwner || connection == null) return;
+                if (positionSync) transform.position = fixedPosition;
+                if (rotationSync) transform.rotation = fixedRotation;
+                if (localScaleSync) transform.localScale = fixedLocalScale;
             }
             else if (isClient)
             {
-                if (syncDirection == SyncMode.Client && isOwner)
-                {
-                    return;
-                }
-
-                if (positionSync)
-                {
-                    transform.position = fixedPosition;
-                }
-
-                if (rotationSync)
-                {
-                    transform.rotation = fixedRotation;
-                }
-
-                if (localScaleSync)
-                {
-                    transform.localScale = fixedLocalScale;
-                }
+                if (syncDirection == SyncMode.Client && isOwner) return;
+                if (positionSync) transform.position = fixedPosition;
+                if (rotationSync) transform.rotation = fixedRotation;
+                if (localScaleSync) transform.localScale = fixedLocalScale;
             }
         }
 
@@ -159,7 +146,7 @@ namespace JFramework.Net
             if (isServer && syncDirection == SyncMode.Server)
             {
                 if (!TimeManager.Ticks(NetworkManager.SendRate, ref sendTime)) return;
-                var current = new Synchronize(transform.position, transform.rotation, transform.localScale);
+                var current = new TransformData(transform.position, transform.rotation, transform.localScale);
                 positionChanged = Vector3.SqrMagnitude(origin.position - target.position) > positionPerceive * positionPerceive;
                 rotationChanged = Quaternion.Angle(origin.rotation, target.rotation) > rotationPerceive;
                 localScaleChanged = Vector3.SqrMagnitude(origin.localScale - target.localScale) > localScalePerceive * localScalePerceive;
@@ -182,7 +169,7 @@ namespace JFramework.Net
             else if (isClient && NetworkManager.Client.isReady && isOwner && syncDirection == SyncMode.Client)
             {
                 if (!TimeManager.Ticks(NetworkManager.SendRate, ref sendTime)) return;
-                var current = new Synchronize(transform.position, transform.rotation, transform.localScale);
+                var current = new TransformData(transform.position, transform.rotation, transform.localScale);
                 positionChanged = Vector3.SqrMagnitude(origin.position - target.position) > positionPerceive * positionPerceive;
                 rotationChanged = Quaternion.Angle(origin.rotation, target.rotation) > rotationPerceive;
                 localScaleChanged = Vector3.SqrMagnitude(origin.localScale - target.localScale) > localScalePerceive * localScalePerceive;
@@ -269,23 +256,6 @@ namespace JFramework.Net
             fixedPosition = position ?? transform.position;
             fixedRotation = rotation ?? transform.rotation;
             fixedLocalScale = localScale ?? transform.localScale;
-        }
-
-        /// <summary>
-        /// 同步坐标
-        /// </summary>
-        private struct Synchronize
-        {
-            public readonly Vector3 position;
-            public readonly Quaternion rotation;
-            public readonly Vector3 localScale;
-
-            public Synchronize(Vector3 position, Quaternion rotation, Vector3 localScale)
-            {
-                this.position = position;
-                this.rotation = rotation;
-                this.localScale = localScale;
-            }
         }
     }
 }
