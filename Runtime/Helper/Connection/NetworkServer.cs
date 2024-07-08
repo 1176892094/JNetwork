@@ -19,11 +19,11 @@ namespace JFramework.Net
     public class NetworkServer
     {
         private Dictionary<int, WriterBatch> writerBatches = new Dictionary<int, WriterBatch>();
-        internal List<NetworkWriter> writers = new List<NetworkWriter>();
+        internal Queue<NetworkWriter> writers = new Queue<NetworkWriter>();
         [SerializeField] internal ReaderBatch readerBatch = new ReaderBatch();
         [SerializeField] internal bool isReady;
         [SerializeField] internal double remoteTime;
-        
+
         internal void Update()
         {
             foreach (var (channel, writerBatch) in writerBatches) // 遍历可靠和不可靠消息
@@ -40,20 +40,16 @@ namespace JFramework.Net
                 }
             }
 
-            if (NetworkManager.Mode == EntryMode.Host)
+            while (writers.Count > 0)
             {
-                while (writers.Count > 0)
+                using var writer = writers.Dequeue();
+                if (writerBatches.TryGetValue(Channel.Reliable, out var writerBatch))
                 {
-                    using var writer = writers[0];
-                    writers.RemoveAt(0);
-                    if (writerBatches.TryGetValue(Channel.Reliable, out var writerBatch))
+                    writerBatch.AddMessage(writer, NetworkManager.TickTime);
+                    using var target = NetworkWriter.Pop();
+                    if (writerBatch.GetBatch(target))
                     {
-                        writerBatch.AddMessage(writer, NetworkManager.TickTime);
-                        using var target = NetworkWriter.Pop();
-                        if (writerBatch.GetBatch(target))
-                        {
-                            NetworkManager.Client.OnClientReceive(target, Channel.Reliable);
-                        }
+                        NetworkManager.Client.OnClientReceive(target, Channel.Reliable);
                     }
                 }
             }

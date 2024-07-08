@@ -29,8 +29,6 @@ namespace JFramework.Net
         public NetworkClient(int clientId)
         {
             this.clientId = clientId;
-            writers.Add(Channel.Reliable, new NetworkWriter());
-            writers.Add(Channel.Unreliable, new NetworkWriter());
         }
 
         internal void Update()
@@ -86,7 +84,7 @@ namespace JFramework.Net
             {
                 var writer = NetworkWriter.Pop();
                 writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
-                NetworkManager.Client.connection.writers.Add(writer);
+                NetworkManager.Client.connection.writers.Enqueue(writer);
                 return;
             }
 
@@ -106,30 +104,33 @@ namespace JFramework.Net
         /// <param name="channel"></param>
         internal void Send(ClientRpcMessage message, int channel)
         {
-            if (writers.TryGetValue(channel, out var writer))
+            if (!writers.TryGetValue(channel, out var writer))
             {
-                var maxSize = NetworkManager.Transport.MessageSize(channel);
-                int size = maxSize - Const.MessageSize - sizeof(int) - Const.HeaderSize;
-                int position = writer.position;
+                writer = new NetworkWriter();
+                writers[channel] = writer;
+            }
+
+            var maxSize = NetworkManager.Transport.MessageSize(channel);
+            int size = maxSize - Const.MessageSize - sizeof(int) - Const.HeaderSize;
+            int position = writer.position;
+            writer.Invoke(message);
+            int messageSize = writer.position - position;
+            if (messageSize > size)
+            {
+                Debug.LogWarning($"远程调用 {message.objectId} 消息大小不能超过 {size}。消息大小：{messageSize}");
+                return;
+            }
+
+            if (writer.position > size)
+            {
+                writer.position = position;
+                if (writer.position > 0)
+                {
+                    Send(new InvokeMessage(writer), channel);
+                    writer.position = 0;
+                }
+
                 writer.Invoke(message);
-                int messageSize = writer.position - position;
-                if (messageSize > size)
-                {
-                    Debug.LogWarning($"远程调用 {message.objectId} 消息大小不能超过 {size}。消息大小：{messageSize}");
-                    return;
-                }
-
-                if (writer.position > size)
-                {
-                    writer.position = position;
-                    if (writer.position > 0)
-                    {
-                        Send(new InvokeMessage(writer), channel);
-                        writer.position = 0;
-                    }
-
-                    writer.Invoke(message);
-                }
             }
         }
 
