@@ -86,40 +86,19 @@ namespace JFramework.Net
         [TabGroup("Sync"), SerializeField] private bool localScaleSync;
 
         /// <summary>
-        /// 位置平滑度
-        /// </summary>
-        [TabGroup("Interpolation"), SerializeField, Range(0, 1)]
-        private float positionSmooth = 0.5f;
-
-        /// <summary>
-        /// 位置平滑度
-        /// </summary>
-        [TabGroup("Interpolation"), SerializeField, Range(0, 1)]
-        private float rotationSmooth = 0.5f;
-
-        /// <summary>
-        /// 位置平滑度
-        /// </summary>
-        [TabGroup("Interpolation"), SerializeField, Range(0, 1)]
-        private float localScaleSmooth = 0.5f;
-
-        /// <summary>
         /// 同步位置感知差
         /// </summary>
-        [TabGroup("Perceive"), SerializeField, Range(0, 1)]
-        private float positionPerceive = 0.01f;
+        [TabGroup("Perceive"), SerializeField] private float positionPerceive = 0.01f;
 
         /// <summary>
         /// 同步旋转感知差
         /// </summary>
-        [TabGroup("Perceive"), SerializeField, Range(0, 1)]
-        private float rotationPerceive = 0.01f;
+        [TabGroup("Perceive"), SerializeField] private float rotationPerceive = 0.01f;
 
         /// <summary>
         /// 同步大小感知差
         /// </summary>
-        [TabGroup("Perceive"), SerializeField, Range(0, 1)]
-        private float localScalePerceive = 0.01f;
+        [TabGroup("Perceive"), SerializeField] private float localScalePerceive = 0.01f;
 
         /// <summary>
         /// 位置更新
@@ -128,17 +107,47 @@ namespace JFramework.Net
         {
             if (isServer)
             {
-                if (syncDirection == SyncMode.Server || isOwner || connection == null) return;
-                if (positionSync) target.position = Vector3.Lerp(target.position, fixedPosition, 1 - positionSmooth);
-                if (rotationSync) target.rotation = Quaternion.Lerp(target.rotation, fixedRotation, 1 - rotationSmooth);
-                if (localScaleSync) target.localScale = Vector3.Lerp(target.localScale, fixedLocalScale, 1 - localScaleSmooth);
+                if (syncDirection == SyncMode.Server || isOwner || connection == null)
+                {
+                    return;
+                }
+
+                if (positionSync)
+                {
+                    transform.position = fixedPosition;
+                }
+
+                if (rotationSync)
+                {
+                    transform.rotation = fixedRotation;
+                }
+
+                if (localScaleSync)
+                {
+                    transform.localScale = fixedLocalScale;
+                }
             }
             else if (isClient)
             {
-                if (syncDirection == SyncMode.Client && isOwner) return;
-                if (positionSync) target.position = Vector3.Lerp(target.position, fixedPosition, 1 - positionSmooth);
-                if (rotationSync) target.rotation = Quaternion.Lerp(target.rotation, fixedRotation, 1 - rotationSmooth);
-                if (localScaleSync) target.localScale = Vector3.Lerp(target.localScale, fixedLocalScale, 1 - localScaleSmooth);
+                if (syncDirection == SyncMode.Client && isOwner)
+                {
+                    return;
+                }
+
+                if (positionSync)
+                {
+                    transform.position = fixedPosition;
+                }
+
+                if (rotationSync)
+                {
+                    transform.rotation = fixedRotation;
+                }
+
+                if (localScaleSync)
+                {
+                    transform.localScale = fixedLocalScale;
+                }
             }
         }
 
@@ -150,7 +159,7 @@ namespace JFramework.Net
             if (isServer && syncDirection == SyncMode.Server)
             {
                 if (!TimeManager.Ticks(NetworkManager.SendRate, ref sendTime)) return;
-                var current = new Synchronize(target.position, target.rotation, target.localScale);
+                var current = new Synchronize(transform.position, transform.rotation, transform.localScale);
                 positionChanged = Vector3.SqrMagnitude(origin.position - target.position) > positionPerceive * positionPerceive;
                 rotationChanged = Quaternion.Angle(origin.rotation, target.rotation) > rotationPerceive;
                 localScaleChanged = Vector3.SqrMagnitude(origin.localScale - target.localScale) > localScalePerceive * localScalePerceive;
@@ -173,7 +182,7 @@ namespace JFramework.Net
             else if (isClient && NetworkManager.Client.isReady && isOwner && syncDirection == SyncMode.Client)
             {
                 if (!TimeManager.Ticks(NetworkManager.SendRate, ref sendTime)) return;
-                var current = new Synchronize(target.position, target.rotation, target.localScale);
+                var current = new Synchronize(transform.position, transform.rotation, transform.localScale);
                 positionChanged = Vector3.SqrMagnitude(origin.position - target.position) > positionPerceive * positionPerceive;
                 rotationChanged = Quaternion.Angle(origin.rotation, target.rotation) > rotationPerceive;
                 localScaleChanged = Vector3.SqrMagnitude(origin.localScale - target.localScale) > localScalePerceive * localScalePerceive;
@@ -241,9 +250,9 @@ namespace JFramework.Net
         [ServerRpc(Channel.Unreliable)]
         private void SendToServerRpc(Vector3? position, Quaternion? rotation, Vector3? localScale)
         {
-            fixedPosition = position ?? target.position;
-            fixedRotation = rotation ?? target.rotation;
-            fixedLocalScale = localScale ?? target.localScale;
+            fixedPosition = position ?? transform.position;
+            fixedRotation = rotation ?? transform.rotation;
+            fixedLocalScale = localScale ?? transform.localScale;
             if (syncDirection == SyncMode.Server) return;
             SendToClientRpc(position, rotation, localScale);
         }
@@ -257,9 +266,9 @@ namespace JFramework.Net
         [ClientRpc(Channel.Unreliable)]
         private void SendToClientRpc(Vector3? position, Quaternion? rotation, Vector3? localScale)
         {
-            fixedPosition = position ?? target.position;
-            fixedRotation = rotation ?? target.rotation;
-            fixedLocalScale = localScale ?? target.localScale;
+            fixedPosition = position ?? transform.position;
+            fixedRotation = rotation ?? transform.rotation;
+            fixedLocalScale = localScale ?? transform.localScale;
         }
 
         /// <summary>
