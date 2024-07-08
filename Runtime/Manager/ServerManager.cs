@@ -307,14 +307,14 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!client.readerPool.AddBatch(segment))
+            if (!client.readerBatch.AddBatch(segment))
             {
                 Debug.LogWarning($"无法将消息写入。断开客户端：{client}");
                 client.Disconnect();
                 return;
             }
 
-            while (!isLoadScene && client.readerPool.GetMessage(out var reader, out var remoteTime))
+            while (!isLoadScene && client.readerBatch.GetMessage(out var reader, out var remoteTime))
             {
                 if (reader.residue < Const.MessageSize)
                 {
@@ -335,9 +335,9 @@ namespace JFramework.Net
                 action.Invoke(client, reader, channel);
             }
 
-            if (!isLoadScene && client.readerPool.Count > 0)
+            if (!isLoadScene && client.readerBatch.Count > 0)
             {
-                Debug.LogError($"有残留消息没被写入！残留数：{client.readerPool.Count}");
+                Debug.LogError($"有残留消息没被写入！残留数：{client.readerBatch.Count}");
             }
         }
     }

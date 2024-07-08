@@ -18,18 +18,18 @@ namespace JFramework.Net
     [Serializable]
     public class NetworkServer
     {
-        private Dictionary<int, WriterPool> writerPools = new Dictionary<int, WriterPool>();
+        private Dictionary<int, WriterBatch> writerBatches = new Dictionary<int, WriterBatch>();
         internal List<NetworkWriter> writers = new List<NetworkWriter>();
-        [SerializeField] internal ReaderPool readerPool = new ReaderPool();
+        [SerializeField] internal ReaderBatch readerBatch = new ReaderBatch();
         [SerializeField] internal bool isReady;
         [SerializeField] internal double remoteTime;
         
         internal void Update()
         {
-            foreach (var (channel, writerPool) in writerPools) // 遍历可靠和不可靠消息
+            foreach (var (channel, writerBatch) in writerBatches) // 遍历可靠和不可靠消息
             {
                 using var writer = NetworkWriter.Pop(); // 取出 writer
-                while (writerPool.GetBatch(writer)) // 将数据拷贝到 writer
+                while (writerBatch.GetBatch(writer)) // 将数据拷贝到 writer
                 {
                     ArraySegment<byte> segment = writer; // 将 writer 转化成数据分段
                     if (NetworkUtility.IsValid(segment, channel)) // 判断 writer 是否有效
@@ -46,11 +46,11 @@ namespace JFramework.Net
                 {
                     using var writer = writers[0];
                     writers.RemoveAt(0);
-                    if (writerPools.TryGetValue(Channel.Reliable, out var writerPool))
+                    if (writerBatches.TryGetValue(Channel.Reliable, out var writerBatch))
                     {
-                        writerPool.AddMessage(writer, NetworkManager.TickTime);
+                        writerBatch.AddMessage(writer, NetworkManager.TickTime);
                         using var target = NetworkWriter.Pop();
-                        if (writerPool.GetBatch(target))
+                        if (writerBatch.GetBatch(target))
                         {
                             NetworkManager.Client.OnClientReceive(target, Channel.Reliable);
                         }
@@ -82,15 +82,15 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Send(ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
-            if (!writerPools.TryGetValue(channel, out var writerPool))
+            if (!writerBatches.TryGetValue(channel, out var writerBatch))
             {
-                writerPool = new WriterPool(channel);
-                writerPools[channel] = writerPool;
+                writerBatch = new WriterBatch(channel);
+                writerBatches[channel] = writerBatch;
             }
 
             if (NetworkManager.Mode != EntryMode.Host)
             {
-                writerPool.AddMessage(segment, NetworkManager.TickTime);
+                writerBatch.AddMessage(segment, NetworkManager.TickTime);
                 return;
             }
 
@@ -100,9 +100,9 @@ namespace JFramework.Net
                 return;
             }
 
-            writerPool.AddMessage(segment, NetworkManager.TickTime);
+            writerBatch.AddMessage(segment, NetworkManager.TickTime);
             using var writer = NetworkWriter.Pop();
-            if (!writerPool.GetBatch(writer))
+            if (!writerBatch.GetBatch(writer))
             {
                 Debug.LogError("无法拷贝数据到写入器。");
                 return;

@@ -18,9 +18,9 @@ namespace JFramework.Net
     [Serializable]
     public class NetworkClient
     {
-        private Dictionary<int, WriterPool> writerPools = new Dictionary<int, WriterPool>();
+        private Dictionary<int, WriterBatch> writerBatches = new Dictionary<int, WriterBatch>();
         private Dictionary<int, NetworkWriter> writers = new Dictionary<int, NetworkWriter>();
-        [SerializeField] internal ReaderPool readerPool = new ReaderPool();
+        [SerializeField] internal ReaderBatch readerBatch = new ReaderBatch();
         [SerializeField] internal int clientId;
         [SerializeField] internal bool isReady;
         [SerializeField] internal bool isPlayer;
@@ -44,10 +44,10 @@ namespace JFramework.Net
                 }
             }
 
-            foreach (var (channel, writerPool) in writerPools) // 遍历可靠和不可靠消息
+            foreach (var (channel, writerBatch) in writerBatches) // 遍历可靠和不可靠消息
             {
                 using var writer = NetworkWriter.Pop(); // 取出 writer
-                while (writerPool.GetBatch(writer)) // 将数据拷贝到 writer
+                while (writerBatch.GetBatch(writer)) // 将数据拷贝到 writer
                 {
                     ArraySegment<byte> segment = writer; // 将 writer 转化成数据分段
                     if (NetworkUtility.IsValid(segment, channel)) // 判断 writer 是否有效
@@ -90,13 +90,13 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!writerPools.TryGetValue(channel, out var writerPool))
+            if (!writerBatches.TryGetValue(channel, out var writerBatch))
             {
-                writerPool = new WriterPool(channel);
-                writerPools[channel] = writerPool;
+                writerBatch = new WriterBatch(channel);
+                writerBatches[channel] = writerBatch;
             }
 
-            writerPool.AddMessage(segment, NetworkManager.TickTime);
+            writerBatch.AddMessage(segment, NetworkManager.TickTime);
         }
 
         /// <summary>

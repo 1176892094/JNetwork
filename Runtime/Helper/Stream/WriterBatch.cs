@@ -15,7 +15,7 @@ using UnityEngine;
 namespace JFramework.Net
 {
     [Serializable]
-    internal class WriterPool
+    internal class WriterBatch
     {
         /// <summary>
         /// 批处理队列
@@ -30,17 +30,14 @@ namespace JFramework.Net
         /// <summary>
         /// 消息大小
         /// </summary>
-        [SerializeField] private int maxSize;
+        [SerializeField] private int messageSize;
 
         /// <summary>
         /// 设置阈值
         /// </summary>
-        public WriterPool(int channel)
+        public WriterBatch(int channel)
         {
-            if (NetworkManager.Transport != null)
-            {
-                maxSize = NetworkManager.Transport.MessageSize(channel);
-            }
+            messageSize = NetworkManager.Transport.MessageSize(channel);
         }
 
         /// <summary>
@@ -50,7 +47,7 @@ namespace JFramework.Net
         /// <param name="remoteTime">时间戳</param>
         public void AddMessage(ArraySegment<byte> segment, double remoteTime)
         {
-            if (writer != null && writer.position + segment.Count > maxSize)
+            if (writer != null && writer.position + segment.Count > messageSize)
             {
                 writers.Enqueue(writer); // 加入到队列中
                 writer = null;
