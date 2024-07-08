@@ -42,17 +42,14 @@ namespace JFramework.Net
                 }
             }
 
-            foreach (var (channel, writerBatch) in writerBatches) // 遍历可靠和不可靠消息
+            foreach (var (channel, writerBatch) in writerBatches)
             {
-                using var writer = NetworkWriter.Pop(); // 取出 writer
-                while (writerBatch.GetBatch(writer)) // 将数据拷贝到 writer
+                using var writer = NetworkWriter.Pop();
+                while (writerBatch.GetBatch(writer))
                 {
-                    ArraySegment<byte> segment = writer; // 将 writer 转化成数据分段
-                    if (NetworkUtility.IsValid(segment, channel)) // 判断 writer 是否有效
-                    {
-                        NetworkManager.Transport.SendToClient(clientId, segment, channel);
-                        writer.position = 0;
-                    }
+                    ArraySegment<byte> segment = writer;
+                    NetworkManager.Transport.SendToClient(clientId, segment, channel);
+                    writer.position = 0;
                 }
             }
         }
@@ -69,6 +66,12 @@ namespace JFramework.Net
             using var writer = NetworkWriter.Pop();
             writer.WriteUShort(Message<T>.Id);
             writer.Invoke(message);
+            if (writer.position > NetworkManager.Transport.MessageSize(channel))
+            {
+                Debug.LogError($"发送消息大小过大！消息大小：{writer.position}");
+                return;
+            }
+
             Send(writer, channel);
         }
 

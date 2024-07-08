@@ -127,30 +127,6 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 发送消息是否有效
-        /// </summary>
-        /// <param name="segment"></param>
-        /// <param name="channel"></param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsValid(ArraySegment<byte> segment, int channel)
-        {
-            if (segment.Count == 0)
-            {
-                Debug.LogError("发送消息大小不能为零！");
-                return false;
-            }
-
-            if (segment.Count > NetworkManager.Transport.MessageSize(channel))
-            {
-                Debug.LogError($"发送消息大小过大！消息大小：{segment.Count}");
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
         /// 注册网络消息委托
         /// </summary>
         /// <param name="action">传入网络连接，网络消息，传输通道</param>
