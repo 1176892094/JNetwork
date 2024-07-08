@@ -330,7 +330,7 @@ namespace JFramework.Net
 
             client ??= connection;
 
-            if (client is null)
+            if (client == null)
             {
                 Debug.LogError($"调用 {methodName} 但是对象的连接为空。对象名称：{name}", gameObject);
                 return;
