@@ -85,25 +85,25 @@ namespace JFramework.Udp
         {
             this.conv = conv;
             this.output = output;
+            snd_wnd = WND_SND;
+            rcv_wnd = WND_RCV;
+            rmt_wnd = WND_RCV;
             mtu = MTU_DEF;
             mss = mtu - OVERHEAD;
             rx_rto = RTO_DEF;
             rx_rto_min = RTO_MIN;
-            snd_wnd = WND_SND;
-            rcv_wnd = WND_RCV;
-            rmt_wnd = WND_RCV;
             interval = INTERVAL;
             ts_flush = INTERVAL;
             ss_thresh = THRESH_DEF;
             dead_link = DEAD_LINK;
             buffer = new byte[(mtu + OVERHEAD) * 3];
         }
-
-        public int Receive(byte[] buffer, int length)
+        
+        public int Receive(byte[] buffer, int len)
         {
-            if (length < 0)
+            if (len < 0)
             {
-                throw new NotSupportedException("Receive is peek for negative length is not supported!");
+                throw new NotSupportedException("Receive is peek for negative len is not supported!");
             }
 
             if (receiveQueue.Count == 0)
@@ -111,30 +111,31 @@ namespace JFramework.Udp
                 return -1;
             }
 
-            var peekSize = PeekSize();
+            int peekSize = PeekSize();
+
             if (peekSize < 0)
             {
                 return -2;
             }
 
-            if (peekSize > length)
+            if (peekSize > len)
             {
                 return -3;
             }
-            
-            length = 0;
+
+            len = 0;
             var offset = 0;
             var recover = receiveQueue.Count >= rcv_wnd;
-            
+
             while (receiveQueue.Count > 0)
             {
-                var segment = receiveQueue.Dequeue();
-                Buffer.BlockCopy(segment.data.GetBuffer(), 0, buffer, offset, (int)segment.data.Position);
-                offset += (int)segment.data.Position;
-
-                length += (int)segment.data.Position;
-                var fragment = segment.frg;
-                segmentPool.Push(segment);
+                var seg = receiveQueue.Dequeue();
+                Buffer.BlockCopy(seg.data.GetBuffer(), 0, buffer, offset, (int)seg.data.Position);
+                
+                offset += (int)seg.data.Position;
+                len += (int)seg.data.Position;
+                var fragment = seg.frg;
+                segmentPool.Push(seg);
 
                 if (fragment == 0)
                 {
@@ -143,13 +144,13 @@ namespace JFramework.Udp
             }
 
 
-            var removed = 0;
-            foreach (var segment in receiveBuffer)
+            int removed = 0;
+            foreach (var seg in receiveBuffer)
             {
-                if (segment.sn == rcv_nxt && receiveQueue.Count < rcv_wnd)
+                if (seg.sn == rcv_nxt && receiveQueue.Count < rcv_wnd)
                 {
                     ++removed;
-                    receiveQueue.Enqueue(segment);
+                    receiveQueue.Enqueue(seg);
                     rcv_nxt++;
                 }
                 else
@@ -159,35 +160,35 @@ namespace JFramework.Udp
             }
 
             receiveBuffer.RemoveRange(0, removed);
-
+            
             if (receiveQueue.Count < rcv_wnd && recover)
             {
                 probe |= ASK_TELL;
             }
 
-            return length;
+            return len;
         }
 
 
         public int PeekSize()
         {
-            var length = 0;
+            int length = 0;
             if (receiveQueue.Count == 0)
             {
                 return -1;
             }
-
-            var segment = receiveQueue.Peek();
-            if (segment.frg == 0)
+            
+            var seq = receiveQueue.Peek();
+            if (seq.frg == 0)
             {
-                return (int)segment.data.Position;
+                return (int)seq.data.Position;
             }
 
-            if (receiveQueue.Count < segment.frg + 1)
+            if (receiveQueue.Count < seq.frg + 1)
             {
                 return -1;
             }
-
+            
             foreach (var seg in receiveQueue)
             {
                 length += (int)seg.data.Position;
@@ -199,27 +200,29 @@ namespace JFramework.Udp
 
             return length;
         }
-        
-        public int Send(byte[] buffer, int offset, int length)
+
+
+        public int Send(byte[] buffer, int offset, int len)
         {
-            if (length < 0)
+            int count;
+
+            if (len < 0)
             {
                 return -1;
             }
-
-            int count;
-            if (length <= mss)
+            
+            if (len <= mss)
             {
                 count = 1;
             }
             else
             {
-                count = (int)((length + mss - 1) / mss);
+                count = (int)((len + mss - 1) / mss);
             }
-            
+
             if (count > FRG_MAX)
             {
-                throw new Exception($"Send length={length} requires {count} fragments, but kcp can only handle up to {FRG_MAX} fragments.");
+                throw new Exception($"Send len={len} requires {count} fragments, but kcp can only handle up to {FRG_MAX} fragments.");
             }
 
             if (count >= rcv_wnd)
@@ -231,26 +234,25 @@ namespace JFramework.Udp
             {
                 count = 1;
             }
-
+            
             for (int i = 0; i < count; i++)
             {
-                var size = length > (int)mss ? (int)mss : length;
-                var segment = segmentPool.Pop();
+                int size = len > (int)mss ? (int)mss : len;
+                var seg = segmentPool.Pop();
 
-                if (length > 0)
+                if (len > 0)
                 {
-                    segment.data.Write(buffer, offset, size);
+                    seg.data.Write(buffer, offset, size);
                 }
-
-                segment.frg = (uint)(count - i - 1);
-                sendQueue.Enqueue(segment);
+                
+                seg.frg = (uint)(count - i - 1);
+                sendQueue.Enqueue(seg);
                 offset += size;
-                length -= size;
+                len -= size;
             }
 
             return 0;
         }
-
 
         private void UpdateAck(int rtt)
         {
@@ -262,58 +264,63 @@ namespace JFramework.Udp
             else
             {
                 int delta = rtt - rx_rtt_avg;
-                if (delta < 0)
-                {
-                    delta = -delta;
-                }
-
+                if (delta < 0) delta = -delta;
                 rx_rtt_val = (3 * rx_rtt_val + delta) / 4;
                 rx_rtt_avg = (7 * rx_rtt_avg + rtt) / 8;
                 if (rx_rtt_avg < 1) rx_rtt_avg = 1;
             }
 
-            var rto = rx_rtt_avg + Math.Max((int)interval, 4 * rx_rtt_val);
+            int rto = rx_rtt_avg + Math.Max((int)interval, 4 * rx_rtt_val);
             rx_rto = Math.Clamp(rto, rx_rto_min, RTO_MAX);
         }
-
-        internal void ShrinkBuffer()
+        
+        internal void ShrinkBuf()
         {
-            snd_una = sendBuffer.Count > 0 ? sendBuffer[0].sn : snd_nxt;
+            if (sendBuffer.Count > 0)
+            {
+                var seg = sendBuffer[0];
+                snd_una = seg.sn;
+            }
+            else
+            {
+                snd_una = snd_nxt;
+            }
         }
 
-        internal void ParseAck(uint sendId)
+        internal void ParseAck(uint sn)
         {
-            if (Utility.Compare(sendId, snd_una) < 0 || Utility.Compare(sendId, snd_nxt) >= 0)
+            if (Utility.Compare(sn, snd_una) < 0 || Utility.Compare(sn, snd_nxt) >= 0)
             {
                 return;
             }
 
             for (int i = 0; i < sendBuffer.Count; ++i)
             {
-                var segment = sendBuffer[i];
-                if (sendId == segment.sn)
+                var seg = sendBuffer[i];
+                if (sn == seg.sn)
                 {
                     sendBuffer.RemoveAt(i);
-                    segmentPool.Push(segment);
+                    segmentPool.Push(seg);
                     break;
                 }
 
-                if (Utility.Compare(sendId, segment.sn) < 0)
+                if (Utility.Compare(sn, seg.sn) < 0)
                 {
                     break;
                 }
             }
         }
 
+
         internal void ParseUna(uint una)
         {
             int removed = 0;
-            foreach (var segment in sendBuffer)
+            foreach (Segment seg in sendBuffer)
             {
-                if (segment.sn < una)
+                if (seg.sn < una)
                 {
                     ++removed;
-                    segmentPool.Push(segment);
+                    segmentPool.Push(seg);
                 }
                 else
                 {
@@ -324,31 +331,33 @@ namespace JFramework.Udp
             sendBuffer.RemoveRange(0, removed);
         }
 
-        internal void ParseFastAck(uint sendId, uint sendTime)
+
+        internal void ParseFastAck(uint sn, uint ts)
         {
-            if (sendId < snd_una)
+            if (sn < snd_una)
             {
                 return;
             }
 
-            if (sendId >= snd_nxt)
+            if (sn >= snd_nxt)
             {
                 return;
             }
 
-            foreach (var segment in sendBuffer)
+            foreach (var seg in sendBuffer)
             {
-                if (sendId < segment.sn)
+                if (sn < seg.sn)
                 {
                     break;
                 }
 
-                if (sendId != segment.sn)
+                if (sn != seg.sn)
                 {
-                    segment.fast_ack++;
+                    seg.fast_ack++;
                 }
             }
         }
+
 
         private void ParseData(Segment segment)
         {
@@ -366,8 +375,8 @@ namespace JFramework.Udp
 
         internal void InsertSegmentInReceiveBuffer(Segment segment)
         {
-            int i;
             var repeat = false;
+            int i;
             for (i = receiveBuffer.Count - 1; i >= 0; i--)
             {
                 var seg = receiveBuffer[i];
@@ -382,11 +391,12 @@ namespace JFramework.Udp
                     break;
                 }
             }
-
+            
             if (!repeat)
             {
                 receiveBuffer.Insert(i + 1, segment);
             }
+
             else
             {
                 segmentPool.Push(segment);
@@ -397,12 +407,13 @@ namespace JFramework.Udp
         private void MoveReceiveBufferReadySegmentsToQueue()
         {
             var removed = 0;
-            foreach (var segment in receiveBuffer)
+            foreach (var seg in receiveBuffer)
             {
-                if (segment.sn == rcv_nxt && receiveQueue.Count < rcv_wnd)
+                if (seg.sn == rcv_nxt && receiveQueue.Count < rcv_wnd)
                 {
                     ++removed;
-                    receiveQueue.Enqueue(segment);
+                    receiveQueue.Enqueue(seg);
+
                     rcv_nxt++;
                 }
                 else
@@ -421,7 +432,7 @@ namespace JFramework.Udp
             var prev_una = snd_una;
             uint max_ack = 0;
             uint latest_ts = 0;
-
+            
             if (data == null || size < OVERHEAD)
             {
                 return -1;
@@ -436,11 +447,11 @@ namespace JFramework.Udp
 
                 offset += Utility.Decode32U(data, offset, out uint conv_);
                 if (conv_ != conv) return -1;
-                offset += Utility.Decode8U(data, offset, out byte command);
-                offset += Utility.Decode8U(data, offset, out byte fragment);
-                offset += Utility.Decode16U(data, offset, out ushort windowSize);
-                offset += Utility.Decode32U(data, offset, out uint sendTime);
-                offset += Utility.Decode32U(data, offset, out uint sendId);
+                offset += Utility.Decode8U(data, offset, out byte cmd);
+                offset += Utility.Decode8U(data, offset, out byte frg);
+                offset += Utility.Decode16U(data, offset, out ushort wnd);
+                offset += Utility.Decode32U(data, offset, out uint ts);
+                offset += Utility.Decode32U(data, offset, out uint sn);
                 offset += Utility.Decode32U(data, offset, out uint una);
                 offset += Utility.Decode32U(data, offset, out uint length);
                 size -= OVERHEAD;
@@ -450,64 +461,64 @@ namespace JFramework.Udp
                     return -2;
                 }
 
-                if (command != CMD_PUSH && command != CMD_ACK && command != CMD_W_ASK && command != CMD_W_INS)
+                if (cmd != CMD_PUSH && cmd != CMD_ACK && cmd != CMD_W_ASK && cmd != CMD_W_INS)
                 {
                     return -3;
                 }
 
-                rmt_wnd = windowSize;
+                rmt_wnd = wnd;
                 ParseUna(una);
-                ShrinkBuffer();
+                ShrinkBuf();
 
-                if (command == CMD_ACK)
+                if (cmd == CMD_ACK)
                 {
-                    if (Utility.Compare(current, sendTime) >= 0)
+                    if (Utility.Compare(current, ts) >= 0)
                     {
-                        UpdateAck(Utility.Compare(current, sendTime));
+                        UpdateAck(Utility.Compare(current, ts));
                     }
 
-                    ParseAck(sendId);
-                    ShrinkBuffer();
+                    ParseAck(sn);
+                    ShrinkBuf();
                     if (flag == 0)
                     {
                         flag = 1;
-                        max_ack = sendId;
-                        latest_ts = sendTime;
+                        max_ack = sn;
+                        latest_ts = ts;
                     }
                     else
                     {
-                        if (Utility.Compare(sendId, max_ack) > 0)
+                        if (Utility.Compare(sn, max_ack) > 0)
                         {
-                            max_ack = sendId;
-                            latest_ts = sendTime;
+                            max_ack = sn;
+                            latest_ts = ts;
                         }
                     }
                 }
-                else if (command == CMD_PUSH)
+                else if (cmd == CMD_PUSH)
                 {
-                    if (Utility.Compare(sendId, rcv_nxt + rcv_wnd) < 0)
+                    if (Utility.Compare(sn, rcv_nxt + rcv_wnd) < 0)
                     {
-                        ackList.Add(new AckItem(sendId, sendTime));
-                        if (Utility.Compare(sendId, rcv_nxt) >= 0)
+                        ackList.Add(new AckItem(sn, ts));
+                        if (Utility.Compare(sn, rcv_nxt) >= 0)
                         {
-                            var segment = segmentPool.Pop();
-                            segment.conv = conv_;
-                            segment.cmd = command;
-                            segment.frg = fragment;
-                            segment.wnd = windowSize;
-                            segment.ts = sendTime;
-                            segment.sn = sendId;
-                            segment.una = una;
+                            var seg = segmentPool.Pop();
+                            seg.conv = conv_;
+                            seg.cmd = cmd;
+                            seg.frg = frg;
+                            seg.wnd = wnd;
+                            seg.ts = ts;
+                            seg.sn = sn;
+                            seg.una = una;
                             if (length > 0)
                             {
-                                segment.data.Write(data, offset, (int)length);
+                                seg.data.Write(data, offset, (int)length);
                             }
 
-                            ParseData(segment);
+                            ParseData(seg);
                         }
                     }
                 }
-                else if (command == CMD_W_ASK)
+                else if (cmd == CMD_W_ASK)
                 {
                     probe |= ASK_TELL;
                 }
@@ -540,7 +551,7 @@ namespace JFramework.Udp
                         incr += mss * mss / incr + mss / 16;
                         if ((cmd_wnd + 1) * mss <= incr)
                         {
-                            cmd_wnd = (incr + mss - 1) / ((mss > 0) ? mss : 1);
+                            cmd_wnd = (incr + mss - 1) / (mss > 0 ? mss : 1);
                         }
                     }
 
@@ -554,7 +565,6 @@ namespace JFramework.Udp
 
             return 0;
         }
-
 
         private uint WndUnused()
         {
@@ -575,6 +585,7 @@ namespace JFramework.Udp
             }
         }
 
+
         private void FlushBuffer(int size)
         {
             if (size > 0)
@@ -587,6 +598,7 @@ namespace JFramework.Udp
         {
             var size = 0;
             var lost = false;
+
             if (!updated)
             {
                 return;
@@ -659,10 +671,12 @@ namespace JFramework.Udp
 
             probe = 0;
             uint c_wnd_ = Math.Min(snd_wnd, rmt_wnd);
+
             if (!noc_wnd)
             {
                 c_wnd_ = Math.Min(cmd_wnd, c_wnd_);
             }
+
 
             while (Utility.Compare(snd_nxt, snd_una + c_wnd_) < 0)
             {
@@ -674,7 +688,7 @@ namespace JFramework.Udp
                 var segment = sendQueue.Dequeue();
                 segment.conv = conv;
                 segment.cmd = CMD_PUSH;
-                segment.wnd = segment.wnd;
+                segment.wnd = seg.wnd;
                 segment.ts = current;
                 segment.sn = snd_nxt;
                 snd_nxt += 1;
@@ -690,11 +704,9 @@ namespace JFramework.Udp
             var rto_min = no_delay == 0 ? (uint)rx_rto >> 3 : 0;
 
             int change = 0;
-
             foreach (var segment in sendBuffer)
             {
                 var needSend = false;
-
                 if (segment.rsd_c == 0)
                 {
                     needSend = true;
@@ -713,7 +725,7 @@ namespace JFramework.Udp
                     }
                     else
                     {
-                        int step = (no_delay < 2) ? segment.rto : rx_rto;
+                        int step = no_delay < 2 ? segment.rto : rx_rto;
                         segment.rto += step / 2;
                     }
 
@@ -750,6 +762,7 @@ namespace JFramework.Udp
                         size += (int)segment.data.Position;
                     }
 
+
                     if (segment.rsd_c >= dead_link)
                     {
                         state = -1;
@@ -759,7 +772,6 @@ namespace JFramework.Udp
 
             segmentPool.Push(seg);
             FlushBuffer(size);
-
 
             if (change > 0)
             {
@@ -773,7 +785,6 @@ namespace JFramework.Udp
                 cmd_wnd = ss_thresh + resent;
                 incr = cmd_wnd * mss;
             }
-
 
             if (lost)
             {
@@ -798,6 +809,7 @@ namespace JFramework.Udp
         public void Update(uint currentTime)
         {
             current = currentTime;
+            
             if (!updated)
             {
                 updated = true;
@@ -853,7 +865,6 @@ namespace JFramework.Udp
             fast_resend = resend;
             this.noc_wnd = noc_wnd;
         }
-
 
         public void SetWindowSize(uint sendWindow, uint receiveWindow)
         {
