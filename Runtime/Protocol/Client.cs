@@ -110,7 +110,6 @@ namespace JFramework.Udp
             if (cookie == 0)
             {
                 cookie = newCookie;
-                Log.Info($"客户端初始化Cookie：{cookie}");
             }
             else if (cookie != newCookie)
             {
@@ -176,7 +175,6 @@ namespace JFramework.Udp
 
             base.EarlyUpdate();
         }
-
 
         public override void AfterUpdate()
         {

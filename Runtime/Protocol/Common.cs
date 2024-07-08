@@ -131,6 +131,4 @@ namespace JFramework.Udp
             return (int)(later - earlier);
         }
     }
-
-   
 }

@@ -3,101 +3,102 @@ using System.Collections.Generic;
 
 namespace JFramework.Udp
 {
-    public class Protocol
+    internal class Protocol
     {
-        public const int RTO_NDL = 30;
-        public const int RTO_MIN = 100;
-        public const int RTO_DEF = 200;
-        public const int RTO_MAX = 60000;
-        public const int CMD_PUSH = 81;
-        public const int CMD_ACK = 82;
-        public const int CMD_W_ASK = 83;
-        public const int CMD_W_INS = 84;
-        public const int ASK_SEND = 1;
-        public const int ASK_TELL = 2;
-        public const int WND_SND = 32;
-        public const int WND_RCV = 128;
-        public const int MTU_DEF = 1200;
-        public const int INTERVAL = 100;
-        public const int OVERHEAD = 24;
-        public const int FRG_MAX = byte.MaxValue;
-        public const int DEAD_LINK = 20;
-        public const int TIME_OUT = 10000;
-        public const int THRESH_INIT = 2;
-        public const int THRESH_MIN = 2;
-        public const int PROBE_INIT = 7000;
-        public const int PROBE_LIMIT = 120000;
-        public const int FAST_ACK_LIMIT = 5;
-
-        internal int state;
-        internal uint mtu;
-        internal uint mss;
-        internal uint snd_una;
-        internal uint snd_nxt;
-        internal uint rcv_nxt;
-        internal uint ss_thresh;
-        internal int rx_rtt_val;
-        internal int rx_s_rtt;
-        internal int rx_rto;
-        internal int rx_min_rto;
-        internal uint snd_wnd;
-        internal uint rcv_wnd;
-        internal uint rmt_wnd;
-        internal uint cmd_wnd;
-        internal uint probe;
-        internal uint interval;
-        internal uint ts_flush;
-        internal bool updated;
-        internal uint ts_probe;
-        internal uint probe_wait;
-        internal uint dead_link;
-        internal uint incr;
-        internal uint current;
-        internal uint fast_resend;
-        internal uint no_delay;
-        internal bool noc_wnd;
-        internal byte[] buffer;
-        private readonly uint conv;
-        internal readonly int fast_limit;
-        private readonly Action<byte[], int> output;
-        private readonly Pool segmentPool = new Pool(32);
-        internal readonly List<AckItem> ackList = new List<AckItem>(16);
-        internal readonly List<Segment> sendBuffer = new List<Segment>(16);
-        internal readonly List<Segment> receiveBuffer = new List<Segment>(16);
-        internal readonly Queue<Segment> sendQueue = new Queue<Segment>(16);
-        internal readonly Queue<Segment> receiveQueue = new Queue<Segment>(16);
-
-        internal struct AckItem
+        private struct AckItem
         {
-            public readonly uint sendId;
-            public readonly uint sendTime;
+            public readonly uint sn;
+            public readonly uint ts;
 
-            public AckItem(uint sendId, uint sendTime)
+            public AckItem(uint sn, uint ts)
             {
-                this.sendId = sendId;
-                this.sendTime = sendTime;
+                this.sn = sn;
+                this.ts = ts;
             }
         }
+        
+        public const int FRG_MAX = byte.MaxValue; // 最大分片数。KCP将分片编号编码为字节类型，因此最大分片数为255。
+        public const int MTU_DEF = 1200;          // 默认的最大传输单元（MTU）。设置为1200以适应所有情况。
+        public const int RTO_NDL = 30;            // 无延迟情况下的最小重传超时。用于在无延迟模式下，减少数据包的重传等待时间。
+        public const int RTO_MIN = 100;           // 正常情况下的最小重传超时。确保即使网络环境很好，也不会频繁地重传数据包。
+        public const int RTO_DEF = 200;           // 默认的重传超时设置。用于在一般网络环境下设置初始重传等待时间。
+        public const int RTO_MAX = 60000;         // 最大重传超时。用于避免重传超时无限增长，设置一个合理的上限。
+        public const int CMD_PUSH = 81;           // 推送数据的命令。用于发送实际的数据包。
+        public const int CMD_ACK = 82;            // 确认收到的命令。用于确认收到数据包，通知发送方。
+        public const int CMD_W_ASK = 83;          // 窗口探测（询问）命令。用于探测接收方的窗口大小。
+        public const int CMD_W_INS = 84;          // 窗口大小（告诉/插入）命令。用于告知发送方当前的接收窗口大小。
+        public const int ASK_SEND = 1;            // 表示需要发送窗口探测命令（CMD_W_ASK）。
+        public const int ASK_TELL = 2;            // 表示需要发送窗口大小命令（CMD_W_INS）。
+        public const int WND_SND = 32;            // 默认的发送窗口大小。表示可以在发送窗口中未确认的数据包数。
+        public const int WND_RCV = 128;           // 默认的接收窗口大小。表示可以在接收窗口中接收的最大数据包数，必须大于或等于最大分片大小。
+        public const int INTERVAL = 100;          // KCP的更新间隔。表示KCP内部定时器的触发间隔。
+        public const int OVERHEAD = 24;           // 头部开销。表示每个KCP数据包的头部大小。
+        public const int THRESH_DEF = 2;          // 拥塞窗口初始阈值。用于设置拥塞窗口大小的初始值。
+        public const int THRESH_MIN = 2;          // 拥塞窗口最小阈值。用于设置拥塞窗口大小的下限。
+        public const int PROBE_DEF = 7000;        // 窗口探测的初始间隔。表示窗口探测的初始时间间隔。
+        public const int PROBE_LIM = 120000;      // 窗口探测的最大间隔。表示窗口探测的最大时间间隔。
+        public const int FAST_LIM = 5;            // 快速确认的阈值。表示在触发快速重传前，需要接收到的重复确认次数。
+        public const int TIME_OUT = 10000;        // 长时间未收到数据包。网络数据超时时间。
+        public const int DEAD_LINK = 20;          // 认为连接中断的最大重传次数。在尝试重传20次后，如果仍然未收到确认，将认为连接中断。
+        
+        public int state;                         // 当前连接的状态，表示连接的不同阶段（例如连接中、已连接、断开）。
+        public uint dead_link;                    // 重传次数的最大值，超过此值认为连接断开。
+        
+        private int rx_rto;                       // 当前的重传超时值，根据网络状况动态调整。
+        private int rx_rto_min;                   // 最小重传超时，防止RTO过小导致频繁重传。
+        private int rx_rtt_val;                   // RTT的平均偏差，用于测量RTT的抖动，影响RTO计算。
+        private int rx_rtt_avg;                   // 平滑的RTT值，是RTT的加权平均值，影响RTO计算。
+        
+        private uint mtu;                         // 最大传输单元，决定了每个数据包的最大字节数。
+        private uint mss;                         // 最大分段大小，计算方式为 MTU - OVERHEAD（头部开销）。
+        private uint snd_una;                     // 发送但未确认的最小序号。比如，snd_una为9，表示序号8已经确认，序号9和10已经发送但未确认。
+        private uint snd_nxt;                     // 发送序号的计数器，不断增长，用于生成新的序列号。
+        private uint rcv_nxt;                     // 接收序号的计数器，不断增长，用于确认接收到的序列号。
+        private uint ss_thresh;                   // 慢启动阈值，用于控制拥塞窗口的增长速率。
+        private uint snd_wnd;                     // 发送窗口大小，表示可以发送但未确认的数据包数。
+        private uint rcv_wnd;                     // 接收窗口大小，表示可以接收的数据包数。
+        private uint rmt_wnd;                     // 远端窗口大小，表示远端接收窗口的大小。
+        private uint cmd_wnd;                     // 拥塞窗口大小，用于控制发送速率，防止网络拥塞。
+        private uint probe;                       // 探测标志位，用于探测远端窗口大小。
+        private uint interval;                    // KCP内部状态更新的时间间隔。
+        private uint ts_flush;                    // 上次刷新时间戳，用于定时刷新状态。
+        private bool updated;                     // 是否已更新的标志位，用于标记KCP状态是否已更新。
+        private uint ts_probe;                    // 探测时间戳，用于窗口探测。
+        private uint probe_wait;                  // 探测等待时间，用于控制探测间隔。
+        private uint incr;                        // 增量值，用于拥塞控制计算。
+        private uint current;                     // 当前时间，KCP内部使用的时间戳。
+        private uint fast_resend;                 // 快速重传的设置，用于提高重传效率。
+        private uint no_delay;                    // 无延迟模式的设置，用于减少延迟但可能增加网络抖动。
+        private bool noc_wnd;                     // 是否禁用拥塞控制，禁用后会严重限制发送和接收窗口大小。
+        private byte[] buffer;                    // MTU可以在运行时改变，从而调整缓冲区的大小。
+        private readonly uint conv;               // 会话标识符，用于唯一标识一个会话，以区分不同的会话数据。
+        private readonly Action<byte[], int> output;
+        private readonly Pool segmentPool = new Pool(32);
+        private readonly List<AckItem> ackList = new List<AckItem>(16);
+        
+        public readonly List<Segment> sendBuffer = new List<Segment>(16);
+        public readonly List<Segment> receiveBuffer = new List<Segment>(16);
+        public readonly Queue<Segment> sendQueue = new Queue<Segment>(16);
+        public readonly Queue<Segment> receiveQueue = new Queue<Segment>(16);
 
         public Protocol(uint conv, Action<byte[], int> output)
         {
             this.conv = conv;
             this.output = output;
-            snd_wnd = WND_SND;
-            rcv_wnd = WND_RCV;
-            rmt_wnd = WND_RCV;
             mtu = MTU_DEF;
             mss = mtu - OVERHEAD;
             rx_rto = RTO_DEF;
-            rx_min_rto = RTO_MIN;
+            rx_rto_min = RTO_MIN;
+            snd_wnd = WND_SND;
+            rcv_wnd = WND_RCV;
+            rmt_wnd = WND_RCV;
             interval = INTERVAL;
             ts_flush = INTERVAL;
-            ss_thresh = THRESH_INIT;
-            fast_limit = FAST_ACK_LIMIT;
+            ss_thresh = THRESH_DEF;
             dead_link = DEAD_LINK;
             buffer = new byte[(mtu + OVERHEAD) * 3];
         }
-        
+
         public int Receive(byte[] buffer, int length)
         {
             if (length < 0)
@@ -120,12 +121,11 @@ namespace JFramework.Udp
             {
                 return -3;
             }
-
-            var recover = receiveQueue.Count >= rcv_wnd;
-
+            
             length = 0;
             var offset = 0;
-
+            var recover = receiveQueue.Count >= rcv_wnd;
+            
             while (receiveQueue.Count > 0)
             {
                 var segment = receiveQueue.Dequeue();
@@ -133,7 +133,7 @@ namespace JFramework.Udp
                 offset += (int)segment.data.Position;
 
                 length += (int)segment.data.Position;
-                var fragment = segment.fragment;
+                var fragment = segment.frg;
                 segmentPool.Push(segment);
 
                 if (fragment == 0)
@@ -146,7 +146,7 @@ namespace JFramework.Udp
             var removed = 0;
             foreach (var segment in receiveBuffer)
             {
-                if (segment.sendId == rcv_nxt && receiveQueue.Count < rcv_wnd)
+                if (segment.sn == rcv_nxt && receiveQueue.Count < rcv_wnd)
                 {
                     ++removed;
                     receiveQueue.Enqueue(segment);
@@ -159,7 +159,6 @@ namespace JFramework.Udp
             }
 
             receiveBuffer.RemoveRange(0, removed);
-
 
             if (receiveQueue.Count < rcv_wnd && recover)
             {
@@ -179,12 +178,12 @@ namespace JFramework.Udp
             }
 
             var segment = receiveQueue.Peek();
-            if (segment.fragment == 0)
+            if (segment.frg == 0)
             {
                 return (int)segment.data.Position;
             }
 
-            if (receiveQueue.Count < segment.fragment + 1)
+            if (receiveQueue.Count < segment.frg + 1)
             {
                 return -1;
             }
@@ -192,7 +191,7 @@ namespace JFramework.Udp
             foreach (var seg in receiveQueue)
             {
                 length += (int)seg.data.Position;
-                if (seg.fragment == 0)
+                if (seg.frg == 0)
                 {
                     break;
                 }
@@ -200,8 +199,7 @@ namespace JFramework.Udp
 
             return length;
         }
-
-
+        
         public int Send(byte[] buffer, int offset, int length)
         {
             if (length < 0)
@@ -218,8 +216,7 @@ namespace JFramework.Udp
             {
                 count = (int)((length + mss - 1) / mss);
             }
-
-
+            
             if (count > FRG_MAX)
             {
                 throw new Exception($"Send length={length} requires {count} fragments, but kcp can only handle up to {FRG_MAX} fragments.");
@@ -245,7 +242,7 @@ namespace JFramework.Udp
                     segment.data.Write(buffer, offset, size);
                 }
 
-                segment.fragment = (uint)(count - i - 1);
+                segment.frg = (uint)(count - i - 1);
                 sendQueue.Enqueue(segment);
                 offset += size;
                 length -= size;
@@ -257,31 +254,31 @@ namespace JFramework.Udp
 
         private void UpdateAck(int rtt)
         {
-            if (rx_s_rtt == 0)
+            if (rx_rtt_avg == 0)
             {
-                rx_s_rtt = rtt;
+                rx_rtt_avg = rtt;
                 rx_rtt_val = rtt / 2;
             }
             else
             {
-                int delta = rtt - rx_s_rtt;
+                int delta = rtt - rx_rtt_avg;
                 if (delta < 0)
                 {
                     delta = -delta;
                 }
 
                 rx_rtt_val = (3 * rx_rtt_val + delta) / 4;
-                rx_s_rtt = (7 * rx_s_rtt + rtt) / 8;
-                if (rx_s_rtt < 1) rx_s_rtt = 1;
+                rx_rtt_avg = (7 * rx_rtt_avg + rtt) / 8;
+                if (rx_rtt_avg < 1) rx_rtt_avg = 1;
             }
 
-            var rto = rx_s_rtt + Math.Max((int)interval, 4 * rx_rtt_val);
-            rx_rto = Math.Clamp(rto, rx_min_rto, RTO_MAX);
+            var rto = rx_rtt_avg + Math.Max((int)interval, 4 * rx_rtt_val);
+            rx_rto = Math.Clamp(rto, rx_rto_min, RTO_MAX);
         }
 
         internal void ShrinkBuffer()
         {
-            snd_una = sendBuffer.Count > 0 ? sendBuffer[0].sendId : snd_nxt;
+            snd_una = sendBuffer.Count > 0 ? sendBuffer[0].sn : snd_nxt;
         }
 
         internal void ParseAck(uint sendId)
@@ -294,14 +291,14 @@ namespace JFramework.Udp
             for (int i = 0; i < sendBuffer.Count; ++i)
             {
                 var segment = sendBuffer[i];
-                if (sendId == segment.sendId)
+                if (sendId == segment.sn)
                 {
                     sendBuffer.RemoveAt(i);
                     segmentPool.Push(segment);
                     break;
                 }
 
-                if (Utility.Compare(sendId, segment.sendId) < 0)
+                if (Utility.Compare(sendId, segment.sn) < 0)
                 {
                     break;
                 }
@@ -313,7 +310,7 @@ namespace JFramework.Udp
             int removed = 0;
             foreach (var segment in sendBuffer)
             {
-                if (segment.sendId < una)
+                if (segment.sn < una)
                 {
                     ++removed;
                     segmentPool.Push(segment);
@@ -326,7 +323,7 @@ namespace JFramework.Udp
 
             sendBuffer.RemoveRange(0, removed);
         }
-        
+
         internal void ParseFastAck(uint sendId, uint sendTime)
         {
             if (sendId < snd_una)
@@ -341,21 +338,21 @@ namespace JFramework.Udp
 
             foreach (var segment in sendBuffer)
             {
-                if (sendId < segment.sendId)
+                if (sendId < segment.sn)
                 {
                     break;
                 }
 
-                if (sendId != segment.sendId)
+                if (sendId != segment.sn)
                 {
-                    segment.fastAck++;
+                    segment.fast_ack++;
                 }
             }
         }
 
         private void ParseData(Segment segment)
         {
-            var sn = segment.sendId;
+            var sn = segment.sn;
             if (Utility.Compare(sn, rcv_nxt + rcv_wnd) >= 0 || Utility.Compare(sn, rcv_nxt) < 0)
             {
                 segmentPool.Push(segment);
@@ -374,13 +371,13 @@ namespace JFramework.Udp
             for (i = receiveBuffer.Count - 1; i >= 0; i--)
             {
                 var seg = receiveBuffer[i];
-                if (seg.sendId == segment.sendId)
+                if (seg.sn == segment.sn)
                 {
                     repeat = true;
                     break;
                 }
 
-                if (Utility.Compare(segment.sendId, seg.sendId) > 0)
+                if (Utility.Compare(segment.sn, seg.sn) > 0)
                 {
                     break;
                 }
@@ -390,7 +387,6 @@ namespace JFramework.Udp
             {
                 receiveBuffer.Insert(i + 1, segment);
             }
-
             else
             {
                 segmentPool.Push(segment);
@@ -403,7 +399,7 @@ namespace JFramework.Udp
             var removed = 0;
             foreach (var segment in receiveBuffer)
             {
-                if (segment.sendId == rcv_nxt && receiveQueue.Count < rcv_wnd)
+                if (segment.sn == rcv_nxt && receiveQueue.Count < rcv_wnd)
                 {
                     ++removed;
                     receiveQueue.Enqueue(segment);
@@ -496,11 +492,11 @@ namespace JFramework.Udp
                         {
                             var segment = segmentPool.Pop();
                             segment.conv = conv_;
-                            segment.command = command;
-                            segment.fragment = fragment;
-                            segment.windowSize = windowSize;
-                            segment.sendTime = sendTime;
-                            segment.sendId = sendId;
+                            segment.cmd = command;
+                            segment.frg = fragment;
+                            segment.wnd = windowSize;
+                            segment.ts = sendTime;
+                            segment.sn = sendId;
                             segment.una = una;
                             if (length > 0)
                             {
@@ -558,8 +554,8 @@ namespace JFramework.Udp
 
             return 0;
         }
-        
-        
+
+
         private uint WndUnused()
         {
             if (receiveQueue.Count < rcv_wnd)
@@ -598,15 +594,15 @@ namespace JFramework.Udp
 
             var seg = segmentPool.Pop();
             seg.conv = conv;
-            seg.command = CMD_ACK;
-            seg.windowSize = WndUnused();
+            seg.cmd = CMD_ACK;
+            seg.wnd = WndUnused();
             seg.una = rcv_nxt;
 
             foreach (var ack in ackList)
             {
                 MakeSpace(ref size, OVERHEAD);
-                seg.sendId = ack.sendId;
-                seg.sendTime = ack.sendTime;
+                seg.sn = ack.sn;
+                seg.ts = ack.ts;
                 size += seg.Encode(buffer, size);
             }
 
@@ -616,22 +612,22 @@ namespace JFramework.Udp
             {
                 if (probe_wait == 0)
                 {
-                    probe_wait = PROBE_INIT;
+                    probe_wait = PROBE_DEF;
                     ts_probe = current + probe_wait;
                 }
                 else
                 {
                     if (Utility.Compare(current, ts_probe) >= 0)
                     {
-                        if (probe_wait < PROBE_INIT)
+                        if (probe_wait < PROBE_DEF)
                         {
-                            probe_wait = PROBE_INIT;
+                            probe_wait = PROBE_DEF;
                         }
 
                         probe_wait += probe_wait / 2;
-                        if (probe_wait > PROBE_LIMIT)
+                        if (probe_wait > PROBE_LIM)
                         {
-                            probe_wait = PROBE_LIMIT;
+                            probe_wait = PROBE_LIM;
                         }
 
                         ts_probe = current + probe_wait;
@@ -648,7 +644,7 @@ namespace JFramework.Udp
 
             if ((probe & ASK_SEND) != 0)
             {
-                seg.command = CMD_W_ASK;
+                seg.cmd = CMD_W_ASK;
                 MakeSpace(ref size, OVERHEAD);
                 size += seg.Encode(buffer, size);
             }
@@ -656,7 +652,7 @@ namespace JFramework.Udp
 
             if ((probe & ASK_TELL) != 0)
             {
-                seg.command = CMD_W_INS;
+                seg.cmd = CMD_W_INS;
                 MakeSpace(ref size, OVERHEAD);
                 size += seg.Encode(buffer, size);
             }
@@ -677,16 +673,16 @@ namespace JFramework.Udp
 
                 var segment = sendQueue.Dequeue();
                 segment.conv = conv;
-                segment.command = CMD_PUSH;
-                segment.windowSize = segment.windowSize;
-                segment.sendTime = current;
-                segment.sendId = snd_nxt;
+                segment.cmd = CMD_PUSH;
+                segment.wnd = segment.wnd;
+                segment.ts = current;
+                segment.sn = snd_nxt;
                 snd_nxt += 1;
                 segment.una = rcv_nxt;
-                segment.resendTime = current;
-                segment.resendTimeout = rx_rto;
-                segment.fastAck = 0;
-                segment.resendCount = 0;
+                segment.rsd_ts = current;
+                segment.rto = rx_rto;
+                segment.fast_ack = 0;
+                segment.rsd_c = 0;
                 sendBuffer.Add(segment);
             }
 
@@ -699,48 +695,48 @@ namespace JFramework.Udp
             {
                 var needSend = false;
 
-                if (segment.resendCount == 0)
+                if (segment.rsd_c == 0)
                 {
                     needSend = true;
-                    segment.resendCount++;
-                    segment.resendTimeout = rx_rto;
-                    segment.resendTime = current + (uint)segment.resendTimeout + rto_min;
+                    segment.rsd_c++;
+                    segment.rto = rx_rto;
+                    segment.rsd_ts = current + (uint)segment.rto + rto_min;
                 }
 
-                else if (Utility.Compare(current, segment.resendTime) >= 0)
+                else if (Utility.Compare(current, segment.rsd_ts) >= 0)
                 {
                     needSend = true;
-                    segment.resendCount++;
+                    segment.rsd_c++;
                     if (no_delay == 0)
                     {
-                        segment.resendTimeout += Math.Max(segment.resendTimeout, rx_rto);
+                        segment.rto += Math.Max(segment.rto, rx_rto);
                     }
                     else
                     {
-                        int step = (no_delay < 2) ? segment.resendTimeout : rx_rto;
-                        segment.resendTimeout += step / 2;
+                        int step = (no_delay < 2) ? segment.rto : rx_rto;
+                        segment.rto += step / 2;
                     }
 
-                    segment.resendTime = current + (uint)segment.resendTimeout;
+                    segment.rsd_ts = current + (uint)segment.rto;
                     lost = true;
                 }
 
-                else if (segment.fastAck >= resent)
+                else if (segment.fast_ack >= resent)
                 {
-                    if (segment.resendCount <= fast_limit || fast_limit <= 0)
+                    if (segment.rsd_c <= FAST_LIM || FAST_LIM <= 0)
                     {
                         needSend = true;
-                        segment.resendCount++;
-                        segment.fastAck = 0;
-                        segment.resendTime = current + (uint)segment.resendTimeout;
+                        segment.rsd_c++;
+                        segment.fast_ack = 0;
+                        segment.rsd_ts = current + (uint)segment.rto;
                         change++;
                     }
                 }
 
                 if (needSend)
                 {
-                    segment.sendTime = current;
-                    segment.windowSize = seg.windowSize;
+                    segment.ts = current;
+                    segment.wnd = seg.wnd;
                     segment.una = rcv_nxt;
 
                     var need = OVERHEAD + (int)segment.data.Position;
@@ -754,7 +750,7 @@ namespace JFramework.Udp
                         size += (int)segment.data.Position;
                     }
 
-                    if (segment.resendCount >= dead_link)
+                    if (segment.rsd_c >= dead_link)
                     {
                         state = -1;
                     }
@@ -842,7 +838,7 @@ namespace JFramework.Udp
         public void SetNoDelay(uint no_delay, uint interval = INTERVAL, uint resend = 0, bool noc_wnd = false)
         {
             this.no_delay = no_delay;
-            rx_min_rto = no_delay != 0 ? RTO_NDL : RTO_MIN;
+            rx_rto_min = no_delay != 0 ? RTO_NDL : RTO_MIN;
 
             if (interval > 5000)
             {
