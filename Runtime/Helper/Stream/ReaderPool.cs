@@ -33,11 +33,6 @@ namespace JFramework.Net
         public int Count => writers.Count;
 
         /// <summary>
-        /// 远端时间戳
-        /// </summary>
-        private double remoteTime;
-
-        /// <summary>
         /// 将接收到的数据写入到列表
         /// </summary>
         /// <param name="segment">批处理数据</param>
@@ -54,7 +49,6 @@ namespace JFramework.Net
             if (writers.Count == 0)
             {
                 reader.Reset(writer);
-                remoteTime = reader.ReadDouble();
             }
 
             writers.Enqueue(writer);
@@ -65,11 +59,9 @@ namespace JFramework.Net
         /// 读取数据并输出数据和时间戳
         /// </summary>
         /// <param name="newReader"></param>
-        /// <param name="newTime"></param>
         /// <returns></returns>
-        public bool GetMessage(out NetworkReader newReader, out double newTime)
+        public bool GetMessage(out NetworkReader newReader)
         {
-            newTime = 0;
             newReader = null;
             if (writers.Count == 0)
             {
@@ -89,15 +81,13 @@ namespace JFramework.Net
                 {
                     writer = writers.Peek();
                     reader.Reset(writer);
-                    remoteTime = reader.ReadDouble();
                 }
                 else
                 {
                     return false;
                 }
             }
-
-            newTime = remoteTime;
+            
             newReader = reader;
             return true;
         }

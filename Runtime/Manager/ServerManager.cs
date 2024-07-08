@@ -314,7 +314,7 @@ namespace JFramework.Net
                 return;
             }
 
-            while (!isLoadScene && client.readerPool.GetMessage(out var reader, out var remoteTime))
+            while (!isLoadScene && client.readerPool.GetMessage(out var reader))
             {
                 if (reader.residue < Const.MessageSize)
                 {
@@ -330,8 +330,7 @@ namespace JFramework.Net
                     client.Disconnect();
                     return;
                 }
-
-                client.remoteTime = remoteTime;
+                
                 action.Invoke(client, reader, channel);
             }
 

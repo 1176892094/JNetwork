@@ -19,10 +19,9 @@ namespace JFramework.Net
     public class NetworkServer
     {
         private Dictionary<int, WriterPool> writerPools = new Dictionary<int, WriterPool>();
-        internal List<NetworkWriter> writers = new List<NetworkWriter>();
+        internal Queue<NetworkWriter> writers = new Queue<NetworkWriter>();
         [SerializeField] internal ReaderPool readerPool = new ReaderPool();
         [SerializeField] internal bool isReady;
-        [SerializeField] internal double remoteTime;
         
         internal void Update()
         {
@@ -44,11 +43,10 @@ namespace JFramework.Net
             {
                 while (writers.Count > 0)
                 {
-                    using var writer = writers[0];
-                    writers.RemoveAt(0);
+                    using var writer = writers.Dequeue();
                     if (writerPools.TryGetValue(Channel.Reliable, out var writerPool))
                     {
-                        writerPool.AddMessage(writer, NetworkManager.TickTime);
+                        writerPool.AddMessage(writer);
                         using var target = NetworkWriter.Pop();
                         if (writerPool.GetBatch(target))
                         {
@@ -82,33 +80,31 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Send(ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
+            if (segment.Count == 0)
+            {
+                Debug.LogError("发送消息大小不能为零！");
+                return;
+            }
+            
             if (!writerPools.TryGetValue(channel, out var writerPool))
             {
                 writerPool = new WriterPool(channel);
                 writerPools[channel] = writerPool;
             }
 
-            if (NetworkManager.Mode != EntryMode.Host)
+            writerPool.AddMessage(segment);
+            
+            if (NetworkManager.Mode == EntryMode.Host)
             {
-                writerPool.AddMessage(segment, NetworkManager.TickTime);
-                return;
-            }
+                using var writer = NetworkWriter.Pop();
+                if (!writerPool.GetBatch(writer))
+                {
+                    Debug.LogError("无法拷贝数据到写入器。");
+                    return;
+                }
 
-            if (segment.Count == 0)
-            {
-                Debug.LogError("发送消息大小不能为零！");
-                return;
+                NetworkManager.Server.OnServerReceive(Const.HostId, writer, channel);
             }
-
-            writerPool.AddMessage(segment, NetworkManager.TickTime);
-            using var writer = NetworkWriter.Pop();
-            if (!writerPool.GetBatch(writer))
-            {
-                Debug.LogError("无法拷贝数据到写入器。");
-                return;
-            }
-
-            NetworkManager.Server.OnServerReceive(Const.HostId, writer, channel);
         }
 
         public void Disconnect()

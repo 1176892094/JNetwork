@@ -30,38 +30,29 @@ namespace JFramework.Net
         /// <summary>
         /// 消息大小
         /// </summary>
-        [SerializeField] private int maxSize;
+        private int messageSize;
 
         /// <summary>
         /// 设置阈值
         /// </summary>
         public WriterPool(int channel)
         {
-            if (NetworkManager.Transport != null)
-            {
-                maxSize = NetworkManager.Transport.MessageSize(channel);
-            }
+            messageSize = NetworkManager.Transport.MessageSize(channel);
         }
 
         /// <summary>
         /// 添加到队列末尾并写入数据
         /// </summary>
         /// <param name="segment">消息分段</param>
-        /// <param name="remoteTime">时间戳</param>
-        public void AddMessage(ArraySegment<byte> segment, double remoteTime)
+        public void AddMessage(ArraySegment<byte> segment)
         {
-            if (writer != null && writer.position + segment.Count > maxSize)
+            if (writer != null && writer.position + segment.Count > messageSize)
             {
                 writers.Enqueue(writer); // 加入到队列中
                 writer = null;
             }
 
-            if (writer == null)
-            {
-                writer = NetworkWriter.Pop(); // 从对象池中取出
-                writer.WriteDouble(remoteTime); // 重新写入时间戳
-            }
-
+            writer ??= NetworkWriter.Pop(); // 从对象池中取出
             writer.WriteBytes(segment.Array, segment.Offset, segment.Count); // 写入消息分段
         }
 
