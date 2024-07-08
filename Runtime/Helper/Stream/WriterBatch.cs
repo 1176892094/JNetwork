@@ -15,7 +15,7 @@ using UnityEngine;
 namespace JFramework.Net
 {
     [Serializable]
-    internal class WriterPool
+    internal class WriterBatch
     {
         /// <summary>
         /// 批处理队列
@@ -35,7 +35,7 @@ namespace JFramework.Net
         /// <summary>
         /// 设置阈值
         /// </summary>
-        public WriterPool(int channel)
+        public WriterBatch(int channel)
         {
             messageSize = NetworkManager.Transport.MessageSize(channel);
         }

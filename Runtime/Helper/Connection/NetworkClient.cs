@@ -18,9 +18,9 @@ namespace JFramework.Net
     [Serializable]
     public class NetworkClient
     {
-        private Dictionary<int, WriterPool> writerPools = new Dictionary<int, WriterPool>();
+        private Dictionary<int, WriterBatch> writerPools = new Dictionary<int, WriterBatch>();
         private Dictionary<int, NetworkWriter> writers = new Dictionary<int, NetworkWriter>();
-        [SerializeField] internal ReaderPool readerPool = new ReaderPool();
+        [SerializeField] internal ReaderBatch readerBatch = new ReaderBatch();
         [SerializeField] internal int clientId;
         [SerializeField] internal bool isReady;
         [SerializeField] internal bool isPlayer;
@@ -89,7 +89,7 @@ namespace JFramework.Net
 
             if (!writerPools.TryGetValue(channel, out var writerPool))
             {
-                writerPool = new WriterPool(channel);
+                writerPool = new WriterBatch(channel);
                 writerPools[channel] = writerPool;
             }
 

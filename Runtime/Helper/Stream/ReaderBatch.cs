@@ -15,7 +15,7 @@ using UnityEngine;
 namespace JFramework.Net
 {
     [Serializable]
-    internal class ReaderPool
+    internal class ReaderBatch
     {
         /// <summary>
         /// 写入器列表
