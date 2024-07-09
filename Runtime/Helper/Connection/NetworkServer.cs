@@ -20,10 +20,13 @@ namespace JFramework.Net
     {
         private Dictionary<int, WriterBatch> writerBatches = new Dictionary<int, WriterBatch>();
         internal Queue<NetworkWriter> writers = new Queue<NetworkWriter>();
-        [SerializeField] internal ReaderBatch readerBatch = new ReaderBatch();
+        [SerializeField] internal ReaderBatch reader = new ReaderBatch();
         [SerializeField] internal bool isReady;
         [SerializeField] internal double remoteTime;
 
+        /// <summary>
+        /// 将消息发送到传输层
+        /// </summary>
         internal void Update()
         {
             foreach (var (channel, writerBatch) in writerBatches)
@@ -39,18 +42,11 @@ namespace JFramework.Net
 
             while (writers.Count > 0)
             {
-                using var writer = writers.Dequeue();
-                if (!writerBatches.TryGetValue(Channel.Reliable, out var writerBatch))
+                using var target = writers.Dequeue();
+                using var writer = NetworkWriter.Pop();
+                if (AddMessage(target).GetBatch(writer))
                 {
-                    writerBatch = new WriterBatch(Channel.Reliable);
-                    writerBatches[Channel.Reliable] = writerBatch;
-                }
-
-                writerBatch.AddMessage(writer, NetworkManager.TickTime);
-                using var target = NetworkWriter.Pop();
-                if (writerBatch.GetBatch(target))
-                {
-                    NetworkManager.Client.OnClientReceive(target, Channel.Reliable);
+                    NetworkManager.Client.OnClientReceive(writer, Channel.Reliable);
                 }
             }
         }
@@ -73,16 +69,26 @@ namespace JFramework.Net
                 return;
             }
 
-            Send(writer, channel);
+            if (NetworkManager.Mode != EntryMode.Host)
+            {
+                AddMessage(writer, channel);
+                return;
+            }
+
+            using var target = NetworkWriter.Pop();
+            if (AddMessage(writer).GetBatch(target))
+            {
+                NetworkManager.Server.OnServerReceive(Const.HostId, target, channel);
+            }
         }
 
         /// <summary>
-        /// 获取网络消息并添加到发送队列中
+        /// 网络消息添加
         /// </summary>
-        /// <param name="segment">数据分段</param>
-        /// <param name="channel">传输通道</param>
+        /// <param name="segment"></param>
+        /// <param name="channel"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void Send(ArraySegment<byte> segment, int channel = Channel.Reliable)
+        internal WriterBatch AddMessage(ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
             if (!writerBatches.TryGetValue(channel, out var writerBatch))
             {
@@ -91,19 +97,12 @@ namespace JFramework.Net
             }
 
             writerBatch.AddMessage(segment, NetworkManager.TickTime);
-            if (NetworkManager.Mode == EntryMode.Host)
-            {
-                using var writer = NetworkWriter.Pop();
-                if (!writerBatch.GetBatch(writer))
-                {
-                    Debug.LogError("无法拷贝数据到写入器。");
-                    return;
-                }
-
-                NetworkManager.Server.OnServerReceive(Const.HostId, writer, channel);
-            }
+            return writerBatch;
         }
 
+        /// <summary>
+        /// 断开连接
+        /// </summary>
         public void Disconnect()
         {
             isReady = false;

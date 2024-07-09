@@ -196,11 +196,11 @@ namespace JFramework.Net
             messages[Message<PingMessage>.Id] = NetworkUtility.GetMessage<PingMessage>(PingMessage);
             messages[Message<ReadyMessage>.Id] = NetworkUtility.GetMessage<ReadyMessage>(ReadyMessage);
             messages[Message<EntityMessage>.Id] = NetworkUtility.GetMessage<EntityMessage>(EntityMessage);
-            messages[Message<InvokeMessage>.Id] = NetworkUtility.GetMessage<InvokeMessage>(InvokeMessage);
             messages[Message<SceneMessage>.Id] = NetworkUtility.GetMessage<SceneMessage>(SceneMessage);
             messages[Message<SpawnMessage>.Id] = NetworkUtility.GetMessage<SpawnMessage>(SpawnMessage);
             messages[Message<DestroyMessage>.Id] = NetworkUtility.GetMessage<DestroyMessage>(DestroyMessage);
             messages[Message<DespawnMessage>.Id] = NetworkUtility.GetMessage<DespawnMessage>(DespawnMessage);
+            messages[Message<ClientRpcMessage>.Id] = NetworkUtility.GetMessage<ClientRpcMessage>(ClientRpcMessage);
         }
 
         private void PingMessage(PingMessage message)
@@ -242,17 +242,12 @@ namespace JFramework.Net
             @object.ClientDeserialize(reader, false);
         }
 
-        private void InvokeMessage(InvokeMessage message)
+        private void ClientRpcMessage(ClientRpcMessage message)
         {
-            using var reader = NetworkReader.Pop(message.segment);
-            while (reader.residue > 0)
+            if (spawns.TryGetValue(message.objectId, out var @object))
             {
-                var clientRpc = reader.Invoke<ClientRpcMessage>();
-                if (spawns.TryGetValue(clientRpc.objectId, out var @object))
-                {
-                    using var client = NetworkReader.Pop(clientRpc.segment);
-                    @object.InvokeMessage(clientRpc.componentId, clientRpc.methodHash, InvokeMode.ClientRpc, client);
-                }
+                using var reader = NetworkReader.Pop(message.segment);
+                @object.InvokeMessage(message.componentId, message.methodHash, InvokeMode.ClientRpc, reader);
             }
         }
 
@@ -376,14 +371,14 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!connection.readerBatch.AddBatch(segment))
+            if (!connection.reader.AddBatch(segment))
             {
                 Debug.LogWarning($"无法将消息写入。");
                 connection.Disconnect();
                 return;
             }
 
-            while (!isLoadScene && connection.readerBatch.GetMessage(out var newSeg, out var remoteTime))
+            while (!isLoadScene && connection.reader.GetMessage(out var newSeg, out var remoteTime))
             {
                 using var reader = NetworkReader.Pop(newSeg);
                 if (reader.residue < Const.MessageSize)
@@ -405,9 +400,9 @@ namespace JFramework.Net
                 action.Invoke(null, reader, channel);
             }
 
-            if (!isLoadScene && connection.readerBatch.Count > 0)
+            if (!isLoadScene && connection.reader.Count > 0)
             {
-                Debug.LogError($"有残留消息没被写入！残留数：{connection.readerBatch.Count}\n");
+                Debug.LogError($"有残留消息没被写入！残留数：{connection.reader.Count}\n");
             }
         }
     }

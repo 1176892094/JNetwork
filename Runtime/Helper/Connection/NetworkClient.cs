@@ -19,29 +19,26 @@ namespace JFramework.Net
     public class NetworkClient
     {
         private Dictionary<int, WriterBatch> writerBatches = new Dictionary<int, WriterBatch>();
-        private Dictionary<int, NetworkWriter> writers = new Dictionary<int, NetworkWriter>();
-        [SerializeField] internal ReaderBatch readerBatch = new ReaderBatch();
+        [SerializeField] internal ReaderBatch reader = new ReaderBatch();
         [SerializeField] internal int clientId;
         [SerializeField] internal bool isReady;
         [SerializeField] internal bool isPlayer;
         [SerializeField] internal double remoteTime;
 
+        /// <summary>
+        /// 初始化客户端Id
+        /// </summary>
+        /// <param name="clientId"></param>
         public NetworkClient(int clientId)
         {
             this.clientId = clientId;
         }
 
+        /// <summary>
+        /// 将消息发送到传输层
+        /// </summary>
         internal void Update()
         {
-            foreach (var (channel, writer) in writers)
-            {
-                if (writer.position > 0)
-                {
-                    Send(new InvokeMessage(writer), channel);
-                    writer.position = 0;
-                }
-            }
-            
             foreach (var (channel, writerBatch) in writerBatches)
             {
                 using var writer = NetworkWriter.Pop();
@@ -72,25 +69,27 @@ namespace JFramework.Net
                 return;
             }
 
-            Send(writer, channel);
-        }
-
-        /// <summary>
-        /// 获取网络消息并添加到发送队列中
-        /// </summary>
-        /// <param name="segment">数据分段</param>
-        /// <param name="channel">传输通道</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void Send(ArraySegment<byte> segment, int channel = Channel.Reliable)
-        {
-            if (clientId == Const.HostId)
+            if (clientId != Const.HostId)
             {
-                var writer = NetworkWriter.Pop();
-                writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
-                NetworkManager.Client.connection.writers.Enqueue(writer);
+                AddMessage(writer, channel);
                 return;
             }
 
+            var target = NetworkWriter.Pop();
+            ArraySegment<byte> segment = writer;
+            target.WriteBytes(segment.Array, segment.Offset, segment.Count);
+            NetworkManager.Client.connection.writers.Enqueue(target);
+        }
+
+        /// <summary>
+        /// 网络消息添加
+        /// </summary>
+        /// <param name="segment"></param>
+        /// <param name="channel"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal WriterBatch AddMessage(ArraySegment<byte> segment, int channel = Channel.Reliable)
+        {
             if (!writerBatches.TryGetValue(channel, out var writerBatch))
             {
                 writerBatch = new WriterBatch(channel);
@@ -98,47 +97,11 @@ namespace JFramework.Net
             }
 
             writerBatch.AddMessage(segment, NetworkManager.TickTime);
-        }
-        
-        /// <summary>
-        /// 由NetworkBehaviour调用
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="channel"></param>
-        internal void Send(ClientRpcMessage message, int channel)
-        {
-            if (!writers.TryGetValue(channel, out var writer))
-            {
-                writer = new NetworkWriter();
-                writers[channel] = writer;
-            }
-
-            var maxSize = NetworkManager.Transport.MessageSize(channel);
-            int size = maxSize - Const.MessageSize - sizeof(int) - Const.HeaderSize;
-            int position = writer.position;
-            writer.Invoke(message);
-            int messageSize = writer.position - position;
-            if (messageSize > size)
-            {
-                Debug.LogWarning($"远程调用 {message.objectId} 消息大小不能超过 {size}。消息大小：{messageSize}");
-                return;
-            }
-
-            if (writer.position > size)
-            {
-                writer.position = position;
-                if (writer.position > 0)
-                {
-                    Send(new InvokeMessage(writer), channel);
-                    writer.position = 0;
-                }
-
-                writer.Invoke(message);
-            }
+            return writerBatch;
         }
 
         /// <summary>
-        /// 是否准备好可以接收信息
+        /// 断开连接
         /// </summary>
         public void Disconnect()
         {
