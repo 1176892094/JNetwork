@@ -47,19 +47,21 @@ namespace JFramework.Net
         /// <param name="remoteTime">时间戳</param>
         public void AddMessage(ArraySegment<byte> segment, double remoteTime)
         {
-            if (writer != null && writer.position + segment.Count > messageSize)
+            int header = NetworkUtility.VarUIntSize((ulong)segment.Count);
+            if (writer != null && writer.position + header + segment.Count > messageSize)
             {
-                writers.Enqueue(writer); // 加入到队列中
+                writers.Enqueue(writer);
                 writer = null;
             }
 
             if (writer == null)
             {
-                writer = NetworkWriter.Pop(); // 从对象池中取出
-                writer.WriteDouble(remoteTime); // 重新写入时间戳
+                writer = NetworkWriter.Pop();
+                writer.WriteDouble(remoteTime);
             }
 
-            writer.WriteBytes(segment.Array, segment.Offset, segment.Count); // 写入消息分段
+            NetworkUtility.CompressVarUInt(writer, (ulong)segment.Count);
+            writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
         }
 
         /// <summary>

@@ -64,13 +64,13 @@ namespace JFramework.Net
         /// <summary>
         /// 读取数据并输出数据和时间戳
         /// </summary>
-        /// <param name="newReader"></param>
+        /// <param name="segment"></param>
         /// <param name="newTime"></param>
         /// <returns></returns>
-        public bool GetMessage(out NetworkReader newReader, out double newTime)
+        public bool GetMessage(out ArraySegment<byte> segment, out double newTime)
         {
             newTime = 0;
-            newReader = null;
+            segment = null;
             if (writers.Count == 0)
             {
                 return false;
@@ -98,7 +98,19 @@ namespace JFramework.Net
             }
 
             newTime = remoteTime;
-            newReader = reader;
+            if (reader.residue == 0)
+            {
+                return false;
+            }
+
+            int size = (int)NetworkUtility.DecompressVarUInt(reader);
+            
+            if (reader.residue < size)
+            {
+                return false;
+            }
+
+            segment = reader.ReadArraySegment(size);
             return true;
         }
     }

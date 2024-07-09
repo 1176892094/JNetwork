@@ -41,7 +41,7 @@ namespace JFramework.Net
                     writer.position = 0;
                 }
             }
-
+            
             foreach (var (channel, writerBatch) in writerBatches)
             {
                 using var writer = NetworkWriter.Pop();
@@ -99,7 +99,7 @@ namespace JFramework.Net
 
             writerBatch.AddMessage(segment, NetworkManager.TickTime);
         }
-
+        
         /// <summary>
         /// 由NetworkBehaviour调用
         /// </summary>

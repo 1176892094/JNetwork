@@ -314,8 +314,9 @@ namespace JFramework.Net
                 return;
             }
 
-            while (!isLoadScene && client.readerBatch.GetMessage(out var reader, out var remoteTime))
+            while (!isLoadScene && client.readerBatch.GetMessage(out var newSeg, out var remoteTime))
             {
+                using var reader = NetworkReader.Pop(newSeg);
                 if (reader.residue < Const.MessageSize)
                 {
                     Debug.LogError($"网络消息应该有个开始的Id。断开客户端：{client}");

@@ -68,14 +68,9 @@ namespace JFramework.Net
             {
                 this.sceneName = sceneName;
                 NetworkManager.Server.isLoadScene = true;
-                using (var writer = NetworkWriter.Pop())
+                foreach (var client in NetworkManager.Server.clients.Values)
                 {
-                    writer.WriteUShort(Message<SceneMessage>.Id);
-                    writer.Invoke(new SceneMessage(sceneName));
-                    foreach (var client in NetworkManager.Server.clients.Values)
-                    {
-                        client.Send(writer);
-                    }
+                    client.Send(new SceneMessage(sceneName));
                 }
 
                 GlobalSceneManager.Load(sceneName, OnLoadComplete);

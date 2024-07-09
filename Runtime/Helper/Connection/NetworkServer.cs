@@ -40,14 +40,17 @@ namespace JFramework.Net
             while (writers.Count > 0)
             {
                 using var writer = writers.Dequeue();
-                if (writerBatches.TryGetValue(Channel.Reliable, out var writerBatch))
+                if (!writerBatches.TryGetValue(Channel.Reliable, out var writerBatch))
                 {
-                    writerBatch.AddMessage(writer, NetworkManager.TickTime);
-                    using var target = NetworkWriter.Pop();
-                    if (writerBatch.GetBatch(target))
-                    {
-                        NetworkManager.Client.OnClientReceive(target, Channel.Reliable);
-                    }
+                    writerBatch = new WriterBatch(Channel.Reliable);
+                    writerBatches[Channel.Reliable] = writerBatch;
+                }
+
+                writerBatch.AddMessage(writer, NetworkManager.TickTime);
+                using var target = NetworkWriter.Pop();
+                if (writerBatch.GetBatch(target))
+                {
+                    NetworkManager.Client.OnClientReceive(target, Channel.Reliable);
                 }
             }
         }
@@ -87,27 +90,18 @@ namespace JFramework.Net
                 writerBatches[channel] = writerBatch;
             }
 
-            if (NetworkManager.Mode != EntryMode.Host)
-            {
-                writerBatch.AddMessage(segment, NetworkManager.TickTime);
-                return;
-            }
-
-            if (segment.Count == 0)
-            {
-                Debug.LogError("发送消息大小不能为零！");
-                return;
-            }
-
             writerBatch.AddMessage(segment, NetworkManager.TickTime);
-            using var writer = NetworkWriter.Pop();
-            if (!writerBatch.GetBatch(writer))
+            if (NetworkManager.Mode == EntryMode.Host)
             {
-                Debug.LogError("无法拷贝数据到写入器。");
-                return;
-            }
+                using var writer = NetworkWriter.Pop();
+                if (!writerBatch.GetBatch(writer))
+                {
+                    Debug.LogError("无法拷贝数据到写入器。");
+                    return;
+                }
 
-            NetworkManager.Server.OnServerReceive(Const.HostId, writer, channel);
+                NetworkManager.Server.OnServerReceive(Const.HostId, writer, channel);
+            }
         }
 
         public void Disconnect()
