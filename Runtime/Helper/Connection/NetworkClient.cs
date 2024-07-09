@@ -20,8 +20,8 @@ namespace JFramework.Net
     {
         private Dictionary<int, WriterBatch> writerBatches = new Dictionary<int, WriterBatch>();
         [SerializeField] internal ReaderBatch reader = new ReaderBatch();
-        [SerializeField] internal int clientId;
-        [SerializeField] internal bool isReady;
+        [SerializeField] public int clientId;
+        [SerializeField] public bool isReady;
         [SerializeField] internal bool isPlayer;
         [SerializeField] internal double remoteTime;
 

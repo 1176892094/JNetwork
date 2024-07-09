@@ -86,7 +86,7 @@ namespace JFramework.Net
         /// 客户端取消准备的事件
         /// </summary>
         public event Action OnReady;
-
+        
         /// <summary>
         /// 开启主机，使用Server的Transport
         /// </summary>
@@ -193,14 +193,19 @@ namespace JFramework.Net
                 NetworkManager.Transport.OnClientReceive += OnClientReceive;
             }
 
-            messages[Message<PingMessage>.Id] = NetworkUtility.GetMessage<PingMessage>(PingMessage);
-            messages[Message<ReadyMessage>.Id] = NetworkUtility.GetMessage<ReadyMessage>(ReadyMessage);
-            messages[Message<EntityMessage>.Id] = NetworkUtility.GetMessage<EntityMessage>(EntityMessage);
-            messages[Message<SceneMessage>.Id] = NetworkUtility.GetMessage<SceneMessage>(SceneMessage);
-            messages[Message<SpawnMessage>.Id] = NetworkUtility.GetMessage<SpawnMessage>(SpawnMessage);
-            messages[Message<DestroyMessage>.Id] = NetworkUtility.GetMessage<DestroyMessage>(DestroyMessage);
-            messages[Message<DespawnMessage>.Id] = NetworkUtility.GetMessage<DespawnMessage>(DespawnMessage);
-            messages[Message<ClientRpcMessage>.Id] = NetworkUtility.GetMessage<ClientRpcMessage>(ClientRpcMessage);
+            Register<PingMessage>(PingMessage);
+            Register<ReadyMessage>(ReadyMessage);
+            Register<SceneMessage>(SceneMessage);
+            Register<SpawnMessage>(SpawnMessage);
+            Register<EntityMessage>(EntityMessage);
+            Register<DespawnMessage>(DespawnMessage);
+            Register<DestroyMessage>(DestroyMessage);
+            Register<ClientRpcMessage>(ClientRpcMessage);
+        }
+
+        public void Register<T>(Action<T> handle) where T : struct, Message
+        {
+            messages[Message<T>.Id] = NetworkUtility.GetMessage(handle);
         }
 
         private void PingMessage(PingMessage message)

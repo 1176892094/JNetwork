@@ -26,7 +26,7 @@ namespace JFramework.Net
         /// <summary>
         /// 连接的的客户端字典
         /// </summary>
-        [ShowInInspector] internal readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
+        [ShowInInspector] public readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
 
         /// <summary>
         /// 服务器生成的游戏对象字典
@@ -161,10 +161,20 @@ namespace JFramework.Net
             NetworkManager.Transport.OnServerConnect += OnServerConnect;
             NetworkManager.Transport.OnServerDisconnect += OnServerDisconnect;
             NetworkManager.Transport.OnServerReceive += OnServerReceive;
-            messages[Message<PingMessage>.Id] = NetworkUtility.GetMessage<PingMessage>(PingMessage);
-            messages[Message<ReadyMessage>.Id] = NetworkUtility.GetMessage<ReadyMessage>(ReadyMessage);
-            messages[Message<EntityMessage>.Id] = NetworkUtility.GetMessage<EntityMessage>(EntityMessage);
-            messages[Message<ServerRpcMessage>.Id] = NetworkUtility.GetMessage<ServerRpcMessage>(ServerRpcMessage);
+            Register<PingMessage>(PingMessage);
+            Register<ReadyMessage>(ReadyMessage);
+            Register<EntityMessage>(EntityMessage);
+            Register<ServerRpcMessage>(ServerRpcMessage);
+        }
+
+        public void Register<T>(Action<NetworkClient, T> handle) where T : struct, Message
+        {
+            messages[Message<T>.Id] = NetworkUtility.GetMessage(handle);
+        }
+
+        public void Register<T>(Action<NetworkClient, T, int> handle) where T : struct, Message
+        {
+            messages[Message<T>.Id] = NetworkUtility.GetMessage(handle);
         }
 
         internal void PingMessage(NetworkClient client, PingMessage message)
