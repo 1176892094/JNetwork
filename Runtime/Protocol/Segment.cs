@@ -4,20 +4,20 @@ namespace JFramework.Udp
 {
     internal class Segment
     {
-        internal readonly MemoryStream data = new MemoryStream(Protocol.MTU_DEF);
-        internal uint conv;
-        internal uint cmd;
-        internal uint frg;
-        internal uint wnd;
-        internal uint ts;
-        internal uint sn;
-        internal uint una;
-        internal uint rsd_c;
-        internal uint rsd_ts;
-        internal uint fast_ack;
-        internal int rto;
+        public readonly MemoryStream data = new MemoryStream(Protocol.MTU_DEF);
+        public uint conv;
+        public uint cmd;
+        public uint frg;
+        public uint wnd;
+        public uint ts;
+        public uint sn;
+        public uint una;
+        public uint rsd_c;
+        public uint rsd_ts;
+        public uint fast_ack;
+        public int rto;
         
-        internal int Encode(byte[] ptr, int offset)
+        public int Encode(byte[] ptr, int offset)
         {
             int position = offset;
             offset += Utility.Encode32U(ptr, offset, conv);
@@ -31,7 +31,7 @@ namespace JFramework.Udp
             return offset - position;
         }
 
-        internal void Reset()
+        public void Reset()
         {
             conv = 0;
             cmd = 0;
