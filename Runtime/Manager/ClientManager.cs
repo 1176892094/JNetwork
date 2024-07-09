@@ -177,23 +177,6 @@ namespace JFramework.Net
             connection.isReady = true;
             connection.Send(new ReadyMessage());
         }
-
-        internal void Send<T>(T message, int channel = Channel.Reliable) where T : struct, Message
-        {
-            if (connection == null)
-            {
-                Debug.LogError("没有连接到有效的服务器！");
-                return;
-            }
-
-            if (state != StateMode.Connected)
-            {
-                Debug.LogError("客户端没有连接成功就向服务器发送消息！");
-                return;
-            }
-
-            connection.Send(message, channel);
-        }
     }
 
     public partial class ClientManager
@@ -575,7 +558,7 @@ namespace JFramework.Net
                 @object.ClientSerialize(writer);
                 if (writer.position > 0)
                 {
-                    Send(new EntityMessage(@object.objectId, writer));
+                    connection.Send(new EntityMessage(@object.objectId, writer));
                     @object.ClearDirty();
                 }
             }
