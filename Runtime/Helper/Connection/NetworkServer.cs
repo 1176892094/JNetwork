@@ -19,7 +19,6 @@ namespace JFramework.Net
     public class NetworkServer
     {
         private Dictionary<int, WriterBatch> writerBatches = new Dictionary<int, WriterBatch>();
-        internal Queue<NetworkWriter> writers = new Queue<NetworkWriter>();
         [SerializeField] internal ReaderBatch reader = new ReaderBatch();
         [SerializeField] internal bool isReady;
         [SerializeField] internal double remoteTime;
@@ -34,19 +33,8 @@ namespace JFramework.Net
                 using var writer = NetworkWriter.Pop();
                 while (writerBatch.GetBatch(writer))
                 {
-                    ArraySegment<byte> segment = writer;
-                    NetworkManager.Transport.SendToServer(segment, channel);
+                    NetworkManager.Transport.SendToServer(writer, channel);
                     writer.position = 0;
-                }
-            }
-
-            while (writers.Count > 0)
-            {
-                using var target = writers.Dequeue();
-                using var writer = NetworkWriter.Pop();
-                if (AddMessage(target).GetBatch(writer))
-                {
-                    NetworkManager.Client.OnClientReceive(writer, Channel.Reliable);
                 }
             }
         }
@@ -69,35 +57,21 @@ namespace JFramework.Net
                 return;
             }
 
-            if (NetworkManager.Mode != EntryMode.Host)
-            {
-                AddMessage(writer, channel);
-                return;
-            }
-
-            using var target = NetworkWriter.Pop();
-            if (AddMessage(writer).GetBatch(target))
-            {
-                NetworkManager.Server.OnServerReceive(Const.HostId, target, Channel.Reliable);
-            }
-        }
-
-        /// <summary>
-        /// 网络消息添加
-        /// </summary>
-        /// <param name="segment"></param>
-        /// <param name="channel"></param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal WriterBatch AddMessage(ArraySegment<byte> segment, int channel = Channel.Reliable)
-        {
             if (!writerBatches.TryGetValue(channel, out var writerBatch))
             {
                 writerBatch = new WriterBatch(channel);
                 writerBatches[channel] = writerBatch;
             }
 
-            writerBatch.AddMessage(segment, NetworkManager.TickTime);
-            return writerBatch;
+            writerBatch.AddMessage(writer, NetworkManager.TickTime);
+            if (NetworkManager.Mode == EntryMode.Host)
+            {
+                using var target = NetworkWriter.Pop();
+                if (writerBatch.GetBatch(target))
+                {
+                    NetworkManager.Server.OnServerReceive(Const.HostId, target, Channel.Reliable);
+                }
+            }
         }
 
         /// <summary>

@@ -44,8 +44,7 @@ namespace JFramework.Net
                 using var writer = NetworkWriter.Pop();
                 while (writerBatch.GetBatch(writer))
                 {
-                    ArraySegment<byte> segment = writer;
-                    NetworkManager.Transport.SendToClient(clientId, segment, channel);
+                    NetworkManager.Transport.SendToClient(clientId, writer, channel);
                     writer.position = 0;
                 }
             }
@@ -69,35 +68,21 @@ namespace JFramework.Net
                 return;
             }
 
-            if (clientId != Const.HostId)
-            {
-                AddMessage(writer, channel);
-                return;
-            }
-
-            var target = NetworkWriter.Pop();
-            ArraySegment<byte> segment = writer;
-            target.WriteBytes(segment.Array, segment.Offset, segment.Count);
-            NetworkManager.Client.connection.writers.Enqueue(target);
-        }
-
-        /// <summary>
-        /// 网络消息添加
-        /// </summary>
-        /// <param name="segment"></param>
-        /// <param name="channel"></param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal WriterBatch AddMessage(ArraySegment<byte> segment, int channel = Channel.Reliable)
-        {
             if (!writerBatches.TryGetValue(channel, out var writerBatch))
             {
                 writerBatch = new WriterBatch(channel);
                 writerBatches[channel] = writerBatch;
             }
 
-            writerBatch.AddMessage(segment, NetworkManager.TickTime);
-            return writerBatch;
+            writerBatch.AddMessage(writer, NetworkManager.TickTime);
+            if (clientId == Const.HostId)
+            {
+                using var target = NetworkWriter.Pop();
+                if (writerBatch.GetBatch(target))
+                {
+                    NetworkManager.Client.OnClientReceive(target, Channel.Reliable);
+                }
+            }
         }
 
         /// <summary>
