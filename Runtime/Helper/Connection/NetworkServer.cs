@@ -78,7 +78,7 @@ namespace JFramework.Net
             using var target = NetworkWriter.Pop();
             if (AddMessage(writer).GetBatch(target))
             {
-                NetworkManager.Server.OnServerReceive(Const.HostId, target, channel);
+                NetworkManager.Server.OnServerReceive(Const.HostId, target, Channel.Reliable);
             }
         }
 
