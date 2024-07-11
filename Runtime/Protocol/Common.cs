@@ -1,6 +1,7 @@
 using System;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 namespace JFramework.Udp
@@ -13,16 +14,15 @@ namespace JFramework.Udp
         internal const int CHANNEL_HEADER_SIZE = 1;
         internal const int COOKIE_HEADER_SIZE = 4;
         internal const int METADATA_SIZE = CHANNEL_HEADER_SIZE + COOKIE_HEADER_SIZE;
-
-        private static readonly RNGCryptoServiceProvider cryptoRandom = new RNGCryptoServiceProvider();
+        
         private static readonly byte[] cryptoRandomBuffer = new byte[4];
 
-        internal static uint GenerateCookie()
+        public static uint GenerateCookie()
         {
-            cryptoRandom.GetBytes(cryptoRandomBuffer);
-            return BitConverter.ToUInt32(cryptoRandomBuffer, 0);
+            RandomNumberGenerator.Fill(cryptoRandomBuffer);
+            return MemoryMarshal.Read<uint>(cryptoRandomBuffer);
         }
-
+        
         public static int ReliableSize(int mtu, uint rcv_wnd)
         {
             return (mtu - Protocol.OVERHEAD - METADATA_SIZE) * ((int)Math.Min(rcv_wnd, Protocol.FRG_MAX) - 1) - 1;

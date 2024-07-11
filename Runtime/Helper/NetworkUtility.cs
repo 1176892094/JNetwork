@@ -14,6 +14,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using UnityEngine;
 
@@ -37,10 +38,9 @@ namespace JFramework.Net
         /// <returns></returns>
         internal static uint GetRandomId()
         {
-            using var provider = new RNGCryptoServiceProvider();
-            var buffer = new byte[4];
-            provider.GetBytes(buffer);
-            return BitConverter.ToUInt32(buffer);
+            var cryptoRandomBuffer = new byte[4];
+            RandomNumberGenerator.Fill(cryptoRandomBuffer);
+            return MemoryMarshal.Read<uint>(cryptoRandomBuffer);
         }
 
         /// <summary>
