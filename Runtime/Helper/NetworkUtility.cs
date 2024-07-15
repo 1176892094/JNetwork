@@ -14,6 +14,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using UnityEngine;
 
@@ -37,10 +38,9 @@ namespace JFramework.Net
         /// <returns></returns>
         internal static uint GetRandomId()
         {
-            using var provider = new RNGCryptoServiceProvider();
-            var buffer = new byte[4];
-            provider.GetBytes(buffer);
-            return BitConverter.ToUInt32(buffer);
+            var cryptoRandomBuffer = new byte[4];
+            RandomNumberGenerator.Fill(cryptoRandomBuffer);
+            return MemoryMarshal.Read<uint>(cryptoRandomBuffer);
         }
 
         /// <summary>
@@ -127,30 +127,6 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 发送消息是否有效
-        /// </summary>
-        /// <param name="segment"></param>
-        /// <param name="channel"></param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsValid(ArraySegment<byte> segment, int channel)
-        {
-            if (segment.Count == 0)
-            {
-                Debug.LogError("发送消息大小不能为零！");
-                return false;
-            }
-
-            if (segment.Count > NetworkManager.Transport.MessageSize(channel))
-            {
-                Debug.LogError($"发送消息大小过大！消息大小：{segment.Count}");
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
         /// 注册网络消息委托
         /// </summary>
         /// <param name="action">传入网络连接，网络消息，传输通道</param>
@@ -217,6 +193,27 @@ namespace JFramework.Net
                     client.Disconnect();
                 }
             };
+        }
+        
+        public static int VarUIntSize(ulong value)
+        {
+            if (value <= 240)
+                return 1;
+            if (value <= 2287)
+                return 2;
+            if (value <= 67823)
+                return 3;
+            if (value <= 16777215)
+                return 4;
+            if (value <= 4294967295)
+                return 5;
+            if (value <= 1099511627775)
+                return 6;
+            if (value <= 281474976710655)
+                return 7;
+            if (value <= 72057594037927935)
+                return 8;
+            return 9;
         }
 
         /// <summary>

@@ -69,7 +69,7 @@ namespace JFramework.Udp
         private uint current;                     // 当前时间，KCP内部使用的时间戳。
         private uint fast_resend;                 // 快速重传的设置，用于提高重传效率。
         private uint no_delay;                    // 无延迟模式的设置，用于减少延迟但可能增加网络抖动。
-        private bool noc_wnd;                     // 是否禁用拥塞控制，禁用后会严重限制发送和接收窗口大小。
+        private bool noc_wnd;                     // 是否启用拥塞控制，启用后会严重限制发送和接收窗口大小。
         private byte[] buffer;                    // MTU可以在运行时改变，从而调整缓冲区的大小。
         private readonly uint conv;               // 会话标识符，用于唯一标识一个会话，以区分不同的会话数据。
         private readonly Action<byte[], int> output;

@@ -28,7 +28,8 @@ namespace JFramework.Net
             if (sinceTime + Const.PingInterval <= NetworkManager.TickTime)
             {
                 sinceTime = NetworkManager.TickTime;
-                NetworkManager.Client.Send(new PingMessage(NetworkManager.TickTime), Channel.Unreliable);
+                var message = new PingMessage(NetworkManager.TickTime);
+                NetworkManager.Client.connection.Send(message, Channel.Unreliable);
             }
         }
 

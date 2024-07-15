@@ -11,6 +11,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JFramework.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -26,7 +27,7 @@ namespace JFramework.Net
         /// <summary>
         /// 连接的的客户端字典
         /// </summary>
-        [ShowInInspector] internal readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
+        [ShowInInspector] public readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
 
         /// <summary>
         /// 服务器生成的游戏对象字典
@@ -161,10 +162,20 @@ namespace JFramework.Net
             NetworkManager.Transport.OnServerConnect += OnServerConnect;
             NetworkManager.Transport.OnServerDisconnect += OnServerDisconnect;
             NetworkManager.Transport.OnServerReceive += OnServerReceive;
-            messages[Message<PingMessage>.Id] = NetworkUtility.GetMessage<PingMessage>(PingMessage);
-            messages[Message<ReadyMessage>.Id] = NetworkUtility.GetMessage<ReadyMessage>(ReadyMessage);
-            messages[Message<EntityMessage>.Id] = NetworkUtility.GetMessage<EntityMessage>(EntityMessage);
-            messages[Message<ServerRpcMessage>.Id] = NetworkUtility.GetMessage<ServerRpcMessage>(ServerRpcMessage);
+            Register<PingMessage>(PingMessage);
+            Register<ReadyMessage>(ReadyMessage);
+            Register<EntityMessage>(EntityMessage);
+            Register<ServerRpcMessage>(ServerRpcMessage);
+        }
+
+        public void Register<T>(Action<NetworkClient, T> handle) where T : struct, Message
+        {
+            messages[Message<T>.Id] = NetworkUtility.GetMessage(handle);
+        }
+
+        public void Register<T>(Action<NetworkClient, T, int> handle) where T : struct, Message
+        {
+            messages[Message<T>.Id] = NetworkUtility.GetMessage(handle);
         }
 
         internal void PingMessage(NetworkClient client, PingMessage message)
@@ -307,15 +318,16 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!client.readerBatch.AddBatch(segment))
+            if (!client.reader.AddBatch(segment))
             {
                 Debug.LogWarning($"无法将消息写入。断开客户端：{client}");
                 client.Disconnect();
                 return;
             }
 
-            while (!isLoadScene && client.readerBatch.GetMessage(out var reader))
+            while (!isLoadScene && client.reader.GetMessage(out var newSeg, out var remoteTime))
             {
+                using var reader = NetworkReader.Pop(newSeg);
                 if (reader.residue < Const.MessageSize)
                 {
                     Debug.LogError($"网络消息应该有个开始的Id。断开客户端：{client}");
@@ -330,13 +342,14 @@ namespace JFramework.Net
                     client.Disconnect();
                     return;
                 }
-                
+
+                client.remoteTime = remoteTime;
                 action.Invoke(client, reader, channel);
             }
 
-            if (!isLoadScene && client.readerBatch.Count > 0)
+            if (!isLoadScene && client.reader.Count > 0)
             {
-                Debug.LogError($"有残留消息没被写入！残留数：{client.readerBatch.Count}");
+                Debug.LogError($"有残留消息没被写入！残留数：{client.reader.Count}");
             }
         }
     }
@@ -392,7 +405,7 @@ namespace JFramework.Net
 
             if (NetworkManager.Mode == EntryMode.Host)
             {
-                if (@object.connection?.clientId == Const.HostId)
+                if (client?.clientId == Const.HostId)
                 {
                     @object.isOwner = true;
                 }
@@ -478,14 +491,6 @@ namespace JFramework.Net
                 client.Send(new DestroyMessage(@object.objectId));
             }
 
-            if (NetworkManager.Mode == EntryMode.Host)
-            {
-                @object.OnStopClient();
-                @object.isOwner = false;
-                @object.OnNotifyAuthority();
-                NetworkManager.Client.spawns.Remove(@object.objectId);
-            }
-
             @object.OnStopServer();
             Destroy(@object.gameObject);
         }
@@ -502,16 +507,8 @@ namespace JFramework.Net
                 client.Send(new DespawnMessage(@object.objectId));
             }
 
-            if (NetworkManager.Mode == EntryMode.Host)
-            {
-                @object.OnStopClient();
-                @object.isOwner = false;
-                @object.OnNotifyAuthority();
-                NetworkManager.Client.spawns.Remove(@object.objectId);
-            }
-
             @object.OnStopServer();
-            @object.gameObject.SetActive(false);
+            PoolManager.Push(@object.gameObject);
             @object.Reset();
         }
     }

@@ -32,12 +32,6 @@ namespace JFramework.Net
         public readonly double clientTime;
         public PingMessage(double clientTime) => this.clientTime = clientTime;
     }
-
-    internal struct InvokeMessage : Message
-    {
-        public readonly ArraySegment<byte> segment;
-        public InvokeMessage(ArraySegment<byte> segment) => this.segment = segment;
-    }
     
     internal struct ServerRpcMessage : Message
     {

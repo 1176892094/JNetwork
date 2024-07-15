@@ -13,16 +13,16 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    internal class NetworkTransform : NetworkBehaviour
+    public class NetworkTransform : NetworkBehaviour
     {
         /// <summary>
         /// 同步坐标
         /// </summary>
         private struct TransformData
         {
-            public readonly Vector3 position;
-            public readonly Quaternion rotation;
-            public readonly Vector3 localScale;
+            public Vector3 position;
+            public Quaternion rotation;
+            public Vector3 localScale;
 
             public TransformData(Vector3 position, Quaternion rotation, Vector3 localScale)
             {
@@ -48,9 +48,14 @@ namespace JFramework.Net
         private double sendTime = double.MinValue;
 
         /// <summary>
-        /// 上一个位置
+        /// 下一个位置
         /// </summary>
-        private TransformData origin;
+        private TransformData mainData;
+
+        /// <summary>
+        /// 缓存的位置
+        /// </summary>
+        private TransformData nextData;
 
         /// <summary>
         /// 位置是否变化
@@ -66,21 +71,6 @@ namespace JFramework.Net
         /// 大小是否变化
         /// </summary>
         private bool localScaleChanged;
-
-        /// <summary>
-        /// 修改的玩家位置
-        /// </summary>
-        private Vector3 fixedPosition;
-
-        /// <summary>
-        /// 修改的玩家旋转
-        /// </summary>
-        private Quaternion fixedRotation;
-
-        /// <summary>
-        /// 修改的玩家大小
-        /// </summary>
-        private Vector3 fixedLocalScale;
 
         /// <summary>
         /// 同步目标
@@ -118,6 +108,25 @@ namespace JFramework.Net
         [TabGroup("Perceive"), SerializeField] private float localScalePerceive = 0.01f;
 
         /// <summary>
+        /// 设置初始值
+        /// </summary>
+        private void Awake()
+        {
+            mainData = new TransformData(target.position, target.rotation, target.localScale);
+        }
+
+        /// <summary>
+        /// 设置目标
+        /// </summary>
+        private void OnValidate()
+        {
+            if (target == null)
+            {
+                target = transform;
+            }
+        }
+
+        /// <summary>
         /// 位置更新
         /// </summary>
         private void Update()
@@ -125,16 +134,16 @@ namespace JFramework.Net
             if (isServer)
             {
                 if (syncDirection == SyncMode.Server || isOwner || connection == null) return;
-                if (positionSync) transform.position = fixedPosition;
-                if (rotationSync) transform.rotation = fixedRotation;
-                if (localScaleSync) transform.localScale = fixedLocalScale;
+                if (positionSync) target.position = mainData.position;
+                if (rotationSync) target.rotation = mainData.rotation;
+                if (localScaleSync) target.localScale = mainData.localScale;
             }
             else if (isClient)
             {
                 if (syncDirection == SyncMode.Client && isOwner) return;
-                if (positionSync) transform.position = fixedPosition;
-                if (rotationSync) transform.rotation = fixedRotation;
-                if (localScaleSync) transform.localScale = fixedLocalScale;
+                if (positionSync) target.position = mainData.position;
+                if (rotationSync) target.rotation = mainData.rotation;
+                if (localScaleSync) target.localScale = mainData.localScale;
             }
         }
 
@@ -146,59 +155,34 @@ namespace JFramework.Net
             if (isServer && syncDirection == SyncMode.Server)
             {
                 if (!TimeManager.Ticks(NetworkManager.SendRate, ref sendTime)) return;
-                var current = new TransformData(transform.position, transform.rotation, transform.localScale);
-                positionChanged = Vector3.SqrMagnitude(origin.position - target.position) > positionPerceive * positionPerceive;
-                rotationChanged = Quaternion.Angle(origin.rotation, target.rotation) > rotationPerceive;
-                localScaleChanged = Vector3.SqrMagnitude(origin.localScale - target.localScale) > localScalePerceive * localScalePerceive;
+                nextData = new TransformData(target.position, target.rotation, target.localScale);
+                positionChanged = Vector3.SqrMagnitude(mainData.position - target.position) > positionPerceive * positionPerceive;
+                rotationChanged = Quaternion.Angle(mainData.rotation, target.rotation) > rotationPerceive;
+                localScaleChanged = Vector3.SqrMagnitude(mainData.localScale - target.localScale) > localScalePerceive * localScalePerceive;
                 cachedComparison = !positionChanged && !rotationChanged && !localScaleChanged;
                 if (cachedComparison && hasSentUnchanged) return;
-                var position = positionSync && positionChanged ? current.position : default(Vector3?);
-                var rotation = rotationSync && rotationChanged ? current.rotation : default(Quaternion?);
-                var localScale = localScaleSync && localScaleChanged ? current.localScale : default(Vector3?);
+                hasSentUnchanged = cachedComparison;
+                if (!hasSentUnchanged) mainData = nextData;
+                var position = positionSync && positionChanged ? nextData.position : default(Vector3?);
+                var rotation = rotationSync && rotationChanged ? nextData.rotation : default(Quaternion?);
+                var localScale = localScaleSync && localScaleChanged ? nextData.localScale : default(Vector3?);
                 SendToClientRpc(position, rotation, localScale);
-                if (cachedComparison)
-                {
-                    hasSentUnchanged = true;
-                }
-                else
-                {
-                    hasSentUnchanged = false;
-                    origin = current;
-                }
             }
             else if (isClient && NetworkManager.Client.isReady && isOwner && syncDirection == SyncMode.Client)
             {
                 if (!TimeManager.Ticks(NetworkManager.SendRate, ref sendTime)) return;
-                var current = new TransformData(transform.position, transform.rotation, transform.localScale);
-                positionChanged = Vector3.SqrMagnitude(origin.position - target.position) > positionPerceive * positionPerceive;
-                rotationChanged = Quaternion.Angle(origin.rotation, target.rotation) > rotationPerceive;
-                localScaleChanged = Vector3.SqrMagnitude(origin.localScale - target.localScale) > localScalePerceive * localScalePerceive;
+                nextData = new TransformData(target.position, target.rotation, target.localScale);
+                positionChanged = Vector3.SqrMagnitude(mainData.position - target.position) > positionPerceive * positionPerceive;
+                rotationChanged = Quaternion.Angle(mainData.rotation, target.rotation) > rotationPerceive;
+                localScaleChanged = Vector3.SqrMagnitude(mainData.localScale - target.localScale) > localScalePerceive * localScalePerceive;
                 cachedComparison = !positionChanged && !rotationChanged && !localScaleChanged;
                 if (cachedComparison && hasSentUnchanged) return;
-                var position = positionSync && positionChanged ? current.position : default(Vector3?);
-                var rotation = rotationSync && rotationChanged ? current.rotation : default(Quaternion?);
-                var localScale = localScaleSync && localScaleChanged ? current.localScale : default(Vector3?);
+                hasSentUnchanged = cachedComparison;
+                if (!hasSentUnchanged) mainData = nextData;
+                var position = positionSync && positionChanged ? nextData.position : default(Vector3?);
+                var rotation = rotationSync && rotationChanged ? nextData.rotation : default(Quaternion?);
+                var localScale = localScaleSync && localScaleChanged ? nextData.localScale : default(Vector3?);
                 SendToServerRpc(position, rotation, localScale);
-                if (cachedComparison)
-                {
-                    hasSentUnchanged = true;
-                }
-                else
-                {
-                    hasSentUnchanged = false;
-                    origin = current;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 设置目标
-        /// </summary>
-        private void OnValidate()
-        {
-            if (target == null)
-            {
-                target = transform;
             }
         }
 
@@ -223,9 +207,9 @@ namespace JFramework.Net
         protected override void OnDeserialize(NetworkReader reader, bool start)
         {
             if (!start) return;
-            if (positionSync) target.localPosition = reader.ReadVector3();
-            if (rotationSync) target.localRotation = reader.ReadQuaternion();
-            if (localScaleSync) target.localScale = reader.ReadVector3();
+            if (positionSync) mainData.position = reader.ReadVector3();
+            if (rotationSync) mainData.rotation = reader.ReadQuaternion();
+            if (localScaleSync) mainData.localScale = reader.ReadVector3();
         }
 
         /// <summary>
@@ -237,9 +221,9 @@ namespace JFramework.Net
         [ServerRpc(Channel.Unreliable)]
         private void SendToServerRpc(Vector3? position, Quaternion? rotation, Vector3? localScale)
         {
-            fixedPosition = position ?? transform.position;
-            fixedRotation = rotation ?? transform.rotation;
-            fixedLocalScale = localScale ?? transform.localScale;
+            mainData.position = position ?? target.position;
+            mainData.rotation = rotation ?? target.rotation;
+            mainData.localScale = localScale ?? target.localScale;
             if (syncDirection == SyncMode.Server) return;
             SendToClientRpc(position, rotation, localScale);
         }
@@ -253,9 +237,25 @@ namespace JFramework.Net
         [ClientRpc(Channel.Unreliable)]
         private void SendToClientRpc(Vector3? position, Quaternion? rotation, Vector3? localScale)
         {
-            fixedPosition = position ?? transform.position;
-            fixedRotation = rotation ?? transform.rotation;
-            fixedLocalScale = localScale ?? transform.localScale;
+            mainData.position = position ?? target.position;
+            mainData.rotation = rotation ?? target.rotation;
+            mainData.localScale = localScale ?? target.localScale;
+        }
+
+        /// <summary>
+        /// 由外部调用并同步 Transform
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="rotation"></param>
+        /// <param name="localScale"></param>
+        public void SyncTransform(Vector3? position, Quaternion? rotation = null, Vector3? localScale = null)
+        {
+            mainData.position = position ?? target.position;
+            mainData.rotation = rotation ?? target.rotation;
+            mainData.localScale = localScale ?? target.localScale;
+            target.position = mainData.position;
+            target.rotation = mainData.rotation;
+            target.localScale = mainData.localScale;
         }
     }
 }

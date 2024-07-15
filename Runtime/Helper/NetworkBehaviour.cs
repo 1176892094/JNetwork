@@ -264,7 +264,7 @@ namespace JFramework.Net
                 segment = writer,
             };
 
-            NetworkManager.Client.Send(message, channel);
+            NetworkManager.Client.connection.Send(message, channel);
         }
 
 

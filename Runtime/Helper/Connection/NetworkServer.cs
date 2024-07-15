@@ -18,41 +18,23 @@ namespace JFramework.Net
     [Serializable]
     public class NetworkServer
     {
-        private Dictionary<int, WriterBatch> writerPools = new Dictionary<int, WriterBatch>();
-        internal Queue<NetworkWriter> writers = new Queue<NetworkWriter>();
-        [SerializeField] internal ReaderBatch readerBatch = new ReaderBatch();
+        private Dictionary<int, WriterBatch> writerBatches = new Dictionary<int, WriterBatch>();
+        [SerializeField] internal ReaderBatch reader = new ReaderBatch();
         [SerializeField] internal bool isReady;
-        
+        [SerializeField] internal double remoteTime;
+
+        /// <summary>
+        /// 将消息发送到传输层
+        /// </summary>
         internal void Update()
         {
-            foreach (var (channel, writerPool) in writerPools) // 遍历可靠和不可靠消息
+            foreach (var (channel, writerBatch) in writerBatches)
             {
-                using var writer = NetworkWriter.Pop(); // 取出 writer
-                while (writerPool.GetBatch(writer)) // 将数据拷贝到 writer
+                using var writer = NetworkWriter.Pop();
+                while (writerBatch.GetBatch(writer))
                 {
-                    ArraySegment<byte> segment = writer; // 将 writer 转化成数据分段
-                    if (NetworkUtility.IsValid(segment, channel)) // 判断 writer 是否有效
-                    {
-                        NetworkManager.Transport.SendToServer(segment, channel); // 发送数据到传输层
-                        writer.position = 0;
-                    }
-                }
-            }
-
-            if (NetworkManager.Mode == EntryMode.Host)
-            {
-                while (writers.Count > 0)
-                {
-                    using var writer = writers.Dequeue();
-                    if (writerPools.TryGetValue(Channel.Reliable, out var writerPool))
-                    {
-                        writerPool.AddMessage(writer);
-                        using var target = NetworkWriter.Pop();
-                        if (writerPool.GetBatch(target))
-                        {
-                            NetworkManager.Client.OnClientReceive(target, Channel.Reliable);
-                        }
-                    }
+                    NetworkManager.Transport.SendToServer(writer, channel);
+                    writer.position = 0;
                 }
             }
         }
@@ -69,44 +51,32 @@ namespace JFramework.Net
             using var writer = NetworkWriter.Pop();
             writer.WriteUShort(Message<T>.Id);
             writer.Invoke(message);
-            Send(writer, channel);
+            if (writer.position > NetworkManager.Transport.MessageSize(channel))
+            {
+                Debug.LogError($"发送消息大小过大！消息大小：{writer.position}");
+                return;
+            }
+
+            if (!writerBatches.TryGetValue(channel, out var writerBatch))
+            {
+                writerBatch = new WriterBatch(channel);
+                writerBatches[channel] = writerBatch;
+            }
+
+            writerBatch.AddMessage(writer, NetworkManager.TickTime);
+            if (NetworkManager.Mode == EntryMode.Host)
+            {
+                using var target = NetworkWriter.Pop();
+                if (writerBatch.GetBatch(target))
+                {
+                    NetworkManager.Server.OnServerReceive(Const.HostId, target, Channel.Reliable);
+                }
+            }
         }
 
         /// <summary>
-        /// 获取网络消息并添加到发送队列中
+        /// 断开连接
         /// </summary>
-        /// <param name="segment">数据分段</param>
-        /// <param name="channel">传输通道</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void Send(ArraySegment<byte> segment, int channel = Channel.Reliable)
-        {
-            if (segment.Count == 0)
-            {
-                Debug.LogError("发送消息大小不能为零！");
-                return;
-            }
-            
-            if (!writerPools.TryGetValue(channel, out var writerPool))
-            {
-                writerPool = new WriterBatch(channel);
-                writerPools[channel] = writerPool;
-            }
-
-            writerPool.AddMessage(segment);
-            
-            if (NetworkManager.Mode == EntryMode.Host)
-            {
-                using var writer = NetworkWriter.Pop();
-                if (!writerPool.GetBatch(writer))
-                {
-                    Debug.LogError("无法拷贝数据到写入器。");
-                    return;
-                }
-
-                NetworkManager.Server.OnServerReceive(Const.HostId, writer, channel);
-            }
-        }
-
         public void Disconnect()
         {
             isReady = false;
