@@ -480,9 +480,15 @@ namespace JFramework.Net
         /// <summary>
         /// 将网络对象销毁
         /// </summary>
-        /// <param name="object"></param>
-        public void Destroy(NetworkObject @object)
+        /// <param name="obj"></param>
+        public void Destroy(GameObject obj)
         {
+            if (!obj.TryGetComponent(out NetworkObject @object))
+            {
+                Debug.LogError($"销毁对象 {obj} 没有 NetworkObject 组件", obj);
+                return;
+            }
+
             spawns.Remove(@object.objectId);
             @object.isDestroy = true;
             foreach (var client in clients.Values)
@@ -505,9 +511,15 @@ namespace JFramework.Net
         /// <summary>
         /// 将网络对象重置并隐藏
         /// </summary>
-        /// <param name="object"></param>
-        public void Despawn(NetworkObject @object)
+        /// <param name="obj"></param>
+        public void Despawn(GameObject obj)
         {
+            if (!obj.TryGetComponent(out NetworkObject @object))
+            {
+                Debug.LogError($"隐藏对象 {obj} 没有 NetworkObject 组件", obj);
+                return;
+            }
+
             spawns.Remove(@object.objectId);
             foreach (var client in clients.Values)
             {
