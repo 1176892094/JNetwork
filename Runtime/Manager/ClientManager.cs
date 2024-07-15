@@ -313,6 +313,8 @@ namespace JFramework.Net
             if (spawns.TryGetValue(message.objectId, out var @object))
             {
                 @object.OnStopClient();
+                @object.isOwner = false;
+                @object.OnNotifyAuthority();
                 spawns.Remove(message.objectId);
                 Destroy(@object.gameObject);
             }
@@ -328,6 +330,8 @@ namespace JFramework.Net
             if (spawns.TryGetValue(message.objectId, out var @object))
             {
                 @object.OnStopClient();
+                @object.isOwner = false;
+                @object.OnNotifyAuthority();
                 spawns.Remove(message.objectId);
                 @object.gameObject.SetActive(false);
                 @object.Reset();
