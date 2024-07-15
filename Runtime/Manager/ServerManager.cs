@@ -404,7 +404,7 @@ namespace JFramework.Net
 
             if (NetworkManager.Mode == EntryMode.Host)
             {
-                if (@object.connection?.clientId == Const.HostId)
+                if (client?.clientId == Const.HostId)
                 {
                     @object.isOwner = true;
                 }
