@@ -86,7 +86,7 @@ namespace JFramework.Net
         /// 客户端取消准备的事件
         /// </summary>
         public event Action OnReady;
-        
+
         /// <summary>
         /// 开启主机，使用Server的Transport
         /// </summary>
@@ -267,6 +267,10 @@ namespace JFramework.Net
             NetworkManager.Scene.LoadScene(message.sceneName);
         }
 
+        /// <summary>
+        /// 接收网络对象生成的消息
+        /// </summary>
+        /// <param name="message"></param>
         private void SpawnMessage(SpawnMessage message)
         {
             if (NetworkManager.Server.isActive)
@@ -303,37 +307,45 @@ namespace JFramework.Net
             SpawnObject(message);
         }
 
+        /// <summary>
+        /// 接收网络对象销毁的消息
+        /// </summary>
+        /// <param name="message"></param>
         private void DestroyMessage(DestroyMessage message)
         {
-            if (NetworkManager.Server.isActive)
+            if (!spawns.TryGetValue(message.objectId, out var @object))
             {
                 return;
             }
 
-            if (spawns.TryGetValue(message.objectId, out var @object))
+            @object.OnStopClient();
+            @object.isOwner = false;
+            @object.OnNotifyAuthority();
+            spawns.Remove(message.objectId);
+            if (!NetworkManager.Server.isActive)
             {
-                @object.OnStopClient();
-                @object.isOwner = false;
-                @object.OnNotifyAuthority();
-                spawns.Remove(message.objectId);
                 Destroy(@object.gameObject);
             }
         }
 
+        /// <summary>
+        /// 接收网络对象隐藏的消息
+        /// </summary>
+        /// <param name="message"></param>
         private void DespawnMessage(DespawnMessage message)
         {
-            if (NetworkManager.Server.isActive)
+            if (!spawns.TryGetValue(message.objectId, out var @object))
             {
                 return;
             }
 
-            if (spawns.TryGetValue(message.objectId, out var @object))
+            @object.OnStopClient();
+            @object.isOwner = false;
+            @object.OnNotifyAuthority();
+            spawns.Remove(message.objectId);
+            if (!NetworkManager.Server.isActive)
             {
-                @object.OnStopClient();
-                @object.isOwner = false;
-                @object.OnNotifyAuthority();
-                spawns.Remove(message.objectId);
-                @object.gameObject.SetActive(false);
+                PoolManager.Push(@object.gameObject);
                 @object.Reset();
             }
         }

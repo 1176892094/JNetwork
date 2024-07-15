@@ -11,6 +11,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JFramework.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -480,28 +481,14 @@ namespace JFramework.Net
         /// <summary>
         /// 将网络对象销毁
         /// </summary>
-        /// <param name="obj"></param>
-        public void Destroy(GameObject obj)
+        /// <param name="object"></param>
+        public void Destroy(NetworkObject @object)
         {
-            if (!obj.TryGetComponent(out NetworkObject @object))
-            {
-                Debug.LogError($"销毁对象 {obj} 没有 NetworkObject 组件", obj);
-                return;
-            }
-
             spawns.Remove(@object.objectId);
             @object.isDestroy = true;
             foreach (var client in clients.Values)
             {
                 client.Send(new DestroyMessage(@object.objectId));
-            }
-
-            if (NetworkManager.Mode == EntryMode.Host)
-            {
-                @object.OnStopClient();
-                @object.isOwner = false;
-                @object.OnNotifyAuthority();
-                NetworkManager.Client.spawns.Remove(@object.objectId);
             }
 
             @object.OnStopServer();
@@ -511,31 +498,17 @@ namespace JFramework.Net
         /// <summary>
         /// 将网络对象重置并隐藏
         /// </summary>
-        /// <param name="obj"></param>
-        public void Despawn(GameObject obj)
+        /// <param name="object"></param>
+        public void Despawn(NetworkObject @object)
         {
-            if (!obj.TryGetComponent(out NetworkObject @object))
-            {
-                Debug.LogError($"隐藏对象 {obj} 没有 NetworkObject 组件", obj);
-                return;
-            }
-
             spawns.Remove(@object.objectId);
             foreach (var client in clients.Values)
             {
                 client.Send(new DespawnMessage(@object.objectId));
             }
 
-            if (NetworkManager.Mode == EntryMode.Host)
-            {
-                @object.OnStopClient();
-                @object.isOwner = false;
-                @object.OnNotifyAuthority();
-                NetworkManager.Client.spawns.Remove(@object.objectId);
-            }
-
             @object.OnStopServer();
-            @object.gameObject.SetActive(false);
+            PoolManager.Push(@object.gameObject);
             @object.Reset();
         }
     }

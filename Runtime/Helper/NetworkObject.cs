@@ -121,10 +121,10 @@ namespace JFramework.Net
         public void Reset()
         {
             objectId = 0;
+            isSpawn = false;
             isOwner = false;
             isClient = false;
             isServer = false;
-            isSpawn = false;
             isAuthority = false;
             connection = null;
             sceneIds.Clear();
@@ -134,7 +134,7 @@ namespace JFramework.Net
         {
             if (isServer && !isDestroy)
             {
-                NetworkManager.Server.Destroy(gameObject);
+                NetworkManager.Server.Destroy(this);
             }
 
             if (isClient)
