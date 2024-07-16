@@ -195,19 +195,28 @@ namespace JFramework.Net
 
             Register<PingMessage>(PingMessage);
             Register<ReadyMessage>(ReadyMessage);
+            Register<EntityMessage>(EntityMessage);
+            Register<ClientRpcMessage>(ClientRpcMessage);
+            
             Register<SceneMessage>(SceneMessage);
             Register<SpawnMessage>(SpawnMessage);
-            Register<EntityMessage>(EntityMessage);
             Register<DespawnMessage>(DespawnMessage);
-            Register<DestroyMessage>(DestroyMessage);
-            Register<ClientRpcMessage>(ClientRpcMessage);
         }
 
+        /// <summary>
+        /// 注册客户端网络消息处理
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <typeparam name="T"></typeparam>
         public void Register<T>(Action<T> handle) where T : struct, Message
         {
             messages[Message<T>.Id] = NetworkUtility.GetMessage(handle);
         }
 
+        /// <summary>
+        /// 处理Ping网络消息
+        /// </summary>
+        /// <param name="message"></param>
         private void PingMessage(PingMessage message)
         {
             if (NetworkManager.Server.isActive)
@@ -218,12 +227,20 @@ namespace JFramework.Net
             NetworkManager.Time.Ping(message.clientTime);
         }
 
+        /// <summary>
+        /// 处理Ready网络消息
+        /// </summary>
+        /// <param name="message"></param>
         private void ReadyMessage(ReadyMessage message)
         {
             isReady = false;
             OnNotReady?.Invoke();
         }
 
+        /// <summary>
+        /// 处理Entity网络消息
+        /// </summary>
+        /// <param name="message"></param>
         private void EntityMessage(EntityMessage message)
         {
             if (NetworkManager.Server.isActive)
@@ -247,6 +264,10 @@ namespace JFramework.Net
             @object.ClientDeserialize(reader, false);
         }
 
+        /// <summary>
+        /// 服务器发送ClientRpc请求，客户端接受后调用
+        /// </summary>
+        /// <param name="message"></param>
         private void ClientRpcMessage(ClientRpcMessage message)
         {
             if (spawns.TryGetValue(message.objectId, out var @object))
@@ -256,6 +277,10 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 客户端改变场景
+        /// </summary>
+        /// <param name="message"></param>
         private void SceneMessage(SceneMessage message)
         {
             if (!isConnected)
@@ -279,8 +304,16 @@ namespace JFramework.Net
                 {
                     spawns[message.objectId] = @object;
                     @object.gameObject.SetActive(true);
-                    @object.isOwner = message.isOwner;
-                    @object.isClient = true;
+                    if (message.isOwner)
+                    {
+                        @object.objectMode |= ObjectMode.Owner;
+                    }
+                    else
+                    {
+                        @object.objectMode &= ~ObjectMode.Owner;
+                    }
+
+                    @object.objectMode |= ObjectMode.Client;
                     @object.OnStartClient();
                     @object.OnNotifyAuthority();
                 }
@@ -311,27 +344,6 @@ namespace JFramework.Net
         /// 接收网络对象销毁的消息
         /// </summary>
         /// <param name="message"></param>
-        private void DestroyMessage(DestroyMessage message)
-        {
-            if (!spawns.TryGetValue(message.objectId, out var @object))
-            {
-                return;
-            }
-
-            @object.OnStopClient();
-            @object.isOwner = false;
-            @object.OnNotifyAuthority();
-            spawns.Remove(message.objectId);
-            if (!NetworkManager.Server.isActive)
-            {
-                Destroy(@object.gameObject);
-            }
-        }
-
-        /// <summary>
-        /// 接收网络对象隐藏的消息
-        /// </summary>
-        /// <param name="message"></param>
         private void DespawnMessage(DespawnMessage message)
         {
             if (!spawns.TryGetValue(message.objectId, out var @object))
@@ -340,14 +352,23 @@ namespace JFramework.Net
             }
 
             @object.OnStopClient();
-            @object.isOwner = false;
+            @object.objectMode &= ~ObjectMode.Owner;
             @object.OnNotifyAuthority();
             spawns.Remove(message.objectId);
-            if (!NetworkManager.Server.isActive)
+
+            if (NetworkManager.Server.isActive)
             {
-                @object.gameObject.SetActive(false);
-                @object.Reset();
+                return;
             }
+
+            if (@object.spawnMode == SpawnMode.Asset)
+            {
+                Destroy(@object.gameObject);
+                return;
+            }
+
+            PoolManager.Push(@object.gameObject);
+            @object.Reset();
         }
     }
 
@@ -445,7 +466,16 @@ namespace JFramework.Net
 
             if (message.sceneId == 0)
             {
-                var prefab = await AssetManager.Load<GameObject>(message.assetId);
+                GameObject prefab;
+                if (message.usePool)
+                {
+                    prefab = await PoolManager.Pop(message.assetPath);
+                }
+                else
+                {
+                    prefab = await AssetManager.Load<GameObject>(message.assetPath);
+                }
+
                 if (!prefab.TryGetComponent(out @object))
                 {
                     Debug.LogError($"预置体 {prefab.name} 没有 NetworkObject 组件");
@@ -491,9 +521,16 @@ namespace JFramework.Net
             }
 
             @object.objectId = message.objectId;
-            @object.isOwner = message.isOwner;
-            @object.isClient = true;
+            if (message.isOwner)
+            {
+                @object.objectMode |= ObjectMode.Owner;
+            }
+            else
+            {
+                @object.objectMode &= ~ObjectMode.Owner;
+            }
 
+            @object.objectMode |= ObjectMode.Client;
             var transform = @object.transform;
             transform.localPosition = message.position;
             transform.localRotation = message.rotation;

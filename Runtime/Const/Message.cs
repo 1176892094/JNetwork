@@ -52,9 +52,10 @@ namespace JFramework.Net
     internal struct SpawnMessage : Message
     {
         public bool isOwner;
+        public bool usePool;
         public uint objectId;
         public ulong sceneId;
-        public string assetId;
+        public string assetPath;
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 localScale;
@@ -65,12 +66,6 @@ namespace JFramework.Net
     {
         public readonly uint objectId;
         public DespawnMessage(uint objectId) => this.objectId = objectId;
-    }
-
-    internal struct DestroyMessage : Message
-    {
-        public readonly uint objectId;
-        public DestroyMessage(uint objectId) => this.objectId = objectId;
     }
 
     internal struct EntityMessage : Message

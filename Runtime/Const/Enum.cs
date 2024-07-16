@@ -8,18 +8,41 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
+
 namespace JFramework.Net
 {
+    internal enum SyncMode : byte
+    {
+        Server,
+        Client
+    }
+
+    internal enum DebugMode : byte
+    {
+        Enable,
+        Disable,
+    }
+
     internal enum InvokeMode : byte
     {
         ServerRpc,
         ClientRpc,
     }
 
-    internal enum SyncMode : byte
+    [Flags]
+    internal enum ObjectMode : byte
     {
-        Server,
-        Client
+        None = 0,
+        Owner = 1 << 0,
+        Client = 1 << 1,
+        Server = 1 << 2,
+    }
+
+    public enum SpawnMode : byte
+    {
+        Asset,
+        Pool,
     }
 
     public enum EntryMode : byte
@@ -28,12 +51,6 @@ namespace JFramework.Net
         Host = 1,
         Server = 2,
         Client = 3,
-    }
-
-    internal enum DebugMode : byte
-    {
-        Enable,
-        Disable,
     }
 
     public enum StateMode : byte

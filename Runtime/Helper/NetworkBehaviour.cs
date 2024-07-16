@@ -63,17 +63,17 @@ namespace JFramework.Net
         /// <summary>
         /// 网络对象权限
         /// </summary>
-        public bool isOwner => @object.isOwner;
+        public bool isOwner => (@object.objectMode & ObjectMode.Owner) == ObjectMode.Owner;
 
         /// <summary>
         /// 当前网络对象是否在服务器
         /// </summary>
-        public bool isServer => @object.isServer;
+        public bool isServer => (@object.objectMode & ObjectMode.Server) == ObjectMode.Server;
 
         /// <summary>
         /// 当前网络对象是否在客户端
         /// </summary>
-        public bool isClient => @object.isClient;
+        public bool isClient => (@object.objectMode & ObjectMode.Client) == ObjectMode.Client;
 
         /// <summary>
         /// 网络对象连接的客户端(服务器不为空，客户端为空)

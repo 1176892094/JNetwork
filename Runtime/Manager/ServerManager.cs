@@ -11,9 +11,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JFramework.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace JFramework.Net
 {
@@ -168,21 +168,41 @@ namespace JFramework.Net
             Register<ServerRpcMessage>(ServerRpcMessage);
         }
 
+        /// <summary>
+        /// 注册服务器网络消息处理
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <typeparam name="T"></typeparam>
         public void Register<T>(Action<NetworkClient, T> handle) where T : struct, Message
         {
             messages[Message<T>.Id] = NetworkUtility.GetMessage(handle);
         }
 
+        /// <summary>
+        /// 注册服务器网络消息处理
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <typeparam name="T"></typeparam>
         public void Register<T>(Action<NetworkClient, T, int> handle) where T : struct, Message
         {
             messages[Message<T>.Id] = NetworkUtility.GetMessage(handle);
         }
 
+        /// <summary>
+        /// 处理Ping网络消息
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="message"></param>
         internal void PingMessage(NetworkClient client, PingMessage message)
         {
             client.Send(new PingMessage(message.clientTime), Channel.Unreliable);
         }
 
+        /// <summary>
+        /// 处理Ready网络消息
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="message"></param>
         internal void ReadyMessage(NetworkClient client, ReadyMessage message)
         {
             client.isReady = true;
@@ -195,6 +215,11 @@ namespace JFramework.Net
             OnReady?.Invoke(client);
         }
 
+        /// <summary>
+        /// 处理Entity网络消息
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="message"></param>
         internal void EntityMessage(NetworkClient client, EntityMessage message)
         {
             if (!spawns.TryGetValue(message.objectId, out var @object))
@@ -403,19 +428,24 @@ namespace JFramework.Net
 
             @object.connection = client;
 
-            if (NetworkManager.Mode == EntryMode.Host)
+            if (NetworkManager.Mode == EntryMode.Host && client?.clientId == Const.HostId)
             {
-                if (client?.clientId == Const.HostId)
-                {
-                    @object.isOwner = true;
-                }
+                @object.objectMode |= ObjectMode.Owner;
             }
 
-            if (!@object.isServer && @object.objectId == 0)
+            if ((@object.objectMode & ObjectMode.Server) != ObjectMode.Server && @object.objectId == 0)
             {
                 @object.objectId = ++objectId;
-                @object.isServer = true;
-                @object.isClient = NetworkManager.Client.isActive;
+                @object.objectMode |= ObjectMode.Server;
+                if (NetworkManager.Client.isActive)
+                {
+                    @object.objectMode |= ObjectMode.Client;
+                }
+                else
+                {
+                    @object.objectMode &= ~ObjectMode.Owner;
+                }
+
                 spawns[@object.objectId] = @object;
                 @object.OnStartServer();
             }
@@ -448,8 +478,9 @@ namespace JFramework.Net
             var message = new SpawnMessage
             {
                 isOwner = isOwner,
+                usePool = @object.spawnMode == SpawnMode.Pool,
                 sceneId = @object.sceneId,
-                assetId = @object.assetId,
+                assetPath = @object.assetPath,
                 objectId = @object.objectId,
                 position = transform.localPosition,
                 rotation = transform.localRotation,
@@ -482,28 +513,6 @@ namespace JFramework.Net
         /// 将网络对象销毁
         /// </summary>
         /// <param name="obj"></param>
-        public void Destroy(GameObject obj)
-        {
-            if (!obj.TryGetComponent(out NetworkObject @object))
-            {
-                return;
-            }
-
-            spawns.Remove(@object.objectId);
-            @object.isDestroy = true;
-            foreach (var client in clients.Values)
-            {
-                client.Send(new DestroyMessage(@object.objectId));
-            }
-
-            @object.OnStopServer();
-            Object.Destroy(obj);
-        }
-
-        /// <summary>
-        /// 将网络对象重置并隐藏
-        /// </summary>
-        /// <param name="obj"></param>
         public void Despawn(GameObject obj)
         {
             if (!obj.TryGetComponent(out NetworkObject @object))
@@ -511,6 +520,7 @@ namespace JFramework.Net
                 return;
             }
 
+            @object.isDestroy = true;
             spawns.Remove(@object.objectId);
             foreach (var client in clients.Values)
             {
@@ -518,7 +528,13 @@ namespace JFramework.Net
             }
 
             @object.OnStopServer();
-            @object.gameObject.SetActive(false);
+            if (@object.spawnMode == SpawnMode.Asset)
+            {
+                Destroy(@object.gameObject);
+                return;
+            }
+
+            PoolManager.Push(@object.gameObject);
             @object.Reset();
         }
     }

@@ -49,11 +49,21 @@ namespace JFramework.Net
         /// 上一次序列化间隔
         /// </summary>
         private NetworkSerialize serialize = new NetworkSerialize(0);
-
+        
+        /// <summary>
+        /// 游戏对象Id，用于网络标识
+        /// </summary>
+        [SerializeField] internal SpawnMode spawnMode;
+        
         /// <summary>
         /// 作为资源的路径
         /// </summary>
-        [SerializeField, ReadOnly] internal string assetId;
+        [SerializeField, ReadOnly] internal string assetPath;
+        
+        /// <summary>
+        /// 游戏对象Id，用于网络标识
+        /// </summary>
+        [SerializeField, ReadOnly] internal uint objectId;
 
         /// <summary>
         /// 作为场景资源的Id
@@ -61,24 +71,9 @@ namespace JFramework.Net
         [SerializeField, ReadOnly] internal ulong sceneId;
 
         /// <summary>
-        /// 游戏对象Id，用于网络标识
-        /// </summary>
-        [SerializeField, ReadOnly] internal uint objectId;
-
-        /// <summary>
         /// 是否有用权限
         /// </summary>
-        [SerializeField, ReadOnly] internal bool isOwner;
-
-        /// <summary>
-        /// 是否在服务器端
-        /// </summary>
-        [SerializeField, ReadOnly] internal bool isServer;
-
-        /// <summary>
-        /// 是否在客户端
-        /// </summary>
-        [SerializeField, ReadOnly] internal bool isClient;
+        [SerializeField, ReadOnly] internal ObjectMode objectMode;
 
         /// <summary>
         /// 是否为第一次生成
@@ -86,7 +81,7 @@ namespace JFramework.Net
         private bool isSpawn;
 
         /// <summary>
-        /// NetworkManager.Server.Destroy
+        /// NetworkManager.Server.Despawn
         /// </summary>
         internal bool isDestroy;
 
@@ -122,9 +117,7 @@ namespace JFramework.Net
         {
             objectId = 0;
             isSpawn = false;
-            isOwner = false;
-            isClient = false;
-            isServer = false;
+            objectMode = ObjectMode.None;
             isAuthority = false;
             connection = null;
             sceneIds.Clear();
@@ -132,12 +125,12 @@ namespace JFramework.Net
 
         private void OnDestroy()
         {
-            if (isServer && !isDestroy)
+            if ((objectMode & ObjectMode.Server) == ObjectMode.Server && !isDestroy)
             {
-                NetworkManager.Server.Destroy(gameObject);
+                NetworkManager.Server.Despawn(gameObject);
             }
 
-            if (isClient)
+            if ((objectMode & ObjectMode.Client) == ObjectMode.Client)
             {
                 NetworkManager.Client.spawns.Remove(objectId);
             }
@@ -357,7 +350,7 @@ namespace JFramework.Net
             for (int i = 0; i < components.Length; ++i)
             {
                 var component = components[i];
-                if (isOwner && component.syncDirection == SyncMode.Client)
+                if ((objectMode & ObjectMode.Owner) == ObjectMode.Owner && component.syncDirection == SyncMode.Client)
                 {
                     if (component.IsDirty()) mask |= 1U << i;
                 }
@@ -489,16 +482,16 @@ namespace JFramework.Net
         /// </summary>
         internal void OnNotifyAuthority()
         {
-            if (!isAuthority && isOwner)
+            if (!isAuthority && (objectMode & ObjectMode.Owner) == ObjectMode.Owner)
             {
                 OnStartAuthority();
             }
-            else if (isAuthority && !isOwner)
+            else if (isAuthority && (objectMode & ObjectMode.Owner) != ObjectMode.Owner)
             {
                 OnStopAuthority();
             }
 
-            isAuthority = isOwner;
+            isAuthority = (objectMode & ObjectMode.Owner) == ObjectMode.Owner;
         }
 
         /// <summary>
@@ -546,20 +539,20 @@ namespace JFramework.Net
             if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
             {
                 sceneId = 0;
-                AssignAssetId(AssetDatabase.GetAssetPath(gameObject));
+                AssignAssetPath(AssetDatabase.GetAssetPath(gameObject));
             }
             else if (PrefabStageUtility.GetCurrentPrefabStage() != null)
             {
                 if (PrefabStageUtility.GetPrefabStage(gameObject) != null)
                 {
                     sceneId = 0;
-                    AssignAssetId(PrefabStageUtility.GetPrefabStage(gameObject).assetPath);
+                    AssignAssetPath(PrefabStageUtility.GetPrefabStage(gameObject).assetPath);
                 }
             }
             else if (IsSceneObjectWithPrefabParent(gameObject, out GameObject prefab))
             {
                 AssignSceneId();
-                AssignAssetId(AssetDatabase.GetAssetPath(prefab));
+                AssignAssetPath(AssetDatabase.GetAssetPath(prefab));
             }
             else
             {
@@ -567,13 +560,13 @@ namespace JFramework.Net
             }
         }
 
-        private void AssignAssetId(string path)
+        private void AssignAssetPath(string path)
         {
             if (!string.IsNullOrWhiteSpace(path))
             {
                 var importer = AssetImporter.GetAtPath(path);
                 if (importer == null) return;
-                assetId = importer.assetBundleName + "/" + name;
+                assetPath = importer.assetBundleName + "/" + name;
             }
         }
 
