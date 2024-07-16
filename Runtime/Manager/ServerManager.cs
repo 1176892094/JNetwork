@@ -152,7 +152,7 @@ namespace JFramework.Net
     public partial class ServerManager
     {
         /// <summary>
-        /// 注册服务器消息消息
+        /// 注册服务器消息
         /// </summary>
         private void Register()
         {
@@ -541,6 +541,9 @@ namespace JFramework.Net
 
     public partial class ServerManager
     {
+        /// <summary>
+        /// 在Update更新之前
+        /// </summary>
         internal void EarlyUpdate()
         {
             if (NetworkManager.Transport != null)
@@ -549,6 +552,9 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 在Update更新之后
+        /// </summary>
         internal void AfterUpdate()
         {
             if (isActive)
