@@ -181,6 +181,10 @@ namespace JFramework.Net
 
     public partial class ClientManager
     {
+        /// <summary>
+        /// 注册客户端消息
+        /// </summary>
+        /// <param name="mode"></param>
         private void Register(EntryMode mode)
         {
             if (mode == EntryMode.Client)
@@ -550,6 +554,9 @@ namespace JFramework.Net
 
     public partial class ClientManager
     {
+        /// <summary>
+        /// 在Update更新之前
+        /// </summary>
         internal void EarlyUpdate()
         {
             if (NetworkManager.Transport != null)
@@ -558,6 +565,9 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 在Update更新之后
+        /// </summary>
         internal void AfterUpdate()
         {
             if (isActive)
