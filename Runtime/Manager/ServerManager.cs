@@ -11,9 +11,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JFramework.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace JFramework.Net
 {
@@ -385,7 +385,7 @@ namespace JFramework.Net
         {
             if (!isActive)
             {
-                Debug.LogError($"服务器不是活跃的。", obj);
+                Debug.LogError("服务器不是活跃的。", obj);
                 return;
             }
 
@@ -481,9 +481,14 @@ namespace JFramework.Net
         /// <summary>
         /// 将网络对象销毁
         /// </summary>
-        /// <param name="object"></param>
-        public void Destroy(NetworkObject @object)
+        /// <param name="obj"></param>
+        public void Destroy(GameObject obj)
         {
+            if (!obj.TryGetComponent(out NetworkObject @object))
+            {
+                return;
+            }
+
             spawns.Remove(@object.objectId);
             @object.isDestroy = true;
             foreach (var client in clients.Values)
@@ -492,15 +497,20 @@ namespace JFramework.Net
             }
 
             @object.OnStopServer();
-            Destroy(@object.gameObject);
+            Object.Destroy(obj);
         }
 
         /// <summary>
         /// 将网络对象重置并隐藏
         /// </summary>
-        /// <param name="object"></param>
-        public void Despawn(NetworkObject @object)
+        /// <param name="obj"></param>
+        public void Despawn(GameObject obj)
         {
+            if (!obj.TryGetComponent(out NetworkObject @object))
+            {
+                return;
+            }
+
             spawns.Remove(@object.objectId);
             foreach (var client in clients.Values)
             {
@@ -508,7 +518,7 @@ namespace JFramework.Net
             }
 
             @object.OnStopServer();
-            PoolManager.Push(@object.gameObject);
+            @object.gameObject.SetActive(false);
             @object.Reset();
         }
     }

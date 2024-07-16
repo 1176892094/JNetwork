@@ -134,7 +134,7 @@ namespace JFramework.Net
         {
             if (isServer && !isDestroy)
             {
-                NetworkManager.Server.Destroy(this);
+                NetworkManager.Server.Destroy(gameObject);
             }
 
             if (isClient)

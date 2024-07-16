@@ -85,7 +85,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端取消准备的事件
         /// </summary>
-        public event Action OnReady;
+        public event Action OnNotReady;
 
         /// <summary>
         /// 开启主机，使用Server的Transport
@@ -221,7 +221,7 @@ namespace JFramework.Net
         private void ReadyMessage(ReadyMessage message)
         {
             isReady = false;
-            OnReady?.Invoke();
+            OnNotReady?.Invoke();
         }
 
         private void EntityMessage(EntityMessage message)
@@ -345,7 +345,7 @@ namespace JFramework.Net
             spawns.Remove(message.objectId);
             if (!NetworkManager.Server.isActive)
             {
-                PoolManager.Push(@object.gameObject);
+                @object.gameObject.SetActive(false);
                 @object.Reset();
             }
         }
