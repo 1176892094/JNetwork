@@ -45,6 +45,14 @@ namespace JFramework.Net
         Pool,
     }
 
+    [Flags]
+    public enum SendMode : byte
+    {
+        Total,
+        Other,
+        Owner,
+    }
+
     public enum EntryMode : byte
     {
         None = 0,

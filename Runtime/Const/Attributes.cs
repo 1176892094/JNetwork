@@ -18,13 +18,13 @@ namespace JFramework.Net
     [AttributeUsage(AttributeTargets.Method)]
     public class ClientRpcAttribute : Attribute
     {
-        private int channel;
-        private bool include;
+        private byte channel;
+        private SendMode mode;
 
-        public ClientRpcAttribute(int channel = Channel.Reliable, bool include = true)
+        public ClientRpcAttribute(byte channel = Channel.Reliable, SendMode mode = SendMode.Total)
         {
+            this.mode = mode;
             this.channel = channel;
-            this.include = include;
         }
     }
 
@@ -34,8 +34,8 @@ namespace JFramework.Net
     [AttributeUsage(AttributeTargets.Method)]
     public class ServerRpcAttribute : Attribute
     {
-        private int channel;
-        public ServerRpcAttribute(int channel = Channel.Reliable) => this.channel = channel;
+        private byte channel;
+        public ServerRpcAttribute(byte channel = Channel.Reliable) => this.channel = channel;
     }
 
     /// <summary>
@@ -44,8 +44,8 @@ namespace JFramework.Net
     [AttributeUsage(AttributeTargets.Method)]
     public class TargetRpcAttribute : Attribute
     {
-        private int channel;
-        public TargetRpcAttribute(int channel = Channel.Reliable) => this.channel = channel;
+        private byte channel;
+        public TargetRpcAttribute(byte channel = Channel.Reliable) => this.channel = channel;
     }
 
     /// <summary>

@@ -18,7 +18,7 @@ namespace JFramework.Net
     [Serializable]
     public class NetworkServer
     {
-        private Dictionary<int, WriterBatch> writerBatches = new Dictionary<int, WriterBatch>();
+        private Dictionary<byte, WriterBatch> writerBatches = new Dictionary<byte, WriterBatch>();
         [SerializeField] internal ReaderBatch reader = new ReaderBatch();
         [SerializeField] internal bool isReady;
         [SerializeField] internal double remoteTime;
@@ -46,7 +46,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T">传入NetworkMessage</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Send<T>(T message, int channel = Channel.Reliable) where T : struct, Message
+        public void Send<T>(T message, byte channel = Channel.Reliable) where T : struct, Message
         {
             using var writer = NetworkWriter.Pop();
             writer.WriteUShort(Message<T>.Id);

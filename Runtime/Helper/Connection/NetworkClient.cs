@@ -18,7 +18,7 @@ namespace JFramework.Net
     [Serializable]
     public class NetworkClient
     {
-        private Dictionary<int, WriterBatch> writerBatches = new Dictionary<int, WriterBatch>();
+        private Dictionary<byte, WriterBatch> writerBatches = new Dictionary<byte, WriterBatch>();
         [SerializeField] internal ReaderBatch reader = new ReaderBatch();
         [SerializeField] public int clientId;
         [SerializeField] public bool isReady;
@@ -57,7 +57,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T">传入NetworkMessage</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Send<T>(T message, int channel = Channel.Reliable) where T : struct, Message
+        public void Send<T>(T message, byte channel = Channel.Reliable) where T : struct, Message
         {
             using var writer = NetworkWriter.Pop();
             writer.WriteUShort(Message<T>.Id);
@@ -82,6 +82,38 @@ namespace JFramework.Net
                 {
                     NetworkManager.Client.OnClientReceive(target, Channel.Reliable);
                 }
+            }
+        }
+        
+        /// <summary>
+        /// 发送网络消息
+        /// </summary>
+        /// <param name="message">事件类型</param>
+        /// <param name="channel">传输通道</param>
+        /// <typeparam name="T">传入NetworkMessage</typeparam>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SendSelf<T>(T message, byte channel = Channel.Reliable) where T : struct, Message
+        {
+            using var writer = NetworkWriter.Pop();
+            writer.WriteUShort(Message<T>.Id);
+            writer.Invoke(message);
+            if (writer.position > NetworkManager.Transport.MessageSize(channel))
+            {
+                Debug.LogError($"发送消息大小过大！消息大小：{writer.position}");
+                return;
+            }
+
+            if (!writerBatches.TryGetValue(channel, out var writerBatch))
+            {
+                writerBatch = new WriterBatch(channel);
+                writerBatches[channel] = writerBatch;
+            }
+
+            writerBatch.AddMessage(writer, NetworkManager.TickTime);
+            using var target = NetworkWriter.Pop();
+            if (writerBatch.GetBatch(target))
+            {
+                NetworkManager.Client.OnClientReceive(target, Channel.Reliable);
             }
         }
 

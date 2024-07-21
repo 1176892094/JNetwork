@@ -409,7 +409,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="segment"></param>
         /// <param name="channel"></param>
-        internal void OnClientReceive(ArraySegment<byte> segment, int channel)
+        internal void OnClientReceive(ArraySegment<byte> segment, byte channel)
         {
             if (connection == null)
             {

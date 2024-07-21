@@ -19,9 +19,9 @@ namespace JFramework.Udp
         private readonly Setting setting;
         private event Action<int> OnConnect;
         private event Action<int> OnDisconnect;
-        private event Action<int, ArraySegment<byte>, int> OnReceive;
+        private event Action<int, ArraySegment<byte>, byte> OnReceive;
 
-        public Server(Setting setting, Action<int> OnConnect, Action<int> OnDisconnect, Action<int, ArraySegment<byte>, int> OnReceive)
+        public Server(Setting setting, Action<int> OnConnect, Action<int> OnDisconnect, Action<int, ArraySegment<byte>, byte> OnReceive)
         {
             this.setting = setting;
             this.OnReceive = OnReceive;
@@ -96,7 +96,7 @@ namespace JFramework.Udp
         }
 
 
-        public void Send(int clientId, ArraySegment<byte> segment, int channel)
+        public void Send(int clientId, ArraySegment<byte> segment, byte channel)
         {
             if (clients.TryGetValue(clientId, out Client client))
             {
@@ -130,7 +130,7 @@ namespace JFramework.Udp
                 this.OnDisconnect?.Invoke(clientId);
             }
 
-            void OnReceive(ArraySegment<byte> message, int channel)
+            void OnReceive(ArraySegment<byte> message, byte channel)
             {
                 this.OnReceive?.Invoke(clientId, message, channel);
             }
@@ -214,9 +214,9 @@ namespace JFramework.Udp
             private event Action OnDisconnect;
             private event Action<Client> OnConnect;
             private event Action<ArraySegment<byte>> OnSend;
-            private event Action<ArraySegment<byte>, int> OnReceive;
+            private event Action<ArraySegment<byte>, byte> OnReceive;
 
-            public Client(Action<Client> OnConnect, Action OnDisconnect, Action<ArraySegment<byte>, int> OnReceive, Action<ArraySegment<byte>> OnSend, Setting setting, uint cookie, EndPoint endPoint) : base(setting, cookie)
+            public Client(Action<Client> OnConnect, Action OnDisconnect, Action<ArraySegment<byte>, byte> OnReceive, Action<ArraySegment<byte>> OnSend, Setting setting, uint cookie, EndPoint endPoint) : base(setting, cookie)
             {
                 this.OnSend = OnSend;
                 this.OnConnect = OnConnect;
@@ -236,7 +236,7 @@ namespace JFramework.Udp
 
             protected override void Send(ArraySegment<byte> segment) => OnSend?.Invoke(segment);
 
-            protected override void Receive(ArraySegment<byte> message, int channel) => OnReceive?.Invoke(message, channel);
+            protected override void Receive(ArraySegment<byte> message, byte channel) => OnReceive?.Invoke(message, channel);
 
             public void Input(ArraySegment<byte> segment)
             {
