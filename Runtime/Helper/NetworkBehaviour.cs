@@ -323,7 +323,19 @@ namespace JFramework.Net
                     }
                     else
                     {
-                        client.SendSelf(message, channel);
+                        using var origin = NetworkWriter.Pop();
+                        origin.WriteUShort(Message<ClientRpcMessage>.Id);
+                        origin.Invoke(message);
+
+                        if (client.TryBatch(origin.position, channel, out var writerBatch))
+                        {
+                            writerBatch.AddMessage(origin, NetworkManager.TickTime);
+                            using var target = NetworkWriter.Pop();
+                            if (writerBatch.GetBatch(target))
+                            {
+                                NetworkManager.Client.OnClientReceive(target, channel);
+                            }
+                        }
                     }
                 }
             }
