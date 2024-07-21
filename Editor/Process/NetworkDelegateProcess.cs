@@ -80,11 +80,14 @@ namespace JFramework.Editor
                 return null;
             }
 
+            var include = ca.GetField(true);
+            var channel = ca.GetField(Channel.Reliable);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldstr, md.FullName);
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkUtility.GetHashToName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, ca.GetField(1));
+            worker.Emit(OpCodes.Ldc_I4, channel);
+            worker.Emit(include ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
             worker.Emit(OpCodes.Callvirt, models.sendClientRpcInternal);
             NetworkBehaviourProcess.WritePushWriter(worker, models);
             worker.Emit(OpCodes.Ret);
@@ -155,11 +158,12 @@ namespace JFramework.Editor
                 return null;
             }
 
+            var channel = ca.GetField(Channel.Reliable);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldstr, md.FullName);
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkUtility.GetHashToName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, ca.GetField(1));
+            worker.Emit(OpCodes.Ldc_I4, channel);
             worker.Emit(OpCodes.Call, models.sendServerRpcInternal);
             NetworkBehaviourProcess.WritePushWriter(worker, models);
             worker.Emit(OpCodes.Ret);
@@ -229,12 +233,13 @@ namespace JFramework.Editor
                 return null;
             }
 
+            var channel = ca.GetField(Channel.Reliable);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(HasNetworkClient(md) ? OpCodes.Ldarg_1 : OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldstr, md.FullName);
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkUtility.GetHashToName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, ca.GetField(1));
+            worker.Emit(OpCodes.Ldc_I4, channel);
             worker.Emit(OpCodes.Callvirt, models.sendTargetRpcInternal);
             NetworkBehaviourProcess.WritePushWriter(worker, models);
             worker.Emit(OpCodes.Ret);

@@ -11,7 +11,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using JFramework.Interface;
 using UnityEngine;
@@ -275,7 +274,8 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel)
+        /// <param name="include">包含所有者</param>
+        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel, bool include)
         {
             if (!NetworkManager.Server.isActive)
             {
@@ -299,10 +299,13 @@ namespace JFramework.Net
 
             using var current = NetworkWriter.Pop();
             current.Invoke(message);
-            
-            foreach (var client in NetworkManager.Server.clients.Values.Where(client => client.isReady))
+
+            foreach (var client in NetworkManager.Server.clients.Values)
             {
-                client.Send(message, channel);
+                if ((client != @object.connection || include) && client.isReady)
+                {
+                    client.Send(message, channel);
+                }
             }
         }
 
