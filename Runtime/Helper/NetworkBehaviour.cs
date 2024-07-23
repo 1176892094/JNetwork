@@ -315,29 +315,6 @@ namespace JFramework.Net
                         client.Send(message, channel);
                     }
                 }
-                else if (mode == 2)
-                {
-                    if (client != connection)
-                    {
-                        client.Send(message, channel);
-                    }
-                    else
-                    {
-                        using var origin = NetworkWriter.Pop();
-                        origin.WriteUShort(Message<ClientRpcMessage>.Id);
-                        origin.Invoke(message);
-
-                        if (client.TryBatch(origin.position, channel, out var writerBatch))
-                        {
-                            writerBatch.AddMessage(origin, NetworkManager.TickTime);
-                            using var target = NetworkWriter.Pop();
-                            if (writerBatch.GetBatch(target))
-                            {
-                                NetworkManager.Client.OnClientReceive(target, channel);
-                            }
-                        }
-                    }
-                }
             }
         }
 
