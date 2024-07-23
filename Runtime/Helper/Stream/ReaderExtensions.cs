@@ -295,7 +295,15 @@ namespace JFramework.Net
 
         public static NetworkVariable ReadNetworkVariable(this NetworkReader reader)
         {
-            return new NetworkVariable(reader.ReadUInt(), reader.ReadByte());
+            uint objectId = reader.ReadUInt();
+            byte componentId = default;
+            
+            if (objectId != 0)
+            {
+                componentId = reader.ReadByte();
+            }
+
+            return new NetworkVariable(objectId, componentId);
         }
     }
 }
