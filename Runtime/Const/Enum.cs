@@ -44,6 +44,12 @@ namespace JFramework.Net
         Asset,
         Pool,
     }
+    
+    public enum Include : byte
+    {
+        Total,
+        Other,
+    }
 
     public enum EntryMode : byte
     {

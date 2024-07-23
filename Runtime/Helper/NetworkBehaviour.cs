@@ -230,7 +230,7 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendServerRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel)
+        protected void SendServerRpcInternal(string methodName, int methodHash, NetworkWriter writer, byte channel)
         {
             if (!NetworkManager.Client.isActive)
             {
@@ -275,7 +275,8 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel)
+        /// <param name="mode">包含所有者</param>
+        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, byte channel, int mode)
         {
             if (!NetworkManager.Server.isActive)
             {
@@ -299,10 +300,21 @@ namespace JFramework.Net
 
             using var current = NetworkWriter.Pop();
             current.Invoke(message);
-            
+
+
             foreach (var client in NetworkManager.Server.clients.Values.Where(client => client.isReady))
             {
-                client.Send(message, channel);
+                if (mode == 0)
+                {
+                    client.Send(message, channel);
+                }
+                else if (mode == 1)
+                {
+                    if (client != connection)
+                    {
+                        client.Send(message, channel);
+                    }
+                }
             }
         }
 
@@ -314,7 +326,7 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendTargetRpcInternal(NetworkClient client, string methodName, int methodHash, NetworkWriter writer, int channel)
+        protected void SendTargetRpcInternal(NetworkClient client, string methodName, int methodHash, NetworkWriter writer, byte channel)
         {
             if (!NetworkManager.Server.isActive)
             {

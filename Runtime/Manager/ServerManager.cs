@@ -183,7 +183,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="handle"></param>
         /// <typeparam name="T"></typeparam>
-        public void Register<T>(Action<NetworkClient, T, int> handle) where T : struct, Message
+        public void Register<T>(Action<NetworkClient, T, byte> handle) where T : struct, Message
         {
             messages[Message<T>.Id] = NetworkUtility.GetMessage(handle);
         }
@@ -254,7 +254,7 @@ namespace JFramework.Net
         /// <param name="client"></param>
         /// <param name="message"></param>
         /// <param name="channel"></param>
-        internal void ServerRpcMessage(NetworkClient client, ServerRpcMessage message, int channel)
+        internal void ServerRpcMessage(NetworkClient client, ServerRpcMessage message, byte channel)
         {
             if (!client.isReady)
             {
@@ -335,7 +335,7 @@ namespace JFramework.Net
         /// <param name="clientId"></param>
         /// <param name="segment"></param>
         /// <param name="channel"></param>
-        internal void OnServerReceive(int clientId, ArraySegment<byte> segment, int channel)
+        internal void OnServerReceive(int clientId, ArraySegment<byte> segment, byte channel)
         {
             if (!clients.TryGetValue(clientId, out var client))
             {

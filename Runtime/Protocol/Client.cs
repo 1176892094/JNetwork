@@ -15,9 +15,9 @@ namespace JFramework.Udp
         private readonly Setting setting;
         private event Action OnConnect;
         private event Action OnDisconnect;
-        private event Action<ArraySegment<byte>, int> OnReceive;
+        private event Action<ArraySegment<byte>, byte> OnReceive;
 
-        public Client(Setting setting, Action OnConnect, Action OnDisconnect, Action<ArraySegment<byte>, int> OnReceive) : base(setting, 0)
+        public Client(Setting setting, Action OnConnect, Action OnDisconnect, Action<ArraySegment<byte>, byte> OnReceive) : base(setting, 0)
         {
             this.setting = setting;
             this.OnConnect = OnConnect;
@@ -81,7 +81,7 @@ namespace JFramework.Udp
             }
         }
 
-        public void Send(ArraySegment<byte> segment, int channel)
+        public void Send(ArraySegment<byte> segment, byte channel)
         {
             if (state == State.Disconnect)
             {
@@ -147,7 +147,7 @@ namespace JFramework.Udp
             }
         }
 
-        protected override void Receive(ArraySegment<byte> message, int channel)
+        protected override void Receive(ArraySegment<byte> message, byte channel)
         {
             OnReceive?.Invoke(message, channel);
         }

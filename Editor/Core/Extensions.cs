@@ -218,7 +218,7 @@ namespace JFramework.Editor
             var readFunc = md.ImportReference(instance);
             return readFunc;
         }
-        
+
         public static MethodDefinition GetMethodInBaseType(this TypeDefinition self, string name)
         {
             var td = self;
@@ -242,7 +242,7 @@ namespace JFramework.Editor
 
             return null;
         }
-        
+
         public static MethodDefinition GetMethod(this TypeDefinition self, string methodName)
         {
             return self.Methods.FirstOrDefault(method => method.Name == methodName);
@@ -252,18 +252,21 @@ namespace JFramework.Editor
         {
             return self.Methods.Where(method => method.Name == methodName).ToList();
         }
-        
+
         public static T GetField<T>(this CustomAttribute self, T value)
         {
             foreach (var custom in self.ConstructorArguments)
             {
-                return (T)custom.Value;
+                if (custom.Type.FullName == typeof(T).FullName)
+                {
+                    return (T)custom.Value;
+                }
             }
 
             return value;
         }
 
-            public static TypeReference ApplyGenericParameters(this TypeReference self, TypeReference child)
+        public static TypeReference ApplyGenericParameters(this TypeReference self, TypeReference child)
         {
             if (!self.IsGenericInstance) return self;
             var arguments = (GenericInstanceType)self;
@@ -320,7 +323,7 @@ namespace JFramework.Editor
         {
             return tr.Is<GameObject>() || tr.Is<NetworkObject>() || tr.IsDerivedFrom<NetworkBehaviour>() || tr.Is<NetworkBehaviour>();
         }
-        
+
         public static CustomAttribute GetCustomAttribute<TAttribute>(this ICustomAttributeProvider self)
         {
             return self.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<TAttribute>());

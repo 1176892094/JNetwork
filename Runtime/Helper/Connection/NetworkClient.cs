@@ -18,7 +18,7 @@ namespace JFramework.Net
     [Serializable]
     public class NetworkClient
     {
-        private Dictionary<int, WriterBatch> writerBatches = new Dictionary<int, WriterBatch>();
+        private Dictionary<byte, WriterBatch> writerBatches = new Dictionary<byte, WriterBatch>();
         [SerializeField] internal ReaderBatch reader = new ReaderBatch();
         [SerializeField] public int clientId;
         [SerializeField] public bool isReady;
@@ -57,32 +57,50 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T">传入NetworkMessage</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Send<T>(T message, int channel = Channel.Reliable) where T : struct, Message
+        public void Send<T>(T message, byte channel = Channel.Reliable) where T : struct, Message
         {
             using var writer = NetworkWriter.Pop();
             writer.WriteUShort(Message<T>.Id);
             writer.Invoke(message);
-            if (writer.position > NetworkManager.Transport.MessageSize(channel))
+
+            if (TryBatch(writer.position, channel, out var writerBatch))
             {
-                Debug.LogError($"发送消息大小过大！消息大小：{writer.position}");
-                return;
+                writerBatch.AddMessage(writer, NetworkManager.TickTime);
+                if (clientId == Const.HostId)
+                {
+                    using var target = NetworkWriter.Pop();
+                    if (writerBatch.GetBatch(target))
+                    {
+                        NetworkManager.Client.OnClientReceive(target, Channel.Reliable);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获取合批写入器
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="channel">传输通道</param>
+        /// <param name="writerBatch"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool TryBatch(int position, byte channel, out WriterBatch writerBatch)
+        {
+            writerBatch = default;
+            if (position > NetworkManager.Transport.MessageSize(channel))
+            {
+                Debug.LogError($"发送消息大小过大！消息大小：{position}");
+                return false;
             }
 
-            if (!writerBatches.TryGetValue(channel, out var writerBatch))
+            if (!writerBatches.TryGetValue(channel, out writerBatch))
             {
                 writerBatch = new WriterBatch(channel);
                 writerBatches[channel] = writerBatch;
             }
 
-            writerBatch.AddMessage(writer, NetworkManager.TickTime);
-            if (clientId == Const.HostId)
-            {
-                using var target = NetworkWriter.Pop();
-                if (writerBatch.GetBatch(target))
-                {
-                    NetworkManager.Client.OnClientReceive(target, Channel.Reliable);
-                }
-            }
+            return true;
         }
 
         /// <summary>

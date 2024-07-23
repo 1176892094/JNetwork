@@ -15,7 +15,7 @@ namespace JFramework.Net
 {
     public delegate void InvokeDelegate(NetworkBehaviour behaviour, NetworkReader reader, NetworkClient client);
 
-    internal delegate void MessageDelegate(NetworkClient client, NetworkReader reader, int channel);
+    internal delegate void MessageDelegate(NetworkClient client, NetworkReader reader, byte channel);
 
     public static class Channel
     {

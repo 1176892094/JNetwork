@@ -18,9 +18,14 @@ namespace JFramework.Net
     [AttributeUsage(AttributeTargets.Method)]
     public class ClientRpcAttribute : Attribute
     {
-        private int channel;
-        public ClientRpcAttribute() => channel = Channel.Reliable;
-        public ClientRpcAttribute(int channel) => this.channel = channel;
+        private byte channel;
+        private Include include;
+
+        public ClientRpcAttribute(byte channel = Channel.Reliable, Include include = Include.Total)
+        {
+            this.channel = channel;
+            this.include = include;
+        }
     }
 
     /// <summary>
@@ -29,9 +34,8 @@ namespace JFramework.Net
     [AttributeUsage(AttributeTargets.Method)]
     public class ServerRpcAttribute : Attribute
     {
-        private int channel;
-        public ServerRpcAttribute() => channel = Channel.Reliable;
-        public ServerRpcAttribute(int channel) => this.channel = channel;
+        private byte channel;
+        public ServerRpcAttribute(byte channel = Channel.Reliable) => this.channel = channel;
     }
 
     /// <summary>
@@ -40,9 +44,8 @@ namespace JFramework.Net
     [AttributeUsage(AttributeTargets.Method)]
     public class TargetRpcAttribute : Attribute
     {
-        private int channel;
-        public TargetRpcAttribute() => channel = Channel.Reliable;
-        public TargetRpcAttribute(int channel) => this.channel = channel;
+        private byte channel;
+        public TargetRpcAttribute(byte channel = Channel.Reliable) => this.channel = channel;
     }
 
     /// <summary>
@@ -52,7 +55,6 @@ namespace JFramework.Net
     public class SyncVarAttribute : Attribute
     {
         private string func;
-        public SyncVarAttribute() => func = null;
-        public SyncVarAttribute(string func) => this.func = func;
+        public SyncVarAttribute(string func = null) => this.func = func;
     }
 }

@@ -51,8 +51,8 @@ namespace JFramework.Udp
 
     internal static class Channel
     {
-        public const int Reliable = 1;
-        public const int Unreliable = 2;
+        public const byte Reliable = 1;
+        public const byte Unreliable = 2;
     }
 
     internal sealed class Pool
