@@ -51,50 +51,41 @@ namespace JFramework.Net
             using var writer = NetworkWriter.Pop();
             writer.WriteUShort(Message<T>.Id);
             writer.Invoke(message);
+
             if (writer.position > NetworkManager.Transport.MessageSize(channel))
             {
                 Debug.LogError($"发送消息大小过大！消息大小：{writer.position}");
                 return;
             }
 
-            if (TryBatch(writer.position, channel, out var writerBatch))
-            {
-                writerBatch.AddMessage(writer, NetworkManager.TickTime);
-                if (NetworkManager.Mode == EntryMode.Host)
-                {
-                    using var target = NetworkWriter.Pop();
-                    if (writerBatch.GetBatch(target))
-                    {
-                        NetworkManager.Server.OnServerReceive(Const.HostId, target, Channel.Reliable);
-                    }
-                }
-            }
+            AddMessage(writer, channel);
         }
 
         /// <summary>
         /// 获取合批写入器
         /// </summary>
-        /// <param name="position"></param>
+        /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        /// <param name="writerBatch"></param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool TryBatch(int position, byte channel, out WriterBatch writerBatch)
+        internal void AddMessage(NetworkWriter writer, byte channel)
         {
-            writerBatch = default;
-            if (position > NetworkManager.Transport.MessageSize(channel))
-            {
-                Debug.LogError($"发送消息大小过大！消息大小：{position}");
-                return false;
-            }
-
-            if (!writerBatches.TryGetValue(channel, out writerBatch))
+            if (!writerBatches.TryGetValue(channel, out var writerBatch))
             {
                 writerBatch = new WriterBatch(channel);
                 writerBatches[channel] = writerBatch;
             }
 
-            return true;
+            writerBatch.AddMessage(writer, NetworkManager.TickTime);
+
+            if (NetworkManager.Mode == EntryMode.Host)
+            {
+                using var target = NetworkWriter.Pop();
+                if (writerBatch.GetBatch(target))
+                {
+                    NetworkManager.Server.OnServerReceive(Const.HostId, target, Channel.Reliable);
+                }
+            }
         }
 
         /// <summary>

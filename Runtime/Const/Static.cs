@@ -19,8 +19,8 @@ namespace JFramework.Net
 
     public static class Channel
     {
-        public const int Reliable = 1;
-        public const int Unreliable = 2;
+        public const byte Reliable = 1;
+        public const byte Unreliable = 2;
     }
 
     internal static class Encoding
