@@ -84,7 +84,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldstr, md.FullName);
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkUtility.GetHashToName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, ca.GetField(Channel.Reliable));
+            worker.Emit(OpCodes.Ldc_I4, ca.GetField(1));
             worker.Emit(OpCodes.Ldc_I4, (int)ca.GetField(Include.Total));
             worker.Emit(OpCodes.Callvirt, models.sendClientRpcInternal);
             NetworkBehaviourProcess.WritePushWriter(worker, models);
@@ -160,7 +160,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldstr, md.FullName);
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkUtility.GetHashToName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, ca.GetField(Channel.Reliable));
+            worker.Emit(OpCodes.Ldc_I4, ca.GetField(1));
             worker.Emit(OpCodes.Call, models.sendServerRpcInternal);
             NetworkBehaviourProcess.WritePushWriter(worker, models);
             worker.Emit(OpCodes.Ret);
@@ -235,7 +235,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldstr, md.FullName);
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkUtility.GetHashToName(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, ca.GetField(Channel.Reliable));
+            worker.Emit(OpCodes.Ldc_I4, ca.GetField(1));
             worker.Emit(OpCodes.Callvirt, models.sendTargetRpcInternal);
             NetworkBehaviourProcess.WritePushWriter(worker, models);
             worker.Emit(OpCodes.Ret);
