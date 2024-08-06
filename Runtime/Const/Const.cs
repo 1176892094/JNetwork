@@ -13,14 +13,14 @@ namespace JFramework.Net
     internal static class Const
     {
         /// <summary>
-        /// Ping的间隔
-        /// </summary>
-        public const float PingInterval = 2;
-
-        /// <summary>
         /// Ping窗口
         /// </summary>
         public const int PingWindow = 6;
+        
+        /// <summary>
+        /// Ping的间隔
+        /// </summary>
+        public const float PingInterval = 2;
         
         /// <summary>
         /// 最大网络行为数量
@@ -36,9 +36,9 @@ namespace JFramework.Net
         /// 网络消息的字符串最大长度
         /// </summary>
         public const ushort MaxStringLength = ushort.MaxValue - 1;
-
+        
         /// <summary>
-        /// 头部大小
+        /// 发送时间戳大小
         /// </summary>
         public const int HeaderSize = sizeof(double);
 
