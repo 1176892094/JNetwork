@@ -181,7 +181,7 @@ namespace JFramework.Net
         /// </summary>
         private void OnDestroy()
         {
-            EntityManager.Destroy(this);
+            this.Destroy();
         }
 
         /// <summary>
