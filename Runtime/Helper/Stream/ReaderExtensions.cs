@@ -91,13 +91,13 @@ namespace JFramework.Net
             }
 
             count = (ushort)(count - 1);
-            if (count > Const.MaxStringLength)
+            if (count > ushort.MaxValue - 1)
             {
                 throw new EndOfStreamException("读取字符串过长!");
             }
 
             var segment = reader.ReadArraySegment(count);
-            return Encoding.UTF8.GetString(segment.Array, segment.Offset, segment.Count);
+            return reader.encoding.GetString(segment.Array, segment.Offset, segment.Count);
         }
 
         public static byte[] ReadBytes(this NetworkReader reader)

@@ -9,16 +9,21 @@
 // *********************************************************************************
 
 using System;
-using System.Runtime.CompilerServices;
+using System.Text;
 using JFramework.Core;
+using System.Runtime.CompilerServices;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine;
 
 namespace JFramework.Net
 {
     [Serializable]
     public partial class NetworkReader : IDisposable
     {
+        /// <summary>
+        /// 文本编码
+        /// </summary>
+        internal readonly UTF8Encoding encoding = new UTF8Encoding(false, true);
+        
         /// <summary>
         /// 当前字节数组中的位置
         /// </summary>

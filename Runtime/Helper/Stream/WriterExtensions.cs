@@ -90,9 +90,9 @@ namespace JFramework.Net
                 return;
             }
 
-            writer.AddCapacity(writer.position + 2 + Encoding.UTF8.GetMaxByteCount(value.Length));
-            var count = Encoding.UTF8.GetBytes(value, 0, value.Length, writer.buffer, writer.position + 2);
-            if (count > Const.MaxStringLength)
+            writer.AddCapacity(writer.position + 2 + writer.encoding.GetMaxByteCount(value.Length));
+            var count = writer.encoding.GetBytes(value, 0, value.Length, writer.buffer, writer.position + 2);
+            if (count > ushort.MaxValue - 1)
             {
                 throw new EndOfStreamException("写入字符串过长!");
             }

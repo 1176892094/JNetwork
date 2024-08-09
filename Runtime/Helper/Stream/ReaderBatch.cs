@@ -44,7 +44,7 @@ namespace JFramework.Net
         /// <returns>返回处理成功</returns>
         public bool AddBatch(ArraySegment<byte> segment)
         {
-            if (segment.Count < Const.HeaderSize)
+            if (segment.Count < sizeof(double))
             {
                 return false;
             }

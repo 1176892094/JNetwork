@@ -9,7 +9,6 @@
 // *********************************************************************************
 
 using System;
-using System.Text;
 
 namespace JFramework.Net
 {
@@ -21,11 +20,6 @@ namespace JFramework.Net
     {
         public const byte Reliable = 1;
         public const byte Unreliable = 2;
-    }
-
-    internal static class Encoding
-    {
-        internal static readonly UTF8Encoding UTF8 = new UTF8Encoding(false, true);
     }
     
     internal static class Message<T> where T : struct, Message

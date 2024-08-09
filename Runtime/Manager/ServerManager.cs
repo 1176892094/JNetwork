@@ -353,7 +353,7 @@ namespace JFramework.Net
             while (!isLoadScene && client.reader.GetMessage(out var newSeg, out var remoteTime))
             {
                 using var reader = NetworkReader.Pop(newSeg);
-                if (reader.residue < Const.MessageSize)
+                if (reader.residue < sizeof(ushort))
                 {
                     Debug.LogError($"网络消息应该有个开始的Id。断开客户端：{client}");
                     client.Disconnect();
