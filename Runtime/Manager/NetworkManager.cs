@@ -9,7 +9,6 @@
 // *********************************************************************************
 
 using System;
-using JFramework.Core;
 using JFramework.Interface;
 using UnityEngine;
 
@@ -185,22 +184,6 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 启用
-        /// </summary>
-        private void OnEnable()
-        {
-            GlobalManager.OnQuit += OnQuit;
-        }
-
-        /// <summary>
-        /// 禁用
-        /// </summary>
-        private void OnDisable()
-        {
-            GlobalManager.OnQuit -= OnQuit;
-        }
-
-        /// <summary>
         /// 进行更新
         /// </summary>
         private void OnGUI()
@@ -214,7 +197,7 @@ namespace JFramework.Net
         /// <summary>
         /// 当程序退出，停止服务器和客户端
         /// </summary>
-        private void OnQuit()
+        private void OnApplicationQuit()
         {
             if (Client.isConnected)
             {
