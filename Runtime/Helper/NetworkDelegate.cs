@@ -52,7 +52,7 @@ namespace JFramework.Net
         /// <param name="func"></param>
         private static void RegisterInvoke(Type component, string name, InvokeMode mode, InvokeDelegate func)
         {
-            var id = (ushort)(NetworkUtility.GetHashToName(name) & 0xFFFF);
+            var id = (ushort)(NetworkUtility.GetStableId(name) & 0xFFFF);
             if (!messages.TryGetValue(id, out var message))
             {
                 message = new InvokeData

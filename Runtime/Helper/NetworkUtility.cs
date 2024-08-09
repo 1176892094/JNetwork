@@ -27,7 +27,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="name">传入名称</param>
         /// <returns>返回Hash码</returns>
-        public static uint GetHashToName(string name)
+        public static uint GetStableId(string name)
         {
             return unchecked(name.Aggregate(23U, (i, c) => i * 31 + c));
         }

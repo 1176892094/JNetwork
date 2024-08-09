@@ -250,7 +250,7 @@ namespace JFramework.Editor
 
         private MethodDefinition AddMethod(TypeReference tr)
         {
-            var md = new MethodDefinition($"Read{NetworkUtility.GetHashToName(tr.FullName)}", Const.RAW_ATTRS, tr);
+            var md = new MethodDefinition($"Read{NetworkUtility.GetStableId(tr.FullName)}", Const.RAW_ATTRS, tr);
             md.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<NetworkReader>()));
             md.Body.InitLocals = true;
             Register(tr, md);
