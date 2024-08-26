@@ -47,7 +47,7 @@ namespace JFramework.Net
         /// <param name="remoteTime">时间戳</param>
         public void AddMessage(ArraySegment<byte> segment, double remoteTime)
         {
-            int header = NetworkUtility.VarUIntSize((ulong)segment.Count);
+            int header = NetworkCompress.VarUIntSize((ulong)segment.Count);
             if (writer != null && writer.position + header + segment.Count > messageSize)
             {
                 writers.Enqueue(writer);
@@ -60,7 +60,7 @@ namespace JFramework.Net
                 writer.WriteDouble(remoteTime);
             }
 
-            NetworkUtility.CompressVarUInt(writer, (ulong)segment.Count);
+            NetworkCompress.CompressVarUInt(writer, (ulong)segment.Count);
             writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
         }
 

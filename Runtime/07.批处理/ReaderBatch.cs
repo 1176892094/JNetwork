@@ -103,7 +103,7 @@ namespace JFramework.Net
                 return false;
             }
 
-            int size = (int)NetworkUtility.DecompressVarUInt(reader);
+            int size = (int)NetworkCompress.DecompressVarUInt(reader);
             
             if (reader.residue < size)
             {
