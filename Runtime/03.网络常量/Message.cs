@@ -19,6 +19,12 @@ namespace JFramework.Net
 
     internal struct ReadyMessage : Message
     {
+        public readonly bool ready;
+
+        public ReadyMessage(bool ready)
+        {
+            this.ready = ready;
+        }
     }
 
     internal struct SceneMessage : Message

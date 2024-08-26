@@ -14,6 +14,8 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
+    public delegate void InvokeDelegate(NetworkBehaviour behaviour, NetworkReader reader, NetworkClient client);
+
     public static class NetworkDelegate
     {
         /// <summary>
@@ -96,7 +98,7 @@ namespace JFramework.Net
             {
                 return false;
             }
-            
+
             message.func.Invoke(component, reader, client);
             return true;
         }

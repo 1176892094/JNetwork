@@ -20,6 +20,8 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
+    using MessageDelegate = Action<NetworkClient, NetworkReader, byte>;
+
     public static class NetworkUtility
     {
         /// <summary>
@@ -132,7 +134,8 @@ namespace JFramework.Net
         /// <param name="action">传入网络连接，网络消息，传输通道</param>
         /// <typeparam name="T">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static MessageDelegate GetMessage<T>(Action<NetworkClient, T, byte> action) where T : struct, Message
+        internal static MessageDelegate GetMessage<T>(Action<NetworkClient, T, byte> action)
+            where T : struct, Message
         {
             return (client, reader, channel) =>
             {
@@ -194,7 +197,7 @@ namespace JFramework.Net
                 }
             };
         }
-        
+
         public static int VarUIntSize(ulong value)
         {
             if (value <= 240)
@@ -363,11 +366,13 @@ namespace JFramework.Net
             byte a7 = reader.ReadByte();
             if (a0 == 254)
             {
-                return a1 + ((ulong)a2 << 8) + ((ulong)a3 << 16) + ((ulong)a4 << 24) + ((ulong)a5 << 32) + ((ulong)a6 << 40) + ((ulong)a7 << 48);
+                return a1 + ((ulong)a2 << 8) + ((ulong)a3 << 16) + ((ulong)a4 << 24) + ((ulong)a5 << 32) + ((ulong)a6 << 40) +
+                       ((ulong)a7 << 48);
             }
 
             byte a8 = reader.ReadByte();
-            return a1 + ((ulong)a2 << 8) + ((ulong)a3 << 16) + ((ulong)a4 << 24) + ((ulong)a5 << 32) + ((ulong)a6 << 40) + ((ulong)a7 << 48) + ((ulong)a8 << 56);
+            return a1 + ((ulong)a2 << 8) + ((ulong)a3 << 16) + ((ulong)a4 << 24) + ((ulong)a5 << 32) + ((ulong)a6 << 40) +
+                   ((ulong)a7 << 48) + ((ulong)a8 << 56);
         }
     }
 }

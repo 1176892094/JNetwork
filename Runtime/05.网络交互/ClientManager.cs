@@ -17,6 +17,8 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
+    using MessageDelegate = Action<NetworkClient, NetworkReader, byte>;
+
     public partial class ClientManager : Component<NetworkManager>
     {
         /// <summary>
@@ -175,7 +177,7 @@ namespace JFramework.Net
 
             isReady = true;
             connection.isReady = true;
-            connection.Send(new ReadyMessage());
+            connection.Send(new ReadyMessage(true));
         }
     }
 
@@ -201,7 +203,7 @@ namespace JFramework.Net
             Register<ReadyMessage>(ReadyMessage);
             Register<EntityMessage>(EntityMessage);
             Register<ClientRpcMessage>(ClientRpcMessage);
-            
+
             Register<SceneMessage>(SceneMessage);
             Register<SpawnMessage>(SpawnMessage);
             Register<DespawnMessage>(DespawnMessage);
@@ -237,8 +239,11 @@ namespace JFramework.Net
         /// <param name="message"></param>
         private void ReadyMessage(ReadyMessage message)
         {
-            isReady = false;
-            OnNotReady?.Invoke();
+            if (!message.ready)
+            {
+                isReady = false;
+                OnNotReady?.Invoke();
+            }
         }
 
         /// <summary>

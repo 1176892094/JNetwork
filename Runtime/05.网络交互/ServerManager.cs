@@ -17,6 +17,8 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
+    using MessageDelegate = Action<NetworkClient, NetworkReader, byte>;
+
     public partial class ServerManager : Component<NetworkManager>
     {
         /// <summary>
@@ -205,14 +207,17 @@ namespace JFramework.Net
         /// <param name="message"></param>
         internal void ReadyMessage(NetworkClient client, ReadyMessage message)
         {
-            client.isReady = true;
-            foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
+            if (message.ready)
             {
-                SpawnToClient(client, @object);
-            }
+                client.isReady = true;
+                foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
+                {
+                    SpawnToClient(client, @object);
+                }
 
-            NetworkManager.Instance.SpawnPlayer(client);
-            OnReady?.Invoke(client);
+                NetworkManager.Instance.SpawnPlayer(client);
+                OnReady?.Invoke(client);
+            }
         }
 
         /// <summary>
