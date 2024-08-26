@@ -11,10 +11,10 @@ namespace JFramework.Udp
     {
         protected uint cookie;
         protected State state;
+        private Kcp kcp;
         private uint timeout;
         private uint pingTime;
         private uint receiveTime;
-        private Protocol protocol;
         private readonly int unreliableSize;
         private readonly byte[] kcpSendBuffer;
         private readonly byte[] rawSendBuffer;
@@ -41,11 +41,11 @@ namespace JFramework.Udp
             state = State.Disconnect;
             watch.Restart();
 
-            protocol = new Protocol(0, SendReliable);
-            protocol.SetMtu((uint)config.MaxUnit - Common.METADATA_SIZE);
-            protocol.SetWindowSize(config.SendWindow, config.ReceiveWindow);
-            protocol.SetNoDelay(config.NoDelay ? 1U : 0U, config.Interval, config.FastResend, !config.Congestion);
-            protocol.dead_link = config.DeadLink;
+            kcp = new Kcp(0, SendReliable);
+            kcp.SetMtu((uint)config.MaxUnit - Common.METADATA_SIZE);
+            kcp.SetWindowSize(config.SendWindow, config.ReceiveWindow);
+            kcp.SetNoDelay(config.NoDelay ? 1U : 0U, config.Interval, config.FastResend, !config.Congestion);
+            kcp.dead_link = config.DeadLink;
             timeout = config.Timeout;
         }
         
@@ -53,7 +53,7 @@ namespace JFramework.Udp
         {
             message = default;
             header = ReliableHeader.Ping;
-            var size = protocol.PeekSize();
+            var size = kcp.PeekSize();
             if (size <= 0)
             {
                 return false;
@@ -66,7 +66,7 @@ namespace JFramework.Udp
                 return false;
             }
 
-            if (protocol.Receive(receiveBuffer, size) < 0)
+            if (kcp.Receive(receiveBuffer, size) < 0)
             {
                 Log.Error($"{GetType()}: 接收网络消息失败。");
                 Disconnect();
@@ -89,7 +89,7 @@ namespace JFramework.Udp
         {
             if (channel == Channel.Reliable)
             {
-                if (protocol.Input(segment.Array, segment.Offset, segment.Count) != 0)
+                if (kcp.Input(segment.Array, segment.Offset, segment.Count) != 0)
                 {
                     Log.Warn($"{GetType()}: 发送可靠消息失败。消息大小：{segment.Count - 1}");
                 }
@@ -144,7 +144,7 @@ namespace JFramework.Udp
                 Buffer.BlockCopy(segment.Array, segment.Offset, kcpSendBuffer, 1, segment.Count);
             }
 
-            if (protocol.Send(kcpSendBuffer, 0, 1 + segment.Count) < 0)
+            if (kcp.Send(kcpSendBuffer, 0, 1 + segment.Count) < 0)
             {
                 Log.Error($"{GetType()}: 发送可靠消息失败。消息大小：{segment.Count}。");
             }
@@ -208,17 +208,17 @@ namespace JFramework.Udp
 
         public virtual void EarlyUpdate()
         {
-            if (protocol.state == -1)
+            if (kcp.state == -1)
             {
-                Log.Error($"{GetType()}: 网络消息被重传了 {protocol.dead_link} 次而没有得到确认！");
+                Log.Error($"{GetType()}: 网络消息被重传了 {kcp.dead_link} 次而没有得到确认！");
                 Disconnect();
             }
 
-            int total = protocol.receiveQueue.Count + protocol.sendQueue.Count + protocol.receiveBuffer.Count + protocol.sendBuffer.Count;
+            int total = kcp.receiveQueue.Count + kcp.sendQueue.Count + kcp.receiveBuffer.Count + kcp.sendBuffer.Count;
             if (total >= 10000)
             {
                 Log.Error($"{GetType()}: 断开连接，因为它处理数据的速度不够快！");
-                protocol.sendQueue.Clear();
+                kcp.sendQueue.Clear();
                 Disconnect();
             }
 
@@ -299,7 +299,7 @@ namespace JFramework.Udp
             {
                 if (state != State.Disconnect)
                 {
-                    protocol.Update((uint)watch.ElapsedMilliseconds);
+                    kcp.Update((uint)watch.ElapsedMilliseconds);
                 }
             }
             catch (SocketException e)

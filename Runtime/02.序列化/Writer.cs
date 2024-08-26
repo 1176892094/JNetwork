@@ -16,6 +16,11 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace JFramework.Net
 {
+    public static class Writer<T>
+    {
+        public static Action<NetworkWriter, T> write;
+    }
+
     [Serializable]
     public partial class NetworkWriter : IDisposable
     {
@@ -23,7 +28,7 @@ namespace JFramework.Net
         /// 文本编码
         /// </summary>
         internal readonly UTF8Encoding encoding = new UTF8Encoding(false, true);
-        
+
         /// <summary>
         /// 当前字节数组中的位置
         /// </summary>

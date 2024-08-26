@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace JFramework.Udp
 {
-    internal class Protocol
+    internal class Kcp
     {
         private struct AckItem
         {
@@ -81,7 +81,7 @@ namespace JFramework.Udp
         public readonly Queue<Segment> sendQueue = new Queue<Segment>(16);
         public readonly Queue<Segment> receiveQueue = new Queue<Segment>(16);
 
-        public Protocol(uint conv, Action<byte[], int> output)
+        public Kcp(uint conv, Action<byte[], int> output)
         {
             this.conv = conv;
             this.output = output;

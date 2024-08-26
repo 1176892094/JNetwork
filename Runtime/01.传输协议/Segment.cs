@@ -4,7 +4,7 @@ namespace JFramework.Udp
 {
     internal class Segment
     {
-        public readonly MemoryStream data = new MemoryStream(Protocol.MTU_DEF);
+        public readonly MemoryStream data = new MemoryStream(Kcp.MTU_DEF);
         public uint conv;
         public uint cmd;
         public uint frg;

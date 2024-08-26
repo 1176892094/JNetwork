@@ -16,6 +16,11 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace JFramework.Net
 {
+    public static class Reader<T>
+    {
+        public static Func<NetworkReader, T> read;
+    }
+
     [Serializable]
     public partial class NetworkReader : IDisposable
     {
@@ -23,7 +28,7 @@ namespace JFramework.Net
         /// 文本编码
         /// </summary>
         internal readonly UTF8Encoding encoding = new UTF8Encoding(false, true);
-        
+
         /// <summary>
         /// 当前字节数组中的位置
         /// </summary>

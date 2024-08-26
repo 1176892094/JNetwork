@@ -25,7 +25,7 @@ namespace JFramework.Udp
         
         public static int ReliableSize(int mtu, uint rcv_wnd)
         {
-            return (mtu - Protocol.OVERHEAD - METADATA_SIZE) * ((int)Math.Min(rcv_wnd, Protocol.FRG_MAX) - 1) - 1;
+            return (mtu - Kcp.OVERHEAD - METADATA_SIZE) * ((int)Math.Min(rcv_wnd, Kcp.FRG_MAX) - 1) - 1;
         }
 
         public static int UnreliableSize(int mtu)
