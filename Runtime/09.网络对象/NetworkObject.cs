@@ -160,9 +160,9 @@ namespace JFramework.Net
                 return false;
             }
 
-            if (entities.Length > Const.MaxEntityCount)
+            if (entities.Length > Const.MaxEntity)
             {
-                Debug.LogError($"网络对象持有的 NetworkEntity 的数量不能超过{Const.MaxEntityCount}");
+                Debug.LogError($"网络对象持有的 NetworkEntity 的数量不能超过{Const.MaxEntity}");
                 return false;
             }
 

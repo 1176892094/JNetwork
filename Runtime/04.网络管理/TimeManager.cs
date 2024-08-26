@@ -33,12 +33,6 @@ namespace JFramework.Net
             }
         }
 
-        internal void Reset()
-        {
-            sinceTime = 0;
-            roundTripTime = 0;
-        }
-
         internal void Ping(double clientTime)
         {
             if (!isActive)
@@ -54,6 +48,12 @@ namespace JFramework.Net
             }
 
             OnPingUpdate?.Invoke(roundTripTime);
+        }
+
+        internal void Reset()
+        {
+            sinceTime = 0;
+            roundTripTime = 0;
         }
     }
 

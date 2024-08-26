@@ -44,7 +44,7 @@ namespace JFramework.Net
         Asset,
         Pool,
     }
-    
+
     public enum Include : byte
     {
         Total,

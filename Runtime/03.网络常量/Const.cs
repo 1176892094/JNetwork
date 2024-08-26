@@ -16,20 +16,20 @@ namespace JFramework.Net
         /// 客户端连接Id
         /// </summary>
         public const int HostId = 0;
-        
+
         /// <summary>
         /// Ping窗口
         /// </summary>
         public const int PingWindow = 6;
-        
+
         /// <summary>
         /// Ping的间隔
         /// </summary>
         public const float PingInterval = 2;
-        
+
         /// <summary>
         /// 最大网络行为数量
         /// </summary>
-        public const int MaxEntityCount = 64;
+        public const int MaxEntity = 64;
     }
 }

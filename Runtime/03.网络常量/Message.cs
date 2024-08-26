@@ -32,7 +32,7 @@ namespace JFramework.Net
         public readonly double clientTime;
         public PingMessage(double clientTime) => this.clientTime = clientTime;
     }
-    
+
     internal struct ServerRpcMessage : Message
     {
         public uint objectId;
