@@ -12,9 +12,9 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    public class DebugManager : Component<NetworkManager>
+    internal class DebugManager : Component<NetworkManager>
     {
-        private Rect windowRect;
+        private static Rect windowRect;
         private static float windowScale => Screen.width / 2560f + Screen.height / 1440f;
 
         private void Awake()
@@ -23,7 +23,7 @@ namespace JFramework.Net
             windowRect.size = new Vector2(200f, 75f);
         }
 
-        public void Update()
+        public static void Update()
         {
             var matrix = GUI.matrix;
             var skin = GUI.skin;
@@ -35,7 +35,7 @@ namespace JFramework.Net
             GUI.matrix = matrix;
         }
 
-        private void Window(int id)
+        private static void Window(int id)
         {
             GUI.DragWindow(new Rect(0, 0, 10000f, 20f));
             if (!NetworkManager.Client.isConnected && !NetworkManager.Server.isActive)
@@ -45,12 +45,12 @@ namespace JFramework.Net
                     GUILayout.BeginHorizontal();
                     if (GUILayout.Button("Server"))
                     {
-                        NetworkManager.Instance.StartServer();
+                        NetworkManager.StartServer();
                     }
 
                     if (GUILayout.Button("Client"))
                     {
-                        NetworkManager.Instance.StartClient();
+                        NetworkManager.StartClient();
                     }
 
                     GUILayout.EndHorizontal();
@@ -58,7 +58,7 @@ namespace JFramework.Net
                     GUILayout.BeginHorizontal();
                     if (GUILayout.Button("Host"))
                     {
-                        NetworkManager.Instance.StartHost();
+                        NetworkManager.StartHost();
                     }
 
                     var address = NetworkManager.Transport.address;
@@ -70,7 +70,7 @@ namespace JFramework.Net
                     GUILayout.Label($"<b>Connecting...</b>", "Box");
                     if (GUILayout.Button("Stop Client"))
                     {
-                        NetworkManager.Instance.StopClient();
+                        NetworkManager.StopClient();
                     }
                 }
             }
@@ -94,21 +94,21 @@ namespace JFramework.Net
             {
                 if (GUILayout.Button("Stop Host"))
                 {
-                    NetworkManager.Instance.StopHost();
+                    NetworkManager.StopHost();
                 }
             }
             else if (NetworkManager.Client.isConnected)
             {
                 if (GUILayout.Button("Stop Client"))
                 {
-                    NetworkManager.Instance.StopClient();
+                    NetworkManager.StopClient();
                 }
             }
             else if (NetworkManager.Server.isActive)
             {
                 if (GUILayout.Button("Stop Server"))
                 {
-                    NetworkManager.Instance.StopServer();
+                    NetworkManager.StopServer();
                 }
             }
         }

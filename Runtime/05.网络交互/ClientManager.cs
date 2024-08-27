@@ -75,21 +75,6 @@ namespace JFramework.Net
         public bool isConnected => state == StateMode.Connected;
 
         /// <summary>
-        /// 客户端连接的事件(包含主机)
-        /// </summary>
-        public event Action OnConnect;
-
-        /// <summary>
-        /// 客户端断开的事件
-        /// </summary>
-        public event Action OnDisconnect;
-
-        /// <summary>
-        /// 客户端取消准备的事件
-        /// </summary>
-        public event Action OnNotReady;
-
-        /// <summary>
         /// 开启主机，使用Server的Transport
         /// </summary>
         /// <param name="mode"></param>
@@ -158,7 +143,7 @@ namespace JFramework.Net
             messages.Clear();
             connection = null;
             isLoadScene = false;
-            OnDisconnect?.Invoke();
+            EventManager.Invoke<OnClientDisconnect>();
         }
 
         public void Ready()
@@ -242,7 +227,7 @@ namespace JFramework.Net
             if (!message.ready)
             {
                 isReady = false;
-                OnNotReady?.Invoke();
+                EventManager.Invoke<OnClientNotReady>();
             }
         }
 
@@ -395,7 +380,7 @@ namespace JFramework.Net
             }
 
             state = StateMode.Connected;
-            OnConnect?.Invoke();
+            EventManager.Invoke<OnClientConnect>();
             NetworkManager.Time.Reset();
             NetworkManager.Time.Update();
             Ready();

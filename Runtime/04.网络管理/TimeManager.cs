@@ -9,19 +9,19 @@
 // *********************************************************************************
 
 using System;
+using JFramework.Core;
 using UnityEngine;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
 
 namespace JFramework.Net
 {
-    public partial class TimeManager : Component<NetworkManager>
+    internal partial class TimeManager : Component<NetworkManager>
     {
         private bool isActive;
         private double fixedTime;
         private double sinceTime;
         private double roundTripTime;
-        public event Action<double> OnPingUpdate;
 
         internal void Update()
         {
@@ -47,7 +47,7 @@ namespace JFramework.Net
                 roundTripTime += fixedTime * delta;
             }
 
-            OnPingUpdate?.Invoke(roundTripTime);
+            EventManager.Invoke(new OnPingUpdate(roundTripTime));
         }
 
         internal void Reset()
@@ -57,7 +57,7 @@ namespace JFramework.Net
         }
     }
 
-    public partial class TimeManager
+    internal partial class TimeManager
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()

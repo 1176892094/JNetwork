@@ -9,6 +9,7 @@
 // *********************************************************************************
 
 using System;
+using JFramework.Core;
 using JFramework.Interface;
 using UnityEngine;
 
@@ -34,7 +35,17 @@ namespace JFramework.Net
         /// <summary>
         /// 时间组件
         /// </summary>
-        [SerializeField, Inject] private TimeManager time;
+        [Inject] private TimeManager time;
+        
+        /// <summary>
+        /// 场景加载组件
+        /// </summary>
+        [Inject] private SceneManager scene;
+        
+        /// <summary>
+        /// 调试器组件
+        /// </summary>
+        [Inject] private DebugManager debug;
 
         /// <summary>
         /// 客户端组件
@@ -45,16 +56,6 @@ namespace JFramework.Net
         /// 服务器组件
         /// </summary>
         [SerializeField, Inject] private ServerManager server;
-
-        /// <summary>
-        /// 场景加载组件
-        /// </summary>
-        [SerializeField, Inject] private SceneManager scene;
-
-        /// <summary>
-        /// 调试器组件
-        /// </summary>
-        [SerializeField, Inject] private DebugManager debug;
 
         /// <summary>
         /// 玩家游戏预置体
@@ -89,7 +90,7 @@ namespace JFramework.Net
         /// <summary>
         /// 时间组件
         /// </summary>
-        public static TimeManager Time => Instance.time;
+        internal static TimeManager Time => Instance.time;
 
         /// <summary>
         /// 客户端组件
@@ -142,26 +143,6 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 当开启服务器
-        /// </summary>
-        public event Action OnStartServer;
-        
-        /// <summary>
-        /// 当开启客户端
-        /// </summary>
-        public event Action OnStartClient;
-        
-        /// <summary>
-        /// 当停止服务器
-        /// </summary>
-        public event Action OnStopServer;
-        
-        /// <summary>
-        /// 当停止客户端
-        /// </summary>
-        public event Action OnStopClient;
-
-        /// <summary>
         /// 初始化
         /// </summary>
         private void Awake()
@@ -190,7 +171,7 @@ namespace JFramework.Net
         {
             if (debugger != DebugMode.Disable)
             {
-                debug.Update();
+                DebugManager.Update();
             }
         }
 
@@ -216,7 +197,7 @@ namespace JFramework.Net
         /// <summary>
         /// 开启服务器
         /// </summary>
-        public void StartServer()
+        public static void StartServer()
         {
             if (Server.isActive)
             {
@@ -224,14 +205,14 @@ namespace JFramework.Net
                 return;
             }
 
-            OnStartServer?.Invoke();
+            EventManager.Invoke<OnStartServer>();
             Server.StartServer(EntryMode.Server);
         }
 
         /// <summary>
         /// 停止服务器
         /// </summary>
-        public void StopServer()
+        public static void StopServer()
         {
             if (!Server.isActive)
             {
@@ -239,14 +220,14 @@ namespace JFramework.Net
                 return;
             }
 
-            OnStopServer?.Invoke();
+            EventManager.Invoke<OnStopServer>();
             Server.StopServer();
         }
 
         /// <summary>
         /// 开启客户端
         /// </summary>
-        public void StartClient()
+        public static void StartClient()
         {
             if (Client.isActive)
             {
@@ -254,7 +235,7 @@ namespace JFramework.Net
                 return;
             }
 
-            OnStartClient?.Invoke();
+            EventManager.Invoke<OnStartClient>();
             Client.StartClient(EntryMode.Client);
         }
 
@@ -262,7 +243,7 @@ namespace JFramework.Net
         /// 开启客户端
         /// </summary>
         /// <param name="uri"></param>
-        public void StartClient(Uri uri)
+        public static void StartClient(Uri uri)
         {
             if (Client.isActive)
             {
@@ -270,14 +251,14 @@ namespace JFramework.Net
                 return;
             }
 
-            OnStartClient?.Invoke();
+            EventManager.Invoke<OnStartClient>();
             Client.StartClient(uri);
         }
 
         /// <summary>
         /// 停止客户端
         /// </summary>
-        public void StopClient()
+        public static void StopClient()
         {
             if (!Client.isActive)
             {
@@ -290,14 +271,14 @@ namespace JFramework.Net
                 Server.OnServerDisconnect(Const.HostId);
             }
 
-            OnStopClient?.Invoke();
+            EventManager.Invoke<OnStopClient>();
             Client.StopClient();
         }
 
         /// <summary>
         /// 开启主机
         /// </summary>
-        public void StartHost(EntryMode mode = EntryMode.Host)
+        public static void StartHost(EntryMode mode = EntryMode.Host)
         {
             if (Server.isActive || Client.isActive)
             {
@@ -305,16 +286,16 @@ namespace JFramework.Net
                 return;
             }
 
-            OnStartServer?.Invoke();
+            EventManager.Invoke<OnStartServer>();
             Server.StartServer(mode);
-            OnStartClient?.Invoke();
+            EventManager.Invoke<OnStartClient>();
             Client.StartClient(EntryMode.Host);
         }
 
         /// <summary>
         /// 停止主机
         /// </summary>
-        public void StopHost()
+        public static void StopHost()
         {
             StopClient();
             StopServer();
@@ -324,7 +305,7 @@ namespace JFramework.Net
         /// 生成玩家预置体
         /// </summary>
         /// <param name="client"></param>
-        internal void SpawnPlayer(NetworkClient client)
+        internal void SpawnPrefab(NetworkClient client)
         {
             if (prefab != null && client.isPlayer)
             {

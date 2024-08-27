@@ -8,8 +8,8 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
 using UnityEngine;
+using JFramework.Core;
 using GlobalSceneManager = JFramework.Core.SceneManager;
 
 namespace JFramework.Net
@@ -20,26 +20,6 @@ namespace JFramework.Net
         /// 服务器场景
         /// </summary>
         private string sceneName;
-
-        /// <summary>
-        /// 客户端加载场景的事件
-        /// </summary>
-        public event Action<string> OnClientChangeScene;
-
-        /// <summary>
-        /// 服务器加载场景的事件
-        /// </summary>
-        public event Action<string> OnServerChangeScene;
-
-        /// <summary>
-        /// 客户端加载场景完成的事件
-        /// </summary>
-        public event Action<string> OnClientSceneChanged;
-
-        /// <summary>
-        /// 服务器加载场景完成的事件
-        /// </summary>
-        public event Action<string> OnServerSceneChanged;
 
         /// <summary>
         /// 服务器加载场景
@@ -76,7 +56,7 @@ namespace JFramework.Net
                 GlobalSceneManager.Load(sceneName, OnLoadComplete);
             }
 
-            OnServerChangeScene?.Invoke(sceneName);
+            EventManager.Invoke(new OnServerChangeScene(sceneName));
         }
 
         /// <summary>
@@ -97,7 +77,7 @@ namespace JFramework.Net
                 GlobalSceneManager.Load(sceneName, OnLoadComplete);
             }
 
-            OnClientChangeScene?.Invoke(sceneName);
+            EventManager.Invoke(new OnClientChangeScene(sceneName));
         }
 
         /// <summary>
@@ -127,7 +107,7 @@ namespace JFramework.Net
         {
             NetworkManager.Server.isLoadScene = false;
             NetworkManager.Server.SpawnObjects();
-            OnServerSceneChanged?.Invoke(sceneName);
+            EventManager.Invoke(new OnServerSceneChanged(sceneName));
         }
 
         /// <summary>
@@ -143,7 +123,7 @@ namespace JFramework.Net
                     NetworkManager.Client.Ready();
                 }
 
-                OnClientSceneChanged?.Invoke(GlobalSceneManager.name);
+                EventManager.Invoke(new OnClientSceneChanged(GlobalSceneManager.name));
             }
         }
     }
