@@ -257,6 +257,12 @@ namespace JFramework.Net
                 writer.WriteByte((byte)OpCodes.UpdateData);
                 writer.WriteArraySegment(segment);
                 writer.WriteInt(ownerId);
+                if (writer.position > MessageSize(channel))
+                {
+                    Debug.LogError($"发送消息大小过大！消息大小：{writer.position}");
+                    return;
+                }
+
                 transport.SendToServer(writer);
             }
         }
@@ -267,6 +273,12 @@ namespace JFramework.Net
             writer.WriteByte((byte)OpCodes.UpdateData);
             writer.WriteArraySegment(segment);
             writer.WriteInt(0);
+            if (writer.position > MessageSize(channel))
+            {
+                Debug.LogError($"发送消息大小过大！消息大小：{writer.position}");
+                return;
+            }
+
             transport.SendToServer(writer);
         }
 
@@ -396,7 +408,7 @@ namespace JFramework.Net
             public int maxCount;
             public List<int> clients;
         }
-        
+
         private enum StateMode : byte
         {
             Connect = 0,

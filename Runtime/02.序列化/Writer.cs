@@ -32,7 +32,7 @@ namespace JFramework.Net
         /// <summary>
         /// 当前字节数组中的位置
         /// </summary>
-        internal int position;
+        public int position;
 
         /// <summary>
         /// 缓存的字节数组
