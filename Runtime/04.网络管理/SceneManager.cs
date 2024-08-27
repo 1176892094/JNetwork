@@ -9,8 +9,9 @@
 // *********************************************************************************
 
 using UnityEngine;
-using JFramework.Core;
-using GlobalSceneManager = JFramework.Core.SceneManager;
+using JFramework;
+using JFramework.Event;
+using GlobalSceneManager = JFramework.SceneManager;
 
 namespace JFramework.Net
 {

@@ -10,7 +10,7 @@
 
 namespace JFramework.Net
 {
-    public static class NetworkCompress
+    internal static class NetworkCompress
     {
         public static int VarUIntSize(ulong value)
         {

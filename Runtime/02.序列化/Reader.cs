@@ -10,7 +10,7 @@
 
 using System;
 using System.Text;
-using JFramework.Core;
+using JFramework;
 using System.Runtime.CompilerServices;
 using Unity.Collections.LowLevel.Unsafe;
 

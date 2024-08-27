@@ -11,7 +11,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JFramework.Core;
+using JFramework.Event;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

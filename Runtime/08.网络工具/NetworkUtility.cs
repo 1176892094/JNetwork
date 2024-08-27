@@ -86,26 +86,6 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 是否为场景网络对象
-        /// </summary>
-        /// <param name="object"></param>
-        /// <returns></returns>
-        public static bool IsSceneObject(NetworkObject @object)
-        {
-            if (@object.sceneId == 0)
-            {
-                return false;
-            }
-
-            if (@object.gameObject.hideFlags == HideFlags.NotEditable)
-            {
-                return false;
-            }
-
-            return @object.gameObject.hideFlags != HideFlags.HideAndDontSave;
-        }
-
-        /// <summary>
         /// 获取网络对象
         /// </summary>
         /// <param name="objectId">传入网络Id</param>
@@ -126,6 +106,26 @@ namespace JFramework.Net
             }
 
             return null;
+        }
+        
+        /// <summary>
+        /// 是否为场景网络对象
+        /// </summary>
+        /// <param name="object"></param>
+        /// <returns></returns>
+        internal static bool IsSceneObject(NetworkObject @object)
+        {
+            if (@object.sceneId == 0)
+            {
+                return false;
+            }
+
+            if (@object.gameObject.hideFlags == HideFlags.NotEditable)
+            {
+                return false;
+            }
+
+            return @object.gameObject.hideFlags != HideFlags.HideAndDontSave;
         }
 
         /// <summary>

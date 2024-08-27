@@ -39,7 +39,7 @@ namespace JFramework.Net
         Server = 1 << 2,
     }
 
-    public enum SpawnMode : byte
+    internal enum SpawnMode : byte
     {
         Asset,
         Pool,

@@ -9,7 +9,8 @@
 // *********************************************************************************
 
 using System;
-using JFramework.Core;
+using JFramework;
+using JFramework.Event;
 using JFramework.Interface;
 using UnityEngine;
 
@@ -21,16 +22,6 @@ namespace JFramework.Net
         /// NetworkManager 单例
         /// </summary>
         public static NetworkManager Instance;
-
-        /// <summary>
-        /// 网络传输组件
-        /// </summary>
-        [SerializeField] private Transport transport;
-
-        /// <summary>
-        /// 网络发现组件
-        /// </summary>
-        [SerializeField] private NetworkDiscovery discovery;
 
         /// <summary>
         /// 时间组件
@@ -46,6 +37,16 @@ namespace JFramework.Net
         /// 调试器组件
         /// </summary>
         [Inject] private DebugManager debug;
+        
+        /// <summary>
+        /// 网络传输组件
+        /// </summary>
+        [SerializeField] private Transport transport;
+
+        /// <summary>
+        /// 网络发现组件
+        /// </summary>
+        [SerializeField] private NetworkDiscovery discovery;
 
         /// <summary>
         /// 客户端组件
@@ -56,7 +57,7 @@ namespace JFramework.Net
         /// 服务器组件
         /// </summary>
         [SerializeField, Inject] private ServerManager server;
-
+        
         /// <summary>
         /// 玩家游戏预置体
         /// </summary>
@@ -91,6 +92,11 @@ namespace JFramework.Net
         /// 时间组件
         /// </summary>
         internal static TimeManager Time => Instance.time;
+        
+        /// <summary>
+        /// 场景加载组件
+        /// </summary>
+        public static SceneManager Scene => Instance.scene;
 
         /// <summary>
         /// 客户端组件
@@ -101,11 +107,6 @@ namespace JFramework.Net
         /// 服务器组件
         /// </summary>
         public static ServerManager Server => Instance.server;
-
-        /// <summary>
-        /// 场景加载组件
-        /// </summary>
-        public static SceneManager Scene => Instance.scene;
 
         /// <summary>
         /// 网络发现组件

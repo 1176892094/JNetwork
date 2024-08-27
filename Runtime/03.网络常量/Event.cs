@@ -9,8 +9,9 @@
 // *********************************************************************************
 
 using JFramework.Interface;
+using JFramework.Net;
 
-namespace JFramework.Net
+namespace JFramework.Event
 {
     /// <summary>
     /// 当开启服务器
@@ -49,7 +50,7 @@ namespace JFramework.Net
 
         public OnPingUpdate(double roundTripTime) => this.roundTripTime = roundTripTime;
     }
-    
+
     /// <summary>
     /// 客户端加载场景的事件
     /// </summary>

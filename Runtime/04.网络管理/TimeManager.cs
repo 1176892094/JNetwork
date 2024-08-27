@@ -9,7 +9,8 @@
 // *********************************************************************************
 
 using System;
-using JFramework.Core;
+using JFramework;
+using JFramework.Event;
 using UnityEngine;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
