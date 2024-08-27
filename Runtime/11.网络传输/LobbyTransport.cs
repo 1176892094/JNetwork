@@ -35,6 +35,7 @@ namespace JFramework.Net
         private bool isServer;
         private StateMode state = StateMode.Disconnect;
         private readonly Dictionary<int, int> clients = new Dictionary<int, int>();
+        private readonly Dictionary<int, int> players = new Dictionary<int, int>();
 
 
         private void Awake()
@@ -95,6 +96,7 @@ namespace JFramework.Net
                 Debug.Log("停止大厅服务器。");
                 state = StateMode.Disconnect;
                 clients.Clear();
+                players.Clear();
                 isServer = false;
                 isClient = false;
                 transport.StopClient();
@@ -128,6 +130,7 @@ namespace JFramework.Net
                     targetId++;
                     var clientId = reader.ReadInt();
                     clients.Add(clientId, targetId);
+                    players.Add(targetId, clientId);
                     OnServerConnect?.Invoke(targetId);
                 }
 
@@ -170,6 +173,7 @@ namespace JFramework.Net
                     {
                         OnServerDisconnect?.Invoke(ownerId);
                         clients.Remove(clientId);
+                        players.Remove(ownerId);
                     }
                 }
             }
@@ -210,7 +214,7 @@ namespace JFramework.Net
                 transport.SendToServer(writer);
             }
         }
-        
+
         public static string Decompress(string message)
         {
             var bytes = Convert.FromBase64String(message);
@@ -230,12 +234,12 @@ namespace JFramework.Net
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, byte channel = Channel.Reliable)
         {
-            if (clients.ContainsKey(clientId))
+            if (players.TryGetValue(clientId, out var ownerId))
             {
                 using var writer = NetworkWriter.Pop();
                 writer.WriteByte((byte)OpCodes.UpdateData);
                 writer.WriteArraySegment(segment);
-                writer.WriteInt(clientId);
+                writer.WriteInt(ownerId);
                 if (writer.position > MessageSize(channel))
                 {
                     Debug.LogError($"发送消息大小过大！消息大小：{writer.position}");
@@ -277,6 +281,7 @@ namespace JFramework.Net
 
             targetId = 0;
             clients.Clear();
+            players.Clear();
             isServer = true;
 
             using var writer = NetworkWriter.Pop();
@@ -301,11 +306,11 @@ namespace JFramework.Net
 
         public override void StopClient(int clientId)
         {
-            if (clients.ContainsKey(clientId))
+            if (players.TryGetValue(clientId, out var ownerId))
             {
                 using var writer = NetworkWriter.Pop();
                 writer.WriteByte((byte)OpCodes.KickRoom);
-                writer.WriteInt(clientId);
+                writer.WriteInt(ownerId);
                 transport.SendToServer(writer);
             }
         }
