@@ -29,9 +29,8 @@ namespace JFramework.Net
         public string roomData;
         public string serverId;
         public string serverKey = "Secret Key";
-        [Range(1, 10)] public int sendRate = 3;
 
-        private int playerId;
+        private int targetId;
         private bool isClient;
         private bool isServer;
         private StateMode state = StateMode.Disconnect;
@@ -47,7 +46,6 @@ namespace JFramework.Net
             transport.OnClientConnect += OnClientConnect;
             transport.OnClientDisconnect += OnClientDisconnect;
             transport.OnClientReceive += OnClientReceive;
-            InvokeRepeating(nameof(HeartBeat), sendRate, sendRate);
 
             void OnClientConnect()
             {
@@ -75,14 +73,6 @@ namespace JFramework.Net
         private void OnDestroy()
         {
             StopLobby();
-        }
-
-        private void HeartBeat()
-        {
-            if (state != StateMode.Disconnect)
-            {
-                transport.SendToServer(new[] { byte.MaxValue });
-            }
         }
 
         public void StartLobby()
@@ -135,10 +125,10 @@ namespace JFramework.Net
             {
                 if (isServer)
                 {
-                    playerId++;
+                    targetId++;
                     var clientId = reader.ReadInt();
-                    clients.Add(clientId, playerId);
-                    OnServerConnect?.Invoke(playerId);
+                    clients.Add(clientId, targetId);
+                    OnServerConnect?.Invoke(targetId);
                 }
 
                 if (isClient)
@@ -171,7 +161,7 @@ namespace JFramework.Net
                     OnClientReceive?.Invoke(message, channel);
                 }
             }
-            else if (opcode == OpCodes.Disconnect)
+            else if (opcode == OpCodes.KickRoom)
             {
                 if (isServer)
                 {
@@ -207,7 +197,7 @@ namespace JFramework.Net
             EventManager.Invoke(new OnRoomUpdate(JsonManager.Read<List<Room>>(json)));
         }
 
-        public void UpdateRoom(string roomName, string roomData, bool isPublic, int clients)
+        public void UpdateRoom(string roomName, string roomData, bool isPublic, int maxCount)
         {
             if (isServer)
             {
@@ -216,29 +206,18 @@ namespace JFramework.Net
                 writer.WriteString(roomName);
                 writer.WriteString(roomData);
                 writer.WriteBool(isPublic);
-                writer.WriteInt(clients);
+                writer.WriteInt(maxCount);
                 transport.SendToServer(writer);
             }
         }
-
-        private static string Decompress(string compressedText)
+        
+        public static string Decompress(string message)
         {
-            byte[] gZipBuffer = Convert.FromBase64String(compressedText);
-            using (var memoryStream = new MemoryStream())
-            {
-                int dataLength = BitConverter.ToInt32(gZipBuffer, 0);
-                memoryStream.Write(gZipBuffer, 4, gZipBuffer.Length - 4);
-
-                var buffer = new byte[dataLength];
-
-                memoryStream.Position = 0;
-                using (var gZipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
-                {
-                    gZipStream.Read(buffer, 0, buffer.Length);
-                }
-
-                return Encoding.UTF8.GetString(buffer);
-            }
+            var bytes = Convert.FromBase64String(message);
+            using var input = new MemoryStream(bytes);
+            using var gzip = new GZipStream(input, CompressionMode.Decompress);
+            using var reader = new StreamReader(gzip, Encoding.UTF8);
+            return reader.ReadToEnd();
         }
     }
 
@@ -251,12 +230,12 @@ namespace JFramework.Net
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, byte channel = Channel.Reliable)
         {
-            if (clients.TryGetValue(clientId, out var ownerId))
+            if (clients.ContainsKey(clientId))
             {
                 using var writer = NetworkWriter.Pop();
                 writer.WriteByte((byte)OpCodes.UpdateData);
                 writer.WriteArraySegment(segment);
-                writer.WriteInt(ownerId);
+                writer.WriteInt(clientId);
                 if (writer.position > MessageSize(channel))
                 {
                     Debug.LogError($"发送消息大小过大！消息大小：{writer.position}");
@@ -296,7 +275,7 @@ namespace JFramework.Net
                 return;
             }
 
-            playerId = 0;
+            targetId = 0;
             clients.Clear();
             isServer = true;
 
@@ -322,11 +301,11 @@ namespace JFramework.Net
 
         public override void StopClient(int clientId)
         {
-            if (clients.TryGetValue(clientId, out int ownerId))
+            if (clients.ContainsKey(clientId))
             {
                 using var writer = NetworkWriter.Pop();
-                writer.WriteByte((byte)OpCodes.Disconnect);
-                writer.WriteInt(ownerId);
+                writer.WriteByte((byte)OpCodes.KickRoom);
+                writer.WriteInt(clientId);
                 transport.SendToServer(writer);
             }
         }
@@ -401,11 +380,12 @@ namespace JFramework.Net
         [Serializable]
         public struct Room
         {
-            public string id;
-            public string name;
-            public string data;
-            public bool isPublic;
+            public string roomId;
+            public string roomName;
+            public string roomData;
             public int maxCount;
+            public int clientId;
+            public bool isPublic;
             public List<int> clients;
         }
 
@@ -425,7 +405,7 @@ namespace JFramework.Net
             UpdateRoom = 5,
             LeaveRoom = 6,
             UpdateData = 7,
-            Disconnect = 8,
+            KickRoom = 8,
         }
     }
 }
