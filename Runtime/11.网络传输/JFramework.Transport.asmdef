@@ -2,6 +2,7 @@
     "name": "JFramework.Transport",
     "rootNamespace": "",
     "references": [
+        "GUID:d8ce6126430ed467f929d29db18099c7",
         "GUID:97ca39a133712418ca661a4ad6b372ad",
         "GUID:753330021df6b4bc080c81875189d59f"
     ],

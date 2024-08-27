@@ -17,13 +17,7 @@ namespace JFramework.Net
         Server,
         Client
     }
-
-    internal enum DebugMode : byte
-    {
-        Enable,
-        Disable,
-    }
-
+    
     internal enum InvokeMode : byte
     {
         ServerRpc,
@@ -57,12 +51,5 @@ namespace JFramework.Net
         Host = 1,
         Server = 2,
         Client = 3,
-    }
-
-    public enum StateMode : byte
-    {
-        Connect = 0,
-        Connected = 1,
-        Disconnect = 2,
     }
 }

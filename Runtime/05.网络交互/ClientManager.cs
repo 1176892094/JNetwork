@@ -540,6 +540,13 @@ namespace JFramework.Net
             @object.OnNotifyAuthority();
             @object.OnStartClient();
         }
+
+        private enum StateMode : byte
+        {
+            Connect = 0,
+            Connected = 1,
+            Disconnect = 2,
+        }
     }
 
     public partial class ClientManager

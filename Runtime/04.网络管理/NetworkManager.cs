@@ -27,17 +27,17 @@ namespace JFramework.Net
         /// 时间组件
         /// </summary>
         [Inject] private TimeManager time;
-        
+
         /// <summary>
         /// 场景加载组件
         /// </summary>
         [Inject] private SceneManager scene;
-        
+
         /// <summary>
         /// 调试器组件
         /// </summary>
         [Inject] private DebugManager debug;
-        
+
         /// <summary>
         /// 网络传输组件
         /// </summary>
@@ -57,7 +57,7 @@ namespace JFramework.Net
         /// 服务器组件
         /// </summary>
         [SerializeField, Inject] private ServerManager server;
-        
+
         /// <summary>
         /// 玩家游戏预置体
         /// </summary>
@@ -78,6 +78,7 @@ namespace JFramework.Net
         /// </summary>
         [SerializeField] private DebugMode debugger = DebugMode.Enable;
 
+
         /// <summary>
         /// 流逝时间
         /// </summary>
@@ -92,7 +93,7 @@ namespace JFramework.Net
         /// 时间组件
         /// </summary>
         internal static TimeManager Time => Instance.time;
-        
+
         /// <summary>
         /// 场景加载组件
         /// </summary>
@@ -313,6 +314,12 @@ namespace JFramework.Net
                 Server.Spawn(Instantiate(prefab), client);
                 client.isPlayer = false;
             }
+        }
+
+        private enum DebugMode : byte
+        {
+            Enable,
+            Disable,
         }
     }
 }
