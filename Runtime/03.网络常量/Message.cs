@@ -58,10 +58,10 @@ namespace JFramework.Net
     internal struct SpawnMessage : Message
     {
         public bool isOwner;
-        public bool usePool;
+        public bool isCycle;
         public uint objectId;
         public ulong sceneId;
-        public string assetPath;
+        public string assetId;
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 localScale;

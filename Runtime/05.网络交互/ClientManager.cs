@@ -476,13 +476,13 @@ namespace JFramework.Net
             if (message.sceneId == 0)
             {
                 GameObject prefab;
-                if (message.usePool)
+                if (message.isCycle)
                 {
-                    prefab = await PoolManager.Pop(message.assetPath);
+                    prefab = await PoolManager.Pop(message.assetId);
                 }
                 else
                 {
-                    prefab = await AssetManager.Load<GameObject>(message.assetPath);
+                    prefab = await AssetManager.Load<GameObject>(message.assetId);
                 }
 
                 if (!prefab.TryGetComponent(out @object))

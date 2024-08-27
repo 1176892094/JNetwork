@@ -58,7 +58,7 @@ namespace JFramework.Net
         /// <summary>
         /// 作为资源的路径
         /// </summary>
-        [SerializeField, ReadOnly] internal string assetPath;
+        [SerializeField, ReadOnly] internal string assetId;
         
         /// <summary>
         /// 游戏对象Id，用于网络标识
@@ -566,7 +566,7 @@ namespace JFramework.Net
             {
                 var importer = AssetImporter.GetAtPath(path);
                 if (importer == null) return;
-                assetPath = importer.assetBundleName + "/" + name;
+                assetId = importer.assetBundleName + "/" + name;
             }
         }
 

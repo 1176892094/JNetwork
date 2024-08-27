@@ -483,9 +483,9 @@ namespace JFramework.Net
             var message = new SpawnMessage
             {
                 isOwner = isOwner,
-                usePool = @object.spawnMode == SpawnMode.Pool,
+                isCycle = @object.spawnMode == SpawnMode.Pool,
+                assetId = @object.assetId,
                 sceneId = @object.sceneId,
-                assetPath = @object.assetPath,
                 objectId = @object.objectId,
                 position = transform.localPosition,
                 rotation = transform.localRotation,
