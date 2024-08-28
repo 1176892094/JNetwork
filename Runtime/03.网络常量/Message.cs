@@ -9,15 +9,12 @@
 // *********************************************************************************
 
 using System;
+using JFramework.Interface;
 using UnityEngine;
 
 namespace JFramework.Net
 {
-    public interface Message
-    {
-    }
-
-    internal struct ReadyMessage : Message
+    internal struct ReadyMessage : IMessage
     {
         public readonly bool ready;
 
@@ -27,19 +24,19 @@ namespace JFramework.Net
         }
     }
 
-    internal struct SceneMessage : Message
+    internal struct SceneMessage : IMessage
     {
         public readonly string sceneName;
         public SceneMessage(string sceneName) => this.sceneName = sceneName;
     }
 
-    internal struct PingMessage : Message
+    internal struct PingMessage : IMessage
     {
         public readonly double clientTime;
         public PingMessage(double clientTime) => this.clientTime = clientTime;
     }
 
-    internal struct ServerRpcMessage : Message
+    internal struct ServerRpcMessage : IMessage
     {
         public uint objectId;
         public byte componentId;
@@ -47,7 +44,7 @@ namespace JFramework.Net
         public ArraySegment<byte> segment;
     }
 
-    internal struct ClientRpcMessage : Message
+    internal struct ClientRpcMessage : IMessage
     {
         public uint objectId;
         public byte componentId;
@@ -55,7 +52,7 @@ namespace JFramework.Net
         public ArraySegment<byte> segment;
     }
 
-    internal struct SpawnMessage : Message
+    internal struct SpawnMessage : IMessage
     {
         public bool isOwner;
         public bool isCycle;
@@ -68,13 +65,13 @@ namespace JFramework.Net
         public ArraySegment<byte> segment;
     }
 
-    internal struct DespawnMessage : Message
+    internal struct DespawnMessage : IMessage
     {
         public readonly uint objectId;
         public DespawnMessage(uint objectId) => this.objectId = objectId;
     }
 
-    internal struct EntityMessage : Message
+    internal struct EntityMessage : IMessage
     {
         public readonly uint objectId;
         public readonly ArraySegment<byte> segment;
@@ -86,11 +83,11 @@ namespace JFramework.Net
         }
     }
 
-    internal struct RequestMessage : Message
+    internal struct RequestMessage : IMessage
     {
     }
 
-    internal struct ResponseMessage : Message
+    internal struct ResponseMessage : IMessage
     {
         public Uri uri;
         public ResponseMessage(Uri uri) => this.uri = uri;

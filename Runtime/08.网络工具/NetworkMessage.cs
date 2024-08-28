@@ -8,9 +8,11 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using JFramework.Interface;
+
 namespace JFramework.Net
 {
-    internal static class Message<T> where T : struct, Message
+    internal static class Message<T> where T : struct, IMessage
     {
         public static readonly ushort Id = (ushort)NetworkUtility.GetStableId(typeof(T).FullName);
     }

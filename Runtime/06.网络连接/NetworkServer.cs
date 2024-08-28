@@ -11,6 +11,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using JFramework.Interface;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -46,7 +47,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T">传入NetworkMessage</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Send<T>(T message, byte channel = Channel.Reliable) where T : struct, Message
+        public void Send<T>(T message, byte channel = Channel.Reliable) where T : struct, IMessage
         {
             using var writer = NetworkWriter.Pop();
             writer.WriteUShort(Message<T>.Id);

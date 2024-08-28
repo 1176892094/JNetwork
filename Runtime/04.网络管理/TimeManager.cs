@@ -9,7 +9,6 @@
 // *********************************************************************************
 
 using System;
-using JFramework;
 using JFramework.Event;
 using UnityEngine;
 using UnityEngine.LowLevel;

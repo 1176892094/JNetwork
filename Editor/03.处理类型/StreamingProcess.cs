@@ -10,6 +10,7 @@
 
 using System.Linq;
 using System.Runtime.CompilerServices;
+using JFramework.Interface;
 using JFramework.Net;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -224,7 +225,7 @@ namespace JFramework.Editor
         private static bool ProcessMessage(ModuleDefinition module, Writer writer, Reader reader, TypeDefinition td, ref bool failed)
         {
             var change = false;
-            if (!td.IsAbstract && !td.IsInterface && td.ImplementsInterface<Message>())
+            if (!td.IsAbstract && !td.IsInterface && td.ImplementsInterface<IMessage>())
             {
                 reader.GetFunction(module.ImportReference(td), ref failed);
                 writer.GetFunction(module.ImportReference(td), ref failed);

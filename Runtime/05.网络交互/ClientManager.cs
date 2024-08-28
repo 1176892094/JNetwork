@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JFramework.Event;
+using JFramework.Interface;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -199,7 +200,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="handle"></param>
         /// <typeparam name="T"></typeparam>
-        public void Register<T>(Action<T> handle) where T : struct, Message
+        public void Register<T>(Action<T> handle) where T : struct, IMessage
         {
             messages[Message<T>.Id] = NetworkUtility.GetMessage(handle);
         }

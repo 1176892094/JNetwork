@@ -22,6 +22,16 @@ namespace JFramework.Net
     [DefaultExecutionOrder(1001)]
     public partial class LobbyTransport : Transport
     {
+        public struct OnRoomUpdate : IEvent
+        {
+            public readonly List<Room> rooms;
+
+            public OnRoomUpdate(List<Room> rooms)
+            {
+                this.rooms = rooms;
+            }
+        }
+
         public static LobbyTransport Instance;
         public Transport transport;
         public bool isPublic = true;
@@ -30,7 +40,7 @@ namespace JFramework.Net
         public string serverId;
         public string serverKey = "Secret Key";
 
-        private int targetId;
+        private int playerId;
         private bool isClient;
         private bool isServer;
         private StateMode state = StateMode.Disconnect;
@@ -127,11 +137,11 @@ namespace JFramework.Net
             {
                 if (isServer)
                 {
-                    targetId++;
+                    playerId++;
                     var clientId = reader.ReadInt();
-                    clients.Add(clientId, targetId);
-                    players.Add(targetId, clientId);
-                    OnServerConnect?.Invoke(targetId);
+                    clients.Add(clientId, playerId);
+                    players.Add(playerId, clientId);
+                    OnServerConnect?.Invoke(playerId);
                 }
 
                 if (isClient)
@@ -240,12 +250,6 @@ namespace JFramework.Net
                 writer.WriteByte((byte)OpCodes.UpdateData);
                 writer.WriteArraySegment(segment);
                 writer.WriteInt(ownerId);
-                if (writer.position > MessageSize(channel))
-                {
-                    Debug.LogError($"发送消息大小过大！消息大小：{writer.position}");
-                    return;
-                }
-
                 transport.SendToServer(writer);
             }
         }
@@ -256,12 +260,6 @@ namespace JFramework.Net
             writer.WriteByte((byte)OpCodes.UpdateData);
             writer.WriteArraySegment(segment);
             writer.WriteInt(0);
-            if (writer.position > MessageSize(channel))
-            {
-                Debug.LogError($"发送消息大小过大！消息大小：{writer.position}");
-                return;
-            }
-
             transport.SendToServer(writer);
         }
 
@@ -279,7 +277,7 @@ namespace JFramework.Net
                 return;
             }
 
-            targetId = 0;
+            playerId = 0;
             clients.Clear();
             players.Clear();
             isServer = true;
@@ -376,12 +374,6 @@ namespace JFramework.Net
 
     public partial class LobbyTransport
     {
-        public struct OnRoomUpdate : IEvent
-        {
-            public readonly List<Room> rooms;
-            public OnRoomUpdate(List<Room> rooms) => this.rooms = rooms;
-        }
-
         [Serializable]
         public struct Room
         {

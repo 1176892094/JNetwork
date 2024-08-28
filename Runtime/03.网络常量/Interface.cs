@@ -10,6 +10,10 @@
 
 namespace JFramework.Interface
 {
+    public interface IMessage
+    {
+    }
+
     public interface IStartClient
     {
         void OnStartClient();

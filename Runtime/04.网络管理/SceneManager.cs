@@ -9,7 +9,6 @@
 // *********************************************************************************
 
 using UnityEngine;
-using JFramework;
 using JFramework.Event;
 using GlobalSceneManager = JFramework.SceneManager;
 

@@ -16,6 +16,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using JFramework.Interface;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -134,7 +135,7 @@ namespace JFramework.Net
         /// <param name="action">传入网络连接，网络消息，传输通道</param>
         /// <typeparam name="T">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static MessageDelegate GetMessage<T>(Action<NetworkClient, T, byte> action) where T : struct, Message
+        internal static MessageDelegate GetMessage<T>(Action<NetworkClient, T, byte> action) where T : struct, IMessage
         {
             return (client, reader, channel) =>
             {
@@ -157,7 +158,7 @@ namespace JFramework.Net
         /// <param name="action">传入网络连接，网络消息</param>
         /// <typeparam name="T">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static MessageDelegate GetMessage<T>(Action<NetworkClient, T> action) where T : struct, Message
+        internal static MessageDelegate GetMessage<T>(Action<NetworkClient, T> action) where T : struct, IMessage
         {
             return (client, reader, channel) =>
             {
@@ -180,7 +181,7 @@ namespace JFramework.Net
         /// <param name="action">传入网络消息</param>
         /// <typeparam name="T">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static MessageDelegate GetMessage<T>(Action<T> action) where T : struct, Message
+        internal static MessageDelegate GetMessage<T>(Action<T> action) where T : struct, IMessage
         {
             return (client, reader, channel) =>
             {
