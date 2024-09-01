@@ -45,12 +45,12 @@ namespace JFramework.Net
                     GUILayout.BeginHorizontal();
                     if (GUILayout.Button("Server"))
                     {
-                        NetworkManager.StartServer();
+                        NetworkManager.Instance.StartServer();
                     }
 
                     if (GUILayout.Button("Client"))
                     {
-                        NetworkManager.StartClient();
+                        NetworkManager.Instance.StartClient();
                     }
 
                     GUILayout.EndHorizontal();
@@ -58,7 +58,7 @@ namespace JFramework.Net
                     GUILayout.BeginHorizontal();
                     if (GUILayout.Button("Host"))
                     {
-                        NetworkManager.StartHost();
+                        NetworkManager.Instance.StartHost();
                     }
 
                     var address = NetworkManager.Transport.address;
@@ -70,7 +70,7 @@ namespace JFramework.Net
                     GUILayout.Label($"<b>Connecting...</b>", "Box");
                     if (GUILayout.Button("Stop Client"))
                     {
-                        NetworkManager.StopClient();
+                        NetworkManager.Instance.StopClient();
                     }
                 }
             }
@@ -94,21 +94,21 @@ namespace JFramework.Net
             {
                 if (GUILayout.Button("Stop Host"))
                 {
-                    NetworkManager.StopHost();
+                    NetworkManager.Instance.StopHost();
                 }
             }
             else if (NetworkManager.Client.isConnected)
             {
                 if (GUILayout.Button("Stop Client"))
                 {
-                    NetworkManager.StopClient();
+                    NetworkManager.Instance.StopClient();
                 }
             }
             else if (NetworkManager.Server.isActive)
             {
                 if (GUILayout.Button("Stop Server"))
                 {
-                    NetworkManager.StopServer();
+                    NetworkManager.Instance.StopServer();
                 }
             }
         }

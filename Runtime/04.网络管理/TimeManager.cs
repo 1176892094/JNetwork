@@ -9,7 +9,6 @@
 // *********************************************************************************
 
 using System;
-using JFramework.Event;
 using UnityEngine;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
@@ -47,7 +46,7 @@ namespace JFramework.Net
                 roundTripTime += fixedTime * delta;
             }
 
-            EventManager.Invoke(new OnPingUpdate(roundTripTime));
+            NetworkManager.Instance.Ping(roundTripTime);
         }
 
         internal void Reset()

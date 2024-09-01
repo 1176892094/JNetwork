@@ -11,7 +11,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JFramework.Event;
 using JFramework.Interface;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -74,6 +73,21 @@ namespace JFramework.Net
         /// 是否已经连接成功
         /// </summary>
         public bool isConnected => state == StateMode.Connected;
+        
+        /// <summary>
+        /// 客户端连接的事件(包含主机)
+        /// </summary>
+        public event Action OnConnect;
+
+        /// <summary>
+        /// 客户端断开的事件
+        /// </summary>
+        public event Action OnDisconnect;
+
+        /// <summary>
+        /// 客户端取消准备的事件
+        /// </summary>
+        public event Action OnNotReady;
 
         /// <summary>
         /// 开启主机，使用Server的Transport
@@ -144,7 +158,7 @@ namespace JFramework.Net
             messages.Clear();
             connection = null;
             isLoadScene = false;
-            EventManager.Invoke<OnClientDisconnect>();
+            OnDisconnect?.Invoke();
         }
 
         public void Ready()
@@ -228,7 +242,7 @@ namespace JFramework.Net
             if (!message.ready)
             {
                 isReady = false;
-                EventManager.Invoke<OnClientNotReady>();
+                OnNotReady?.Invoke();
             }
         }
 
@@ -381,7 +395,7 @@ namespace JFramework.Net
             }
 
             state = StateMode.Connected;
-            EventManager.Invoke<OnClientConnect>();
+            OnConnect?.Invoke();
             NetworkManager.Time.Reset();
             NetworkManager.Time.Update();
             Ready();

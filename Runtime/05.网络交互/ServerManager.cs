@@ -11,7 +11,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JFramework.Event;
 using JFramework.Interface;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -73,6 +72,21 @@ namespace JFramework.Net
         /// 当前网络对象Id
         /// </summary>
         private uint objectId;
+        
+        /// <summary>
+        /// 有客户端连接到服务器的事件
+        /// </summary>
+        public event Action<NetworkClient> OnConnect;
+
+        /// <summary>
+        /// 有客户端从服务器断开的事件
+        /// </summary>
+        public event Action<NetworkClient> OnDisconnect;
+
+        /// <summary>
+        /// 客户端在服务器准备就绪的事件
+        /// </summary>
+        public event Action<NetworkClient> OnReady;
 
         /// <summary>
         /// 开启服务器
@@ -132,7 +146,7 @@ namespace JFramework.Net
             if (clients.TryAdd(client.clientId, client))
             {
                 client.isPlayer = true;
-                EventManager.Invoke(new OnServerConnect(client));
+                OnConnect?.Invoke(client);
             }
         }
     }
@@ -202,7 +216,7 @@ namespace JFramework.Net
                 }
 
                 NetworkManager.Instance.SpawnPrefab(client);
-                EventManager.Invoke(new OnServerReady(client));
+                OnReady?.Invoke(client);
             }
         }
 
@@ -316,7 +330,7 @@ namespace JFramework.Net
                 }
 
                 clients.Remove(client.clientId);
-                EventManager.Invoke(new OnServerDisconnect(client));
+                OnDisconnect?.Invoke(client);
             }
         }
 
