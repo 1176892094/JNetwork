@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using JFramework.Interface;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -22,16 +21,6 @@ namespace JFramework.Net
     [DefaultExecutionOrder(1001)]
     public partial class LobbyTransport : Transport
     {
-        public struct OnRoomUpdate : IEvent
-        {
-            public readonly List<Room> rooms;
-
-            public OnRoomUpdate(List<Room> rooms)
-            {
-                this.rooms = rooms;
-            }
-        }
-
         public static LobbyTransport Instance;
         public Transport transport;
         public bool isPublic = true;
@@ -46,7 +35,8 @@ namespace JFramework.Net
         private StateMode state = StateMode.Disconnect;
         private readonly Dictionary<int, int> clients = new Dictionary<int, int>();
         private readonly Dictionary<int, int> players = new Dictionary<int, int>();
-
+        public event Action OnDisconnect;
+        public event Action<List<Room>> OnLobbyUpdate;
 
         private void Awake()
         {
@@ -65,7 +55,7 @@ namespace JFramework.Net
 
             void OnClientDisconnect()
             {
-                state = StateMode.Disconnect;
+                StopLobby();
             }
 
             void OnClientReceive(ArraySegment<byte> segment, byte channel)
@@ -109,6 +99,7 @@ namespace JFramework.Net
                 players.Clear();
                 isServer = false;
                 isClient = false;
+                OnDisconnect?.Invoke();
                 transport.StopClient();
             }
         }
@@ -208,7 +199,7 @@ namespace JFramework.Net
 
             var json = "{" + "\"value\":" + Decompress(request.downloadHandler.text) + "}";
             Debug.Log("房间信息：" + json);
-            EventManager.Invoke(new OnRoomUpdate(JsonManager.Read<List<Room>>(json)));
+            OnLobbyUpdate?.Invoke(JsonManager.Read<List<Room>>(json));
         }
 
         public void UpdateRoom(string roomName, string roomData, bool isPublic, int maxCount)
@@ -347,10 +338,13 @@ namespace JFramework.Net
 
         public override void StopClient()
         {
-            isClient = false;
-            using var writer = NetworkWriter.Pop();
-            writer.WriteByte((byte)OpCodes.LeaveRoom);
-            transport.SendToServer(writer);
+            if (state != StateMode.Disconnect)
+            {
+                isClient = false;
+                using var writer = NetworkWriter.Pop();
+                writer.WriteByte((byte)OpCodes.LeaveRoom);
+                transport.SendToServer(writer);
+            }
         }
 
         public override void ClientEarlyUpdate()
