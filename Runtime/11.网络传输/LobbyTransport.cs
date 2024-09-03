@@ -10,9 +10,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -197,9 +194,9 @@ namespace JFramework.Net
                 return;
             }
 
-            var json = "{" + "\"value\":" + Decompress(request.downloadHandler.text) + "}";
-            Debug.Log("房间信息：" + json);
-            OnLobbyUpdate?.Invoke(JsonManager.Read<List<Room>>(json));
+            var rooms = await Compression.DecompressAsync(request.downloadHandler.text);
+            OnLobbyUpdate?.Invoke(JsonManager.Read<List<Room>>("{" + "\"value\":" + rooms + "}"));
+            Debug.Log("房间信息：" + rooms);
         }
 
         public void UpdateRoom(string roomName, string roomData, bool isPublic, int maxCount)
@@ -214,15 +211,6 @@ namespace JFramework.Net
                 writer.WriteInt(maxCount);
                 transport.SendToServer(writer);
             }
-        }
-
-        public static string Decompress(string message)
-        {
-            var bytes = Convert.FromBase64String(message);
-            using var input = new MemoryStream(bytes);
-            using var gzip = new GZipStream(input, CompressionMode.Decompress);
-            using var reader = new StreamReader(gzip, Encoding.UTF8);
-            return reader.ReadToEnd();
         }
     }
 
