@@ -19,7 +19,7 @@ namespace JFramework.Net
     [Serializable]
     public class NetworkClient
     {
-        private Dictionary<byte, WriterBatch> writerBatches = new Dictionary<byte, WriterBatch>();
+        private Dictionary<int, WriterBatch> writerBatches = new Dictionary<int, WriterBatch>();
         [SerializeField] internal ReaderBatch reader = new ReaderBatch();
         [SerializeField] public int clientId;
         [SerializeField] public bool isReady;
@@ -58,7 +58,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         /// <typeparam name="T">传入NetworkMessage</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Send<T>(T message, byte channel = Channel.Reliable) where T : struct, IMessage
+        public void Send<T>(T message, int channel = Channel.Reliable) where T : struct, IMessage
         {
             using var writer = NetworkWriter.Pop();
             writer.WriteUShort(Message<T>.Id);
@@ -80,7 +80,7 @@ namespace JFramework.Net
         /// <param name="channel">传输通道</param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void AddMessage(NetworkWriter writer, byte channel)
+        internal void AddMessage(NetworkWriter writer, int channel)
         {
             if (!writerBatches.TryGetValue(channel, out var writerBatch))
             {

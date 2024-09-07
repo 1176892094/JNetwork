@@ -18,10 +18,10 @@ namespace JFramework.Net
     [AttributeUsage(AttributeTargets.Method)]
     public class ClientRpcAttribute : Attribute
     {
-        private byte channel;
+        private int channel;
         private bool oneself;
 
-        public ClientRpcAttribute(byte channel = Channel.Reliable, bool oneself = true)
+        public ClientRpcAttribute(int channel = Channel.Reliable, bool oneself = true)
         {
             this.channel = channel;
             this.oneself = oneself;
@@ -34,8 +34,8 @@ namespace JFramework.Net
     [AttributeUsage(AttributeTargets.Method)]
     public class ServerRpcAttribute : Attribute
     {
-        private byte channel;
-        public ServerRpcAttribute(byte channel = Channel.Reliable) => this.channel = channel;
+        private int channel;
+        public ServerRpcAttribute(int channel = Channel.Reliable) => this.channel = channel;
     }
 
     /// <summary>
@@ -44,8 +44,8 @@ namespace JFramework.Net
     [AttributeUsage(AttributeTargets.Method)]
     public class TargetRpcAttribute : Attribute
     {
-        private byte channel;
-        public TargetRpcAttribute(byte channel = Channel.Reliable) => this.channel = channel;
+        private int channel;
+        public TargetRpcAttribute(int channel = Channel.Reliable) => this.channel = channel;
     }
 
     /// <summary>

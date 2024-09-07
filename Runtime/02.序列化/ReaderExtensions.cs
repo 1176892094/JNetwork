@@ -22,9 +22,19 @@ namespace JFramework.Net
             return reader.Read<byte>();
         }
 
+        public static byte? ReadByteNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<byte>();
+        }
+
         public static sbyte ReadSByte(this NetworkReader reader)
         {
             return reader.Read<sbyte>();
+        }
+
+        public static sbyte? ReadSByteNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<sbyte>();
         }
 
         public static char ReadChar(this NetworkReader reader)
@@ -32,9 +42,20 @@ namespace JFramework.Net
             return (char)reader.Read<ushort>();
         }
 
+        public static char? ReadCharNullable(this NetworkReader reader)
+        {
+            return (char?)reader.ReadNullable<ushort>();
+        }
+
         public static bool ReadBool(this NetworkReader reader)
         {
             return reader.Read<byte>() != 0;
+        }
+
+        public static bool? ReadBoolNullable(this NetworkReader reader)
+        {
+            byte? value = reader.ReadNullable<byte>();
+            return value.HasValue ? value.Value != 0 : default(bool?);
         }
 
         public static short ReadShort(this NetworkReader reader)
@@ -42,9 +63,19 @@ namespace JFramework.Net
             return reader.Read<short>();
         }
 
+        public static short? ReadShortNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<short>();
+        }
+
         public static ushort ReadUShort(this NetworkReader reader)
         {
             return reader.Read<ushort>();
+        }
+
+        public static ushort? ReadUShortNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<ushort>();
         }
 
         public static int ReadInt(this NetworkReader reader)
@@ -52,9 +83,19 @@ namespace JFramework.Net
             return reader.Read<int>();
         }
 
+        public static int? ReadIntNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<int>();
+        }
+
         public static uint ReadUInt(this NetworkReader reader)
         {
             return reader.Read<uint>();
+        }
+
+        public static uint? ReadUIntNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<uint>();
         }
 
         public static long ReadLong(this NetworkReader reader)
@@ -62,9 +103,19 @@ namespace JFramework.Net
             return reader.Read<long>();
         }
 
+        public static long? ReadLongNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<long>();
+        }
+
         public static ulong ReadULong(this NetworkReader reader)
         {
             return reader.Read<ulong>();
+        }
+
+        public static ulong? ReadULongNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<ulong>();
         }
 
         public static float ReadFloat(this NetworkReader reader)
@@ -72,9 +123,19 @@ namespace JFramework.Net
             return reader.Read<float>();
         }
 
+        public static float? ReadFloatNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<float>();
+        }
+
         public static double ReadDouble(this NetworkReader reader)
         {
             return reader.Read<double>();
+        }
+
+        public static double? ReadDoubleNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<double>();
         }
 
         public static decimal ReadDecimal(this NetworkReader reader)
@@ -82,6 +143,101 @@ namespace JFramework.Net
             return reader.Read<decimal>();
         }
 
+        public static decimal? ReadDecimalNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<decimal>();
+        }
+
+        public static Vector2 ReadVector2(this NetworkReader reader)
+        {
+            return reader.Read<Vector2>();
+        }
+        
+        public static Vector2? ReadVector2Nullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<Vector2>();
+        }
+
+        public static Vector3 ReadVector3(this NetworkReader reader)
+        {
+            return reader.Read<Vector3>();
+        }
+
+        public static Vector3? ReadVector3Nullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<Vector3>();
+        }
+
+        public static Vector4 ReadVector4(this NetworkReader reader)
+        {
+            return reader.Read<Vector4>();
+        }
+        
+        public static Vector4? ReadVector4Nullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<Vector4>();
+        }
+
+        public static Vector2Int ReadVector2Int(this NetworkReader reader)
+        {
+            return reader.Read<Vector2Int>();
+        }
+        
+        public static Vector2Int? ReadVector2IntNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<Vector2Int>();
+        }
+
+        public static Vector3Int ReadVector3Int(this NetworkReader reader)
+        {
+            return reader.Read<Vector3Int>();
+        }
+        
+        public static Vector3Int? ReadVector3IntNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<Vector3Int>();
+        }
+        
+        public static Quaternion ReadQuaternion(this NetworkReader reader)
+        {
+            return reader.Read<Quaternion>();
+        }
+        
+        public static Quaternion? ReadQuaternionNullable(this NetworkReader reader)
+        {
+            return reader.ReadNullable<Quaternion>();
+        }
+
+        public static Color ReadColor(this NetworkReader reader)
+        {
+            return reader.Read<Color>();
+        }
+
+        public static Color32 ReadColor32(this NetworkReader reader)
+        {
+            return reader.Read<Color32>();
+        }
+        
+        public static Rect ReadRect(this NetworkReader reader)
+        {
+            return new Rect(reader.ReadVector2(), reader.ReadVector2());
+        }
+
+        public static Plane ReadPlane(this NetworkReader reader)
+        {
+            return new Plane(reader.ReadVector3(), reader.ReadFloat());
+        }
+
+        public static Ray ReadRay(this NetworkReader reader)
+        {
+            return new Ray(reader.ReadVector3(), reader.ReadVector3());
+        }
+
+        public static Matrix4x4 ReadMatrix4x4(this NetworkReader reader)
+        {
+            return reader.Read<Matrix4x4>();
+        }
+        
         public static string ReadString(this NetworkReader reader)
         {
             var count = reader.ReadUShort();
@@ -105,83 +261,13 @@ namespace JFramework.Net
             var count = reader.ReadUInt();
             return count == 0 ? null : reader.ReadArraySegment(checked((int)(count - 1))).Array;
         }
-        
+
         public static ArraySegment<byte> ReadArraySegment(this NetworkReader reader)
         {
             var count = reader.ReadUInt();
             return count == 0 ? null : reader.ReadArraySegment(checked((int)(count - 1)));
         }
 
-        public static Vector2 ReadVector2(this NetworkReader reader)
-        {
-            return reader.Read<Vector2>();
-        }
-
-        public static Vector3 ReadVector3(this NetworkReader reader)
-        {
-            return reader.Read<Vector3>();
-        }
-
-        public static Vector3? ReadVector3Nullable(this NetworkReader reader)
-        {
-            return reader.ReadEmpty<Vector3>();
-        }
-
-        public static Vector4 ReadVector4(this NetworkReader reader)
-        {
-            return reader.Read<Vector4>();
-        }
-
-        public static Vector2Int ReadVector2Int(this NetworkReader reader)
-        {
-            return reader.Read<Vector2Int>();
-        }
-
-        public static Vector3Int ReadVector3Int(this NetworkReader reader)
-        {
-            return reader.Read<Vector3Int>();
-        }
-
-        public static Color ReadColor(this NetworkReader reader)
-        {
-            return reader.Read<Color>();
-        }
-
-        public static Color32 ReadColor32(this NetworkReader reader)
-        {
-            return reader.Read<Color32>();
-        }
-
-        public static Quaternion ReadQuaternion(this NetworkReader reader)
-        {
-            return reader.Read<Quaternion>();
-        }
-
-        public static Quaternion? ReadQuaternionNullable(this NetworkReader reader)
-        {
-            return reader.ReadEmpty<Quaternion>();
-        }
-
-        public static Rect ReadRect(this NetworkReader reader)
-        {
-            return new Rect(reader.ReadVector2(), reader.ReadVector2());
-        }
-
-        public static Plane ReadPlane(this NetworkReader reader)
-        {
-            return new Plane(reader.ReadVector3(), reader.ReadFloat());
-        }
-
-        public static Ray ReadRay(this NetworkReader reader)
-        {
-            return new Ray(reader.ReadVector3(), reader.ReadVector3());
-        }
-
-        public static Matrix4x4 ReadMatrix4x4(this NetworkReader reader)
-        {
-            return reader.Read<Matrix4x4>();
-        }
-        
         public static Guid ReadGuid(this NetworkReader reader)
         {
             if (reader.residue < 16)
@@ -198,7 +284,7 @@ namespace JFramework.Net
         {
             return DateTime.FromOADate(reader.ReadDouble());
         }
-        
+
         public static List<T> ReadList<T>(this NetworkReader reader)
         {
             var length = reader.ReadInt();
@@ -297,7 +383,7 @@ namespace JFramework.Net
         {
             uint objectId = reader.ReadUInt();
             byte componentId = default;
-            
+
             if (objectId != 0)
             {
                 componentId = reader.ReadByte();

@@ -21,15 +21,30 @@ namespace JFramework.Net
         {
             writer.Write(value);
         }
+        
+        public static void WriteByteNullable(this NetworkWriter writer, byte? value)
+        {
+            writer.WriteNullable(value);
+        }
 
         public static void WriteSByte(this NetworkWriter writer, sbyte value)
         {
             writer.Write(value);
         }
+        
+        public static void WriteSByteNullable(this NetworkWriter writer, sbyte? value)
+        {
+            writer.WriteNullable(value);
+        }
 
         public static void WriteChar(this NetworkWriter writer, char value)
         {
             writer.Write((ushort)value);
+        }
+        
+        public static void WriteCharNullable(this NetworkWriter writer, char? value)
+        {
+            writer.WriteNullable((ushort?)value);
         }
 
         public static void WriteBool(this NetworkWriter writer, bool value)
@@ -37,51 +52,206 @@ namespace JFramework.Net
             writer.Write((byte)(value ? 1 : 0));
         }
 
+        public static void WriteBoolNullable(this NetworkWriter writer, bool? value)
+        {
+            writer.WriteNullable(value.HasValue ? (byte)(value.Value ? 1 : 0) : new byte?());
+        }
+
         public static void WriteShort(this NetworkWriter writer, short value)
         {
             writer.Write(value);
+        }
+        
+        public static void WriteShortNullable(this NetworkWriter writer, short? value)
+        {
+            writer.WriteNullable(value);
         }
 
         public static void WriteUShort(this NetworkWriter writer, ushort value)
         {
             writer.Write(value);
         }
+        
+        public static void WriteUShortNullable(this NetworkWriter writer, ushort? value)
+        {
+            writer.WriteNullable(value);
+        }
 
         public static void WriteInt(this NetworkWriter writer, int value)
         {
             writer.Write(value);
+        }
+        
+        public static void WriteIntNullable(this NetworkWriter writer, int? value)
+        {
+            writer.WriteNullable(value);
         }
 
         public static void WriteUInt(this NetworkWriter writer, uint value)
         {
             writer.Write(value);
         }
+        
+        public static void WriteUIntNullable(this NetworkWriter writer, uint? value)
+        {
+            writer.WriteNullable(value);
+        }
 
         public static void WriteLong(this NetworkWriter writer, long value)
         {
             writer.Write(value);
+        }
+        
+        public static void WriteULongNullable(this NetworkWriter writer, long? value)
+        {
+            writer.WriteNullable(value);
         }
 
         public static void WriteULong(this NetworkWriter writer, ulong value)
         {
             writer.Write(value);
         }
+        
+        public static void WriteULongNullable(this NetworkWriter writer, ulong? value)
+        {
+            writer.WriteNullable(value);
+        }
 
         public static void WriteFloat(this NetworkWriter writer, float value)
         {
             writer.Write(value);
+        }
+        
+        public static void WriteFloatNullable(this NetworkWriter writer, float? value)
+        {
+            writer.WriteNullable(value);
         }
 
         public static void WriteDouble(this NetworkWriter writer, double value)
         {
             writer.Write(value);
         }
+        
+        public static void WriteDoubleNullable(this NetworkWriter writer, double? value)
+        {
+            writer.WriteNullable(value);
+        }
 
         public static void WriteDecimal(this NetworkWriter writer, decimal value)
         {
             writer.Write(value);
         }
+        
+        public static void WriteDecimalNullable(this NetworkWriter writer, decimal? value)
+        {
+            writer.WriteNullable(value);
+        }
 
+        public static void WriteVector2(this NetworkWriter writer, Vector2 value)
+        {
+            writer.Write(value);
+        }
+        
+        public static void WriteVector2Nullable(this NetworkWriter writer, Vector2? value)
+        {
+            writer.WriteNullable(value);
+        }
+
+        public static void WriteVector3(this NetworkWriter writer, Vector3 value)
+        {
+            writer.Write(value);
+        }
+
+        public static void WriteVector3Nullable(this NetworkWriter writer, Vector3? value)
+        {
+            writer.WriteNullable(value);
+        }
+
+        public static void WriteVector4(this NetworkWriter writer, Vector4 value)
+        {
+            writer.Write(value);
+        }
+
+        public static void WriteVector4Nullable(this NetworkWriter writer, Vector4? value)
+        {
+            writer.WriteNullable(value);
+        }
+        
+        public static void WriteVector2Int(this NetworkWriter writer, Vector2Int value)
+        {
+            writer.Write(value);
+        }
+        
+        public static void WriteVector2IntNullable(this NetworkWriter writer, Vector2Int? value)
+        {
+            writer.WriteNullable(value);
+        }
+
+        public static void WriteVector3Int(this NetworkWriter writer, Vector3Int value)
+        {
+            writer.Write(value);
+        }
+        
+        public static void WriteVector3IntNullable(this NetworkWriter writer, Vector3Int? value)
+        {
+            writer.WriteNullable(value);
+        }
+        
+        public static void WriteQuaternion(this NetworkWriter writer, Quaternion value)
+        {
+            writer.Write(value);
+        }
+
+        public static void WriteQuaternionNullable(this NetworkWriter writer, Quaternion? value)
+        {
+            writer.WriteNullable(value);
+        }
+
+        public static void WriteColor(this NetworkWriter writer, Color value)
+        {
+            writer.Write(value);
+        }
+        
+        public static void WriteColor32(this NetworkWriter writer, Color32 value)
+        {
+            writer.Write(value);
+        }
+
+        public static void WriteRect(this NetworkWriter writer, Rect value)
+        {
+            writer.WriteVector2(value.position);
+            writer.WriteVector2(value.size);
+        }
+
+        public static void WritePlane(this NetworkWriter writer, Plane value)
+        {
+            writer.WriteVector3(value.normal);
+            writer.WriteFloat(value.distance);
+        }
+
+        public static void WriteRay(this NetworkWriter writer, Ray value)
+        {
+            writer.WriteVector3(value.origin);
+            writer.WriteVector3(value.direction);
+        }
+
+        public static void WriteMatrix4x4(this NetworkWriter writer, Matrix4x4 value)
+        {
+            writer.Write(value);
+        }
+
+        public static void WriteGuid(this NetworkWriter writer, Guid value)
+        {
+            writer.AddCapacity(writer.position + 16);
+            value.TryWriteBytes(new Span<byte>(writer.buffer, writer.position, 16));
+            writer.position += 16;
+        }
+
+        public static void WriteDateTime(this NetworkWriter writer, DateTime value)
+        {
+            writer.WriteDouble(value.ToOADate());
+        }
+        
         public static void WriteString(this NetworkWriter writer, string value)
         {
             if (value == null)
@@ -123,91 +293,6 @@ namespace JFramework.Net
 
             writer.WriteUInt(checked((uint)value.Count) + 1);
             writer.WriteBytes(value.Array, value.Offset, value.Count);
-        }
-
-        public static void WriteVector2(this NetworkWriter writer, Vector2 value)
-        {
-            writer.Write(value);
-        }
-
-        public static void WriteVector3(this NetworkWriter writer, Vector3 value)
-        {
-            writer.Write(value);
-        }
-
-        public static void WriteVector3Nullable(this NetworkWriter writer, Vector3? value)
-        {
-            writer.WriteEmpty(value);
-        }
-
-        public static void WriteVector4(this NetworkWriter writer, Vector4 value)
-        {
-            writer.Write(value);
-        }
-
-        public static void WriteVector2Int(this NetworkWriter writer, Vector2Int value)
-        {
-            writer.Write(value);
-        }
-
-        public static void WriteVector3Int(this NetworkWriter writer, Vector3Int value)
-        {
-            writer.Write(value);
-        }
-
-        public static void WriteColor(this NetworkWriter writer, Color value)
-        {
-            writer.Write(value);
-        }
-
-        public static void WriteColor32(this NetworkWriter writer, Color32 value)
-        {
-            writer.Write(value);
-        }
-
-        public static void WriteQuaternion(this NetworkWriter writer, Quaternion value)
-        {
-            writer.Write(value);
-        }
-
-        public static void WriteQuaternionNullable(this NetworkWriter writer, Quaternion? value)
-        {
-            writer.WriteEmpty(value);
-        }
-
-        public static void WriteRect(this NetworkWriter writer, Rect value)
-        {
-            writer.WriteVector2(value.position);
-            writer.WriteVector2(value.size);
-        }
-
-        public static void WritePlane(this NetworkWriter writer, Plane value)
-        {
-            writer.WriteVector3(value.normal);
-            writer.WriteFloat(value.distance);
-        }
-
-        public static void WriteRay(this NetworkWriter writer, Ray value)
-        {
-            writer.WriteVector3(value.origin);
-            writer.WriteVector3(value.direction);
-        }
-
-        public static void WriteMatrix4x4(this NetworkWriter writer, Matrix4x4 value)
-        {
-            writer.Write(value);
-        }
-
-        public static void WriteGuid(this NetworkWriter writer, Guid value)
-        {
-            writer.AddCapacity(writer.position + 16);
-            value.TryWriteBytes(new Span<byte>(writer.buffer, writer.position, 16));
-            writer.position += 16;
-        }
-
-        public static void WriteDateTime(this NetworkWriter writer, DateTime value)
-        {
-            writer.WriteDouble(value.ToOADate());
         }
 
         public static void WriteList<T>(this NetworkWriter writer, List<T> values)

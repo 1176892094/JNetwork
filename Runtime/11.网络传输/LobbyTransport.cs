@@ -55,7 +55,7 @@ namespace JFramework.Net
                 StopLobby();
             }
 
-            void OnClientReceive(ArraySegment<byte> segment, byte channel)
+            void OnClientReceive(ArraySegment<byte> segment, int channel)
             {
                 try
                 {
@@ -101,7 +101,7 @@ namespace JFramework.Net
             }
         }
 
-        private void OnMessageReceive(ArraySegment<byte> segment, byte channel)
+        private void OnMessageReceive(ArraySegment<byte> segment, int channel)
         {
             using var reader = NetworkReader.Pop(segment);
             var opcode = (OpCodes)reader.ReadByte();
@@ -216,12 +216,12 @@ namespace JFramework.Net
 
     public partial class LobbyTransport
     {
-        public override int MessageSize(byte channel)
+        public override int MessageSize(int channel)
         {
             return transport.MessageSize(channel);
         }
 
-        public override void SendToClient(int clientId, ArraySegment<byte> segment, byte channel = Channel.Reliable)
+        public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
             if (players.TryGetValue(clientId, out var ownerId))
             {
@@ -233,7 +233,7 @@ namespace JFramework.Net
             }
         }
 
-        public override void SendToServer(ArraySegment<byte> segment, byte channel = Channel.Reliable)
+        public override void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
             using var writer = NetworkWriter.Pop();
             writer.WriteByte((byte)OpCodes.UpdateData);

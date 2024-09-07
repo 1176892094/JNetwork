@@ -68,7 +68,7 @@ namespace JFramework.Net
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal T? ReadEmpty<T>() where T : unmanaged
+        internal T? ReadNullable<T>() where T : unmanaged
         {
             return Read<byte>() != 0 ? Read<T>() : default(T?);
         }
@@ -103,7 +103,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkReader Pop(ArraySegment<byte> segment)
         {
-            var reader = PoolManager.Dequeue<NetworkReader>();
+            var reader = NetworkPool<NetworkReader>.Pop();
             reader.Reset(segment);
             return reader;
         }
@@ -115,7 +115,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Push(NetworkReader reader)
         {
-            PoolManager.Enqueue(reader);
+            NetworkPool<NetworkReader>.Push(reader);
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace JFramework.Net
         /// </summary>
         void IDisposable.Dispose()
         {
-            PoolManager.Enqueue(this);
+            NetworkPool<NetworkReader>.Push(this);
         }
     }
 

@@ -21,7 +21,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    using MessageDelegate = Action<NetworkClient, NetworkReader, byte>;
+    using MessageDelegate = Action<NetworkClient, NetworkReader, int>;
 
     public static class NetworkUtility
     {
@@ -135,7 +135,7 @@ namespace JFramework.Net
         /// <param name="action">传入网络连接，网络消息，传输通道</param>
         /// <typeparam name="T">网络消息</typeparam>
         /// <returns>返回一个消息委托</returns>
-        internal static MessageDelegate GetMessage<T>(Action<NetworkClient, T, byte> action) where T : struct, IMessage
+        internal static MessageDelegate GetMessage<T>(Action<NetworkClient, T, int> action) where T : struct, IMessage
         {
             return (client, reader, channel) =>
             {

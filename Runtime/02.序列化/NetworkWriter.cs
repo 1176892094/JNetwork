@@ -64,7 +64,7 @@ namespace JFramework.Net
         /// <param name="value"></param>
         /// <typeparam name="T"></typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void WriteEmpty<T>(T? value) where T : unmanaged
+        internal void WriteNullable<T>(T? value) where T : unmanaged
         {
             if (!value.HasValue)
             {
@@ -103,7 +103,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkWriter Pop()
         {
-            var writer = PoolManager.Dequeue<NetworkWriter>();
+            var writer = NetworkPool<NetworkWriter>.Pop();
             writer.Reset();
             return writer;
         }
@@ -115,7 +115,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Push(NetworkWriter writer)
         {
-            PoolManager.Enqueue(writer);
+            NetworkPool<NetworkWriter>.Push(writer);
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace JFramework.Net
         /// </summary>
         void IDisposable.Dispose()
         {
-            PoolManager.Enqueue(this);
+            NetworkPool<NetworkWriter>.Push(this);
         }
     }
 

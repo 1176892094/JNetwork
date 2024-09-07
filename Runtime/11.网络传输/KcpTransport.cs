@@ -27,18 +27,18 @@ namespace JFramework.Net
 
             void ClientConnect() => OnClientConnect.Invoke();
 
-            void ClientReceive(ArraySegment<byte> message, byte channel) => OnClientReceive.Invoke(message, channel);
+            void ClientReceive(ArraySegment<byte> message, int channel) => OnClientReceive.Invoke(message, channel);
 
             void ClientDisconnect() => OnClientDisconnect.Invoke();
 
             void ServerConnect(int clientId) => OnServerConnect.Invoke(clientId);
 
-            void ServerReceive(int clientId, ArraySegment<byte> message, byte channel) => OnServerReceive.Invoke(clientId, message, channel);
+            void ServerReceive(int clientId, ArraySegment<byte> message, int channel) => OnServerReceive.Invoke(clientId, message, channel);
 
             void ServerDisconnect(int clientId) => OnServerDisconnect.Invoke(clientId);
         }
 
-        public override int MessageSize(byte channel) => channel == Channel.Reliable ? Common.ReliableSize(maxUnit, receiveWindow) : Common.UnreliableSize(maxUnit);
+        public override int MessageSize(int channel) => channel == Channel.Reliable ? Common.ReliableSize(maxUnit, receiveWindow) : Common.UnreliableSize(maxUnit);
 
         public override void StartServer() => server.Connect(port);
 
@@ -46,7 +46,7 @@ namespace JFramework.Net
 
         public override void StopClient(int clientId) => server.Disconnect(clientId);
 
-        public override void SendToClient(int clientId, ArraySegment<byte> segment, byte channel = Channel.Reliable) => server.Send(clientId, segment, channel);
+        public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable) => server.Send(clientId, segment, channel);
 
         public override void StartClient() => client.Connect(address, port);
 
@@ -54,7 +54,7 @@ namespace JFramework.Net
 
         public override void StopClient() => client.Disconnect();
 
-        public override void SendToServer(ArraySegment<byte> segment, byte channel = Channel.Reliable) => client.Send(segment, channel);
+        public override void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable) => client.Send(segment, channel);
 
         public override void ClientEarlyUpdate() => client.EarlyUpdate();
 

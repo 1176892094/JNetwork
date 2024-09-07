@@ -17,7 +17,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    using MessageDelegate = Action<NetworkClient, NetworkReader, byte>;
+    using MessageDelegate = Action<NetworkClient, NetworkReader, int>;
 
     public partial class ClientManager : Component<NetworkManager>
     {
@@ -414,7 +414,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="segment"></param>
         /// <param name="channel"></param>
-        internal void OnClientReceive(ArraySegment<byte> segment, byte channel)
+        internal void OnClientReceive(ArraySegment<byte> segment, int channel)
         {
             if (connection == null)
             {

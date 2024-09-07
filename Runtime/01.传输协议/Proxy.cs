@@ -85,7 +85,7 @@ namespace JFramework.Udp
             return true;
         }
 
-        protected void Input(byte channel, ArraySegment<byte> segment)
+        protected void Input(int channel, ArraySegment<byte> segment)
         {
             if (channel == Channel.Reliable)
             {
@@ -169,7 +169,7 @@ namespace JFramework.Udp
             Send(new ArraySegment<byte>(rawSendBuffer, 0, segment.Count + 1 + 4 + 1));
         }
 
-        public void SendData(ArraySegment<byte> data, byte channel)
+        public void SendData(ArraySegment<byte> data, int channel)
         {
             if (data.Count == 0)
             {
@@ -321,7 +321,7 @@ namespace JFramework.Udp
 
         protected abstract void Connected();
         protected abstract void Send(ArraySegment<byte> segment);
-        protected abstract void Receive(ArraySegment<byte> message, byte channel);
+        protected abstract void Receive(ArraySegment<byte> message, int channel);
         protected abstract void Disconnected();
     }
 }

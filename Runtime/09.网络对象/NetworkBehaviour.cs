@@ -230,7 +230,7 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendServerRpcInternal(string methodName, int methodHash, NetworkWriter writer, byte channel)
+        protected void SendServerRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel)
         {
             if (!NetworkManager.Client.isActive)
             {
@@ -275,8 +275,8 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        /// <param name="mode">包含所有者</param>
-        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, byte channel, int mode)
+        /// <param name="oneself">包含所有者</param>
+        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel, bool oneself)
         {
             if (!NetworkManager.Server.isActive)
             {
@@ -304,11 +304,11 @@ namespace JFramework.Net
 
             foreach (var client in NetworkManager.Server.clients.Values.Where(client => client.isReady))
             {
-                if (mode == 0)
+                if (oneself)
                 {
                     client.Send(message, channel);
                 }
-                else if (mode == 1)
+                else
                 {
                     if (client != connection)
                     {
@@ -326,7 +326,7 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        protected void SendTargetRpcInternal(NetworkClient client, string methodName, int methodHash, NetworkWriter writer, byte channel)
+        protected void SendTargetRpcInternal(NetworkClient client, string methodName, int methodHash, NetworkWriter writer, int channel)
         {
             if (!NetworkManager.Server.isActive)
             {

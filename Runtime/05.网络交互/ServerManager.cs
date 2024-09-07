@@ -17,7 +17,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    using MessageDelegate = Action<NetworkClient, NetworkReader, byte>;
+    using MessageDelegate = Action<NetworkClient, NetworkReader, int>;
 
     public partial class ServerManager : Component<NetworkManager>
     {
@@ -185,7 +185,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="handle"></param>
         /// <typeparam name="T"></typeparam>
-        public void Register<T>(Action<NetworkClient, T, byte> handle) where T : struct, IMessage
+        public void Register<T>(Action<NetworkClient, T, int> handle) where T : struct, IMessage
         {
             messages[Message<T>.Id] = NetworkUtility.GetMessage(handle);
         }
@@ -259,7 +259,7 @@ namespace JFramework.Net
         /// <param name="client"></param>
         /// <param name="message"></param>
         /// <param name="channel"></param>
-        internal void ServerRpcMessage(NetworkClient client, ServerRpcMessage message, byte channel)
+        internal void ServerRpcMessage(NetworkClient client, ServerRpcMessage message, int channel)
         {
             if (!client.isReady)
             {
@@ -340,7 +340,7 @@ namespace JFramework.Net
         /// <param name="clientId"></param>
         /// <param name="segment"></param>
         /// <param name="channel"></param>
-        internal void OnServerReceive(int clientId, ArraySegment<byte> segment, byte channel)
+        internal void OnServerReceive(int clientId, ArraySegment<byte> segment, int channel)
         {
             if (!clients.TryGetValue(clientId, out var client))
             {

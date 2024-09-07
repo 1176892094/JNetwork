@@ -35,7 +35,7 @@ namespace JFramework.Net
         /// <summary>
         /// 设置阈值
         /// </summary>
-        public WriterBatch(byte channel)
+        public WriterBatch(int channel)
         {
             messageSize = NetworkManager.Transport.MessageSize(channel);
         }

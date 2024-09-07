@@ -28,7 +28,7 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端接收事件
         /// </summary>
-        public Action<ArraySegment<byte>, byte> OnClientReceive;
+        public Action<ArraySegment<byte>, int> OnClientReceive;
 
         /// <summary>
         /// 客户端连接到服务器的事件
@@ -43,26 +43,26 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器接收客户端消息的事件
         /// </summary>
-        public Action<int, ArraySegment<byte>, byte> OnServerReceive;
+        public Action<int, ArraySegment<byte>, int> OnServerReceive;
 
         /// <summary>
         /// 获取最大网络消息大小
         /// </summary>
         /// <param name="channel">传输通道</param>
         /// <returns></returns>
-        public abstract int MessageSize(byte channel);
+        public abstract int MessageSize(int channel);
 
         /// <summary>
         /// 服务器传输信息给客户端
         /// </summary>
-        public abstract void SendToClient(int clientId, ArraySegment<byte> segment, byte channel = Channel.Reliable);
+        public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable);
 
         /// <summary>
         /// 客户端向服务器传输信息
         /// </summary>
         /// <param name="segment">传入发送的数据</param>
         /// <param name="channel">传入通道</param>
-        public abstract void SendToServer(ArraySegment<byte> segment, byte channel = Channel.Reliable);
+        public abstract void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable);
 
         /// <summary>
         /// 当服务器连接
