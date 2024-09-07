@@ -146,6 +146,49 @@ namespace JFramework.Net
         {
             writer.WriteNullable(value);
         }
+        
+        public static void WriteString(this NetworkWriter writer, string value)
+        {
+            if (value == null)
+            {
+                writer.WriteUShort(0);
+                return;
+            }
+
+            writer.AddCapacity(writer.position + 2 + writer.encoding.GetMaxByteCount(value.Length));
+            var count = writer.encoding.GetBytes(value, 0, value.Length, writer.buffer, writer.position + 2);
+            if (count > ushort.MaxValue - 1)
+            {
+                throw new EndOfStreamException("写入字符串过长!");
+            }
+
+            writer.WriteUShort(checked((ushort)(count + 1))); // writer.position + 2
+            writer.position += count;
+        }
+
+        public static void WriteBytes(this NetworkWriter writer, byte[] value)
+        {
+            if (value == null)
+            {
+                writer.WriteUInt(0);
+                return;
+            }
+
+            writer.WriteUInt(checked((uint)value.Length) + 1);
+            writer.WriteBytes(value, 0, value.Length);
+        }
+
+        public static void WriteArraySegment(this NetworkWriter writer, ArraySegment<byte> value)
+        {
+            if (value == null)
+            {
+                writer.WriteUInt(0);
+                return;
+            }
+
+            writer.WriteUInt(checked((uint)value.Count) + 1);
+            writer.WriteBytes(value.Array, value.Offset, value.Count);
+        }
 
         public static void WriteVector2(this NetworkWriter writer, Vector2 value)
         {
@@ -250,49 +293,6 @@ namespace JFramework.Net
         public static void WriteDateTime(this NetworkWriter writer, DateTime value)
         {
             writer.WriteDouble(value.ToOADate());
-        }
-        
-        public static void WriteString(this NetworkWriter writer, string value)
-        {
-            if (value == null)
-            {
-                writer.WriteUShort(0);
-                return;
-            }
-
-            writer.AddCapacity(writer.position + 2 + writer.encoding.GetMaxByteCount(value.Length));
-            var count = writer.encoding.GetBytes(value, 0, value.Length, writer.buffer, writer.position + 2);
-            if (count > ushort.MaxValue - 1)
-            {
-                throw new EndOfStreamException("写入字符串过长!");
-            }
-
-            writer.WriteUShort(checked((ushort)(count + 1))); // writer.position + 2
-            writer.position += count;
-        }
-
-        public static void WriteBytes(this NetworkWriter writer, byte[] value)
-        {
-            if (value == null)
-            {
-                writer.WriteUInt(0);
-                return;
-            }
-
-            writer.WriteUInt(checked((uint)value.Length) + 1);
-            writer.WriteBytes(value, 0, value.Length);
-        }
-
-        public static void WriteArraySegment(this NetworkWriter writer, ArraySegment<byte> value)
-        {
-            if (value == null)
-            {
-                writer.WriteUInt(0);
-                return;
-            }
-
-            writer.WriteUInt(checked((uint)value.Count) + 1);
-            writer.WriteBytes(value.Array, value.Offset, value.Count);
         }
 
         public static void WriteList<T>(this NetworkWriter writer, List<T> values)

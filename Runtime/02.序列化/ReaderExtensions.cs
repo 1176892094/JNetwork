@@ -147,6 +147,36 @@ namespace JFramework.Net
         {
             return reader.ReadNullable<decimal>();
         }
+        
+        public static string ReadString(this NetworkReader reader)
+        {
+            var count = reader.ReadUShort();
+            if (count == 0)
+            {
+                return null;
+            }
+
+            count = (ushort)(count - 1);
+            if (count > ushort.MaxValue - 1)
+            {
+                throw new EndOfStreamException("读取字符串过长!");
+            }
+
+            var segment = reader.ReadArraySegment(count);
+            return reader.encoding.GetString(segment.Array, segment.Offset, segment.Count);
+        }
+
+        public static byte[] ReadBytes(this NetworkReader reader)
+        {
+            var count = reader.ReadUInt();
+            return count == 0 ? null : reader.ReadArraySegment(checked((int)(count - 1))).Array;
+        }
+
+        public static ArraySegment<byte> ReadArraySegment(this NetworkReader reader)
+        {
+            var count = reader.ReadUInt();
+            return count == 0 ? null : reader.ReadArraySegment(checked((int)(count - 1)));
+        }
 
         public static Vector2 ReadVector2(this NetworkReader reader)
         {
@@ -236,36 +266,6 @@ namespace JFramework.Net
         public static Matrix4x4 ReadMatrix4x4(this NetworkReader reader)
         {
             return reader.Read<Matrix4x4>();
-        }
-        
-        public static string ReadString(this NetworkReader reader)
-        {
-            var count = reader.ReadUShort();
-            if (count == 0)
-            {
-                return null;
-            }
-
-            count = (ushort)(count - 1);
-            if (count > ushort.MaxValue - 1)
-            {
-                throw new EndOfStreamException("读取字符串过长!");
-            }
-
-            var segment = reader.ReadArraySegment(count);
-            return reader.encoding.GetString(segment.Array, segment.Offset, segment.Count);
-        }
-
-        public static byte[] ReadBytes(this NetworkReader reader)
-        {
-            var count = reader.ReadUInt();
-            return count == 0 ? null : reader.ReadArraySegment(checked((int)(count - 1))).Array;
-        }
-
-        public static ArraySegment<byte> ReadArraySegment(this NetworkReader reader)
-        {
-            var count = reader.ReadUInt();
-            return count == 0 ? null : reader.ReadArraySegment(checked((int)(count - 1)));
         }
 
         public static Guid ReadGuid(this NetworkReader reader)

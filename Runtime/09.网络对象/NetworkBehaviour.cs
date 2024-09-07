@@ -275,8 +275,8 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        /// <param name="oneself">包含所有者</param>
-        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel, bool oneself)
+        /// <param name="everyone">包含所有者</param>
+        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel, bool everyone)
         {
             if (!NetworkManager.Server.isActive)
             {
@@ -304,16 +304,13 @@ namespace JFramework.Net
 
             foreach (var client in NetworkManager.Server.clients.Values.Where(client => client.isReady))
             {
-                if (oneself)
+                if (everyone)
                 {
                     client.Send(message, channel);
                 }
-                else
+                else if (client != connection)
                 {
-                    if (client != connection)
-                    {
-                        client.Send(message, channel);
-                    }
+                    client.Send(message, channel);
                 }
             }
         }

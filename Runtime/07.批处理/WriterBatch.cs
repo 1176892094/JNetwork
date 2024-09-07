@@ -30,7 +30,7 @@ namespace JFramework.Net
         /// <summary>
         /// 消息大小
         /// </summary>
-        [SerializeField] private int messageSize;
+        private int messageSize;
 
         /// <summary>
         /// 设置阈值
