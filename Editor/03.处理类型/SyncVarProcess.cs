@@ -78,7 +78,7 @@ namespace JFramework.Editor
         public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition syncVar, ref bool failed)
         {
             var attribute = syncVar.GetCustomAttribute<SyncVarAttribute>();
-            var hookMethod = attribute.GetField<string>(null);
+            var hookMethod = attribute.GetFieldType<string>();
             return hookMethod == null ? null : FindHookMethod(td, syncVar, hookMethod, ref failed);
         }
 

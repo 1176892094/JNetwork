@@ -19,12 +19,12 @@ namespace JFramework.Net
     public class ClientRpcAttribute : Attribute
     {
         private byte channel;
-        private Include include;
+        private bool oneself;
 
-        public ClientRpcAttribute(byte channel = Channel.Reliable, Include include = Include.Total)
+        public ClientRpcAttribute(byte channel = Channel.Reliable, bool oneself = true)
         {
             this.channel = channel;
-            this.include = include;
+            this.oneself = oneself;
         }
     }
 

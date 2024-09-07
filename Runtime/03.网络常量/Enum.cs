@@ -39,12 +39,6 @@ namespace JFramework.Net
         Pool,
     }
 
-    public enum Include : byte
-    {
-        Total,
-        Other,
-    }
-
     public enum EntryMode : byte
     {
         None = 0,

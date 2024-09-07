@@ -253,7 +253,7 @@ namespace JFramework.Editor
             return self.Methods.Where(method => method.Name == methodName).ToList();
         }
 
-        public static T GetField<T>(this CustomAttribute self, T value)
+        public static T GetFieldType<T>(this CustomAttribute self)
         {
             foreach (var custom in self.ConstructorArguments)
             {
@@ -263,7 +263,7 @@ namespace JFramework.Editor
                 }
             }
 
-            return value;
+            return default;
         }
 
         public static TypeReference ApplyGenericParameters(this TypeReference self, TypeReference child)
