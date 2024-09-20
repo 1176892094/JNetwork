@@ -12,7 +12,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using JFramework.Interface;
-using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -49,31 +48,50 @@ namespace JFramework.Net
         /// 上一次序列化间隔
         /// </summary>
         private NetworkSerialize serialize = new NetworkSerialize(0);
-        
+
         /// <summary>
         /// 游戏对象Id，用于网络标识
         /// </summary>
         [SerializeField] internal SpawnMode spawnMode;
-        
+
         /// <summary>
         /// 作为资源的路径
         /// </summary>
-        [SerializeField, ReadOnly] internal string assetId;
-        
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ReadOnly]
+#endif
+        [SerializeField]
+        internal string assetId;
+
         /// <summary>
         /// 游戏对象Id，用于网络标识
         /// </summary>
-        [SerializeField, ReadOnly] internal uint objectId;
+
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ReadOnly]
+#endif
+        [SerializeField]
+        internal uint objectId;
 
         /// <summary>
         /// 作为场景资源的Id
         /// </summary>
-        [SerializeField, ReadOnly] internal ulong sceneId;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ReadOnly]
+#endif
+
+        [SerializeField]
+        internal ulong sceneId;
 
         /// <summary>
         /// 是否有用权限
         /// </summary>
-        [SerializeField, ReadOnly] internal ObjectMode objectMode;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ReadOnly]
+#endif
+
+        [SerializeField]
+        internal ObjectMode objectMode;
 
         /// <summary>
         /// 是否为第一次生成

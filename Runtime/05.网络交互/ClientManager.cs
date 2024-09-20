@@ -12,29 +12,37 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JFramework.Interface;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace JFramework.Net
 {
     using MessageDelegate = Action<NetworkClient, NetworkReader, int>;
 
-    public partial class ClientManager : Component<NetworkManager>
+    public partial class ClientManager : Controller<NetworkManager>
     {
         /// <summary>
         /// 网络消息委托字典
         /// </summary>
-        [ShowInInspector] internal readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
 
         /// <summary>
         /// 场景中包含的网络对象
         /// </summary>
-        [ShowInInspector] internal readonly Dictionary<ulong, NetworkObject> scenes = new Dictionary<ulong, NetworkObject>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal readonly Dictionary<ulong, NetworkObject> scenes = new Dictionary<ulong, NetworkObject>();
 
         /// <summary>
         /// 客户端生成的网络对象
         /// </summary>
-        [ShowInInspector] internal readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
 
         /// <summary>
         /// 连接的状态
@@ -49,13 +57,17 @@ namespace JFramework.Net
         /// <summary>
         /// 是否活跃
         /// </summary>
-        [ShowInInspector]
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
         public bool isActive => state != StateMode.Disconnect;
 
         /// <summary>
         /// 是否已经准备完成(能进行和Server的信息传输)
         /// </summary>
-        [ShowInInspector]
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
         public bool isReady { get; internal set; }
 
         /// <summary>
@@ -66,14 +78,16 @@ namespace JFramework.Net
         /// <summary>
         /// 连接到的服务器
         /// </summary>
-        [ShowInInspector]
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
         public NetworkServer connection { get; private set; }
 
         /// <summary>
         /// 是否已经连接成功
         /// </summary>
         public bool isConnected => state == StateMode.Connected;
-        
+
         /// <summary>
         /// 客户端连接的事件(包含主机)
         /// </summary>

@@ -8,7 +8,6 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace JFramework.Net
@@ -80,32 +79,32 @@ namespace JFramework.Net
         /// <summary>
         /// 是否同步位置
         /// </summary>
-        [TabGroup("Sync"), SerializeField] private bool positionSync = true;
+        [SerializeField] private bool positionSync = true;
 
         /// <summary>
         /// 是否同步旋转
         /// </summary>
-        [TabGroup("Sync"), SerializeField] private bool rotationSync;
+        [SerializeField] private bool rotationSync;
 
         /// <summary>
         /// 是否同步大小
         /// </summary>
-        [TabGroup("Sync"), SerializeField] private bool localScaleSync;
+        [SerializeField] private bool localScaleSync;
 
         /// <summary>
         /// 同步位置感知差
         /// </summary>
-        [TabGroup("Perceive"), SerializeField] private float positionPerceive = 0.01f;
+        [SerializeField] private float positionPerceive = 0.01f;
 
         /// <summary>
         /// 同步旋转感知差
         /// </summary>
-        [TabGroup("Perceive"), SerializeField] private float rotationPerceive = 0.01f;
+        [SerializeField] private float rotationPerceive = 0.01f;
 
         /// <summary>
         /// 同步大小感知差
         /// </summary>
-        [TabGroup("Perceive"), SerializeField] private float localScalePerceive = 0.01f;
+        [SerializeField] private float localScalePerceive = 0.01f;
 
         /// <summary>
         /// 设置初始值

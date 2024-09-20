@@ -15,7 +15,7 @@ using UnityEngine.PlayerLoop;
 
 namespace JFramework.Net
 {
-    internal partial class TimeManager : Component<NetworkManager>
+    internal partial class TimeManager : Controller<NetworkManager>
     {
         private bool isActive;
         private double fixedTime;

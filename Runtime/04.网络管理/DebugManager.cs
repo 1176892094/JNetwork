@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace JFramework.Net
 {
-    internal class DebugManager : Component<NetworkManager>
+    internal class DebugManager : Controller<NetworkManager>
     {
         private static Rect windowRect;
         private static float windowScale => Screen.width / 2560f + Screen.height / 1440f;

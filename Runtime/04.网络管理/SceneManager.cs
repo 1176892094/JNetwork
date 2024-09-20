@@ -14,7 +14,7 @@ using GlobalSceneManager = JFramework.SceneManager;
 
 namespace JFramework.Net
 {
-    public class SceneManager : Component<NetworkManager>
+    public class SceneManager : Controller<NetworkManager>
     {
         /// <summary>
         /// 服务器场景

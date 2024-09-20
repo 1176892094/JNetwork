@@ -12,29 +12,37 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JFramework.Interface;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace JFramework.Net
 {
     using MessageDelegate = Action<NetworkClient, NetworkReader, int>;
 
-    public partial class ServerManager : Component<NetworkManager>
+    public partial class ServerManager : Controller<NetworkManager>
     {
         /// <summary>
         /// 网络消息委托字典
         /// </summary>
-        [ShowInInspector] internal readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
 
         /// <summary>
         /// 连接的的客户端字典
         /// </summary>
-        [ShowInInspector] public readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        public readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
 
         /// <summary>
         /// 服务器生成的游戏对象字典
         /// </summary>
-        [ShowInInspector] internal readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
 
         /// <summary>
         /// 用来拷贝当前连接的所有客户端
@@ -49,13 +57,17 @@ namespace JFramework.Net
         /// <summary>
         /// 是否是启动的
         /// </summary>
-        [ShowInInspector]
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
         public bool isActive { get; private set; }
 
         /// <summary>
         /// 所有客户端都准备
         /// </summary>
-        [ShowInInspector]
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
         public bool isReady => clients.Values.All(client => client.isReady);
 
         /// <summary>
@@ -72,7 +84,7 @@ namespace JFramework.Net
         /// 当前网络对象Id
         /// </summary>
         private uint objectId;
-        
+
         /// <summary>
         /// 有客户端连接到服务器的事件
         /// </summary>
