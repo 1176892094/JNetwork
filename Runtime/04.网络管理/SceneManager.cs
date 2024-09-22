@@ -20,7 +20,7 @@ namespace JFramework.Net
         /// 服务器场景
         /// </summary>
         private string sceneName;
-        
+
         /// <summary>
         /// 客户端加载场景的事件
         /// </summary>
@@ -64,6 +64,8 @@ namespace JFramework.Net
                 client.Send(new ReadyMessage(false));
             }
 
+            OnServerChangeScene?.Invoke(sceneName);
+
             if (NetworkManager.Server.isActive)
             {
                 this.sceneName = sceneName;
@@ -75,8 +77,6 @@ namespace JFramework.Net
 
                 GlobalSceneManager.Load(sceneName, OnLoadComplete);
             }
-
-            OnServerChangeScene?.Invoke(sceneName);
         }
 
         /// <summary>
@@ -90,14 +90,14 @@ namespace JFramework.Net
                 return;
             }
 
+            OnClientChangeScene?.Invoke(sceneName);
+            
             if (!NetworkManager.Server.isActive)
             {
                 this.sceneName = sceneName;
                 NetworkManager.Client.isLoadScene = true;
                 GlobalSceneManager.Load(sceneName, OnLoadComplete);
             }
-
-            OnClientChangeScene?.Invoke(sceneName);
         }
 
         /// <summary>
