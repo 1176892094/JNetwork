@@ -157,7 +157,6 @@ namespace JFramework.Net
         {
             if (clients.TryAdd(client.clientId, client))
             {
-                client.isPlayer = true;
                 OnConnect?.Invoke(client);
             }
         }
@@ -226,8 +225,7 @@ namespace JFramework.Net
                 {
                     SpawnToClient(client, @object);
                 }
-
-                NetworkManager.Instance.SpawnPrefab(client);
+                
                 OnReady?.Invoke(client);
             }
         }

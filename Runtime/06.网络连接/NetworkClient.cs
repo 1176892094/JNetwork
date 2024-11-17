@@ -23,7 +23,6 @@ namespace JFramework.Net
         [SerializeField] internal ReaderBatch reader = new ReaderBatch();
         [SerializeField] public int clientId;
         [SerializeField] public bool isReady;
-        [SerializeField] internal bool isPlayer;
         [SerializeField] internal double remoteTime;
 
         /// <summary>

@@ -57,11 +57,6 @@ namespace JFramework.Net
         [SerializeField, Inject] private ServerManager server;
 
         /// <summary>
-        /// 玩家游戏预置体
-        /// </summary>
-        [SerializeField] private GameObject prefab;
-
-        /// <summary>
         /// 心跳传输率
         /// </summary>
         [SerializeField, Range(30, 120)] internal int sendRate = 30;
@@ -327,19 +322,6 @@ namespace JFramework.Net
             OnPingUpdate?.Invoke(rtt);
         }
         
-        /// <summary>
-        /// 生成玩家预置体
-        /// </summary>
-        /// <param name="client"></param>
-        internal void SpawnPrefab(NetworkClient client)
-        {
-            if (prefab != null && client.isPlayer)
-            {
-                Server.Spawn(Instantiate(prefab), client);
-                client.isPlayer = false;
-            }
-        }
-
         private enum DebugMode : byte
         {
             Enable,
