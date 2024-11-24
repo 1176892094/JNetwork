@@ -384,14 +384,14 @@ namespace JFramework.Net
                 return;
             }
 
-            if (@object.spawnMode == SpawnMode.Asset)
+            if (@object.assetId.Equals(@object.name, StringComparison.OrdinalIgnoreCase))
             {
-                Destroy(@object.gameObject);
+                PoolManager.Push(@object.gameObject);
+                @object.Reset();
                 return;
             }
 
-            PoolManager.Push(@object.gameObject);
-            @object.Reset();
+            Destroy(@object.gameObject);
         }
     }
 
@@ -490,7 +490,7 @@ namespace JFramework.Net
             if (message.sceneId == 0)
             {
                 GameObject prefab;
-                if (message.isCycle)
+                if (message.usePool)
                 {
                     prefab = await PoolManager.Pop(message.assetId);
                 }

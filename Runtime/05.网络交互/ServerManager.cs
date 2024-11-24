@@ -225,7 +225,7 @@ namespace JFramework.Net
                 {
                     SpawnToClient(client, @object);
                 }
-                
+
                 OnReady?.Invoke(client);
             }
         }
@@ -493,7 +493,7 @@ namespace JFramework.Net
             var message = new SpawnMessage
             {
                 isOwner = isOwner,
-                isCycle = @object.spawnMode == SpawnMode.Pool,
+                usePool = @object.assetId.Equals(@object.name, StringComparison.OrdinalIgnoreCase),
                 assetId = @object.assetId,
                 sceneId = @object.sceneId,
                 objectId = @object.objectId,
@@ -502,6 +502,7 @@ namespace JFramework.Net
                 localScale = transform.localScale,
                 segment = SerializeObject(@object, isOwner, writer, observer)
             };
+
             client.Send(message);
         }
 
@@ -543,14 +544,14 @@ namespace JFramework.Net
             }
 
             @object.OnStopServer();
-            if (@object.spawnMode == SpawnMode.Asset)
+            if (@object.assetId.Equals(@object.name, StringComparison.OrdinalIgnoreCase))
             {
-                Destroy(@object.gameObject);
+                PoolManager.Push(@object.gameObject);
+                @object.Reset();
                 return;
             }
 
-            PoolManager.Push(@object.gameObject);
-            @object.Reset();
+            Destroy(@object.gameObject);
         }
     }
 

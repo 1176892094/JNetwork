@@ -50,11 +50,6 @@ namespace JFramework.Net
         private NetworkSerialize serialize = new NetworkSerialize(0);
 
         /// <summary>
-        /// 游戏对象Id，用于网络标识
-        /// </summary>
-        [SerializeField] internal SpawnMode spawnMode;
-
-        /// <summary>
         /// 作为资源的路径
         /// </summary>
 #if UNITY_EDITOR && ODIN_INSPECTOR
