@@ -32,11 +32,6 @@ namespace JFramework.Net
         [Inject] private SceneManager scene;
 
         /// <summary>
-        /// 调试器组件
-        /// </summary>
-        [Inject] private DebugManager debug;
-
-        /// <summary>
         /// 网络传输组件
         /// </summary>
         [SerializeField] private Transport transport;
@@ -66,11 +61,6 @@ namespace JFramework.Net
         /// </summary>
         public int connection = 100;
 
-        /// <summary>
-        /// 是否进行调试
-        /// </summary>
-        [SerializeField] private DebugMode debugger = DebugMode.Enable;
-        
         /// <summary>
         /// 流逝时间
         /// </summary>
@@ -105,31 +95,31 @@ namespace JFramework.Net
         /// 网络发现组件
         /// </summary>
         public static NetworkDiscovery Discovery => Instance.discovery;
-        
+
+        /// <summary>
+        /// 当Ping更新
+        /// </summary>
+        public static event Action<double> OnPingUpdate;
+
         /// <summary>
         /// 当开启服务器
         /// </summary>
         public event Action OnStartServer;
-        
+
         /// <summary>
         /// 当开启客户端
         /// </summary>
         public event Action OnStartClient;
-        
+
         /// <summary>
         /// 当停止服务器
         /// </summary>
         public event Action OnStopServer;
-        
-        /// <summary>
-        /// 当停止客户端
-        /// </summary>
-        public event Action OnStopClient;
 
         /// <summary>
         /// 当停止客户端
         /// </summary>
-        public event Action<double> OnPingUpdate;
+        public event Action OnStopClient;
 
         /// <summary>
         /// 网络传输组件
@@ -178,17 +168,7 @@ namespace JFramework.Net
         private void OnDestroy()
         {
             this.Destroy();
-        }
-
-        /// <summary>
-        /// 进行更新
-        /// </summary>
-        private void OnGUI()
-        {
-            if (debugger != DebugMode.Disable)
-            {
-                DebugManager.Update();
-            }
+            OnPingUpdate = null;
         }
 
         /// <summary>
@@ -317,15 +297,84 @@ namespace JFramework.Net
             StopServer();
         }
 
-        public void Ping(double rtt)
+        public static void Ping(double rtt)
         {
             OnPingUpdate?.Invoke(rtt);
         }
-        
-        private enum DebugMode : byte
+
+        private static void Window()
         {
-            Enable,
-            Disable,
+            if (!Client.isConnected && !Server.isActive)
+            {
+                if (!Client.isActive)
+                {
+                    if (GUILayout.Button("Host (Server + Client)", GUILayout.Height(30)))
+                    {
+                        Instance.StartHost();
+                    }
+
+                    GUILayout.BeginHorizontal();
+                    if (GUILayout.Button("Server", GUILayout.Height(30)))
+                    {
+                        Instance.StartServer();
+                    }
+
+                    if (GUILayout.Button("Client", GUILayout.Height(30)))
+                    {
+                        Instance.StartClient();
+                    }
+
+                    GUILayout.EndHorizontal();
+                }
+                else
+                {
+                    if (GUILayout.Button("Stop Client", GUILayout.Height(30)))
+                    {
+                        Instance.StopClient();
+                    }
+                }
+            }
+            else
+            {
+                var alignment = GUI.skin.box.alignment;
+                GUI.skin.box.alignment = TextAnchor.MiddleCenter;
+                if (Server.isActive || Client.isActive)
+                {
+                    GUILayout.Label($"<b>{Transport.address} : {Transport.port}</b>", "Box", GUILayout.Height(30));
+                }
+
+                GUI.skin.box.alignment = alignment;
+            }
+
+            if (Client.isConnected && !Client.isReady)
+            {
+                if (GUILayout.Button("Ready", GUILayout.Height(30)))
+                {
+                    Client.Ready();
+                }
+            }
+
+            if (Server.isActive && Client.isConnected)
+            {
+                if (GUILayout.Button("Stop Host", GUILayout.Height(30)))
+                {
+                    Instance.StopHost();
+                }
+            }
+            else if (Client.isConnected)
+            {
+                if (GUILayout.Button("Stop Client", GUILayout.Height(30)))
+                {
+                    Instance.StopClient();
+                }
+            }
+            else if (Server.isActive)
+            {
+                if (GUILayout.Button("Stop Server", GUILayout.Height(30)))
+                {
+                    Instance.StopServer();
+                }
+            }
         }
     }
 }

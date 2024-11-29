@@ -46,7 +46,7 @@ namespace JFramework.Net
                 roundTripTime += fixedTime * delta;
             }
 
-            NetworkManager.Instance.Ping(roundTripTime);
+            NetworkManager.Ping(roundTripTime);
         }
 
         internal void Reset()
