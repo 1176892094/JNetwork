@@ -297,11 +297,18 @@ namespace JFramework.Net
             StopServer();
         }
 
+        /// <summary>
+        /// 客户端回传时间
+        /// </summary>
+        /// <param name="rtt"></param>
         public static void Ping(double rtt)
         {
             OnPingUpdate?.Invoke(rtt);
         }
 
+        /// <summary>
+        /// TODO：通过反射进行调用
+        /// </summary>
         private static void Window()
         {
             if (!Client.isConnected && !Server.isActive)
@@ -328,6 +335,11 @@ namespace JFramework.Net
                 }
                 else
                 {
+                    var alignment = GUI.skin.box.alignment;
+                    GUI.skin.box.alignment = TextAnchor.MiddleCenter;
+                    GUILayout.Label($"<b>Connecting...</b>", "Box", GUILayout.Height(30));
+                    GUI.skin.box.alignment = alignment;
+                    
                     if (GUILayout.Button("Stop Client", GUILayout.Height(30)))
                     {
                         Instance.StopClient();
