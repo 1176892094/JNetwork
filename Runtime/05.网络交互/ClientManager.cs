@@ -140,7 +140,6 @@ namespace JFramework.Net
         internal void StopClient()
         {
             if (!isActive) return;
-            Debug.Log("停止客户端。");
             if (NetworkManager.Mode != EntryMode.Server)
             {
                 var copies = spawns.Values.Where(@object => @object != null).ToList();
@@ -207,9 +206,11 @@ namespace JFramework.Net
             {
                 NetworkManager.Transport.OnClientConnect -= OnClientConnect;
                 NetworkManager.Transport.OnClientDisconnect -= OnClientDisconnect;
+                NetworkManager.Transport.OnClientError -= OnClientError;
                 NetworkManager.Transport.OnClientReceive -= OnClientReceive;
                 NetworkManager.Transport.OnClientConnect += OnClientConnect;
                 NetworkManager.Transport.OnClientDisconnect += OnClientDisconnect;
+                NetworkManager.Transport.OnClientError += OnClientError;
                 NetworkManager.Transport.OnClientReceive += OnClientReceive;
             }
 
@@ -421,6 +422,27 @@ namespace JFramework.Net
         private void OnClientDisconnect()
         {
             StopClient();
+        }
+
+        /// <summary>
+        /// 当客户端发生错误
+        /// </summary>
+        /// <param name="error"></param>
+        /// <param name="message"></param>
+        private void OnClientError(int error, string message)
+        {
+            var reason = error switch
+            {
+                1 => "DnsResolve",
+                2 => "Timeout",
+                3 => "Congestion",
+                4 => "InvalidReceive",
+                5 => "InvalidSend",
+                6 => "ConnectionClosed",
+                _ => "Unexpected",
+            };
+
+            Debug.LogWarning($"错误代码：{reason} => {message}");
         }
 
         /// <summary>

@@ -15,11 +15,13 @@ namespace JFramework.Udp
         private readonly Setting setting;
         private event Action OnConnect;
         private event Action OnDisconnect;
+        private event Action<int, string> OnError;
         private event Action<ArraySegment<byte>, int> OnReceive;
 
-        public Client(Setting setting, Action OnConnect, Action OnDisconnect, Action<ArraySegment<byte>, int> OnReceive) : base(setting, 0)
+        public Client(Setting setting, Action OnConnect, Action OnDisconnect, Action<int, string> OnError, Action<ArraySegment<byte>, int> OnReceive) : base(setting, 0)
         {
             this.setting = setting;
+            this.OnError = OnError;
             this.OnConnect = OnConnect;
             this.OnReceive = OnReceive;
             this.OnDisconnect = OnDisconnect;
@@ -51,7 +53,7 @@ namespace JFramework.Udp
             }
             catch (SocketException e)
             {
-                Log.Error($"无法解析主机地址：{address}\n{e}");
+                Logger(Error.DnsResolve, $"无法解析主机地址：{address}\n" + e);
                 OnDisconnect?.Invoke();
             }
         }
@@ -143,13 +145,18 @@ namespace JFramework.Udp
                     return;
                 }
 
-                Log.Error($"客户端发送消息失败！\n{e}");
+                Log.Info($"客户端发送消息失败！\n{e}");
             }
         }
 
         protected override void Receive(ArraySegment<byte> message, int channel)
         {
             OnReceive?.Invoke(message, channel);
+        }
+
+        protected override void Logger(Error error, string message)
+        {
+            OnError?.Invoke((int)error, message);
         }
 
         protected override void Disconnected()

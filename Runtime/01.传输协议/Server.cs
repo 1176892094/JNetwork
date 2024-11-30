@@ -19,11 +19,13 @@ namespace JFramework.Udp
         private readonly Setting setting;
         private event Action<int> OnConnect;
         private event Action<int> OnDisconnect;
+        private event Action<int, int, string> OnError;
         private event Action<int, ArraySegment<byte>, int> OnReceive;
 
-        public Server(Setting setting, Action<int> OnConnect, Action<int> OnDisconnect, Action<int, ArraySegment<byte>, int> OnReceive)
+        public Server(Setting setting, Action<int> OnConnect, Action<int> OnDisconnect, Action<int, int, string> OnError, Action<int, ArraySegment<byte>, int> OnReceive)
         {
             this.setting = setting;
+            this.OnError = OnError;
             this.OnReceive = OnReceive;
             this.OnConnect = OnConnect;
             this.OnDisconnect = OnDisconnect;
@@ -90,7 +92,7 @@ namespace JFramework.Udp
                     return false;
                 }
 
-                Log.Error($"服务器接收信息失败！\n{e}");
+                Log.Info($"服务器接收信息失败！\n{e}");
                 return false;
             }
         }
@@ -114,7 +116,7 @@ namespace JFramework.Udp
 
         private Client AddClient(int clientId)
         {
-            return new Client(OnConnect, OnDisconnect, OnReceive, OnSend, setting, Common.GenerateCookie(), endPoint);
+            return new Client(OnConnect, OnDisconnect, OnError, OnReceive, OnSend, setting, Common.GenerateCookie(), endPoint);
 
             void OnConnect(Client client)
             {
@@ -128,6 +130,11 @@ namespace JFramework.Udp
                 copies.Add(clientId);
                 Log.Info($"客户端 {clientId} 从服务器断开。");
                 this.OnDisconnect?.Invoke(clientId);
+            }
+
+            void OnError(int error, string message)
+            {
+                this.OnError?.Invoke(clientId, error, message);
             }
 
             void OnReceive(ArraySegment<byte> message, int channel)
@@ -213,12 +220,14 @@ namespace JFramework.Udp
             public readonly EndPoint endPoint;
             private event Action OnDisconnect;
             private event Action<Client> OnConnect;
+            private event Action<int, string> OnError;
             private event Action<ArraySegment<byte>> OnSend;
             private event Action<ArraySegment<byte>, int> OnReceive;
 
-            public Client(Action<Client> OnConnect, Action OnDisconnect, Action<ArraySegment<byte>, int> OnReceive, Action<ArraySegment<byte>> OnSend, Setting setting, uint cookie, EndPoint endPoint) : base(setting, cookie)
+            public Client(Action<Client> OnConnect, Action OnDisconnect, Action<int, string> OnError, Action<ArraySegment<byte>, int> OnReceive, Action<ArraySegment<byte>> OnSend, Setting setting, uint cookie, EndPoint endPoint) : base(setting, cookie)
             {
                 this.OnSend = OnSend;
+                this.OnError = OnError;
                 this.OnConnect = OnConnect;
                 this.OnReceive = OnReceive;
                 this.OnDisconnect = OnDisconnect;
@@ -237,6 +246,8 @@ namespace JFramework.Udp
             protected override void Send(ArraySegment<byte> segment) => OnSend?.Invoke(segment);
 
             protected override void Receive(ArraySegment<byte> message, int channel) => OnReceive?.Invoke(message, channel);
+
+            protected override void Logger(Error error, string message) => OnError?.Invoke((int)error, message);
 
             public void Input(ArraySegment<byte> segment)
             {

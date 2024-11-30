@@ -125,7 +125,6 @@ namespace JFramework.Net
         {
             if (!isActive) return;
             isActive = false;
-            Debug.Log("停止服务器。");
             copies = clients.Values.ToList();
             foreach (var client in copies)
             {

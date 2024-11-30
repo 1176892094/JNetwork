@@ -22,20 +22,24 @@ namespace JFramework.Net
             Log.Warn = Debug.LogWarning;
             Log.Error = Debug.LogError;
             var setting = new Setting(maxUnit, timeout, interval, deadLink, fastResend, sendWindow, receiveWindow);
-            client = new Client(setting, ClientConnect, ClientDisconnect, ClientReceive);
-            server = new Server(setting, ServerConnect, ServerDisconnect, ServerReceive);
+            client = new Client(setting, ClientConnect, ClientDisconnect, ClientError, ClientReceive);
+            server = new Server(setting, ServerConnect, ServerDisconnect, ServerError, ServerReceive);
 
             void ClientConnect() => OnClientConnect.Invoke();
 
-            void ClientReceive(ArraySegment<byte> message, int channel) => OnClientReceive.Invoke(message, channel);
-
             void ClientDisconnect() => OnClientDisconnect.Invoke();
+
+            void ClientError(int error, string message) => OnClientError.Invoke(error, message);
+
+            void ClientReceive(ArraySegment<byte> message, int channel) => OnClientReceive.Invoke(message, channel);
 
             void ServerConnect(int clientId) => OnServerConnect.Invoke(clientId);
 
-            void ServerReceive(int clientId, ArraySegment<byte> message, int channel) => OnServerReceive.Invoke(clientId, message, channel);
-
             void ServerDisconnect(int clientId) => OnServerDisconnect.Invoke(clientId);
+
+            void ServerError(int clientId, int error, string message) => OnServerError.Invoke(clientId, error, message);
+
+            void ServerReceive(int clientId, ArraySegment<byte> message, int channel) => OnServerReceive.Invoke(clientId, message, channel);
         }
 
         public override int MessageSize(int channel) => channel == Channel.Reliable ? Common.ReliableSize(maxUnit, receiveWindow) : Common.UnreliableSize(maxUnit);

@@ -61,21 +61,21 @@ namespace JFramework.Udp
 
             if (size > receiveBuffer.Length)
             {
-                Log.Error($"{GetType()}: 网络消息长度溢出 {receiveBuffer.Length} < {size}。");
+                Logger(Error.InvalidReceive, $"{GetType()}: 网络消息长度溢出 {receiveBuffer.Length} < {size}。");
                 Disconnect();
                 return false;
             }
 
             if (kcp.Receive(receiveBuffer, size) < 0)
             {
-                Log.Error($"{GetType()}: 接收网络消息失败。");
+                Logger(Error.InvalidReceive, $"{GetType()}: 接收网络消息失败。");
                 Disconnect();
                 return false;
             }
 
             if (!Common.ParseReliable(receiveBuffer[0], out header))
             {
-                Log.Error($"{GetType()}: 未知的网络消息头部 {header}");
+                Logger(Error.InvalidReceive, $"{GetType()}: 未知的网络消息头部 {header}");
                 Disconnect();
                 return false;
             }
@@ -100,7 +100,7 @@ namespace JFramework.Udp
                 var headerByte = segment.Array[segment.Offset];
                 if (!Common.ParseUnreliable(headerByte, out var header))
                 {
-                    Log.Error($"{GetType()}: 未知的网络消息头部 {header}");
+                    Logger(Error.InvalidReceive, $"{GetType()}: 未知的网络消息头部 {header}");
                     Disconnect();
                     return;
                 }
@@ -116,6 +116,7 @@ namespace JFramework.Udp
                 }
                 else if (header == UnreliableHeader.Disconnect)
                 {
+                    Log.Info($"{GetType()}: 接收到断开连接的消息");
                     Disconnect();
                 }
             }
@@ -134,7 +135,7 @@ namespace JFramework.Udp
         {
             if (segment.Count > kcpSendBuffer.Length - 1)
             {
-                Log.Error($"{GetType()}: 发送可靠消息失败。消息大小：{segment.Count}");
+                Logger(Error.InvalidSend, $"{GetType()}: 发送可靠消息失败。消息大小：{segment.Count}");
                 return;
             }
 
@@ -146,7 +147,7 @@ namespace JFramework.Udp
 
             if (kcp.Send(kcpSendBuffer, 0, 1 + segment.Count) < 0)
             {
-                Log.Error($"{GetType()}: 发送可靠消息失败。消息大小：{segment.Count}。");
+                Logger(Error.InvalidSend, $"{GetType()}: 发送可靠消息失败。消息大小：{segment.Count}。");
             }
         }
 
@@ -173,7 +174,7 @@ namespace JFramework.Udp
         {
             if (data.Count == 0)
             {
-                Log.Error($"{GetType()} 尝试发送空消息。");
+                Logger(Error.InvalidSend, $"{GetType()} 尝试发送空消息。");
                 Disconnect();
                 return;
             }
@@ -210,22 +211,22 @@ namespace JFramework.Udp
         {
             if (kcp.state == -1)
             {
-                Log.Error($"{GetType()}: 网络消息被重传了 {kcp.dead_link} 次而没有得到确认！");
-                Disconnect();
-            }
-
-            int total = kcp.receiveQueue.Count + kcp.sendQueue.Count + kcp.receiveBuffer.Count + kcp.sendBuffer.Count;
-            if (total >= 10000)
-            {
-                Log.Error($"{GetType()}: 断开连接，因为它处理数据的速度不够快！");
-                kcp.sendQueue.Clear();
+                Logger(Error.Timeout, $"{GetType()}: 网络消息被重传了 {kcp.dead_link} 次而没有得到确认！");
                 Disconnect();
             }
 
             var time = (uint)watch.ElapsedMilliseconds;
             if (time >= receiveTime + timeout)
             {
-                Log.Error($"{GetType()}: 在 {timeout}ms 内没有收到任何消息后的连接超时！");
+                Logger(Error.Timeout, $"{GetType()}: 在 {timeout}ms 内没有收到任何消息后的连接超时！");
+                Disconnect();
+            }
+            
+            int total = kcp.receiveQueue.Count + kcp.sendQueue.Count + kcp.receiveBuffer.Count + kcp.sendBuffer.Count;
+            if (total >= 10000)
+            {
+                Logger(Error.Congestion, $"{GetType()}: 断开连接，因为它处理数据的速度不够快！");
+                kcp.sendQueue.Clear();
                 Disconnect();
             }
 
@@ -248,7 +249,7 @@ namespace JFramework.Udp
                         }
                         else if (header == ReliableHeader.Data)
                         {
-                            Log.Error($"{GetType()}: 收到未通过验证的网络消息。消息类型：{header}");
+                            Logger(Error.InvalidReceive, $"{GetType()}: 收到未通过验证的网络消息。消息类型：{header}");
                             Disconnect();
                         }
                     }
@@ -259,14 +260,14 @@ namespace JFramework.Udp
                     {
                         if (header == ReliableHeader.Connect)
                         {
-                            Log.Error($"{GetType()}: 收到无效的网络消息。消息类型：{header}");
+                            Log.Warn($"{GetType()}: 收到无效的网络消息。消息类型：{header}");
                             Disconnect();
                         }
                         else if (header == ReliableHeader.Data)
                         {
                             if (segment.Count == 0)
                             {
-                                Log.Error($"{GetType()}: 收到无效的网络消息。消息类型：{header}");
+                                Logger(Error.InvalidReceive, $"{GetType()}: 收到无效的网络消息。消息类型：{header}");
                                 Disconnect();
                                 return;
                             }
@@ -278,17 +279,17 @@ namespace JFramework.Udp
             }
             catch (SocketException e)
             {
-                Log.Error($"{GetType()}: 网络发生异常，断开连接。\n{e}");
+                Logger(Error.ConnectionClosed, $"{GetType()}: 网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                Log.Error($"{GetType()}: 网络发生异常，断开连接。\n{e}");
+                Logger(Error.ConnectionClosed, $"{GetType()}: 网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
             catch (Exception e)
             {
-                Log.Error($"{GetType()}:网络发生异常，断开连接。\n{e}");
+                Logger(Error.Unexpected, $"{GetType()}:网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
         }
@@ -304,17 +305,17 @@ namespace JFramework.Udp
             }
             catch (SocketException e)
             {
-                Log.Error($"{GetType()}: 网络发生异常，断开连接。\n{e}");
+                Logger(Error.ConnectionClosed, $"{GetType()}: 网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                Log.Error($"{GetType()}: 网络发生异常，断开连接。\n{e}");
+                Logger(Error.ConnectionClosed, $"{GetType()}: 网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
             catch (Exception e)
             {
-                Log.Error($"{GetType()}: 网络发生异常，断开连接。\n{e}");
+                Logger(Error.Unexpected, $"{GetType()}: 网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
         }
@@ -322,6 +323,7 @@ namespace JFramework.Udp
         protected abstract void Connected();
         protected abstract void Send(ArraySegment<byte> segment);
         protected abstract void Receive(ArraySegment<byte> message, int channel);
+        protected abstract void Logger(Error error, string message);
         protected abstract void Disconnected();
     }
 }

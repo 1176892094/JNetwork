@@ -26,6 +26,11 @@ namespace JFramework.Net
         public Action OnClientDisconnect;
 
         /// <summary>
+        /// 客户端错误事件
+        /// </summary>
+        public Action<int, string> OnClientError;
+
+        /// <summary>
         /// 客户端接收事件
         /// </summary>
         public Action<ArraySegment<byte>, int> OnClientReceive;
@@ -39,6 +44,11 @@ namespace JFramework.Net
         /// 客户端从服务器断开的事件
         /// </summary>
         public Action<int> OnServerDisconnect;
+
+        /// <summary>
+        /// 服务器错误事件
+        /// </summary>
+        public Action<int, int, string> OnServerError;
 
         /// <summary>
         /// 服务器接收客户端消息的事件
