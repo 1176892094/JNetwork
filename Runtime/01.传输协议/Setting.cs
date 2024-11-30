@@ -41,41 +41,4 @@ namespace JFramework.Udp
             this.Congestion = Congestion;
         }
     }
-
-    public static class Log
-    {
-        public static Action<string> Info = Console.WriteLine;
-        public static Action<string> Warn = Console.WriteLine;
-        public static Action<string> Error = Console.Error.WriteLine;
-    }
-
-    internal static class Channel
-    {
-        public const byte Reliable = 1;
-        public const byte Unreliable = 2;
-    }
-
-    internal sealed class Pool
-    {
-        private readonly Stack<Segment> segments = new Stack<Segment>();
-
-        public Pool(int count)
-        {
-            for (var i = 0; i < count; ++i)
-            {
-                segments.Push(new Segment());
-            }
-        }
-
-        public Segment Pop()
-        {
-            return segments.Count > 0 ? segments.Pop() : new Segment();
-        }
-
-        public void Push(Segment segment)
-        {
-            segment.Reset();
-            segments.Push(segment);
-        }
-    }
 }

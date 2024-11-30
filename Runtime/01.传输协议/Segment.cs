@@ -20,14 +20,14 @@ namespace JFramework.Udp
         public int Encode(byte[] ptr, int offset)
         {
             int position = offset;
-            offset += Utility.Encode32U(ptr, offset, conv);
-            offset += Utility.Encode8U(ptr, offset, (byte)cmd);
-            offset += Utility.Encode8U(ptr, offset, (byte)frg);
-            offset += Utility.Encode16U(ptr, offset, (ushort)wnd);
-            offset += Utility.Encode32U(ptr, offset, ts);
-            offset += Utility.Encode32U(ptr, offset, sn);
-            offset += Utility.Encode32U(ptr, offset, una);
-            offset += Utility.Encode32U(ptr, offset, (uint)data.Position);
+            offset += Utils.Encode32U(ptr, offset, conv);
+            offset += Utils.Encode8U(ptr, offset, (byte)cmd);
+            offset += Utils.Encode8U(ptr, offset, (byte)frg);
+            offset += Utils.Encode16U(ptr, offset, (ushort)wnd);
+            offset += Utils.Encode32U(ptr, offset, ts);
+            offset += Utils.Encode32U(ptr, offset, sn);
+            offset += Utils.Encode32U(ptr, offset, una);
+            offset += Utils.Encode32U(ptr, offset, (uint)data.Position);
             return offset - position;
         }
 

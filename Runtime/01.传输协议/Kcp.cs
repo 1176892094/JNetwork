@@ -289,7 +289,7 @@ namespace JFramework.Udp
 
         internal void ParseAck(uint sn)
         {
-            if (Utility.Compare(sn, snd_una) < 0 || Utility.Compare(sn, snd_nxt) >= 0)
+            if (Utils.Compare(sn, snd_una) < 0 || Utils.Compare(sn, snd_nxt) >= 0)
             {
                 return;
             }
@@ -304,7 +304,7 @@ namespace JFramework.Udp
                     break;
                 }
 
-                if (Utility.Compare(sn, seg.sn) < 0)
+                if (Utils.Compare(sn, seg.sn) < 0)
                 {
                     break;
                 }
@@ -362,7 +362,7 @@ namespace JFramework.Udp
         private void ParseData(Segment segment)
         {
             var sn = segment.sn;
-            if (Utility.Compare(sn, rcv_nxt + rcv_wnd) >= 0 || Utility.Compare(sn, rcv_nxt) < 0)
+            if (Utils.Compare(sn, rcv_nxt + rcv_wnd) >= 0 || Utils.Compare(sn, rcv_nxt) < 0)
             {
                 segmentPool.Push(segment);
                 return;
@@ -386,7 +386,7 @@ namespace JFramework.Udp
                     break;
                 }
 
-                if (Utility.Compare(segment.sn, seg.sn) > 0)
+                if (Utils.Compare(segment.sn, seg.sn) > 0)
                 {
                     break;
                 }
@@ -445,15 +445,15 @@ namespace JFramework.Udp
                     break;
                 }
 
-                offset += Utility.Decode32U(data, offset, out uint conv_);
+                offset += Utils.Decode32U(data, offset, out uint conv_);
                 if (conv_ != conv) return -1;
-                offset += Utility.Decode8U(data, offset, out byte cmd);
-                offset += Utility.Decode8U(data, offset, out byte frg);
-                offset += Utility.Decode16U(data, offset, out ushort wnd);
-                offset += Utility.Decode32U(data, offset, out uint ts);
-                offset += Utility.Decode32U(data, offset, out uint sn);
-                offset += Utility.Decode32U(data, offset, out uint una);
-                offset += Utility.Decode32U(data, offset, out uint length);
+                offset += Utils.Decode8U(data, offset, out byte cmd);
+                offset += Utils.Decode8U(data, offset, out byte frg);
+                offset += Utils.Decode16U(data, offset, out ushort wnd);
+                offset += Utils.Decode32U(data, offset, out uint ts);
+                offset += Utils.Decode32U(data, offset, out uint sn);
+                offset += Utils.Decode32U(data, offset, out uint una);
+                offset += Utils.Decode32U(data, offset, out uint length);
                 size -= OVERHEAD;
 
                 if (size < length)
@@ -472,9 +472,9 @@ namespace JFramework.Udp
 
                 if (cmd == CMD_ACK)
                 {
-                    if (Utility.Compare(current, ts) >= 0)
+                    if (Utils.Compare(current, ts) >= 0)
                     {
-                        UpdateAck(Utility.Compare(current, ts));
+                        UpdateAck(Utils.Compare(current, ts));
                     }
 
                     ParseAck(sn);
@@ -487,7 +487,7 @@ namespace JFramework.Udp
                     }
                     else
                     {
-                        if (Utility.Compare(sn, max_ack) > 0)
+                        if (Utils.Compare(sn, max_ack) > 0)
                         {
                             max_ack = sn;
                             latest_ts = ts;
@@ -496,10 +496,10 @@ namespace JFramework.Udp
                 }
                 else if (cmd == CMD_PUSH)
                 {
-                    if (Utility.Compare(sn, rcv_nxt + rcv_wnd) < 0)
+                    if (Utils.Compare(sn, rcv_nxt + rcv_wnd) < 0)
                     {
                         ackList.Add(new AckItem(sn, ts));
-                        if (Utility.Compare(sn, rcv_nxt) >= 0)
+                        if (Utils.Compare(sn, rcv_nxt) >= 0)
                         {
                             var seg = segmentPool.Pop();
                             seg.conv = conv_;
@@ -532,7 +532,7 @@ namespace JFramework.Udp
                 ParseFastAck(max_ack, latest_ts);
             }
 
-            if (Utility.Compare(snd_una, prev_una) > 0)
+            if (Utils.Compare(snd_una, prev_una) > 0)
             {
                 if (cmd_wnd < rmt_wnd)
                 {
@@ -629,7 +629,7 @@ namespace JFramework.Udp
                 }
                 else
                 {
-                    if (Utility.Compare(current, ts_probe) >= 0)
+                    if (Utils.Compare(current, ts_probe) >= 0)
                     {
                         if (probe_wait < PROBE_DEF)
                         {
@@ -678,7 +678,7 @@ namespace JFramework.Udp
             }
 
 
-            while (Utility.Compare(snd_nxt, snd_una + c_wnd_) < 0)
+            while (Utils.Compare(snd_nxt, snd_una + c_wnd_) < 0)
             {
                 if (sendQueue.Count == 0)
                 {
@@ -715,7 +715,7 @@ namespace JFramework.Udp
                     segment.rsd_ts = current + (uint)segment.rto + rto_min;
                 }
 
-                else if (Utility.Compare(current, segment.rsd_ts) >= 0)
+                else if (Utils.Compare(current, segment.rsd_ts) >= 0)
                 {
                     needSend = true;
                     segment.rsd_c++;
@@ -816,7 +816,7 @@ namespace JFramework.Udp
                 ts_flush = current;
             }
 
-            int slap = Utility.Compare(current, ts_flush);
+            int slap = Utils.Compare(current, ts_flush);
             if (slap >= 10000 || slap < -10000)
             {
                 ts_flush = current;

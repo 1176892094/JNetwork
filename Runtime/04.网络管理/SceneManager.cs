@@ -10,7 +10,7 @@
 
 using System;
 using UnityEngine;
-using GlobalSceneManager = JFramework.SceneManager;
+using UnitySceneManager = UnityEngine.SceneManagement.SceneManager;
 
 namespace JFramework.Net
 {
@@ -44,7 +44,7 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器加载场景
         /// </summary>
-        public void Load(string sceneName)
+        public async void Load(string sceneName)
         {
             if (string.IsNullOrWhiteSpace(sceneName))
             {
@@ -75,14 +75,15 @@ namespace JFramework.Net
                     client.Send(new SceneMessage(sceneName));
                 }
 
-                GlobalSceneManager.Load(sceneName, OnLoadComplete);
+                await AssetManager.LoadScene(sceneName);
+                OnLoadComplete();
             }
         }
 
         /// <summary>
         /// 客户端加载场景
         /// </summary>
-        internal void LoadScene(string sceneName)
+        internal async void LoadScene(string sceneName)
         {
             if (string.IsNullOrWhiteSpace(sceneName))
             {
@@ -91,12 +92,13 @@ namespace JFramework.Net
             }
 
             OnClientChangeScene?.Invoke(sceneName);
-            
+
             if (!NetworkManager.Server.isActive)
             {
                 this.sceneName = sceneName;
                 NetworkManager.Client.isLoadScene = true;
-                GlobalSceneManager.Load(sceneName, OnLoadComplete);
+                await AssetManager.LoadScene(sceneName);
+                OnLoadComplete();
             }
         }
 
@@ -143,7 +145,7 @@ namespace JFramework.Net
                     NetworkManager.Client.Ready();
                 }
 
-                OnClientSceneChanged?.Invoke(GlobalSceneManager.name);
+                OnClientSceneChanged?.Invoke(UnitySceneManager.GetActiveScene().name);
             }
         }
     }

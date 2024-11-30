@@ -124,7 +124,7 @@ namespace JFramework.Udp
         private void SendReliable(byte[] data, int length)
         {
             rawSendBuffer[0] = Channel.Reliable;
-            Utility.Encode32U(rawSendBuffer, 1, cookie);
+            Utils.Encode32U(rawSendBuffer, 1, cookie);
             Buffer.BlockCopy(data, 0, rawSendBuffer, 1 + 4, length);
             var segment = new ArraySegment<byte>(rawSendBuffer, 0, length + 1 + 4);
             Send(segment);
@@ -159,7 +159,7 @@ namespace JFramework.Udp
             }
 
             rawSendBuffer[0] = Channel.Unreliable;
-            Utility.Encode32U(rawSendBuffer, 1, cookie);
+            Utils.Encode32U(rawSendBuffer, 1, cookie);
             rawSendBuffer[5] = (byte)header;
             if (segment.Count > 0)
             {

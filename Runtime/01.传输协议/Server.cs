@@ -246,7 +246,7 @@ namespace JFramework.Udp
                 }
 
                 var channel = segment.Array[segment.Offset];
-                Utility.Decode32U(segment.Array, segment.Offset + 1, out var newCookie);
+                Utils.Decode32U(segment.Array, segment.Offset + 1, out var newCookie);
 
                 if (state == State.Connected)
                 {

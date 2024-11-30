@@ -101,7 +101,7 @@ namespace JFramework.Udp
             }
 
             var channel = segment.Array[segment.Offset];
-            Utility.Decode32U(segment.Array, segment.Offset + 1, out var newCookie);
+            Utils.Decode32U(segment.Array, segment.Offset + 1, out var newCookie);
             if (newCookie == 0)
             {
                 Log.Error($"网络代理丢弃了无效的签名缓存。旧：{cookie} 新：{newCookie}");
