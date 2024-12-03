@@ -512,7 +512,7 @@ namespace JFramework.Net
             if (message.sceneId == 0)
             {
                 GameObject prefab;
-                if (message.usePool)
+                if (message.isPool)
                 {
                     prefab = await PoolManager.Pop(message.assetId);
                 }

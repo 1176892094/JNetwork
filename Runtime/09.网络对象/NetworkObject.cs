@@ -52,7 +52,6 @@ namespace JFramework.Net
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ReadOnly]
 #endif
-
         [SerializeField]
         internal ulong sceneId;
 
@@ -62,7 +61,6 @@ namespace JFramework.Net
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ReadOnly]
 #endif
-
         [SerializeField]
         internal ObjectMode objectMode;
 
@@ -161,6 +159,63 @@ namespace JFramework.Net
         }
 
         /// <summary>
+        /// 处理Rpc事件
+        /// </summary>
+        internal void InvokeMessage(byte index, ushort function, InvokeMode mode, NetworkReader reader, NetworkClient client = null)
+        {
+            if (this == null)
+            {
+                Debug.LogWarning($"调用了已经删除的网络对象。{mode} [{function}] 网络Id：{objectId}");
+                return;
+            }
+
+            if (index >= entities.Length)
+            {
+                Debug.LogWarning($"没有找到组件Id：[{index}] 网络Id：{objectId}");
+                return;
+            }
+
+            if (!NetworkDelegate.Invoke(function, mode, client, reader, entities[index]))
+            {
+                Debug.LogError($"无法调用{mode} [{function}] 网络对象：{gameObject.name} 网络Id：{objectId}");
+            }
+        }
+
+        /// <summary>
+        /// 服务器帧序列化
+        /// </summary>
+        /// <param name="frameCount"></param>
+        /// <returns></returns>
+        internal NetworkSerialize ServerSerialize(int frameCount)
+        {
+            if (serialize.frameCount != frameCount)
+            {
+                serialize.owner.position = 0;
+                serialize.observer.position = 0;
+                serialize.frameCount = frameCount;
+                ServerSerialize(false, serialize.owner, serialize.observer);
+                ClearDirty(true);
+            }
+
+            return serialize;
+        }
+
+        /// <summary>
+        /// 清除改变值
+        /// </summary>
+        /// <param name="total"></param>
+        internal void ClearDirty(bool total = false)
+        {
+            foreach (var entity in entities)
+            {
+                if (entity.IsDirty() || total)
+                {
+                    entity.ClearDirty();
+                }
+            }
+        }
+
+        /// <summary>
         /// 选择性地将需要更新的组件数据序列化并发送给所有者和观察者，以减少不必要的数据传输
         /// </summary>
         /// <param name="start"></param>
@@ -208,33 +263,26 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 用于指示哪些组件需要被序列化并发送给所有者和观察者
+        /// 客户端序列化 SyncVar
         /// </summary>
-        /// <param name="start"></param>
-        /// <returns></returns>
-        private (ulong, ulong) ServerDirtyMasks(bool start)
+        /// <param name="writer"></param>
+        internal void ClientSerialize(NetworkWriter writer)
         {
-            ulong ownerMask = 0;
-            ulong observerMask = 0;
-
             var components = entities;
-            for (int i = 0; i < components.Length; ++i)
+            var dirtyMask = ClientDirtyMask();
+            if (dirtyMask != 0)
             {
-                var component = components[i];
-                var dirty = component.IsDirty();
-                ulong mask = 1U << i;
-                if (start || (component.syncDirection == SyncMode.Server && dirty))
+                NetworkCompress.CompressVarUInt(writer, dirtyMask);
+                for (int i = 0; i < components.Length; ++i)
                 {
-                    ownerMask |= mask;
-                }
+                    var component = components[i];
 
-                if (start || dirty)
-                {
-                    observerMask |= mask;
+                    if (IsDirty(dirtyMask, i))
+                    {
+                        component.Serialize(writer, false);
+                    }
                 }
             }
-
-            return (ownerMask, observerMask);
         }
 
         /// <summary>
@@ -289,45 +337,33 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 服务器帧序列化
+        /// 用于指示哪些组件需要被序列化并发送给所有者和观察者
         /// </summary>
-        /// <param name="frameCount"></param>
+        /// <param name="start"></param>
         /// <returns></returns>
-        internal NetworkSerialize ServerSerialize(int frameCount)
+        private (ulong, ulong) ServerDirtyMasks(bool start)
         {
-            if (serialize.frameCount != frameCount)
-            {
-                serialize.owner.position = 0;
-                serialize.observer.position = 0;
-                serialize.frameCount = frameCount;
-                ServerSerialize(false, serialize.owner, serialize.observer);
-                ClearDirty(true);
-            }
+            ulong ownerMask = 0;
+            ulong observerMask = 0;
 
-            return serialize;
-        }
-
-        /// <summary>
-        /// 客户端序列化 SyncVar
-        /// </summary>
-        /// <param name="writer"></param>
-        internal void ClientSerialize(NetworkWriter writer)
-        {
             var components = entities;
-            var dirtyMask = ClientDirtyMask();
-            if (dirtyMask != 0)
+            for (int i = 0; i < components.Length; ++i)
             {
-                NetworkCompress.CompressVarUInt(writer, dirtyMask);
-                for (int i = 0; i < components.Length; ++i)
+                var component = components[i];
+                var dirty = component.IsDirty();
+                ulong mask = 1U << i;
+                if (start || (component.syncDirection == SyncMode.Server && dirty))
                 {
-                    var component = components[i];
+                    ownerMask |= mask;
+                }
 
-                    if (IsDirty(dirtyMask, i))
-                    {
-                        component.Serialize(writer, false);
-                    }
+                if (start || dirty)
+                {
+                    observerMask |= mask;
                 }
             }
+
+            return (ownerMask, observerMask);
         }
 
         /// <summary>
@@ -348,61 +384,6 @@ namespace JFramework.Net
             }
 
             return mask;
-        }
-
-        /// <summary>
-        /// 清除改变值
-        /// </summary>
-        /// <param name="total"></param>
-        internal void ClearDirty(bool total = false)
-        {
-            foreach (var entity in entities)
-            {
-                if (entity.IsDirty() || total)
-                {
-                    entity.ClearDirty();
-                }
-            }
-        }
-
-        /// <summary>
-        /// 处理Rpc事件
-        /// </summary>
-        internal void InvokeMessage(byte index, ushort function, InvokeMode mode, NetworkReader reader, NetworkClient client = null)
-        {
-            if (this == null)
-            {
-                Debug.LogWarning($"调用了已经删除的网络对象。{mode} [{function}] 网络Id：{objectId}");
-                return;
-            }
-
-            if (index >= entities.Length)
-            {
-                Debug.LogWarning($"没有找到组件Id：[{index}] 网络Id：{objectId}");
-                return;
-            }
-
-            if (!NetworkDelegate.Invoke(function, mode, client, reader, entities[index]))
-            {
-                Debug.LogError($"无法调用{mode} [{function}] 网络对象：{gameObject.name} 网络Id：{objectId}");
-            }
-        }
-
-        /// <summary>
-        /// 网络变量序列化
-        /// </summary>
-        internal struct NetworkSerialize
-        {
-            public int frameCount;
-            public readonly NetworkWriter owner;
-            public readonly NetworkWriter observer;
-
-            public NetworkSerialize(int frameCount)
-            {
-                owner = new NetworkWriter();
-                observer = new NetworkWriter();
-                this.frameCount = frameCount;
-            }
         }
     }
 }

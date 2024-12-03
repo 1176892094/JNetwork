@@ -23,7 +23,15 @@ namespace JFramework.Net
         ServerRpc,
         ClientRpc,
     }
-
+    
+    public enum EntryMode : byte
+    {
+        None = 0,
+        Host = 1,
+        Server = 2,
+        Client = 3,
+    }
+    
     [Flags]
     internal enum ObjectMode : byte
     {
@@ -31,19 +39,5 @@ namespace JFramework.Net
         Owner = 1 << 0,
         Client = 1 << 1,
         Server = 1 << 2,
-    }
-
-    internal enum SpawnMode : byte
-    {
-        Asset,
-        Pool,
-    }
-
-    public enum EntryMode : byte
-    {
-        None = 0,
-        Host = 1,
-        Server = 2,
-        Client = 3,
     }
 }

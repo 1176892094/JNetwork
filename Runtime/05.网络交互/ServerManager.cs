@@ -492,7 +492,7 @@ namespace JFramework.Net
             var message = new SpawnMessage
             {
                 isOwner = isOwner,
-                usePool = @object.assetId.Equals(@object.name, StringComparison.OrdinalIgnoreCase),
+                isPool = @object.assetId.Equals(@object.name, StringComparison.OrdinalIgnoreCase),
                 assetId = @object.assetId,
                 sceneId = @object.sceneId,
                 objectId = @object.objectId,

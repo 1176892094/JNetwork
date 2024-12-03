@@ -54,8 +54,8 @@ namespace JFramework.Net
 
     internal struct SpawnMessage : IMessage
     {
+        public bool isPool;
         public bool isOwner;
-        public bool usePool;
         public uint objectId;
         public ulong sceneId;
         public string assetId;

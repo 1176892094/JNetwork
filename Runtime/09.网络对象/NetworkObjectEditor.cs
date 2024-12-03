@@ -8,16 +8,14 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+#if UNITY_EDITOR
 using System;
 using UnityEngine;
-#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
-#endif
 
 namespace JFramework.Net
 {
-#if UNITY_EDITOR
     public sealed partial class NetworkObject
     {
         /// <summary>
@@ -108,5 +106,5 @@ namespace JFramework.Net
             sceneIds[sceneId] = this;
         }
     }
-#endif
 }
+#endif
