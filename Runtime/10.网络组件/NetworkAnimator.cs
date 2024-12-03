@@ -452,11 +452,11 @@ namespace JFramework.Net
         /// 序列化 Animator
         /// </summary>
         /// <param name="writer"></param>
-        /// <param name="start"></param>
-        protected override void OnSerialize(NetworkWriter writer, bool start)
+        /// <param name="enable"></param>
+        protected override void OnSerialize(NetworkWriter writer, bool enable)
         {
-            base.OnSerialize(writer, start);
-            if (!start) return;
+            base.OnSerialize(writer, enable);
+            if (!enable) return;
             for (int i = 0; i < animator.layerCount; i++)
             {
                 if (animator.IsInTransition(i))
@@ -482,11 +482,11 @@ namespace JFramework.Net
         /// 反序列化 Animator
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="start"></param>
-        protected override void OnDeserialize(NetworkReader reader, bool start)
+        /// <param name="enable"></param>
+        protected override void OnDeserialize(NetworkReader reader, bool enable)
         {
-            base.OnDeserialize(reader, start);
-            if (!start) return;
+            base.OnDeserialize(reader, enable);
+            if (!enable) return;
             for (int i = 0; i < animator.layerCount; i++)
             {
                 int stateHash = reader.ReadInt();

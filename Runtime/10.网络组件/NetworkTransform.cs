@@ -189,10 +189,10 @@ namespace JFramework.Net
         /// 序列化 Transform
         /// </summary>
         /// <param name="writer"></param>
-        /// <param name="start"></param>
-        protected override void OnSerialize(NetworkWriter writer, bool start)
+        /// <param name="enable"></param>
+        protected override void OnSerialize(NetworkWriter writer, bool enable)
         {
-            if (!start) return;
+            if (!enable) return;
             if (positionSync) writer.WriteVector3(target.localPosition);
             if (rotationSync) writer.WriteQuaternion(target.localRotation);
             if (localScaleSync) writer.WriteVector3(target.localScale);
@@ -202,10 +202,10 @@ namespace JFramework.Net
         /// 反序列化 Transform
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="start"></param>
-        protected override void OnDeserialize(NetworkReader reader, bool start)
+        /// <param name="enable"></param>
+        protected override void OnDeserialize(NetworkReader reader, bool enable)
         {
-            if (!start) return;
+            if (!enable) return;
             if (positionSync) mainData.position = reader.ReadVector3();
             if (rotationSync) mainData.rotation = reader.ReadQuaternion();
             if (localScaleSync) mainData.localScale = reader.ReadVector3();

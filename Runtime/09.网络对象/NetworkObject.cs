@@ -11,12 +11,30 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using JFramework.Interface;
 using UnityEngine;
 
 namespace JFramework.Net
 {
     public sealed partial class NetworkObject : MonoBehaviour
     {
+        /// <summary>
+        /// 网络变量序列化
+        /// </summary>
+        internal struct Synchronize
+        {
+            public int frameCount;
+            public readonly NetworkWriter owner;
+            public readonly NetworkWriter observer;
+        
+            public Synchronize(int frameCount)
+            {
+                owner = new NetworkWriter();
+                observer = new NetworkWriter();
+                this.frameCount = frameCount;
+            }
+        }
+        
         /// <summary>
         /// 场景Id列表
         /// </summary>
@@ -25,7 +43,7 @@ namespace JFramework.Net
         /// <summary>
         /// 上一次序列化间隔
         /// </summary>
-        private NetworkSerialize serialize = new NetworkSerialize(0);
+        private Synchronize synchronize = new Synchronize(0);
 
         /// <summary>
         /// 作为资源的路径
@@ -186,18 +204,18 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="frameCount"></param>
         /// <returns></returns>
-        internal NetworkSerialize ServerSerialize(int frameCount)
+        internal Synchronize Synchronization(int frameCount)
         {
-            if (serialize.frameCount != frameCount)
+            if (synchronize.frameCount != frameCount)
             {
-                serialize.owner.position = 0;
-                serialize.observer.position = 0;
-                serialize.frameCount = frameCount;
-                ServerSerialize(false, serialize.owner, serialize.observer);
+                synchronize.owner.position = 0;
+                synchronize.observer.position = 0;
+                synchronize.frameCount = frameCount;
+                ServerSerialize(false, synchronize.owner, synchronize.observer);
                 ClearDirty(true);
             }
 
-            return serialize;
+            return synchronize;
         }
 
         /// <summary>
@@ -216,174 +234,133 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 选择性地将需要更新的组件数据序列化并发送给所有者和观察者，以减少不必要的数据传输
+        /// 仅在客户端调用，当在客户端生成时调用
         /// </summary>
-        /// <param name="start"></param>
-        /// <param name="owner"></param>
-        /// <param name="observer"></param>
-        internal void ServerSerialize(bool start, NetworkWriter owner, NetworkWriter observer)
+        internal void OnStartClient()
         {
-            var components = entities;
-            var (ownerMask, observerMask) = ServerDirtyMasks(start);
+            if (isSpawn) return;
+            isSpawn = true;
 
-            if (ownerMask != 0)
+            foreach (var entity in entities)
             {
-                NetworkCompress.CompressVarUInt(owner, ownerMask);
-            }
-
-            if (observerMask != 0)
-            {
-                NetworkCompress.CompressVarUInt(observer, observerMask);
-            }
-
-            if ((ownerMask | observerMask) != 0)
-            {
-                for (int i = 0; i < components.Length; ++i)
+                try
                 {
-                    var component = components[i];
-                    var ownerDirty = IsDirty(ownerMask, i);
-                    var observersDirty = IsDirty(observerMask, i);
-                    if (ownerDirty || observersDirty)
-                    {
-                        using var writer = NetworkWriter.Pop();
-                        component.Serialize(writer, start);
-                        ArraySegment<byte> segment = writer;
-                        if (ownerDirty)
-                        {
-                            owner.WriteBytes(segment.Array, segment.Offset, segment.Count);
-                        }
-
-                        if (observersDirty)
-                        {
-                            observer.WriteBytes(segment.Array, segment.Offset, segment.Count);
-                        }
-                    }
+                    (entity as IStartClient)?.OnStartClient();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e, entity.gameObject);
                 }
             }
         }
 
         /// <summary>
-        /// 客户端序列化 SyncVar
+        /// 仅在客户端调用，当在客户端销毁时调用
         /// </summary>
-        /// <param name="writer"></param>
-        internal void ClientSerialize(NetworkWriter writer)
+        internal void OnStopClient()
         {
-            var components = entities;
-            var dirtyMask = ClientDirtyMask();
-            if (dirtyMask != 0)
-            {
-                NetworkCompress.CompressVarUInt(writer, dirtyMask);
-                for (int i = 0; i < components.Length; ++i)
-                {
-                    var component = components[i];
+            if (!isSpawn) return;
 
-                    if (IsDirty(dirtyMask, i))
-                    {
-                        component.Serialize(writer, false);
-                    }
+            foreach (var entity in entities)
+            {
+                try
+                {
+                    (entity as IStopClient)?.OnStopClient();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e, entity.gameObject);
                 }
             }
         }
 
         /// <summary>
-        /// 服务器反序列化 SyncVar
+        /// 仅在服务器上调用，当在服务器生成时调用
         /// </summary>
-        /// <param name="reader"></param>
-        /// <returns></returns>
-        internal bool ServerDeserialize(NetworkReader reader)
+        internal void OnStartServer()
         {
-            var components = entities;
-            var mask = NetworkCompress.DecompressVarUInt(reader);
-
-            for (int i = 0; i < components.Length; ++i)
+            foreach (var entity in entities)
             {
-                if (IsDirty(mask, i))
+                try
                 {
-                    var component = components[i];
-
-                    if (component.syncDirection == SyncMode.Client)
-                    {
-                        if (!component.Deserialize(reader, false))
-                        {
-                            return false;
-                        }
-
-                        component.SetSyncVarDirty(ulong.MaxValue);
-                    }
+                    (entity as IStartServer)?.OnStartServer();
                 }
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// 客户端反序列化 SyncVar
-        /// </summary>
-        /// <param name="reader"></param>
-        /// <param name="start"></param>
-        internal void ClientDeserialize(NetworkReader reader, bool start)
-        {
-            var components = entities;
-            var mask = NetworkCompress.DecompressVarUInt(reader);
-
-            for (int i = 0; i < components.Length; ++i)
-            {
-                if (IsDirty(mask, i))
+                catch (Exception e)
                 {
-                    var component = components[i];
-                    component.Deserialize(reader, start);
+                    Debug.LogException(e, entity.gameObject);
                 }
             }
         }
 
         /// <summary>
-        /// 用于指示哪些组件需要被序列化并发送给所有者和观察者
+        /// 仅在服务器上调用，当在服务器生成时调用
         /// </summary>
-        /// <param name="start"></param>
-        /// <returns></returns>
-        private (ulong, ulong) ServerDirtyMasks(bool start)
+        internal void OnStopServer()
         {
-            ulong ownerMask = 0;
-            ulong observerMask = 0;
-
-            var components = entities;
-            for (int i = 0; i < components.Length; ++i)
+            foreach (var entity in entities)
             {
-                var component = components[i];
-                var dirty = component.IsDirty();
-                ulong mask = 1U << i;
-                if (start || (component.syncDirection == SyncMode.Server && dirty))
+                try
                 {
-                    ownerMask |= mask;
+                    (entity as IStopServer)?.OnStopServer();
                 }
-
-                if (start || dirty)
+                catch (Exception e)
                 {
-                    observerMask |= mask;
+                    Debug.LogException(e, entity.gameObject);
                 }
             }
-
-            return (ownerMask, observerMask);
         }
 
         /// <summary>
-        /// 客户端改变遮罩
+        /// 仅在客户端调用，触发Notify则进行权限认证
         /// </summary>
-        /// <returns></returns>
-        private ulong ClientDirtyMask()
+        internal void OnNotifyAuthority()
         {
-            ulong mask = 0;
-            var components = entities;
-            for (int i = 0; i < components.Length; ++i)
+            if (!isAuthority && (objectMode & ObjectMode.Owner) == ObjectMode.Owner)
             {
-                var component = components[i];
-                if ((objectMode & ObjectMode.Owner) == ObjectMode.Owner && component.syncDirection == SyncMode.Client)
-                {
-                    if (component.IsDirty()) mask |= 1U << i;
-                }
+                OnStartAuthority();
+            }
+            else if (isAuthority && (objectMode & ObjectMode.Owner) != ObjectMode.Owner)
+            {
+                OnStopAuthority();
             }
 
-            return mask;
+            isAuthority = (objectMode & ObjectMode.Owner) == ObjectMode.Owner;
+        }
+
+        /// <summary>
+        /// 仅在客户端调用，当通过验证时调用
+        /// </summary>
+        private void OnStartAuthority()
+        {
+            foreach (var entity in entities)
+            {
+                try
+                {
+                    (entity as IStartAuthority)?.OnStartAuthority();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e, entity.gameObject);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 仅在客户端调用，当停止验证时调用
+        /// </summary>
+        private void OnStopAuthority()
+        {
+            foreach (var entity in entities)
+            {
+                try
+                {
+                    (entity as IStopAuthority)?.OnStopAuthority();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e, entity.gameObject);
+                }
+            }
         }
     }
 }

@@ -127,8 +127,8 @@ namespace JFramework.Net
         /// 序列化
         /// </summary>
         /// <param name="writer"></param>
-        /// <param name="serialize"></param>
-        internal void Serialize(NetworkWriter writer, bool serialize)
+        /// <param name="enable"></param>
+        internal void Serialize(NetworkWriter writer, bool enable)
         {
             int headerPosition = writer.position;
             writer.WriteByte(0);
@@ -136,7 +136,7 @@ namespace JFramework.Net
 
             try
             {
-                OnSerialize(writer, serialize);
+                OnSerialize(writer, enable);
             }
             catch (Exception e)
             {
@@ -155,16 +155,16 @@ namespace JFramework.Net
         /// 反序列化
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="serialize"></param>
+        /// <param name="enable"></param>
         /// <returns></returns>
-        internal bool Deserialize(NetworkReader reader, bool serialize)
+        internal bool Deserialize(NetworkReader reader, bool enable)
         {
             bool result = true;
             byte safety = reader.ReadByte();
             int chunkStart = reader.position;
             try
             {
-                OnDeserialize(reader, serialize);
+                OnDeserialize(reader, enable);
             }
             catch (Exception e)
             {
@@ -189,22 +189,22 @@ namespace JFramework.Net
         /// 可以重写这个方法
         /// </summary>
         /// <param name="writer"></param>
-        /// <param name="start"></param>
-        protected virtual void OnSerialize(NetworkWriter writer, bool start) => SerializeSyncVars(writer, start);
+        /// <param name="enable"></param>
+        protected virtual void OnSerialize(NetworkWriter writer, bool enable) => SerializeSyncVars(writer, enable);
 
         /// <summary>
         /// 可以重写这个方法
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="start"></param>
-        protected virtual void OnDeserialize(NetworkReader reader, bool start) => DeserializeSyncVars(reader, start);
+        /// <param name="enable"></param>
+        protected virtual void OnDeserialize(NetworkReader reader, bool enable) => DeserializeSyncVars(reader, enable);
 
         /// <summary>
         /// TODO：用于序列化SyncVar 自动生成
         /// </summary>
         /// <param name="writer"></param>
-        /// <param name="start"></param>
-        protected virtual void SerializeSyncVars(NetworkWriter writer, bool start)
+        /// <param name="enable"></param>
+        protected virtual void SerializeSyncVars(NetworkWriter writer, bool enable)
         {
         }
 
@@ -212,8 +212,8 @@ namespace JFramework.Net
         /// TODO：用于序列化SyncVar 自动生成
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="start"></param>
-        protected virtual void DeserializeSyncVars(NetworkReader reader, bool start)
+        /// <param name="enable"></param>
+        protected virtual void DeserializeSyncVars(NetworkReader reader, bool enable)
         {
         }
     }

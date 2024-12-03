@@ -469,7 +469,7 @@ namespace JFramework.Editor
             if (syncVars.Count == 0) return;
             var serialize = new MethodDefinition(Const.SER_METHOD, Const.SER_ATTRS, models.Import(typeof(void)));
             serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, models.Import<NetworkWriter>()));
-            serialize.Parameters.Add(new ParameterDefinition("start", ParameterAttributes.None, models.Import<bool>()));
+            serialize.Parameters.Add(new ParameterDefinition("enable", ParameterAttributes.None, models.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
@@ -482,9 +482,9 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Call, baseSerialize);
             }
 
-            Instruction isStart = worker.Create(OpCodes.Nop);
+            Instruction enable = worker.Create(OpCodes.Nop);
             worker.Emit(OpCodes.Ldarg_2);
-            worker.Emit(OpCodes.Brfalse, isStart);
+            worker.Emit(OpCodes.Brfalse, enable);
             foreach (var syncVarDef in syncVars)
             {
                 FieldReference syncVar = syncVarDef;
@@ -514,7 +514,7 @@ namespace JFramework.Editor
             }
 
             worker.Emit(OpCodes.Ret);
-            worker.Append(isStart);
+            worker.Append(enable);
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Call, models.NetworkBehaviourDirtyRef);
@@ -572,7 +572,7 @@ namespace JFramework.Editor
             if (syncVars.Count == 0) return;
             var serialize = new MethodDefinition(Const.DES_METHOD, Const.SER_ATTRS, models.Import(typeof(void)));
             serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<NetworkReader>()));
-            serialize.Parameters.Add(new ParameterDefinition("start", ParameterAttributes.None, models.Import<bool>()));
+            serialize.Parameters.Add(new ParameterDefinition("enable", ParameterAttributes.None, models.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
@@ -588,10 +588,10 @@ namespace JFramework.Editor
                 worker.Append(worker.Create(OpCodes.Call, baseDeserialize));
             }
 
-            var isStart = worker.Create(OpCodes.Nop);
+            var enable = worker.Create(OpCodes.Nop);
 
             worker.Append(worker.Create(OpCodes.Ldarg_2));
-            worker.Append(worker.Create(OpCodes.Brfalse, isStart));
+            worker.Append(worker.Create(OpCodes.Brfalse, enable));
 
             foreach (var syncVar in syncVars)
             {
@@ -599,7 +599,7 @@ namespace JFramework.Editor
             }
 
             worker.Append(worker.Create(OpCodes.Ret));
-            worker.Append(isStart);
+            worker.Append(enable);
             worker.Append(worker.Create(OpCodes.Ldarg_1));
             worker.Append(worker.Create(OpCodes.Call, readers.GetFunction(models.Import<ulong>(), ref failed)));
             worker.Append(worker.Create(OpCodes.Stloc_0));
