@@ -396,11 +396,11 @@ namespace JFramework.Editor
         {
             worker.Emit(OpCodes.Ldtoken, generate);
             worker.Emit(OpCodes.Call, models.getTypeFromHandleRef);
+            worker.Emit(OpCodes.Ldc_I4, pair.Value);
             worker.Emit(OpCodes.Ldstr, pair.Key.FullName);
             worker.Emit(OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldftn, md);
             worker.Emit(OpCodes.Newobj, models.RpcDelegateRef);
-            worker.Emit(OpCodes.Ldc_I4, pair.Value);
             worker.Emit(OpCodes.Call, mr);
         }
     }

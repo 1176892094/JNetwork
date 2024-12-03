@@ -38,9 +38,8 @@ namespace JFramework.Net
                 Debug.LogWarning($"调用 {methodName} 但是客户端没有准备就绪的。对象名称：{name}", gameObject);
                 return;
             }
-
-            var requireReady = (channel & Channel.NotReady) != Channel.NotReady;
-            if (!(!requireReady || isOwner))
+            
+            if ((channel & Channel.NonOwner) == 0 && !isOwner)
             {
                 Debug.LogWarning($"调用 {methodName} 但是客户端没有对象权限。对象名称：{name}", gameObject);
                 return;
@@ -60,8 +59,7 @@ namespace JFramework.Net
                 segment = writer,
             };
 
-            channel = (channel & Channel.Reliable) == Channel.Reliable ? Channel.Reliable : Channel.Unreliable;
-            NetworkManager.Client.connection.Send(message, channel);
+            NetworkManager.Client.connection.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
         }
 
 
@@ -97,13 +95,11 @@ namespace JFramework.Net
             using var current = NetworkWriter.Pop();
             current.Invoke(message);
 
-            var includeOwner = (channel & Channel.NotOwner) != Channel.NotOwner;
-            channel = (channel & Channel.Reliable) == Channel.Reliable ? Channel.Reliable : Channel.Unreliable;
             foreach (var client in NetworkManager.Server.clients.Values.Where(client => client.isReady))
             {
-                if (includeOwner || client != connection)
+                if ((channel & Channel.NonOwner) == 0 || client != connection)
                 {
-                    client.Send(message, channel);
+                    client.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
                 }
             }
         }
@@ -145,7 +141,7 @@ namespace JFramework.Net
                 methodHash = (ushort)methodHash,
                 segment = writer
             };
-          
+
             client.Send(message, channel);
         }
     }

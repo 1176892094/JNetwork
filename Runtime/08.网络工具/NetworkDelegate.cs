@@ -30,9 +30,9 @@ namespace JFramework.Net
         /// <param name="name"></param>
         /// <param name="func"></param>
         /// <param name="channel"></param>
-        public static void RegisterServerRpc(Type component, string name, InvokeDelegate func, int channel)
+        public static void RegisterServerRpc(Type component, int channel, string name, InvokeDelegate func)
         {
-            RegisterInvoke(component, name, InvokeMode.ServerRpc, func, channel);
+            RegisterInvoke(component, channel, name, InvokeMode.ServerRpc, func);
         }
 
         /// <summary>
@@ -42,9 +42,9 @@ namespace JFramework.Net
         /// <param name="name"></param>
         /// <param name="func"></param>
         /// <param name="channel"></param>
-        public static void RegisterClientRpc(Type component, string name, InvokeDelegate func, int channel)
+        public static void RegisterClientRpc(Type component, int channel, string name, InvokeDelegate func)
         {
-            RegisterInvoke(component, name, InvokeMode.ClientRpc, func, channel);
+            RegisterInvoke(component, channel, name, InvokeMode.ClientRpc, func);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace JFramework.Net
         /// <param name="mode"></param>
         /// <param name="func"></param>
         /// <param name="channel"></param>
-        private static void RegisterInvoke(Type component, string name, InvokeMode mode, InvokeDelegate func, int channel)
+        private static void RegisterInvoke(Type component, int channel, string name, InvokeMode mode, InvokeDelegate func)
         {
             var id = (ushort)(NetworkUtility.GetStableId(name) & 0xFFFF);
             if (!messages.TryGetValue(id, out var message))
@@ -86,7 +86,7 @@ namespace JFramework.Net
         {
             if (messages.TryGetValue(id, out var message) && message != null)
             {
-                if (message.mode == InvokeMode.ServerRpc && (message.channel & Channel.NotReady) != Channel.NotReady)
+                if ((message.channel & Channel.NonOwner) == 0 && message.mode == InvokeMode.ServerRpc)
                 {
                     return true;
                 }
