@@ -11,34 +11,12 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using JFramework.Interface;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditor.SceneManagement;
-#endif
 
 namespace JFramework.Net
 {
-    public partial class NetworkObject : MonoBehaviour
+    public sealed partial class NetworkObject : MonoBehaviour
     {
-        /// <summary>
-        /// 网络变量序列化
-        /// </summary>
-        internal struct NetworkSerialize
-        {
-            public int frameCount;
-            public readonly NetworkWriter owner;
-            public readonly NetworkWriter observer;
-
-            public NetworkSerialize(int frameCount)
-            {
-                owner = new NetworkWriter();
-                observer = new NetworkWriter();
-                this.frameCount = frameCount;
-            }
-        }
-
         /// <summary>
         /// 场景Id列表
         /// </summary>
@@ -409,214 +387,22 @@ namespace JFramework.Net
                 Debug.LogError($"无法调用{mode} [{function}] 网络对象：{gameObject.name} 网络Id：{objectId}");
             }
         }
-    }
-
-    public sealed partial class NetworkObject
-    {
-        /// <summary>
-        /// 仅在客户端调用，当在客户端生成时调用
-        /// </summary>
-        internal void OnStartClient()
-        {
-            if (isSpawn) return;
-            isSpawn = true;
-
-            foreach (var entity in entities)
-            {
-                try
-                {
-                    (entity as IStartClient)?.OnStartClient();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e, entity.gameObject);
-                }
-            }
-        }
 
         /// <summary>
-        /// 仅在客户端调用，当在客户端销毁时调用
+        /// 网络变量序列化
         /// </summary>
-        internal void OnStopClient()
+        internal struct NetworkSerialize
         {
-            if (!isSpawn) return;
+            public int frameCount;
+            public readonly NetworkWriter owner;
+            public readonly NetworkWriter observer;
 
-            foreach (var entity in entities)
+            public NetworkSerialize(int frameCount)
             {
-                try
-                {
-                    (entity as IStopClient)?.OnStopClient();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e, entity.gameObject);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 仅在服务器上调用，当在服务器生成时调用
-        /// </summary>
-        internal void OnStartServer()
-        {
-            foreach (var entity in entities)
-            {
-                try
-                {
-                    (entity as IStartServer)?.OnStartServer();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e, entity.gameObject);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 仅在服务器上调用，当在服务器生成时调用
-        /// </summary>
-        internal void OnStopServer()
-        {
-            foreach (var entity in entities)
-            {
-                try
-                {
-                    (entity as IStopServer)?.OnStopServer();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e, entity.gameObject);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 仅在客户端调用，触发Notify则进行权限认证
-        /// </summary>
-        internal void OnNotifyAuthority()
-        {
-            if (!isAuthority && (objectMode & ObjectMode.Owner) == ObjectMode.Owner)
-            {
-                OnStartAuthority();
-            }
-            else if (isAuthority && (objectMode & ObjectMode.Owner) != ObjectMode.Owner)
-            {
-                OnStopAuthority();
-            }
-
-            isAuthority = (objectMode & ObjectMode.Owner) == ObjectMode.Owner;
-        }
-
-        /// <summary>
-        /// 仅在客户端调用，当通过验证时调用
-        /// </summary>
-        private void OnStartAuthority()
-        {
-            foreach (var entity in entities)
-            {
-                try
-                {
-                    (entity as IStartAuthority)?.OnStartAuthority();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e, entity.gameObject);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 仅在客户端调用，当停止验证时调用
-        /// </summary>
-        private void OnStopAuthority()
-        {
-            foreach (var entity in entities)
-            {
-                try
-                {
-                    (entity as IStopAuthority)?.OnStopAuthority();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e, entity.gameObject);
-                }
+                owner = new NetworkWriter();
+                observer = new NetworkWriter();
+                this.frameCount = frameCount;
             }
         }
     }
-
-#if UNITY_EDITOR
-    public sealed partial class NetworkObject
-    {
-        private void OnValidate()
-        {
-            if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
-            {
-                sceneId = 0;
-                AssignAssetPath(AssetDatabase.GetAssetPath(gameObject));
-            }
-            else if (PrefabStageUtility.GetCurrentPrefabStage() != null)
-            {
-                if (PrefabStageUtility.GetPrefabStage(gameObject) != null)
-                {
-                    sceneId = 0;
-                    AssignAssetPath(PrefabStageUtility.GetPrefabStage(gameObject).assetPath);
-                }
-            }
-            else if (IsSceneObjectWithPrefabParent(gameObject, out GameObject prefab))
-            {
-                AssignSceneId();
-                AssignAssetPath(AssetDatabase.GetAssetPath(prefab));
-            }
-            else
-            {
-                AssignSceneId();
-            }
-        }
-
-        private void AssignAssetPath(string path)
-        {
-            if (!string.IsNullOrWhiteSpace(path))
-            {
-                var importer = AssetImporter.GetAtPath(path);
-                if (importer == null) return;
-                assetId = importer.assetBundleName + "/" + name;
-            }
-        }
-
-        private static bool IsSceneObjectWithPrefabParent(GameObject gameObject, out GameObject prefab)
-        {
-            prefab = null;
-            if (!PrefabUtility.IsPartOfPrefabInstance(gameObject)) return false;
-            prefab = PrefabUtility.GetCorrespondingObjectFromSource(gameObject);
-            if (prefab != null) return true;
-            Debug.LogError($"找不到场景对象的预制父物体。对象名称：{gameObject.name}");
-            return false;
-        }
-
-        private void AssignSceneId()
-        {
-            if (Application.isPlaying) return;
-            var duplicate = sceneIds.TryGetValue(sceneId, out NetworkObject @object) && @object != null && @object != this;
-            if (sceneId == 0 || duplicate)
-            {
-                sceneId = 0;
-                if (BuildPipeline.isBuildingPlayer)
-                {
-                    throw new InvalidOperationException($"请构建之前保存场景 {gameObject.scene.path}，场景对象 {name} 没有有效的场景Id。");
-                }
-
-                Undo.RecordObject(this, "生成场景Id");
-                var randomId = NetworkUtility.GetRandomId();
-
-                duplicate = sceneIds.TryGetValue(randomId, out @object) && @object != null && @object != this;
-                if (!duplicate)
-                {
-                    sceneId = randomId;
-                }
-            }
-
-            sceneIds[sceneId] = this;
-        }
-    }
-#endif
 }
