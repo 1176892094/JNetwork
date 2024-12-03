@@ -85,7 +85,6 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkUtility.GetStableId(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, ca.GetFieldType<int>());
-            worker.Emit(ca.GetFieldType<bool>() ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
             worker.Emit(OpCodes.Callvirt, models.sendClientRpcInternal);
             NetworkBehaviourProcess.WritePushWriter(worker, models);
             worker.Emit(OpCodes.Ret);

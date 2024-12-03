@@ -39,7 +39,8 @@ namespace JFramework.Net
                 return;
             }
 
-            if (!isOwner)
+            var requireReady = (channel & Channel.NotReady) != Channel.NotReady;
+            if (!(!requireReady || isOwner))
             {
                 Debug.LogWarning($"调用 {methodName} 但是客户端没有对象权限。对象名称：{name}", gameObject);
                 return;
@@ -59,6 +60,7 @@ namespace JFramework.Net
                 segment = writer,
             };
 
+            channel = (channel & Channel.Reliable) == Channel.Reliable ? Channel.Reliable : Channel.Unreliable;
             NetworkManager.Client.connection.Send(message, channel);
         }
 
@@ -70,8 +72,7 @@ namespace JFramework.Net
         /// <param name="methodHash">方法哈希值</param>
         /// <param name="writer">写入器</param>
         /// <param name="channel">传输通道</param>
-        /// <param name="everyone">包含所有者</param>
-        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel, bool everyone)
+        protected void SendClientRpcInternal(string methodName, int methodHash, NetworkWriter writer, int channel)
         {
             if (!NetworkManager.Server.isActive)
             {
@@ -96,14 +97,11 @@ namespace JFramework.Net
             using var current = NetworkWriter.Pop();
             current.Invoke(message);
 
-
+            var includeOwner = (channel & Channel.NotOwner) != Channel.NotOwner;
+            channel = (channel & Channel.Reliable) == Channel.Reliable ? Channel.Reliable : Channel.Unreliable;
             foreach (var client in NetworkManager.Server.clients.Values.Where(client => client.isReady))
             {
-                if (everyone)
-                {
-                    client.Send(message, channel);
-                }
-                else if (client != connection)
+                if (includeOwner || client != connection)
                 {
                     client.Send(message, channel);
                 }
@@ -147,7 +145,7 @@ namespace JFramework.Net
                 methodHash = (ushort)methodHash,
                 segment = writer
             };
-
+          
             client.Send(message, channel);
         }
     }

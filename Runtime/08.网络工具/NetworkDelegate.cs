@@ -29,9 +29,10 @@ namespace JFramework.Net
         /// <param name="component"></param>
         /// <param name="name"></param>
         /// <param name="func"></param>
-        public static void RegisterServerRpc(Type component, string name, InvokeDelegate func)
+        /// <param name="channel"></param>
+        public static void RegisterServerRpc(Type component, string name, InvokeDelegate func, int channel)
         {
-            RegisterInvoke(component, name, InvokeMode.ServerRpc, func);
+            RegisterInvoke(component, name, InvokeMode.ServerRpc, func, channel);
         }
 
         /// <summary>
@@ -40,9 +41,10 @@ namespace JFramework.Net
         /// <param name="component"></param>
         /// <param name="name"></param>
         /// <param name="func"></param>
-        public static void RegisterClientRpc(Type component, string name, InvokeDelegate func)
+        /// <param name="channel"></param>
+        public static void RegisterClientRpc(Type component, string name, InvokeDelegate func, int channel)
         {
-            RegisterInvoke(component, name, InvokeMode.ClientRpc, func);
+            RegisterInvoke(component, name, InvokeMode.ClientRpc, func, channel);
         }
 
         /// <summary>
@@ -52,15 +54,17 @@ namespace JFramework.Net
         /// <param name="name"></param>
         /// <param name="mode"></param>
         /// <param name="func"></param>
-        private static void RegisterInvoke(Type component, string name, InvokeMode mode, InvokeDelegate func)
+        /// <param name="channel"></param>
+        private static void RegisterInvoke(Type component, string name, InvokeMode mode, InvokeDelegate func, int channel)
         {
             var id = (ushort)(NetworkUtility.GetStableId(name) & 0xFFFF);
             if (!messages.TryGetValue(id, out var message))
             {
                 message = new InvokeData
                 {
-                    mode = mode,
+                    channel = channel,
                     component = component,
+                    mode = mode,
                     func = func,
                 };
                 messages[id] = message;
@@ -78,9 +82,17 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="id">传入方法的hash值</param>
         /// <returns>返回是否需要权限</returns>
-        internal static bool Contains(ushort id)
+        internal static bool RequireReady(ushort id)
         {
-            return messages.TryGetValue(id, out var message) && message is { mode: InvokeMode.ServerRpc };
+            if (messages.TryGetValue(id, out var message) && message != null)
+            {
+                if (message.mode == InvokeMode.ServerRpc && (message.channel & Channel.NotReady) != Channel.NotReady)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -108,6 +120,7 @@ namespace JFramework.Net
         /// </summary>
         private class InvokeData
         {
+            public int channel;
             public Type component;
             public InvokeMode mode;
             public InvokeDelegate func;

@@ -8,6 +8,7 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
 using System.Collections.Generic;
 using JFramework.Net;
 using Mono.Cecil;
@@ -29,14 +30,15 @@ namespace JFramework.Editor
         private readonly TypeDefinition generate;
         private readonly SyncVarProcess process;
         private readonly AssemblyDefinition assembly;
-        private readonly List<MethodDefinition> serverRpcList = new List<MethodDefinition>();
+        private readonly List<KeyValuePair<MethodDefinition, int>> serverRpcList = new List<KeyValuePair<MethodDefinition, int>>();
         private readonly List<MethodDefinition> serverRpcFuncList = new List<MethodDefinition>();
-        private readonly List<MethodDefinition> clientRpcList = new List<MethodDefinition>();
+        private readonly List<KeyValuePair<MethodDefinition, int>> clientRpcList = new List<KeyValuePair<MethodDefinition, int>>();
         private readonly List<MethodDefinition> clientRpcFuncList = new List<MethodDefinition>();
-        private readonly List<MethodDefinition> targetRpcList = new List<MethodDefinition>();
+        private readonly List<KeyValuePair<MethodDefinition, int>> targetRpcList = new List<KeyValuePair<MethodDefinition, int>>();
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
 
-        public NetworkBehaviourProcess(AssemblyDefinition assembly, SyncVarAccess access, Models models, Writer writers, Reader readers, Logger logger, TypeDefinition type)
+        public NetworkBehaviourProcess(AssemblyDefinition assembly, SyncVarAccess access, Models models, Writer writers, Reader readers,
+            Logger logger, TypeDefinition type)
         {
             generate = type;
             this.type = type;
@@ -121,7 +123,6 @@ namespace JFramework.Editor
         /// </summary>
         private void ProcessRpcMethods(ref bool failed)
         {
-            var names = new HashSet<string>();
             var methods = new List<MethodDefinition>(generate.Methods);
 
             foreach (var md in methods)
@@ -130,19 +131,19 @@ namespace JFramework.Editor
                 {
                     if (ca.AttributeType.Is<ServerRpcAttribute>())
                     {
-                        ProcessServerRpc(names, md, ca, ref failed);
+                        ProcessDelegate(md, ca, InvokeMode.ServerRpc, ref failed);
                         break;
                     }
 
                     if (ca.AttributeType.Is<TargetRpcAttribute>())
                     {
-                        ProcessTargetRpc(names, md, ca, ref failed);
+                        ProcessDelegate(md, ca, InvokeMode.TargetRpc, ref failed);
                         break;
                     }
 
                     if (ca.AttributeType.Is<ClientRpcAttribute>())
                     {
-                        ProcessClientRpc(names, md, ca, ref failed);
+                        ProcessDelegate(md, ca, InvokeMode.ClientRpc, ref failed);
                         break;
                     }
                 }
@@ -152,95 +153,58 @@ namespace JFramework.Editor
         /// <summary>
         /// 处理ClientRpc
         /// </summary>
-        /// <param name="names"></param>
         /// <param name="md"></param>
         /// <param name="rpc"></param>
+        /// <param name="mode"></param>
         /// <param name="failed"></param>
-        private void ProcessClientRpc(HashSet<string> names, MethodDefinition md, CustomAttribute rpc, ref bool failed)
+        private void ProcessDelegate(MethodDefinition md, CustomAttribute rpc, InvokeMode mode, ref bool failed)
         {
             if (md.IsAbstract)
             {
-                logger.Error("ClientRpc不能作用在抽象方法中。", md);
+                logger.Error($"{mode}不能作用在抽象方法中。", md);
                 failed = true;
                 return;
             }
 
-            if (!IsValidMethod(md, InvokeMode.ClientRpc, ref failed))
+            if (!IsValidMethod(md, mode, ref failed))
             {
                 return;
             }
 
-            names.Add(md.Name);
-            clientRpcList.Add(md);
-            var func = NetworkDelegateProcess.ProcessClientRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
-            if (func == null) return;
-            var rpcFunc = NetworkDelegateProcess.ProcessClientRpc(models, readers, logger, generate, md, func, ref failed);
-            if (rpcFunc != null)
+            MethodDefinition func;
+            MethodDefinition rpcFunc;
+            switch (mode)
             {
-                clientRpcFuncList.Add(rpcFunc);
-            }
-        }
+                case InvokeMode.ServerRpc:
+                    serverRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetFieldType<int>()));
+                    func = NetworkDelegateProcess.ProcessServerRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
+                    rpcFunc = NetworkDelegateProcess.ProcessServerRpc(models, readers, logger, generate, md, func, ref failed);
+                    if (rpcFunc != null)
+                    {
+                        serverRpcFuncList.Add(rpcFunc);
+                    }
 
-        /// <summary>
-        /// 处理ServerRpc
-        /// </summary>
-        /// <param name="names"></param>
-        /// <param name="md"></param>
-        /// <param name="rpc"></param>
-        /// <param name="failed"></param>
-        private void ProcessServerRpc(HashSet<string> names, MethodDefinition md, CustomAttribute rpc, ref bool failed)
-        {
-            if (md.IsAbstract)
-            {
-                logger.Error("ServerRpc不能作用在抽象方法中。", md);
-                failed = true;
-                return;
-            }
+                    break;
+                case InvokeMode.ClientRpc:
+                    clientRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetFieldType<int>()));
+                    func = NetworkDelegateProcess.ProcessClientRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
+                    rpcFunc = NetworkDelegateProcess.ProcessClientRpc(models, readers, logger, generate, md, func, ref failed);
+                    if (rpcFunc != null)
+                    {
+                        clientRpcFuncList.Add(rpcFunc);
+                    }
 
-            if (!IsValidMethod(md, InvokeMode.ServerRpc, ref failed))
-            {
-                return;
-            }
+                    break;
+                case InvokeMode.TargetRpc:
+                    targetRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetFieldType<int>()));
+                    func = NetworkDelegateProcess.ProcessTargetRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
+                    rpcFunc = NetworkDelegateProcess.ProcessTargetRpc(models, readers, logger, generate, md, func, ref failed);
+                    if (rpcFunc != null)
+                    {
+                        targetRpcFuncList.Add(rpcFunc);
+                    }
 
-            names.Add(md.Name);
-            serverRpcList.Add(md);
-            var func = NetworkDelegateProcess.ProcessServerRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
-            if (func == null) return;
-            var rpcFunc = NetworkDelegateProcess.ProcessServerRpc(models, readers, logger, generate, md, func, ref failed);
-            if (rpcFunc != null)
-            {
-                serverRpcFuncList.Add(rpcFunc);
-            }
-        }
-
-        /// <summary>
-        /// 处理TargetRpc
-        /// </summary>
-        /// <param name="names"></param>
-        /// <param name="md"></param>
-        /// <param name="rpc"></param>
-        /// <param name="failed"></param>
-        private void ProcessTargetRpc(HashSet<string> names, MethodDefinition md, CustomAttribute rpc, ref bool failed)
-        {
-            if (md.IsAbstract)
-            {
-                logger.Error("TargetRpc不能作用在抽象方法中。", md);
-                failed = true;
-                return;
-            }
-
-            if (!IsValidMethod(md, InvokeMode.TargetRpc, ref failed))
-            {
-                return;
-            }
-
-            names.Add(md.Name);
-            targetRpcList.Add(md);
-            var func = NetworkDelegateProcess.ProcessTargetRpcInvoke(models, writers, logger, generate, md, rpc, ref failed);
-            var rpcFunc = NetworkDelegateProcess.ProcessTargetRpc(models, readers, logger, generate, md, func, ref failed);
-            if (rpcFunc != null)
-            {
-                targetRpcFuncList.Add(rpcFunc);
+                    break;
             }
         }
 
@@ -381,17 +345,17 @@ namespace JFramework.Editor
             ILProcessor worker = cctor.Body.GetILProcessor();
             for (int i = 0; i < serverRpcList.Count; ++i)
             {
-                GenerateServerRpcDelegate(worker, models.registerServerRpcRef, serverRpcFuncList[i], serverRpcList[i].FullName);
+                GenerateDelegate(worker, models.registerServerRpcRef, serverRpcFuncList[i], serverRpcList[i]);
             }
 
             for (int i = 0; i < clientRpcList.Count; ++i)
             {
-                GenerateClientRpcDelegate(worker, models.registerClientRpcRef, clientRpcFuncList[i], clientRpcList[i].FullName);
+                GenerateDelegate(worker, models.registerClientRpcRef, clientRpcFuncList[i], clientRpcList[i]);
             }
 
             for (int i = 0; i < targetRpcList.Count; ++i)
             {
-                GenerateClientRpcDelegate(worker, models.registerClientRpcRef, targetRpcFuncList[i], targetRpcList[i].FullName);
+                GenerateDelegate(worker, models.registerClientRpcRef, targetRpcFuncList[i], targetRpcList[i]);
             }
 
             worker.Append(worker.Create(OpCodes.Ret));
@@ -427,33 +391,16 @@ namespace JFramework.Editor
         /// <param name="worker"></param>
         /// <param name="mr"></param>
         /// <param name="md"></param>
-        /// <param name="func"></param>
-        private void GenerateClientRpcDelegate(ILProcessor worker, MethodReference mr, MethodDefinition md, string func)
+        /// <param name="pair"></param>
+        private void GenerateDelegate(ILProcessor worker, MethodReference mr, MethodDefinition md, KeyValuePair<MethodDefinition, int> pair)
         {
             worker.Emit(OpCodes.Ldtoken, generate);
             worker.Emit(OpCodes.Call, models.getTypeFromHandleRef);
-            worker.Emit(OpCodes.Ldstr, func);
+            worker.Emit(OpCodes.Ldstr, pair.Key.FullName);
             worker.Emit(OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldftn, md);
             worker.Emit(OpCodes.Newobj, models.RpcDelegateRef);
-            worker.Emit(OpCodes.Call, mr);
-        }
-
-        /// <summary>
-        /// 在静态构造函数中注入ServerRpc委托
-        /// </summary>
-        /// <param name="worker"></param>
-        /// <param name="mr"></param>
-        /// <param name="md"></param>
-        /// <param name="func"></param>
-        private void GenerateServerRpcDelegate(ILProcessor worker, MethodReference mr, MethodDefinition md, string func)
-        {
-            worker.Emit(OpCodes.Ldtoken, generate);
-            worker.Emit(OpCodes.Call, models.getTypeFromHandleRef);
-            worker.Emit(OpCodes.Ldstr, func);
-            worker.Emit(OpCodes.Ldnull);
-            worker.Emit(OpCodes.Ldftn, md);
-            worker.Emit(OpCodes.Newobj, models.RpcDelegateRef);
+            worker.Emit(OpCodes.Ldc_I4, pair.Value);
             worker.Emit(OpCodes.Call, mr);
         }
     }
@@ -539,10 +486,9 @@ namespace JFramework.Editor
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
 
-                var writeFunc =
-                    writers.GetFunction(
-                        syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? models.Import<NetworkBehaviour>() : syncVar.FieldType,
-                        ref failed);
+                var writeFunc = writers.GetFunction(
+                    syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? models.Import<NetworkBehaviour>() : syncVar.FieldType,
+                    ref failed);
 
                 if (writeFunc != null)
                 {

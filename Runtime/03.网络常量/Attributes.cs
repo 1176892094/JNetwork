@@ -19,12 +19,10 @@ namespace JFramework.Net
     public class ClientRpcAttribute : Attribute
     {
         private int channel;
-        private bool everyone;
 
-        public ClientRpcAttribute(int channel = Channel.Reliable, bool everyone = true)
+        public ClientRpcAttribute(int channel = Channel.Reliable)
         {
             this.channel = channel;
-            this.everyone = everyone;
         }
     }
 

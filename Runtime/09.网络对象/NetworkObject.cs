@@ -23,15 +23,15 @@ namespace JFramework.Net
         /// </summary>
         internal struct Synchronize
         {
-            public int frameCount;
+            public int frame;
             public readonly NetworkWriter owner;
             public readonly NetworkWriter observer;
         
-            public Synchronize(int frameCount)
+            public Synchronize(int frame)
             {
+                this.frame = frame;
                 owner = new NetworkWriter();
                 observer = new NetworkWriter();
-                this.frameCount = frameCount;
             }
         }
         
@@ -124,8 +124,8 @@ namespace JFramework.Net
         {
             objectId = 0;
             isSpawn = false;
-            objectMode = ObjectMode.None;
             isAuthority = false;
+            objectMode = ObjectMode.None;
             connection = null;
             sceneIds.Clear();
         }
@@ -202,15 +202,15 @@ namespace JFramework.Net
         /// <summary>
         /// 服务器帧序列化
         /// </summary>
-        /// <param name="frameCount"></param>
+        /// <param name="frame"></param>
         /// <returns></returns>
-        internal Synchronize Synchronization(int frameCount)
+        internal Synchronize Synchronization(int frame)
         {
-            if (synchronize.frameCount != frameCount)
+            if (synchronize.frame != frame)
             {
+                synchronize.frame = frame;
                 synchronize.owner.position = 0;
                 synchronize.observer.position = 0;
-                synchronize.frameCount = frameCount;
                 ServerSerialize(false, synchronize.owner, synchronize.observer);
                 ClearDirty(true);
             }

@@ -187,6 +187,9 @@ namespace JFramework.Udp
                 case Channel.Unreliable:
                     SendUnreliable(UnreliableHeader.Data, data);
                     break;
+                default:
+                    Log.Warn("试图在未知的传输通道传输消息!");
+                    break;
             }
         }
 
