@@ -22,11 +22,6 @@ namespace JFramework.Net
         public static NetworkManager Instance;
 
         /// <summary>
-        /// 时间组件
-        /// </summary>
-        [Inject] private TimeManager time;
-
-        /// <summary>
         /// 场景加载组件
         /// </summary>
         [Inject] private SceneManager scene;
@@ -64,17 +59,7 @@ namespace JFramework.Net
         /// <summary>
         /// 流逝时间
         /// </summary>
-        internal static double TickTime => UnityEngine.Time.unscaledTimeAsDouble;
-
-        /// <summary>
-        /// 消息发送率
-        /// </summary>
-        internal static float SendRate => 1f / Instance.sendRate;
-
-        /// <summary>
-        /// 时间组件
-        /// </summary>
-        internal static TimeManager Time => Instance.time;
+        internal static double Time => UnityEngine.Time.unscaledTimeAsDouble;
 
         /// <summary>
         /// 场景加载组件
@@ -298,12 +283,30 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 客户端回传时间
+        /// 接收 Ping
         /// </summary>
-        /// <param name="rtt"></param>
-        public static void Ping(double rtt)
+        /// <param name="pingTime"></param>
+        public static void Ping(double pingTime)
         {
-            OnPingUpdate?.Invoke(rtt);
+            OnPingUpdate?.Invoke(pingTime);
+        }
+
+        /// <summary>
+        /// 计算
+        /// </summary>
+        /// <param name="sendTime"></param>
+        /// <returns></returns>
+        internal bool Ticks(ref double sendTime)
+        {
+            var duration = 1f / sendRate;
+            if (sendTime + duration <= UnityEngine.Time.unscaledTimeAsDouble)
+            {
+                var fixedTime = (long)(UnityEngine.Time.unscaledTimeAsDouble / duration);
+                sendTime = fixedTime * duration;
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -339,7 +342,7 @@ namespace JFramework.Net
                     GUI.skin.box.alignment = TextAnchor.MiddleCenter;
                     GUILayout.Label($"<b>Connecting...</b>", "Box", GUILayout.Height(30));
                     GUI.skin.box.alignment = alignment;
-                    
+
                     if (GUILayout.Button("Stop Client", GUILayout.Height(30)))
                     {
                         Instance.StopClient();

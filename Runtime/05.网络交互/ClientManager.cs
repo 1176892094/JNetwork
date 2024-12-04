@@ -55,6 +55,16 @@ namespace JFramework.Net
         [SerializeField] private double sendTime;
 
         /// <summary>
+        /// 客户端发送 Ping 的间隔
+        /// </summary>
+        [SerializeField] private double waitTime;
+
+        /// <summary>
+        /// 客户端回传 Ping 时间
+        /// </summary>
+        [SerializeField] private double pingTime;
+
+        /// <summary>
         /// 是否活跃
         /// </summary>
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -165,6 +175,8 @@ namespace JFramework.Net
             }
 
             sendTime = 0;
+            waitTime = 0;
+            pingTime = 0;
             isReady = false;
             spawns.Clear();
             scenes.Clear();
@@ -172,6 +184,18 @@ namespace JFramework.Net
             connection = null;
             isLoadScene = false;
             OnDisconnect?.Invoke();
+        }
+
+        /// <summary>
+        /// 客户端发送 Ping 时间
+        /// </summary>
+        private void Ping()
+        {
+            if (waitTime < Time.unscaledTimeAsDouble - 2)
+            {
+                waitTime = Time.unscaledTimeAsDouble;
+                connection.Send(new PingMessage(waitTime), Channel.Unreliable);
+            }
         }
 
         public void Ready()
@@ -245,7 +269,17 @@ namespace JFramework.Net
                 return;
             }
 
-            NetworkManager.Time.Ping(message.clientTime);
+            if (pingTime <= 0)
+            {
+                pingTime = Time.unscaledTimeAsDouble - message.clientTime;
+            }
+            else
+            {
+                var delta = Time.unscaledTimeAsDouble - message.clientTime - pingTime;
+                pingTime += 2.0 / (6 + 1) * delta;
+            }
+
+            NetworkManager.Ping(pingTime);
         }
 
         /// <summary>
@@ -408,11 +442,10 @@ namespace JFramework.Net
                 Debug.LogError("没有有效的服务器连接！");
                 return;
             }
-
+            
             state = StateMode.Connected;
             OnConnect?.Invoke();
-            NetworkManager.Time.Reset();
-            NetworkManager.Time.Update();
+            Ping();
             Ready();
         }
 
@@ -620,7 +653,7 @@ namespace JFramework.Net
         {
             if (isActive)
             {
-                if (TimeManager.Ticks(NetworkManager.SendRate, ref sendTime))
+                if (NetworkManager.Instance.Ticks(ref sendTime))
                 {
                     Broadcast();
                 }
@@ -636,7 +669,7 @@ namespace JFramework.Net
                 {
                     if (isConnected)
                     {
-                        NetworkManager.Time.Update();
+                        Ping();
                         connection.Update();
                     }
                 }

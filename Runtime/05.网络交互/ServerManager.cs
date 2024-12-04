@@ -114,7 +114,6 @@ namespace JFramework.Net
             Register();
             isActive = true;
             clients.Clear();
-            NetworkManager.Time.Reset();
             SpawnObjects();
         }
 
@@ -574,7 +573,7 @@ namespace JFramework.Net
         {
             if (isActive)
             {
-                if (TimeManager.Ticks(NetworkManager.SendRate, ref sendTime))
+                if (NetworkManager.Instance.Ticks(ref sendTime))
                 {
                     Broadcast();
                 }

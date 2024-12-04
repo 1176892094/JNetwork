@@ -1,10 +1,10 @@
 // *********************************************************************************
-// # Project: Test
+// # Project: Forest
 // # Unity: 2022.3.5f1c1
-// # Author: Charlotte
+// # Author: jinyijie
 // # Version: 1.0.0
-// # History: 2024-06-05  01:06
-// # Copyright: 2024, Charlotte
+// # History: 2024-12-04  16:12
+// # Copyright: 2024, jinyijie
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
@@ -15,48 +15,7 @@ using UnityEngine.PlayerLoop;
 
 namespace JFramework.Net
 {
-    internal partial class TimeManager : Controller<NetworkManager>
-    {
-        private bool isActive;
-        private double fixedTime;
-        private double sinceTime;
-        private double roundTripTime;
-
-        internal void Update()
-        {
-            if (sinceTime + Const.PingInterval <= NetworkManager.TickTime)
-            {
-                sinceTime = NetworkManager.TickTime;
-                var message = new PingMessage(NetworkManager.TickTime);
-                NetworkManager.Client.connection.Send(message, Channel.Unreliable);
-            }
-        }
-
-        internal void Ping(double clientTime)
-        {
-            if (!isActive)
-            {
-                isActive = true;
-                fixedTime = 2.0 / (Const.PingWindow + 1);
-                roundTripTime = NetworkManager.TickTime - clientTime;
-            }
-            else
-            {
-                var delta = NetworkManager.TickTime - clientTime - roundTripTime;
-                roundTripTime += fixedTime * delta;
-            }
-
-            NetworkManager.Ping(roundTripTime);
-        }
-
-        internal void Reset()
-        {
-            sinceTime = 0;
-            roundTripTime = 0;
-        }
-    }
-
-    internal partial class TimeManager
+    internal static class NetworkSystem
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
@@ -109,18 +68,6 @@ namespace JFramework.Net
                         return true;
                     }
                 }
-            }
-
-            return false;
-        }
-
-        internal static bool Ticks(float sendRate, ref double sendTime)
-        {
-            if (NetworkManager.TickTime >= sendTime + sendRate)
-            {
-                var fixedTime = (long)(NetworkManager.TickTime / sendRate);
-                sendTime = fixedTime * sendRate;
-                return true;
             }
 
             return false;

@@ -220,7 +220,7 @@ namespace JFramework.Net
         /// </summary>
         private void CheckSendRate()
         {
-            double now = NetworkManager.TickTime;
+            double now = NetworkManager.Time;
             if (CanSend && syncInterval >= 0 && now > nextSendTime)
             {
                 nextSendTime = now + syncInterval;

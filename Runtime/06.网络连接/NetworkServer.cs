@@ -77,7 +77,7 @@ namespace JFramework.Net
                 writerBatches[channel] = writerBatch;
             }
 
-            writerBatch.AddMessage(writer, NetworkManager.TickTime);
+            writerBatch.AddMessage(writer, NetworkManager.Time);
 
             if (NetworkManager.Mode == EntryMode.Host)
             {
