@@ -189,12 +189,12 @@ namespace JFramework.Net
         /// <summary>
         /// 客户端发送 Ping 时间
         /// </summary>
-        private void Ping()
+        private void Pong()
         {
-            if (waitTime < Time.unscaledTimeAsDouble - 2)
+            if (waitTime + 2 <= Time.unscaledTimeAsDouble)
             {
                 waitTime = Time.unscaledTimeAsDouble;
-                connection.Send(new PingMessage(waitTime), Channel.Unreliable);
+                connection.Send(new PongMessage(waitTime), Channel.Unreliable);
             }
         }
 
@@ -214,7 +214,7 @@ namespace JFramework.Net
 
             isReady = true;
             connection.isReady = true;
-            connection.Send(new ReadyMessage(true));
+            connection.Send(new ReadyMessage());
         }
     }
 
@@ -239,7 +239,7 @@ namespace JFramework.Net
             }
 
             Register<PingMessage>(PingMessage);
-            Register<ReadyMessage>(ReadyMessage);
+            Register<NotReadyMessage>(NotReadyMessage);
             Register<EntityMessage>(EntityMessage);
             Register<ClientRpcMessage>(ClientRpcMessage);
 
@@ -286,13 +286,10 @@ namespace JFramework.Net
         /// 处理Ready网络消息
         /// </summary>
         /// <param name="message"></param>
-        private void ReadyMessage(ReadyMessage message)
+        private void NotReadyMessage(NotReadyMessage message)
         {
-            if (!message.ready)
-            {
-                isReady = false;
-                OnNotReady?.Invoke();
-            }
+            isReady = false;
+            OnNotReady?.Invoke();
         }
 
         /// <summary>
@@ -442,10 +439,10 @@ namespace JFramework.Net
                 Debug.LogError("没有有效的服务器连接！");
                 return;
             }
-            
+
             state = StateMode.Connected;
             OnConnect?.Invoke();
-            Ping();
+            Pong();
             Ready();
         }
 
@@ -653,7 +650,7 @@ namespace JFramework.Net
         {
             if (isActive)
             {
-                if (NetworkManager.Instance.Ticks(ref sendTime))
+                if (NetworkManager.Instance.Tick(ref sendTime))
                 {
                     Broadcast();
                 }
@@ -669,7 +666,7 @@ namespace JFramework.Net
                 {
                     if (isConnected)
                     {
-                        Ping();
+                        Pong();
                         connection.Update();
                     }
                 }

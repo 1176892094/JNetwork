@@ -84,7 +84,7 @@ namespace JFramework.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsDirty()
         {
-            return syncVarDirty != 0UL && NetworkManager.Time - lastSyncTime >= syncInterval;
+            return syncVarDirty != 0UL && Time.unscaledTimeAsDouble - lastSyncTime >= syncInterval;
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace JFramework.Net
         public void ClearDirty()
         {
             syncVarDirty = 0UL;
-            lastSyncTime = NetworkManager.Time;
+            lastSyncTime = Time.unscaledTimeAsDouble;
         }
 
         /// <summary>

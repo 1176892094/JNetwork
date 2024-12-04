@@ -173,7 +173,7 @@ namespace JFramework.Net
             NetworkManager.Transport.OnServerConnect += OnServerConnect;
             NetworkManager.Transport.OnServerDisconnect += OnServerDisconnect;
             NetworkManager.Transport.OnServerReceive += OnServerReceive;
-            Register<PingMessage>(PingMessage);
+            Register<PongMessage>(PongMessage);
             Register<ReadyMessage>(ReadyMessage);
             Register<EntityMessage>(EntityMessage);
             Register<ServerRpcMessage>(ServerRpcMessage);
@@ -204,7 +204,7 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="client"></param>
         /// <param name="message"></param>
-        internal void PingMessage(NetworkClient client, PingMessage message)
+        internal void PongMessage(NetworkClient client, PongMessage message)
         {
             client.Send(new PingMessage(message.clientTime), Channel.Unreliable);
         }
@@ -216,16 +216,13 @@ namespace JFramework.Net
         /// <param name="message"></param>
         internal void ReadyMessage(NetworkClient client, ReadyMessage message)
         {
-            if (message.ready)
+            client.isReady = true;
+            foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
             {
-                client.isReady = true;
-                foreach (var @object in spawns.Values.Where(@object => @object.gameObject.activeSelf))
-                {
-                    SpawnToClient(client, @object);
-                }
-
-                OnReady?.Invoke(client);
+                SpawnToClient(client, @object);
             }
+
+            OnReady?.Invoke(client);
         }
 
         /// <summary>
@@ -573,7 +570,7 @@ namespace JFramework.Net
         {
             if (isActive)
             {
-                if (NetworkManager.Instance.Ticks(ref sendTime))
+                if (NetworkManager.Instance.Tick(ref sendTime))
                 {
                     Broadcast();
                 }

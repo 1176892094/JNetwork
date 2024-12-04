@@ -61,7 +61,7 @@ namespace JFramework.Net
             foreach (var client in NetworkManager.Server.clients.Values)
             {
                 client.isReady = false;
-                client.Send(new ReadyMessage(false));
+                client.Send(new NotReadyMessage());
             }
 
             OnServerChangeScene?.Invoke(sceneName);

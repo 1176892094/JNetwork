@@ -57,11 +57,6 @@ namespace JFramework.Net
         public int connection = 100;
 
         /// <summary>
-        /// 流逝时间
-        /// </summary>
-        internal static double Time => UnityEngine.Time.unscaledTimeAsDouble;
-
-        /// <summary>
         /// 场景加载组件
         /// </summary>
         public static SceneManager Scene => Instance.scene;
@@ -296,13 +291,12 @@ namespace JFramework.Net
         /// </summary>
         /// <param name="sendTime"></param>
         /// <returns></returns>
-        internal bool Ticks(ref double sendTime)
+        internal bool Tick(ref double sendTime)
         {
             var duration = 1f / sendRate;
-            if (sendTime + duration <= UnityEngine.Time.unscaledTimeAsDouble)
+            if (sendTime + duration <= Time.unscaledTimeAsDouble)
             {
-                var fixedTime = (long)(UnityEngine.Time.unscaledTimeAsDouble / duration);
-                sendTime = fixedTime * duration;
+                sendTime = (long)(Time.unscaledTimeAsDouble / duration) * duration;
                 return true;
             }
 

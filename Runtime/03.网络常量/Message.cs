@@ -16,12 +16,12 @@ namespace JFramework.Net
 {
     internal struct ReadyMessage : IMessage
     {
-        public readonly bool ready;
-
-        public ReadyMessage(bool ready)
-        {
-            this.ready = ready;
-        }
+       
+    }
+    
+    internal struct NotReadyMessage : IMessage
+    {
+       
     }
 
     internal struct SceneMessage : IMessage
@@ -30,6 +30,12 @@ namespace JFramework.Net
         public SceneMessage(string sceneName) => this.sceneName = sceneName;
     }
 
+    internal struct PongMessage : IMessage
+    {
+        public readonly double clientTime;
+        public PongMessage(double clientTime) => this.clientTime = clientTime;
+    }
+    
     internal struct PingMessage : IMessage
     {
         public readonly double clientTime;

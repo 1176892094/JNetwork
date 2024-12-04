@@ -87,7 +87,7 @@ namespace JFramework.Net
                 writerBatches[channel] = writerBatch;
             }
 
-            writerBatch.AddMessage(writer, NetworkManager.Time);
+            writerBatch.AddMessage(writer, Time.unscaledTimeAsDouble);
 
             if (clientId == Const.HostId)
             {

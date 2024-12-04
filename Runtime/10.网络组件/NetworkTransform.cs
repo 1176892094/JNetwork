@@ -153,7 +153,7 @@ namespace JFramework.Net
         {
             if (isServer && syncDirection == SyncMode.Server)
             {
-                if (!NetworkManager.Instance.Ticks(ref sendTime)) return;
+                if (!NetworkManager.Instance.Tick(ref sendTime)) return;
                 nextData = new TransformData(target.position, target.rotation, target.localScale);
                 positionChanged = Vector3.SqrMagnitude(mainData.position - target.position) > positionPerceive * positionPerceive;
                 rotationChanged = Quaternion.Angle(mainData.rotation, target.rotation) > rotationPerceive;
@@ -169,7 +169,7 @@ namespace JFramework.Net
             }
             else if (isClient && NetworkManager.Client.isReady && isOwner && syncDirection == SyncMode.Client)
             {
-                if (!NetworkManager.Instance.Ticks(ref sendTime)) return;
+                if (!NetworkManager.Instance.Tick(ref sendTime)) return;
                 nextData = new TransformData(target.position, target.rotation, target.localScale);
                 positionChanged = Vector3.SqrMagnitude(mainData.position - target.position) > positionPerceive * positionPerceive;
                 rotationChanged = Quaternion.Angle(mainData.rotation, target.rotation) > rotationPerceive;
