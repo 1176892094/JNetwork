@@ -11,6 +11,7 @@
 using System;
 using JFramework.Interface;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace JFramework.Net
 {
@@ -22,9 +23,9 @@ namespace JFramework.Net
         public static NetworkManager Instance;
 
         /// <summary>
-        /// 场景加载组件
+        /// 服务器场景
         /// </summary>
-        [Inject] private SceneManager scene;
+        internal string sceneName;
 
         /// <summary>
         /// 网络传输组件
@@ -57,11 +58,6 @@ namespace JFramework.Net
         public int connection = 100;
 
         /// <summary>
-        /// 场景加载组件
-        /// </summary>
-        public static SceneManager Scene => Instance.scene;
-
-        /// <summary>
         /// 客户端组件
         /// </summary>
         public static ClientManager Client => Instance.client;
@@ -80,26 +76,6 @@ namespace JFramework.Net
         /// 当Ping更新
         /// </summary>
         public static event Action<double> OnPingUpdate;
-
-        /// <summary>
-        /// 当开启服务器
-        /// </summary>
-        public event Action OnStartServer;
-
-        /// <summary>
-        /// 当开启客户端
-        /// </summary>
-        public event Action OnStartClient;
-
-        /// <summary>
-        /// 当停止服务器
-        /// </summary>
-        public event Action OnStopServer;
-
-        /// <summary>
-        /// 当停止客户端
-        /// </summary>
-        public event Action OnStopClient;
 
         /// <summary>
         /// 网络传输组件
@@ -180,8 +156,7 @@ namespace JFramework.Net
                 Debug.LogWarning("服务器已经连接！");
                 return;
             }
-
-            OnStartServer?.Invoke();
+            
             Server.StartServer(EntryMode.Server);
         }
 
@@ -195,8 +170,7 @@ namespace JFramework.Net
                 Debug.LogWarning("服务器已经停止！");
                 return;
             }
-
-            OnStopServer?.Invoke();
+            
             Server.StopServer();
         }
 
@@ -210,8 +184,7 @@ namespace JFramework.Net
                 Debug.LogWarning("客户端已经连接！");
                 return;
             }
-
-            OnStartClient?.Invoke();
+            
             Client.StartClient(EntryMode.Client);
         }
 
@@ -226,8 +199,7 @@ namespace JFramework.Net
                 Debug.LogWarning("客户端已经连接！");
                 return;
             }
-
-            OnStartClient?.Invoke();
+            
             Client.StartClient(uri);
         }
 
@@ -246,8 +218,7 @@ namespace JFramework.Net
             {
                 Server.OnServerDisconnect(Const.HostId);
             }
-
-            OnStopClient?.Invoke();
+            
             Client.StopClient();
         }
 
@@ -261,10 +232,8 @@ namespace JFramework.Net
                 Debug.LogWarning("客户端或服务器已经连接！");
                 return;
             }
-
-            OnStartServer?.Invoke();
+            
             Server.StartServer(mode);
-            OnStartClient?.Invoke();
             Client.StartClient(EntryMode.Host);
         }
 
@@ -278,22 +247,13 @@ namespace JFramework.Net
         }
 
         /// <summary>
-        /// 接收 Ping
-        /// </summary>
-        /// <param name="pingTime"></param>
-        public static void Ping(double pingTime)
-        {
-            OnPingUpdate?.Invoke(pingTime);
-        }
-
-        /// <summary>
-        /// 计算
+        /// 计算发送间隔
         /// </summary>
         /// <param name="sendTime"></param>
         /// <returns></returns>
         internal bool Tick(ref double sendTime)
         {
-            var duration = 1f / sendRate;
+            var duration = 1.0 / sendRate;
             if (sendTime + duration <= Time.unscaledTimeAsDouble)
             {
                 sendTime = (long)(Time.unscaledTimeAsDouble / duration) * duration;
@@ -301,6 +261,35 @@ namespace JFramework.Net
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// 场景加载完成
+        /// </summary>
+        internal void OnLoadComplete()
+        {
+            switch (Mode)
+            {
+                case EntryMode.Host:
+                    Server.OnServerComplete(sceneName);
+                    Client.OnClientComplete(SceneManager.GetActiveScene().name);
+                    break;
+                case EntryMode.Server:
+                    Server.OnServerComplete(sceneName);
+                    break;
+                case EntryMode.Client:
+                    Client.OnClientComplete(SceneManager.GetActiveScene().name);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 接收 Ping
+        /// </summary>
+        /// <param name="pingTime"></param>
+        internal static void Ping(double pingTime)
+        {
+            OnPingUpdate?.Invoke(pingTime);
         }
 
         /// <summary>

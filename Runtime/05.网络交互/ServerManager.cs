@@ -101,6 +101,16 @@ namespace JFramework.Net
         public event Action<NetworkClient> OnReady;
 
         /// <summary>
+        /// 服务器加载场景的事件
+        /// </summary>
+        public event Action<string> OnLoadScene;
+
+        /// <summary>
+        /// 服务器加载场景完成的事件
+        /// </summary>
+        public event Action<string> OnLoadComplete;
+
+        /// <summary>
         /// 开启服务器
         /// </summary>
         /// <param name="mode"></param>
@@ -157,6 +167,55 @@ namespace JFramework.Net
             {
                 OnConnect?.Invoke(client);
             }
+        }
+
+        /// <summary>
+        /// 服务器加载场景
+        /// </summary>
+        public async void Load(string sceneName)
+        {
+            if (string.IsNullOrWhiteSpace(sceneName))
+            {
+                Debug.LogError("服务器不能加载空场景！");
+                return;
+            }
+
+            if (isLoadScene && NetworkManager.Instance.sceneName == sceneName)
+            {
+                Debug.LogError($"服务器已经在加载 {sceneName} 场景");
+                return;
+            }
+
+            foreach (var client in clients.Values)
+            {
+                client.isReady = false;
+                client.Send(new NotReadyMessage());
+            }
+
+            OnLoadScene?.Invoke(sceneName);
+
+            if (isActive)
+            {
+                NetworkManager.Instance.sceneName = sceneName;
+                isLoadScene = true;
+                foreach (var client in clients.Values)
+                {
+                    client.Send(new SceneMessage(sceneName));
+                }
+
+                await AssetManager.LoadScene(sceneName);
+                NetworkManager.Instance.OnLoadComplete();
+            }
+        }
+
+        /// <summary>
+        /// 服务器端场景加载完成
+        /// </summary>
+        internal void OnServerComplete(string sceneName)
+        {
+            isLoadScene = false;
+            SpawnObjects();
+            OnLoadComplete?.Invoke(sceneName);
         }
     }
 

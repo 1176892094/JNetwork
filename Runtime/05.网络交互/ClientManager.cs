@@ -112,6 +112,16 @@ namespace JFramework.Net
         /// 客户端取消准备的事件
         /// </summary>
         public event Action OnNotReady;
+        
+        /// <summary>
+        /// 客户端加载场景的事件
+        /// </summary>
+        public event Action<string> OnLoadScene;
+        
+        /// <summary>
+        /// 客户端加载场景完成的事件
+        /// </summary>
+        public event Action<string> OnLoadComplete;
 
         /// <summary>
         /// 开启主机，使用Server的Transport
@@ -215,6 +225,23 @@ namespace JFramework.Net
             isReady = true;
             connection.isReady = true;
             connection.Send(new ReadyMessage());
+        }
+        
+        /// <summary>
+        /// 客户端场景加载完成
+        /// </summary>
+        internal void OnClientComplete(string sceneName)
+        {
+            isLoadScene = false;
+            if (isConnected)
+            {
+                if (!isReady)
+                {
+                    Ready();
+                }
+
+                OnLoadComplete?.Invoke(sceneName);
+            }
         }
     }
 
@@ -336,15 +363,28 @@ namespace JFramework.Net
         /// 客户端改变场景
         /// </summary>
         /// <param name="message"></param>
-        private void SceneMessage(SceneMessage message)
+        private async void SceneMessage(SceneMessage message)
         {
             if (!isConnected)
             {
                 Debug.LogWarning($"客户端没有通过校验，无法加载场景{message.sceneName}。");
                 return;
             }
+            
+            if (string.IsNullOrWhiteSpace(message.sceneName))
+            {
+                Debug.LogError("客户端不能加载空场景！");
+                return;
+            }
 
-            NetworkManager.Scene.LoadScene(message.sceneName);
+            OnLoadScene?.Invoke(message.sceneName);
+            if (!NetworkManager.Server.isActive)
+            {
+                isLoadScene = true;
+                NetworkManager.Instance.sceneName = message.sceneName;
+                await AssetManager.LoadScene(message.sceneName);
+                NetworkManager.Instance.OnLoadComplete();
+            }
         }
 
         /// <summary>
