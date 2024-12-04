@@ -23,11 +23,6 @@ namespace JFramework.Net
         public static NetworkManager Instance;
 
         /// <summary>
-        /// 服务器场景
-        /// </summary>
-        internal string sceneName;
-
-        /// <summary>
         /// 网络传输组件
         /// </summary>
         [SerializeField] private Transport transport;
@@ -50,12 +45,17 @@ namespace JFramework.Net
         /// <summary>
         /// 心跳传输率
         /// </summary>
-        [SerializeField, Range(30, 120)] internal int sendRate = 30;
+        [SerializeField, Range(30, 120)] private int sendRate = 30;
 
         /// <summary>
         /// 客户端最大连接数量
         /// </summary>
         public int connection = 100;
+        
+        /// <summary>
+        /// 服务器场景
+        /// </summary>
+        internal string sceneName;
 
         /// <summary>
         /// 客户端组件
@@ -149,7 +149,7 @@ namespace JFramework.Net
         /// <summary>
         /// 开启服务器
         /// </summary>
-        public void StartServer()
+        public static void StartServer()
         {
             if (Server.isActive)
             {
@@ -163,7 +163,7 @@ namespace JFramework.Net
         /// <summary>
         /// 停止服务器
         /// </summary>
-        public void StopServer()
+        public static void StopServer()
         {
             if (!Server.isActive)
             {
@@ -177,7 +177,7 @@ namespace JFramework.Net
         /// <summary>
         /// 开启客户端
         /// </summary>
-        public void StartClient()
+        public static void StartClient()
         {
             if (Client.isActive)
             {
@@ -192,7 +192,7 @@ namespace JFramework.Net
         /// 开启客户端
         /// </summary>
         /// <param name="uri"></param>
-        public void StartClient(Uri uri)
+        public static void StartClient(Uri uri)
         {
             if (Client.isActive)
             {
@@ -206,7 +206,7 @@ namespace JFramework.Net
         /// <summary>
         /// 停止客户端
         /// </summary>
-        public void StopClient()
+        public static void StopClient()
         {
             if (!Client.isActive)
             {
@@ -225,7 +225,7 @@ namespace JFramework.Net
         /// <summary>
         /// 开启主机
         /// </summary>
-        public void StartHost(EntryMode mode = EntryMode.Host)
+        public static void StartHost(EntryMode mode = EntryMode.Host)
         {
             if (Server.isActive || Client.isActive)
             {
@@ -240,7 +240,7 @@ namespace JFramework.Net
         /// <summary>
         /// 停止主机
         /// </summary>
-        public void StopHost()
+        public static void StopHost()
         {
             StopClient();
             StopServer();
@@ -271,14 +271,14 @@ namespace JFramework.Net
             switch (Mode)
             {
                 case EntryMode.Host:
-                    Server.OnServerComplete(sceneName);
-                    Client.OnClientComplete(SceneManager.GetActiveScene().name);
+                    Server.LoadSceneComplete(sceneName);
+                    Client.LoadSceneComplete(SceneManager.GetActiveScene().name);
                     break;
                 case EntryMode.Server:
-                    Server.OnServerComplete(sceneName);
+                    Server.LoadSceneComplete(sceneName);
                     break;
                 case EntryMode.Client:
-                    Client.OnClientComplete(SceneManager.GetActiveScene().name);
+                    Client.LoadSceneComplete(SceneManager.GetActiveScene().name);
                     break;
             }
         }
@@ -303,18 +303,18 @@ namespace JFramework.Net
                 {
                     if (GUILayout.Button("Host (Server + Client)", GUILayout.Height(30)))
                     {
-                        Instance.StartHost();
+                        StartHost();
                     }
 
                     GUILayout.BeginHorizontal();
                     if (GUILayout.Button("Server", GUILayout.Height(30)))
                     {
-                        Instance.StartServer();
+                        StartServer();
                     }
 
                     if (GUILayout.Button("Client", GUILayout.Height(30)))
                     {
-                        Instance.StartClient();
+                        StartClient();
                     }
 
                     GUILayout.EndHorizontal();
@@ -328,7 +328,7 @@ namespace JFramework.Net
 
                     if (GUILayout.Button("Stop Client", GUILayout.Height(30)))
                     {
-                        Instance.StopClient();
+                        StopClient();
                     }
                 }
             }
@@ -356,21 +356,21 @@ namespace JFramework.Net
             {
                 if (GUILayout.Button("Stop Host", GUILayout.Height(30)))
                 {
-                    Instance.StopHost();
+                    StopHost();
                 }
             }
             else if (Client.isConnected)
             {
                 if (GUILayout.Button("Stop Client", GUILayout.Height(30)))
                 {
-                    Instance.StopClient();
+                    StopClient();
                 }
             }
             else if (Server.isActive)
             {
                 if (GUILayout.Button("Stop Server", GUILayout.Height(30)))
                 {
-                    Instance.StopServer();
+                    StopServer();
                 }
             }
         }

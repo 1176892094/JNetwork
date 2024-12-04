@@ -112,12 +112,12 @@ namespace JFramework.Net
         /// 客户端取消准备的事件
         /// </summary>
         public event Action OnNotReady;
-        
+
         /// <summary>
         /// 客户端加载场景的事件
         /// </summary>
         public event Action<string> OnLoadScene;
-        
+
         /// <summary>
         /// 客户端加载场景完成的事件
         /// </summary>
@@ -157,6 +157,9 @@ namespace JFramework.Net
             NetworkManager.Transport.StartClient(uri);
         }
 
+        /// <summary>
+        /// 停止客户端
+        /// </summary>
         internal void StopClient()
         {
             if (!isActive) return;
@@ -208,6 +211,9 @@ namespace JFramework.Net
             }
         }
 
+        /// <summary>
+        /// 客户端发送 Ready
+        /// </summary>
         public void Ready()
         {
             if (connection == null)
@@ -226,22 +232,46 @@ namespace JFramework.Net
             connection.isReady = true;
             connection.Send(new ReadyMessage());
         }
-        
+
+        /// <summary>
+        /// 客户端加载场景
+        /// </summary>
+        /// <param name="sceneName"></param>
+        private async void Load(string sceneName)
+        {
+            if (string.IsNullOrWhiteSpace(sceneName))
+            {
+                Debug.LogError("客户端不能加载空场景！");
+                return;
+            }
+            
+            if (isLoadScene && NetworkManager.Instance.sceneName == sceneName)
+            {
+                Debug.LogError($"客户端正在加载 {sceneName} 场景");
+                return;
+            }
+
+            OnLoadScene?.Invoke(sceneName);
+            if (NetworkManager.Server.isActive) return;
+            isLoadScene = true;
+            NetworkManager.Instance.sceneName = sceneName;
+            
+            await AssetManager.LoadScene(sceneName);
+            NetworkManager.Instance.OnLoadComplete();
+        }
+
         /// <summary>
         /// 客户端场景加载完成
         /// </summary>
-        internal void OnClientComplete(string sceneName)
+        internal void LoadSceneComplete(string sceneName)
         {
             isLoadScene = false;
-            if (isConnected)
+            if (isConnected && !isReady)
             {
-                if (!isReady)
-                {
-                    Ready();
-                }
-
-                OnLoadComplete?.Invoke(sceneName);
+                Ready();
             }
+
+            OnLoadComplete?.Invoke(sceneName);
         }
     }
 
@@ -363,28 +393,15 @@ namespace JFramework.Net
         /// 客户端改变场景
         /// </summary>
         /// <param name="message"></param>
-        private async void SceneMessage(SceneMessage message)
+        private void SceneMessage(SceneMessage message)
         {
             if (!isConnected)
             {
                 Debug.LogWarning($"客户端没有通过校验，无法加载场景{message.sceneName}。");
                 return;
             }
-            
-            if (string.IsNullOrWhiteSpace(message.sceneName))
-            {
-                Debug.LogError("客户端不能加载空场景！");
-                return;
-            }
 
-            OnLoadScene?.Invoke(message.sceneName);
-            if (!NetworkManager.Server.isActive)
-            {
-                isLoadScene = true;
-                NetworkManager.Instance.sceneName = message.sceneName;
-                await AssetManager.LoadScene(message.sceneName);
-                NetworkManager.Instance.OnLoadComplete();
-            }
+            Load(message.sceneName);
         }
 
         /// <summary>
@@ -608,8 +625,6 @@ namespace JFramework.Net
                     Debug.LogError($"不能注册预置体 {@object.name} 因为它拥有多个 NetworkObject 组件");
                     return;
                 }
-
-                Spawn(message, @object);
             }
             else
             {
@@ -618,9 +633,9 @@ namespace JFramework.Net
                     Debug.LogError($"无法生成有效场景对象。 sceneId：{message.sceneId}");
                     return;
                 }
-
-                Spawn(message, @object);
             }
+
+            Spawn(message, @object);
         }
 
         /// <summary>
@@ -660,13 +675,6 @@ namespace JFramework.Net
             spawns[message.objectId] = @object;
             @object.OnNotifyAuthority();
             @object.OnStartClient();
-        }
-
-        private enum StateMode : byte
-        {
-            Connect = 0,
-            Connected = 1,
-            Disconnect = 2,
         }
     }
 

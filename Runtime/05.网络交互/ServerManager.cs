@@ -45,14 +45,24 @@ namespace JFramework.Net
         internal readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
 
         /// <summary>
-        /// 用来拷贝当前连接的所有客户端
+        /// 连接的状态
         /// </summary>
-        private List<NetworkClient> copies = new List<NetworkClient>();
-
+        private StateMode state = StateMode.Disconnect;
+        
         /// <summary>
         /// 上一次发送消息的时间
         /// </summary>
         [SerializeField] private double sendTime;
+        
+        /// <summary>
+        /// 当前网络对象Id
+        /// </summary>
+        private uint objectId;
+        
+        /// <summary>
+        /// 连接客户端数量
+        /// </summary>
+        public int connections => clients.Count;
 
         /// <summary>
         /// 是否是启动的
@@ -60,7 +70,7 @@ namespace JFramework.Net
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        public bool isActive { get; private set; }
+        public bool isActive => state != StateMode.Disconnect;
 
         /// <summary>
         /// 所有客户端都准备
@@ -74,16 +84,11 @@ namespace JFramework.Net
         /// 是否在加载场景
         /// </summary>
         public bool isLoadScene { get; internal set; }
-
+        
         /// <summary>
-        /// 连接客户端数量
+        /// 用来拷贝当前连接的所有客户端
         /// </summary>
-        public int connections => clients.Count;
-
-        /// <summary>
-        /// 当前网络对象Id
-        /// </summary>
-        private uint objectId;
+        private List<NetworkClient> copies = new List<NetworkClient>();
 
         /// <summary>
         /// 有客户端连接到服务器的事件
@@ -116,13 +121,18 @@ namespace JFramework.Net
         /// <param name="mode"></param>
         internal void StartServer(EntryMode mode)
         {
-            if (mode is EntryMode.Server or EntryMode.Host)
+            switch (mode)
             {
-                NetworkManager.Transport.StartServer();
+                case EntryMode.Host:
+                    NetworkManager.Transport.StartServer();
+                    break;
+                case EntryMode.Server:
+                    NetworkManager.Transport.StartServer();
+                    break;
             }
 
             Register();
-            isActive = true;
+            state = StateMode.Connected;
             clients.Clear();
             SpawnObjects();
         }
@@ -133,7 +143,7 @@ namespace JFramework.Net
         internal void StopServer()
         {
             if (!isActive) return;
-            isActive = false;
+            state = StateMode.Disconnect;
             copies = clients.Values.ToList();
             foreach (var client in copies)
             {
@@ -182,7 +192,7 @@ namespace JFramework.Net
 
             if (isLoadScene && NetworkManager.Instance.sceneName == sceneName)
             {
-                Debug.LogError($"服务器已经在加载 {sceneName} 场景");
+                Debug.LogError($"服务器正在加载 {sceneName} 场景");
                 return;
             }
 
@@ -193,25 +203,23 @@ namespace JFramework.Net
             }
 
             OnLoadScene?.Invoke(sceneName);
+            if (!NetworkManager.Server.isActive) return;
+            isLoadScene = true;
+            NetworkManager.Instance.sceneName = sceneName;
 
-            if (isActive)
+            foreach (var client in clients.Values)
             {
-                NetworkManager.Instance.sceneName = sceneName;
-                isLoadScene = true;
-                foreach (var client in clients.Values)
-                {
-                    client.Send(new SceneMessage(sceneName));
-                }
-
-                await AssetManager.LoadScene(sceneName);
-                NetworkManager.Instance.OnLoadComplete();
+                client.Send(new SceneMessage(sceneName));
             }
+
+            await AssetManager.LoadScene(sceneName);
+            NetworkManager.Instance.OnLoadComplete();
         }
 
         /// <summary>
         /// 服务器端场景加载完成
         /// </summary>
-        internal void OnServerComplete(string sceneName)
+        internal void LoadSceneComplete(string sceneName)
         {
             isLoadScene = false;
             SpawnObjects();
@@ -544,6 +552,14 @@ namespace JFramework.Net
             using NetworkWriter writer = NetworkWriter.Pop(), observer = NetworkWriter.Pop();
             var isOwner = @object.connection == client;
             var transform = @object.transform;
+            
+            ArraySegment<byte> segment = default;
+            if (@object.entities.Length != 0)
+            {
+                @object.ServerSerialize(true, writer, observer);
+                segment = isOwner ? writer : observer;
+            }
+
             var message = new SpawnMessage
             {
                 isOwner = isOwner,
@@ -554,29 +570,10 @@ namespace JFramework.Net
                 position = transform.localPosition,
                 rotation = transform.localRotation,
                 localScale = transform.localScale,
-                segment = SerializeObject(@object, isOwner, writer, observer)
+                segment = segment
             };
 
             client.Send(message);
-        }
-
-        /// <summary>
-        /// 序列化网络对象，并将数据转发给客户端
-        /// </summary>
-        /// <param name="object">网络对象生成</param>
-        /// <param name="isOwner"></param>
-        /// <param name="owner"></param>
-        /// <param name="observer"></param>
-        /// <returns></returns>
-        private ArraySegment<byte> SerializeObject(NetworkObject @object, bool isOwner, NetworkWriter owner, NetworkWriter observer)
-        {
-            if (@object.entities.Length == 0)
-            {
-                return default;
-            }
-
-            @object.ServerSerialize(true, owner, observer);
-            return isOwner ? owner : observer;
         }
 
         /// <summary>

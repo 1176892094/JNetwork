@@ -18,6 +18,13 @@ namespace JFramework.Net
         Client
     }
     
+    internal enum StateMode : byte
+    {
+        Connect = 0,
+        Connected = 1,
+        Disconnect = 2,
+    }
+    
     internal enum InvokeMode : byte
     {
         ServerRpc,
