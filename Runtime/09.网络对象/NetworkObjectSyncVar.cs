@@ -17,13 +17,13 @@ namespace JFramework.Net
         /// <summary>
         /// 选择性地将需要更新的组件数据序列化并发送给所有者和观察者，以减少不必要的数据传输
         /// </summary>
-        /// <param name="enable"></param>
+        /// <param name="status"></param>
         /// <param name="owner"></param>
         /// <param name="observer"></param>
-        internal void ServerSerialize(bool enable, NetworkWriter owner, NetworkWriter observer)
+        internal void ServerSerialize(bool status, NetworkWriter owner, NetworkWriter observer)
         {
             var components = entities;
-            var (ownerMask, observerMask) = ServerDirtyMasks(enable);
+            var (ownerMask, observerMask) = ServerDirtyMasks(status);
 
             if (ownerMask != 0)
             {
@@ -45,7 +45,7 @@ namespace JFramework.Net
                     if (ownerDirty || observersDirty)
                     {
                         using var writer = NetworkWriter.Pop();
-                        component.Serialize(writer, enable);
+                        component.Serialize(writer, status);
                         ArraySegment<byte> segment = writer;
                         if (ownerDirty)
                         {
@@ -119,8 +119,8 @@ namespace JFramework.Net
         /// 客户端反序列化 SyncVar
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="enable"></param>
-        internal void ClientDeserialize(NetworkReader reader, bool enable)
+        /// <param name="status"></param>
+        internal void ClientDeserialize(NetworkReader reader, bool status)
         {
             var components = entities;
             var mask = NetworkCompress.DecompressVarUInt(reader);
@@ -130,7 +130,7 @@ namespace JFramework.Net
                 if (IsDirty(mask, i))
                 {
                     var component = components[i];
-                    component.Deserialize(reader, enable);
+                    component.Deserialize(reader, status);
                 }
             }
         }
@@ -138,9 +138,9 @@ namespace JFramework.Net
         /// <summary>
         /// 用于指示哪些组件需要被序列化并发送给所有者和观察者
         /// </summary>
-        /// <param name="enable"></param>
+        /// <param name="status"></param>
         /// <returns></returns>
-        private (ulong, ulong) ServerDirtyMasks(bool enable)
+        private (ulong, ulong) ServerDirtyMasks(bool status)
         {
             ulong ownerMask = 0;
             ulong observerMask = 0;
@@ -151,12 +151,12 @@ namespace JFramework.Net
                 var component = components[i];
                 var dirty = component.IsDirty();
                 ulong mask = 1U << i;
-                if (enable || (component.syncDirection == SyncMode.Server && dirty))
+                if (status || (component.syncDirection == SyncMode.Server && dirty))
                 {
                     ownerMask |= mask;
                 }
 
-                if (enable || dirty)
+                if (status || dirty)
                 {
                     observerMask |= mask;
                 }
