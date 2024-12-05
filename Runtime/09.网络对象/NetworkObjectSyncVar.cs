@@ -176,7 +176,7 @@ namespace JFramework.Net
             for (int i = 0; i < components.Length; ++i)
             {
                 var component = components[i];
-                if ((objectMode & ObjectMode.Owner) == ObjectMode.Owner && component.syncDirection == SyncMode.Client)
+                if ((entityMode & EntityMode.Owner) == EntityMode.Owner && component.syncDirection == SyncMode.Client)
                 {
                     if (component.IsDirty()) mask |= 1U << i;
                 }

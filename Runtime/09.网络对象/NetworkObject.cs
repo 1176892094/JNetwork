@@ -80,7 +80,7 @@ namespace JFramework.Net
         [Sirenix.OdinInspector.ReadOnly]
 #endif
         [SerializeField]
-        internal ObjectMode objectMode;
+        internal EntityMode entityMode;
 
         /// <summary>
         /// 是否为第一次生成
@@ -125,19 +125,19 @@ namespace JFramework.Net
             objectId = 0;
             isSpawn = false;
             isAuthority = false;
-            objectMode = ObjectMode.None;
+            entityMode = EntityMode.None;
             connection = null;
             sceneIds.Clear();
         }
 
         private void OnDestroy()
         {
-            if ((objectMode & ObjectMode.Server) == ObjectMode.Server && !isDestroy)
+            if ((entityMode & EntityMode.Server) == EntityMode.Server && !isDestroy)
             {
                 NetworkManager.Server.Despawn(gameObject);
             }
 
-            if ((objectMode & ObjectMode.Client) == ObjectMode.Client)
+            if ((entityMode & EntityMode.Client) == EntityMode.Client)
             {
                 NetworkManager.Client.spawns.Remove(objectId);
             }
@@ -315,16 +315,16 @@ namespace JFramework.Net
         /// </summary>
         internal void OnNotifyAuthority()
         {
-            if (!isAuthority && (objectMode & ObjectMode.Owner) == ObjectMode.Owner)
+            if (!isAuthority && (entityMode & EntityMode.Owner) == EntityMode.Owner)
             {
                 OnStartAuthority();
             }
-            else if (isAuthority && (objectMode & ObjectMode.Owner) != ObjectMode.Owner)
+            else if (isAuthority && (entityMode & EntityMode.Owner) != EntityMode.Owner)
             {
                 OnStopAuthority();
             }
 
-            isAuthority = (objectMode & ObjectMode.Owner) == ObjectMode.Owner;
+            isAuthority = (entityMode & EntityMode.Owner) == EntityMode.Owner;
         }
 
         /// <summary>

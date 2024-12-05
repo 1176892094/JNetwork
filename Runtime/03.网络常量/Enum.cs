@@ -17,20 +17,20 @@ namespace JFramework.Net
         Server,
         Client
     }
-    
+
     internal enum StateMode : byte
     {
         Connect = 0,
         Connected = 1,
         Disconnect = 2,
     }
-    
+
     internal enum InvokeMode : byte
     {
         ServerRpc,
         ClientRpc,
     }
-    
+
     public enum EntryMode : byte
     {
         None = 0,
@@ -38,9 +38,9 @@ namespace JFramework.Net
         Server = 2,
         Client = 3,
     }
-    
+
     [Flags]
-    internal enum ObjectMode : byte
+    internal enum EntityMode : byte
     {
         None = 0,
         Owner = 1 << 0,

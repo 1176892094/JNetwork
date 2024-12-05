@@ -418,14 +418,14 @@ namespace JFramework.Net
                     @object.gameObject.SetActive(true);
                     if (message.isOwner)
                     {
-                        @object.objectMode |= ObjectMode.Owner;
+                        @object.entityMode |= EntityMode.Owner;
                     }
                     else
                     {
-                        @object.objectMode &= ~ObjectMode.Owner;
+                        @object.entityMode &= ~EntityMode.Owner;
                     }
 
-                    @object.objectMode |= ObjectMode.Client;
+                    @object.entityMode |= EntityMode.Client;
                     @object.OnStartClient();
                     @object.OnNotifyAuthority();
                 }
@@ -464,7 +464,7 @@ namespace JFramework.Net
             }
 
             @object.OnStopClient();
-            @object.objectMode &= ~ObjectMode.Owner;
+            @object.entityMode &= ~EntityMode.Owner;
             @object.OnNotifyAuthority();
             spawns.Remove(message.objectId);
 
@@ -653,14 +653,14 @@ namespace JFramework.Net
             @object.objectId = message.objectId;
             if (message.isOwner)
             {
-                @object.objectMode |= ObjectMode.Owner;
+                @object.entityMode |= EntityMode.Owner;
             }
             else
             {
-                @object.objectMode &= ~ObjectMode.Owner;
+                @object.entityMode &= ~EntityMode.Owner;
             }
 
-            @object.objectMode |= ObjectMode.Client;
+            @object.entityMode |= EntityMode.Client;
             var transform = @object.transform;
             transform.localPosition = message.position;
             transform.localRotation = message.rotation;

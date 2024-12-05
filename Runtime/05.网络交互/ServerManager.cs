@@ -507,20 +507,20 @@ namespace JFramework.Net
 
             if (NetworkManager.Mode == EntryMode.Host && client?.clientId == Const.HostId)
             {
-                @object.objectMode |= ObjectMode.Owner;
+                @object.entityMode |= EntityMode.Owner;
             }
 
-            if ((@object.objectMode & ObjectMode.Server) != ObjectMode.Server && @object.objectId == 0)
+            if ((@object.entityMode & EntityMode.Server) != EntityMode.Server && @object.objectId == 0)
             {
                 @object.objectId = ++objectId;
-                @object.objectMode |= ObjectMode.Server;
+                @object.entityMode |= EntityMode.Server;
                 if (NetworkManager.Client.isActive)
                 {
-                    @object.objectMode |= ObjectMode.Client;
+                    @object.entityMode |= EntityMode.Client;
                 }
                 else
                 {
-                    @object.objectMode &= ~ObjectMode.Owner;
+                    @object.entityMode &= ~EntityMode.Owner;
                 }
 
                 spawns[@object.objectId] = @object;
