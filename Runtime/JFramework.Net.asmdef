@@ -1,12 +1,10 @@
 {
     "name": "JFramework.Net",
     "rootNamespace": "",
-    "references": [
-        "GUID:07ad8418560d440e491d50ad3ae8365a"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": true,
+    "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
