@@ -13,6 +13,7 @@ using JFramework.Net;
 using Mono.Cecil;
 using UnityEditor;
 using UnityEngine;
+using MemoryExtensions = JFramework.Net.MemoryExtensions;
 
 namespace JFramework.Editor
 {
@@ -42,16 +43,6 @@ namespace JFramework.Editor
         /// 日志出现错误
         /// </summary>
         public readonly MethodReference logErrorRef;
-        
-        /// <summary>
-        /// 获取NetworkClient.isActive
-        /// </summary>
-        public readonly MethodReference NetworkClientRef;
-
-        /// <summary>
-        /// 获取NetworkServer.isActive
-        /// </summary>
-        public readonly MethodReference NetworkServerRef;
 
         /// <summary>
         /// 获取NetworkClient.isActive
@@ -212,18 +203,14 @@ namespace JFramework.Editor
 
             var ArraySegmentType = Import(typeof(ArraySegment<>));
             ArraySegmentRef = Helper.GetMethod(ArraySegmentType, assembly, logger, Const.CTOR, ref failed);
-
-            var NetworkManagerType = Import(typeof(NetworkManager));
-            NetworkClientRef = Helper.GetMethod(NetworkManagerType, assembly, logger, "get_Client", ref failed);
-            NetworkServerRef = Helper.GetMethod(NetworkManagerType, assembly, logger, "get_Server", ref failed);
             
-            var NetworkClientType = Import(typeof(ClientManager));
+            var NetworkClientType = Import(typeof(NetworkManager.Client));
             NetworkClientActiveRef = Helper.GetMethod(NetworkClientType, assembly, logger, "get_isActive", ref failed);
-            var NetworkServerType = Import(typeof(ServerManager));
+            var NetworkServerType = Import(typeof(NetworkManager.Server));
             NetworkServerActiveRef = Helper.GetMethod(NetworkServerType, assembly, logger, "get_isActive", ref failed);
 
-            var StreamExtensionType = Import(typeof(StreamExtensions));
-            ReadNetworkBehaviourGeneric = Helper.GetMethod(StreamExtensionType, assembly, logger, method => method.Name == nameof(StreamExtensions.ReadNetworkBehaviour) && method.HasGenericParameters, ref failed);
+            var StreamExtensionType = Import(typeof(MemoryExtensions));
+            ReadNetworkBehaviourGeneric = Helper.GetMethod(StreamExtensionType, assembly, logger, method => method.Name == nameof(MemoryExtensions.ReadNetworkBehaviour) && method.HasGenericParameters, ref failed);
 
             var NetworkBehaviourType = Import<NetworkBehaviour>();
             NetworkBehaviourDirtyRef = Helper.ResolveProperty(NetworkBehaviourType, assembly, "syncVarDirty");
@@ -262,7 +249,7 @@ namespace JFramework.Editor
             var Type = Import(typeof(Type));
             getTypeFromHandleRef = Helper.GetMethod(Type, assembly, logger, "GetTypeFromHandle", ref failed);
 
-            var NetworkWriterType = Import(typeof(NetworkWriter));
+            var NetworkWriterType = Import(typeof(MemoryWriter));
             PopWriterRef = Helper.GetMethod(NetworkWriterType, assembly, logger, "Pop", ref failed);
             PushWriterRef = Helper.GetMethod(NetworkWriterType, assembly, logger, "Push", ref failed);
 

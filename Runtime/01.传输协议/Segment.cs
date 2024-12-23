@@ -1,3 +1,14 @@
+// *********************************************************************************
+// # Project: JFramework
+// # Unity: 6000.3.5f1
+// # Author: 云谷千羽
+// # Version: 1.0.0
+// # History: 2024-11-29 13:11:20
+// # Recently: 2024-12-22 20:12:06
+// # Copyright: 2024, 云谷千羽
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System.IO;
 
 namespace JFramework.Udp
@@ -5,21 +16,21 @@ namespace JFramework.Udp
     internal class Segment
     {
         public readonly MemoryStream data = new MemoryStream(Kcp.MTU_DEF);
-        public uint conv;
         public uint cmd;
+        public uint conv;
+        public uint fast_ack;
         public uint frg;
-        public uint wnd;
-        public uint ts;
-        public uint sn;
-        public uint una;
         public uint rsd_c;
         public uint rsd_ts;
-        public uint fast_ack;
         public int rto;
-        
+        public uint sn;
+        public uint ts;
+        public uint una;
+        public uint wnd;
+
         public int Encode(byte[] ptr, int offset)
         {
-            int position = offset;
+            var position = offset;
             offset += Utils.Encode32U(ptr, offset, conv);
             offset += Utils.Encode8U(ptr, offset, (byte)cmd);
             offset += Utils.Encode8U(ptr, offset, (byte)frg);

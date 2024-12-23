@@ -10,7 +10,6 @@
 
 using System.Linq;
 using System.Runtime.CompilerServices;
-using JFramework.Interface;
 using JFramework.Net;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -160,7 +159,7 @@ namespace JFramework.Editor
                 if (md.Parameters.Count != 2)
                     continue;
 
-                if (!md.Parameters[0].ParameterType.Is<NetworkWriter>())
+                if (!md.Parameters[0].ParameterType.Is<MemoryWriter>())
                     continue;
 
                 if (!md.ReturnType.Is(typeof(void)))
@@ -194,7 +193,7 @@ namespace JFramework.Editor
                 if (md.Parameters.Count != 1)
                     continue;
 
-                if (!md.Parameters[0].ParameterType.Is<NetworkReader>())
+                if (!md.Parameters[0].ParameterType.Is<MemoryReader>())
                     continue;
 
                 if (md.ReturnType.Is(typeof(void)))

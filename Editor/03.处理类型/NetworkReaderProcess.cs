@@ -14,6 +14,7 @@ using JFramework.Net;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UnityEngine;
+using MemoryExtensions = JFramework.Net.MemoryExtensions;
 using Object = UnityEngine.Object;
 
 namespace JFramework.Editor
@@ -62,7 +63,7 @@ namespace JFramework.Editor
                     return null;
                 }
 
-                return AddCollection(tr, tr.GetElementType(), nameof(StreamExtensions.ReadArray), ref failed);
+                return AddCollection(tr, tr.GetElementType(), nameof(MemoryExtensions.ReadArray), ref failed);
             }
 
             var td = tr.Resolve();
@@ -94,7 +95,7 @@ namespace JFramework.Editor
             {
                 var genericInstance = (GenericInstanceType)tr;
                 var elementType = genericInstance.GenericArguments[0];
-                return AddCollection(tr, elementType, nameof(StreamExtensions.ReadList), ref failed);
+                return AddCollection(tr, elementType, nameof(MemoryExtensions.ReadList), ref failed);
             }
 
             if (tr.IsDerivedFrom<NetworkBehaviour>() || tr.Is<NetworkBehaviour>())
@@ -183,7 +184,7 @@ namespace JFramework.Editor
                 return md;
             }
 
-            var extensions = assembly.MainModule.ImportReference(typeof(StreamExtensions));
+            var extensions = assembly.MainModule.ImportReference(typeof(MemoryExtensions));
             var mr = Helper.GetMethod(extensions, assembly, logger, name, ref failed);
 
             var method = new GenericInstanceMethod(mr);
@@ -250,8 +251,8 @@ namespace JFramework.Editor
 
         private MethodDefinition AddMethod(TypeReference tr)
         {
-            var md = new MethodDefinition($"Read{NetworkUtility.GetStableId(tr.FullName)}", Const.RAW_ATTRS, tr);
-            md.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<NetworkReader>()));
+            var md = new MethodDefinition($"Read{NetworkManager.GetStableId(tr.FullName)}", Const.RAW_ATTRS, tr);
+            md.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<MemoryReader>()));
             md.Body.InitLocals = true;
             Register(tr, md);
             generate.Methods.Add(md);
@@ -295,7 +296,7 @@ namespace JFramework.Editor
             var module = assembly.MainModule;
             var reader = module.ImportReference(typeof(Reader<>));
             var func = module.ImportReference(typeof(Func<,>));
-            var tr = module.ImportReference(typeof(NetworkReader));
+            var tr = module.ImportReference(typeof(MemoryReader));
             var fr = module.ImportReference(typeof(Reader<>).GetField(nameof(Reader<object>.read)));
             var mr = module.ImportReference(typeof(Func<,>).GetConstructors()[0]);
             foreach (var (type, method) in methods)

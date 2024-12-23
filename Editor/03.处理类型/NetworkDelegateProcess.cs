@@ -82,7 +82,7 @@ namespace JFramework.Editor
             
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldstr, md.FullName);
-            worker.Emit(OpCodes.Ldc_I4, (int)NetworkUtility.GetStableId(md.FullName));
+            worker.Emit(OpCodes.Ldc_I4, (int)NetworkManager.GetStableId(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, ca.GetFieldType<int>());
             worker.Emit(OpCodes.Callvirt, models.sendClientRpcInternal);
@@ -157,7 +157,7 @@ namespace JFramework.Editor
             
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldstr, md.FullName);
-            worker.Emit(OpCodes.Ldc_I4, (int)NetworkUtility.GetStableId(md.FullName));
+            worker.Emit(OpCodes.Ldc_I4, (int)NetworkManager.GetStableId(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, ca.GetFieldType<int>());
             worker.Emit(OpCodes.Call, models.sendServerRpcInternal);
@@ -232,7 +232,7 @@ namespace JFramework.Editor
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(HasNetworkClient(md) ? OpCodes.Ldarg_1 : OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldstr, md.FullName);
-            worker.Emit(OpCodes.Ldc_I4, (int)NetworkUtility.GetStableId(md.FullName));
+            worker.Emit(OpCodes.Ldc_I4, (int)NetworkManager.GetStableId(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, ca.GetFieldType<int>());
             worker.Emit(OpCodes.Callvirt, models.sendTargetRpcInternal);
@@ -382,8 +382,7 @@ namespace JFramework.Editor
         /// <param name="error"></param>
         private static void NetworkClientActive(ILProcessor worker, Models models, string mdName, Instruction label, string error)
         {
-            worker.Emit(OpCodes.Call, models.NetworkClientRef);
-            worker.Emit(OpCodes.Callvirt, models.NetworkClientActiveRef);
+            worker.Emit(OpCodes.Call, models.NetworkClientActiveRef);
             worker.Emit(OpCodes.Brtrue, label);
             worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是客户端不是活跃的。");
             worker.Emit(OpCodes.Call, models.logErrorRef);
@@ -401,8 +400,7 @@ namespace JFramework.Editor
         /// <param name="error"></param>
         private static void NetworkServerActive(ILProcessor worker, Models models, string mdName, Instruction label, string error)
         {
-            worker.Emit(OpCodes.Call, models.NetworkServerRef);
-            worker.Emit(OpCodes.Callvirt, models.NetworkServerActiveRef);
+            worker.Emit(OpCodes.Call, models.NetworkServerActiveRef);
             worker.Emit(OpCodes.Brtrue, label);
             worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是服务器不是活跃的。");
             worker.Emit(OpCodes.Call, models.logErrorRef);

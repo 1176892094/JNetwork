@@ -14,6 +14,7 @@ using JFramework.Net;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UnityEngine;
+using MemoryExtensions = JFramework.Net.MemoryExtensions;
 using Object = UnityEngine.Object;
 
 namespace JFramework.Editor
@@ -61,7 +62,7 @@ namespace JFramework.Editor
                     return null;
                 }
 
-                return AddCollection(tr, tr.GetElementType(), nameof(StreamExtensions.WriteArray), ref failed);
+                return AddCollection(tr, tr.GetElementType(), nameof(MemoryExtensions.WriteArray), ref failed);
             }
 
             var td = tr.Resolve();
@@ -91,7 +92,7 @@ namespace JFramework.Editor
             {
                 var genericInstance = (GenericInstanceType)tr;
                 var elementType = genericInstance.GenericArguments[0];
-                return AddCollection(tr, elementType, nameof(StreamExtensions.WriteList), ref failed);
+                return AddCollection(tr, elementType, nameof(MemoryExtensions.WriteList), ref failed);
             }
 
             if (tr.IsDerivedFrom<NetworkBehaviour>() || tr.Is<NetworkBehaviour>())
@@ -154,7 +155,7 @@ namespace JFramework.Editor
         {
             var genericInstance = (GenericInstanceType)tr;
             var elementType = genericInstance.GenericArguments[0];
-            return AddCollection(tr, elementType, nameof(StreamExtensions.WriteArraySegment), ref failed);
+            return AddCollection(tr, elementType, nameof(MemoryExtensions.WriteArraySegment), ref failed);
         }
 
         private MethodDefinition AddCollection(TypeReference tr, TypeReference element, string name, ref bool failed)
@@ -169,7 +170,7 @@ namespace JFramework.Editor
                 return md;
             }
             
-            var extensions = assembly.MainModule.ImportReference(typeof(StreamExtensions));
+            var extensions = assembly.MainModule.ImportReference(typeof(MemoryExtensions));
             var mr = Helper.GetMethod(extensions, assembly, logger, name, ref failed);
 
             var method = new GenericInstanceMethod(mr);
@@ -215,8 +216,8 @@ namespace JFramework.Editor
 
         private MethodDefinition AddMethod(TypeReference tr)
         {
-            var md = new MethodDefinition($"Write{NetworkUtility.GetStableId(tr.FullName)}", Const.RAW_ATTRS, models.Import(typeof(void)));
-            md.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, models.Import<NetworkWriter>()));
+            var md = new MethodDefinition($"Write{NetworkManager.GetStableId(tr.FullName)}", Const.RAW_ATTRS, models.Import(typeof(void)));
+            md.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, models.Import<MemoryWriter>()));
             md.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, tr));
             md.Body.InitLocals = true;
             Register(tr, md);
@@ -264,7 +265,7 @@ namespace JFramework.Editor
             var module = assembly.MainModule;
             var reader = module.ImportReference(typeof(Writer<>));
             var func = module.ImportReference(typeof(Action<,>));
-            var tr = module.ImportReference(typeof(NetworkWriter));
+            var tr = module.ImportReference(typeof(MemoryWriter));
             var fr = module.ImportReference(typeof(Writer<>).GetField(nameof(Writer<object>.write)));
             var mr = module.ImportReference(typeof(Action<,>).GetConstructors()[0]);
             foreach (var (type, method) in methods)

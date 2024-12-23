@@ -93,7 +93,7 @@ namespace JFramework.Editor
         public static void WriteInitLocals(ILProcessor worker, Models models)
         {
             worker.Body.InitLocals = true;
-            worker.Body.Variables.Add(new VariableDefinition(models.Import<NetworkWriter>()));
+            worker.Body.Variables.Add(new VariableDefinition(models.Import<MemoryWriter>()));
         }
 
         public static void WritePopWriter(ILProcessor worker, Models models)
@@ -111,7 +111,7 @@ namespace JFramework.Editor
         public static void AddInvokeParameters(Models models, ICollection<ParameterDefinition> collection)
         {
             collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, models.Import<NetworkBehaviour>()));
-            collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<NetworkReader>()));
+            collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<MemoryReader>()));
             collection.Add(new ParameterDefinition("target", ParameterAttributes.None, models.Import<NetworkClient>()));
         }
     }
@@ -415,7 +415,7 @@ namespace JFramework.Editor
             if (generate.GetMethod(Const.SER_METHOD) != null) return;
             if (syncVars.Count == 0) return;
             var serialize = new MethodDefinition(Const.SER_METHOD, Const.SER_ATTRS, models.Import(typeof(void)));
-            serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, models.Import<NetworkWriter>()));
+            serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, models.Import<MemoryWriter>()));
             serialize.Parameters.Add(new ParameterDefinition("status", ParameterAttributes.None, models.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
 
@@ -517,7 +517,7 @@ namespace JFramework.Editor
             if (generate.GetMethod(Const.DES_METHOD) != null) return;
             if (syncVars.Count == 0) return;
             var serialize = new MethodDefinition(Const.DES_METHOD, Const.SER_ATTRS, models.Import(typeof(void)));
-            serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<NetworkReader>()));
+            serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, models.Import<MemoryReader>()));
             serialize.Parameters.Add(new ParameterDefinition("status", ParameterAttributes.None, models.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
 

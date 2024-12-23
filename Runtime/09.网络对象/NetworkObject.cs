@@ -1,118 +1,44 @@
 // *********************************************************************************
-// # Project: Test
-// # Unity: 2022.3.5f1c1
-// # Author: Charlotte
+// # Project: JFramework
+// # Unity: 6000.3.5f1
+// # Author: 云谷千羽
 // # Version: 1.0.0
-// # History: 2024-06-05  13:06
-// # Copyright: 2024, Charlotte
+// # History: 2024-12-21 23:12:50
+// # Recently: 2024-12-22 23:12:53
+// # Copyright: 2024, 云谷千羽
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using JFramework.Interface;
 using UnityEngine;
 
 namespace JFramework.Net
 {
-    public sealed partial class NetworkObject : MonoBehaviour
+    public sealed partial class NetworkObject : MonoBehaviour, IEntity
     {
-        /// <summary>
-        /// 网络变量序列化
-        /// </summary>
-        internal struct Synchronize
-        {
-            public int frame;
-            public readonly NetworkWriter owner;
-            public readonly NetworkWriter observer;
-        
-            public Synchronize(int frame)
-            {
-                this.frame = frame;
-                owner = new NetworkWriter();
-                observer = new NetworkWriter();
-            }
-        }
-        
-        /// <summary>
-        /// 场景Id列表
-        /// </summary>
-        private static readonly Dictionary<ulong, NetworkObject> sceneIds = new Dictionary<ulong, NetworkObject>();
+        [SerializeField] internal string assetId;
 
-        /// <summary>
-        /// 上一次序列化间隔
-        /// </summary>
-        private Synchronize synchronize = new Synchronize(0);
+        [SerializeField] internal uint objectId;
 
-        /// <summary>
-        /// 作为资源的路径
-        /// </summary>
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ReadOnly]
-#endif
-        [SerializeField]
-        internal string assetId;
+        [SerializeField] internal ulong sceneId;
 
-        /// <summary>
-        /// 游戏对象Id，用于网络标识
-        /// </summary>
+        [SerializeField] internal EntityMode entityMode;
 
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ReadOnly]
-#endif
-        [SerializeField]
-        internal uint objectId;
+        internal NetworkClient connection;
 
-        /// <summary>
-        /// 作为场景资源的Id
-        /// </summary>
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ReadOnly]
-#endif
-        [SerializeField]
-        internal ulong sceneId;
-
-        /// <summary>
-        /// 是否有用权限
-        /// </summary>
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ReadOnly]
-#endif
-        [SerializeField]
-        internal EntityMode entityMode;
-
-        /// <summary>
-        /// 是否为第一次生成
-        /// </summary>
-        private bool isSpawn;
-
-        /// <summary>
-        /// NetworkManager.Server.Despawn
-        /// </summary>
-        internal bool isDestroy;
-
-        /// <summary>
-        /// 是否经过权限验证
-        /// </summary>
-        private bool isAuthority;
-
-        /// <summary>
-        /// 所持有的 NetworkBehaviour
-        /// </summary>
         internal NetworkBehaviour[] entities;
 
-        /// <summary>
-        /// 连接的代理
-        /// </summary>
-        internal NetworkClient connection;
+        internal EntityState entityState;
+
+        private NetworkSerialize serialize = new NetworkSerialize(0);
 
         private void Awake()
         {
             entities = GetComponentsInChildren<NetworkBehaviour>(true);
             if (IsValid())
             {
-                for (int i = 0; i < entities.Length; ++i)
+                for (var i = 0; i < entities.Length; ++i)
                 {
                     entities[i].@object = this;
                     entities[i].componentId = (byte)i;
@@ -123,105 +49,81 @@ namespace JFramework.Net
         public void Reset()
         {
             objectId = 0;
-            isSpawn = false;
-            isAuthority = false;
-            entityMode = EntityMode.None;
             connection = null;
-            sceneIds.Clear();
+            entityMode = EntityMode.None;
+            entityState = EntityState.None;
         }
 
         private void OnDestroy()
         {
-            if ((entityMode & EntityMode.Server) == EntityMode.Server && !isDestroy)
+            if ((entityMode & EntityMode.Server) == EntityMode.Server && (entityState & EntityState.Destroy) == 0)
             {
                 NetworkManager.Server.Despawn(gameObject);
             }
 
-            if ((entityMode & EntityMode.Client) == EntityMode.Client)
+            if ((entityMode & EntityMode.Client) != 0)
             {
                 NetworkManager.Client.spawns.Remove(objectId);
             }
         }
 
-        /// <summary>
-        /// 设置为改变
-        /// </summary>
-        /// <param name="mask"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsDirty(ulong mask, int index)
         {
             return (mask & (ulong)(1 << index)) != 0;
         }
 
-        /// <summary>
-        /// 判断是否有效
-        /// </summary>
-        /// <returns></returns>
         private bool IsValid()
         {
             if (entities == null)
             {
-                Debug.LogError($"网络对象持有的 NetworkEntity 为空", gameObject);
+                Debug.LogError("网络对象持有的 NetworkEntity 为空", gameObject);
                 return false;
             }
 
-            if (entities.Length > Const.MaxEntity)
+            if (entities.Length > 64)
             {
-                Debug.LogError($"网络对象持有的 NetworkEntity 的数量不能超过{Const.MaxEntity}");
+                Debug.LogError("网络对象持有的 NetworkEntity 的数量不能超过 64");
                 return false;
             }
 
             return true;
         }
 
-        /// <summary>
-        /// 处理Rpc事件
-        /// </summary>
-        internal void InvokeMessage(byte index, ushort function, InvokeMode mode, NetworkReader reader, NetworkClient client = null)
+        internal void InvokeMessage(byte index, ushort function, InvokeMode mode, MemoryReader reader, NetworkClient client = null)
         {
             if (this == null)
             {
-                Debug.LogWarning($"调用了已经删除的网络对象。{mode} [{function}] 网络Id：{objectId}");
+                Debug.LogWarning(Service.Text.Format("调用了已经删除的网络对象。{0} [{1}] {2}", mode, function, objectId));
                 return;
             }
 
             if (index >= entities.Length)
             {
-                Debug.LogWarning($"没有找到组件Id：[{index}] 网络Id：{objectId}");
+                Debug.LogWarning(Service.Text.Format("网络对象{0}，没有找到组件{1}", objectId, index));
                 return;
             }
 
             if (!NetworkDelegate.Invoke(function, mode, client, reader, entities[index]))
             {
-                Debug.LogError($"无法调用{mode} [{function}] 网络对象：{gameObject.name} 网络Id：{objectId}");
+                Debug.LogError(Service.Text.Format("无法调用{0} [{1}] 网络对象: {2} 网络标识: {3}", mode, function, gameObject.name, objectId));
             }
         }
 
-        /// <summary>
-        /// 服务器帧序列化
-        /// </summary>
-        /// <param name="frame"></param>
-        /// <returns></returns>
-        internal Synchronize Synchronization(int frame)
+        internal NetworkSerialize Synchronization(int frame)
         {
-            if (synchronize.frame != frame)
+            if (serialize.frame != frame)
             {
-                synchronize.frame = frame;
-                synchronize.owner.position = 0;
-                synchronize.observer.position = 0;
-                ServerSerialize(false, synchronize.owner, synchronize.observer);
+                serialize.frame = frame;
+                serialize.owner.position = 0;
+                serialize.observer.position = 0;
+                ServerSerialize(false, serialize.owner, serialize.observer);
                 ClearDirty(true);
             }
 
-            return synchronize;
+            return serialize;
         }
 
-        /// <summary>
-        /// 清除改变值
-        /// </summary>
-        /// <param name="total"></param>
         internal void ClearDirty(bool total = false)
         {
             foreach (var entity in entities)
@@ -233,13 +135,14 @@ namespace JFramework.Net
             }
         }
 
-        /// <summary>
-        /// 仅在客户端调用，当在客户端生成时调用
-        /// </summary>
         internal void OnStartClient()
         {
-            if (isSpawn) return;
-            isSpawn = true;
+            if ((entityState & EntityState.Spawn) != 0)
+            {
+                return;
+            }
+
+            entityState |= EntityState.Spawn;
 
             foreach (var entity in entities)
             {
@@ -254,12 +157,12 @@ namespace JFramework.Net
             }
         }
 
-        /// <summary>
-        /// 仅在客户端调用，当在客户端销毁时调用
-        /// </summary>
         internal void OnStopClient()
         {
-            if (!isSpawn) return;
+            if ((entityState & EntityState.Spawn) == 0)
+            {
+                return;
+            }
 
             foreach (var entity in entities)
             {
@@ -274,9 +177,6 @@ namespace JFramework.Net
             }
         }
 
-        /// <summary>
-        /// 仅在服务器上调用，当在服务器生成时调用
-        /// </summary>
         internal void OnStartServer()
         {
             foreach (var entity in entities)
@@ -292,9 +192,6 @@ namespace JFramework.Net
             }
         }
 
-        /// <summary>
-        /// 仅在服务器上调用，当在服务器生成时调用
-        /// </summary>
         internal void OnStopServer()
         {
             foreach (var entity in entities)
@@ -310,26 +207,27 @@ namespace JFramework.Net
             }
         }
 
-        /// <summary>
-        /// 仅在客户端调用，触发Notify则进行权限认证
-        /// </summary>
         internal void OnNotifyAuthority()
         {
-            if (!isAuthority && (entityMode & EntityMode.Owner) == EntityMode.Owner)
+            if ((entityState & EntityState.Authority) == 0 && (entityMode & EntityMode.Owner) != 0)
             {
                 OnStartAuthority();
             }
-            else if (isAuthority && (entityMode & EntityMode.Owner) != EntityMode.Owner)
+            else if ((entityState & EntityState.Authority) != 0 && (entityMode & EntityMode.Owner) == 0)
             {
                 OnStopAuthority();
             }
 
-            isAuthority = (entityMode & EntityMode.Owner) == EntityMode.Owner;
+            if ((entityMode & EntityMode.Owner) != 0)
+            {
+                entityState |= EntityState.Authority;
+            }
+            else
+            {
+                entityState &= ~EntityState.Authority;
+            }
         }
 
-        /// <summary>
-        /// 仅在客户端调用，当通过验证时调用
-        /// </summary>
         private void OnStartAuthority()
         {
             foreach (var entity in entities)
@@ -345,9 +243,6 @@ namespace JFramework.Net
             }
         }
 
-        /// <summary>
-        /// 仅在客户端调用，当停止验证时调用
-        /// </summary>
         private void OnStopAuthority()
         {
             foreach (var entity in entities)
@@ -360,6 +255,20 @@ namespace JFramework.Net
                 {
                     Debug.LogException(e, entity.gameObject);
                 }
+            }
+        }
+
+        internal struct NetworkSerialize
+        {
+            public int frame;
+            public readonly MemoryWriter owner;
+            public readonly MemoryWriter observer;
+
+            public NetworkSerialize(int frame)
+            {
+                this.frame = frame;
+                owner = new MemoryWriter();
+                observer = new MemoryWriter();
             }
         }
     }

@@ -39,38 +39,37 @@ namespace JFramework.Editor
 
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)
         {
-            var peData = compiledAssembly.InMemoryAssembly.PeData;
-            using var stream = new MemoryStream(peData);
-            using var resolver = new AssemblyResolver(compiledAssembly, logger);
-            using var symbols = new MemoryStream(compiledAssembly.InMemoryAssembly.PdbData);
-            var readerParameters = new ReaderParameters
+            using var ar = new AssemblyResolver(compiledAssembly, logger);
+            using var ss = new MemoryStream(compiledAssembly.InMemoryAssembly.PdbData);
+            var rp = new ReaderParameters
             {
-                SymbolStream = symbols,
+                SymbolStream = ss,
                 SymbolReaderProvider = new PortablePdbReaderProvider(),
-                AssemblyResolver = resolver,
+                AssemblyResolver = ar,
                 ReflectionImporterProvider = new ReflectionProvider(),
                 ReadingMode = ReadingMode.Immediate
             };
-
-            using var assembly = AssemblyDefinition.ReadAssembly(stream, readerParameters);
-            resolver.SetAssemblyDefinitionForCompiledAssembly(assembly);
+            var pd = compiledAssembly.InMemoryAssembly.PeData;
+            using var ms = new MemoryStream(pd);
+            using var ad = AssemblyDefinition.ReadAssembly(ms, rp);
+            ar.SetAssemblyDefinitionForCompiledAssembly(ad);
             var process = new Process(logger);
-            if (!process.Execute(assembly, resolver, out var change) || !change)
+            if (!process.Execute(ad, ar, out var change) || !change)
             {
                 return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, logger.logs);
             }
 
-            var mainModule = assembly.MainModule;
-            if (mainModule.AssemblyReferences.Any(reference => reference.Name == assembly.Name.Name))
+            var mm = ad.MainModule;
+            if (mm.AssemblyReferences.Any(assembly => assembly.Name == ad.Name.Name))
             {
-                var name = mainModule.AssemblyReferences.First(reference => reference.Name == assembly.Name.Name);
-                mainModule.AssemblyReferences.Remove(name);
+                var an = mm.AssemblyReferences.First(assembly => assembly.Name == ad.Name.Name);
+                mm.AssemblyReferences.Remove(an);
             }
 
             using var pe = new MemoryStream();
             using var pdb = new MemoryStream();
 
-            var writerParameters = new WriterParameters
+            var wp = new WriterParameters
             {
                 SymbolWriterProvider = new PortablePdbWriterProvider(),
                 SymbolStream = pdb,
@@ -78,7 +77,7 @@ namespace JFramework.Editor
             };
 
 
-            assembly.Write(pe, writerParameters);
+            ad.Write(pe, wp);
             return new ILPostProcessResult(new InMemoryAssembly(pe.ToArray(), pdb.ToArray()), logger.logs);
         }
     }

@@ -1,0 +1,19 @@
+{
+  "name": "JFramework.Transport",
+  "rootNamespace": "",
+  "references": [
+    "GUID:07ad8418560d440e491d50ad3ae8365a",
+    "GUID:d8ce6126430ed467f929d29db18099c7",
+    "GUID:97ca39a133712418ca661a4ad6b372ad",
+    "GUID:753330021df6b4bc080c81875189d59f"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
